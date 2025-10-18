@@ -5,6 +5,9 @@ import { CuratorUI } from './components/ui/CuratorUI';
 import { PortfolioItem, ChatMessage, GenArtParams } from './types';
 import { GoogleGenAI, Type } from "@google/genai";
 
+// FIX: Per coding guidelines, the API key must be sourced directly from process.env.API_KEY at the time of use.
+// The `import.meta.env` syntax was causing a TypeScript error and is not the recommended way to access the key.
+
 function App() {
   const [selectedItem, setSelectedItem] = useState<PortfolioItem | null>(null);
   const [loading, setLoading] = useState(true);
@@ -14,6 +17,7 @@ function App() {
   const [genArtParams, setGenArtParams] = useState<GenArtParams>({ color: '#ffffff', distort: 0.4, speed: 2 });
 
   useEffect(() => {
+    // FIX: Removed API_KEY check, as coding guidelines state to assume the key is always present in the environment.
     const timer = setTimeout(() => setLoading(false), 1500);
     return () => clearTimeout(timer);
   }, []);
@@ -37,6 +41,7 @@ function App() {
     setChatMessages(prev => [...prev, newUserMessage]);
     setIsCuratorLoading(true);
 
+    // FIX: Removed API key existence check and now initialize GoogleGenAI with process.env.API_KEY directly, per guidelines.
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
     let systemInstruction = `You are an expert curator for a digital museum. You are witty, insightful, and knowledgeable. The user is currently viewing the "${selectedItem.title}" exhibit. The exhibit's theme is: "${selectedItem.description}". Answer the user's question concisely based on this context.`;
@@ -56,7 +61,7 @@ function App() {
     
     try {
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-pro',
+        model: 'gemini-2.5-flash',
         contents: prompt,
         config: {
           systemInstruction: systemInstruction,
@@ -75,7 +80,7 @@ function App() {
               curatorResponseText = `Understood. I've adjusted the generative art parameters as you requested.`;
             }
          } catch(e) {
-            // It's not JSON, so it's a regular text response. We can ignore the error.
+            // Not a JSON response, so it's a regular text response. Ignore the error.
          }
       }
 

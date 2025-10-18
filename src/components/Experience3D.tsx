@@ -1,10 +1,20 @@
 import React, { useRef, useState, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+// FIX: Import `ThreeElements` to make its type available for JSX namespace augmentation.
+import { Canvas, useFrame, ThreeElements } from '@react-three/fiber';
 import { Text, Stars, MeshDistortMaterial } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import { PortfolioItem, GenArtParams } from '../types';
 import { PORTFOLIO_ITEMS } from '../constants';
+
+// FIX: Augment JSX.IntrinsicElements to include @react-three/fiber's primitives.
+// This resolves TypeScript errors that occur when the project's configuration
+// does not automatically pick up the library's JSX type extensions.
+declare global {
+  namespace JSX {
+    interface IntrinsicElements extends ThreeElements {}
+  }
+}
 
 interface GenerativeArtNodeProps {
   item: PortfolioItem;
