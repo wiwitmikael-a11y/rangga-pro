@@ -3,12 +3,13 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { Text, Stars, MeshDistortMaterial } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
-import { PortfolioItem, GenArtParams } from '@/types';
-import { PORTFOLIO_ITEMS } from '@/constants';
+import { PortfolioItem, GenArtParams } from '../types';
+import { PORTFOLIO_ITEMS } from '../constants';
 
 interface GenerativeArtNodeProps {
   item: PortfolioItem;
-  onSelectItem: (item: PortfolioItem) => void;
+  // FIX: Aligned prop type with parent component to resolve type error.
+  onSelectItem: (item: PortfolioItem | null) => void;
   params: GenArtParams;
 }
 
@@ -50,7 +51,8 @@ function GenerativeArtNode({ item, onSelectItem, params }: GenerativeArtNodeProp
 
 interface PortfolioNodeProps {
   item: PortfolioItem;
-  onSelectItem: (item: PortfolioItem) => void;
+  // FIX: Aligned prop type with parent component to resolve type error.
+  onSelectItem: (item: PortfolioItem | null) => void;
 }
 
 function PortfolioNode({ item, onSelectItem }: PortfolioNodeProps) {

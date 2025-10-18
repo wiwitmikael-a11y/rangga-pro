@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChatMessage, PortfolioItem } from '@/types';
+import { ChatMessage, PortfolioItem } from '../../types';
 
 interface CuratorUIProps {
   isOpen: boolean;

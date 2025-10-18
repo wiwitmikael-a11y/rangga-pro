@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Experience3D } from '@/components/Experience3D';
-import { Loader } from '@/components/ui/Loader';
-import { CuratorUI } from '@/components/ui/CuratorUI';
-import { PortfolioItem, ChatMessage, GenArtParams } from '@/types';
+import { Experience3D } from './components/Experience3D';
+import { Loader } from './components/ui/Loader';
+import { CuratorUI } from './components/ui/CuratorUI';
+import { PortfolioItem, ChatMessage, GenArtParams } from './types';
 import { GoogleGenAI, Type } from "@google/genai";
 
 function App() {
