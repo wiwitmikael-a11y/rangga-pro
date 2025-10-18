@@ -7,14 +7,9 @@ import * as THREE from 'three';
 import { PortfolioItem, GenArtParams } from '../types';
 import { PORTFOLIO_ITEMS } from '../constants';
 
-// FIX: Augment JSX.IntrinsicElements to include @react-three/fiber's primitives.
-// This resolves TypeScript errors that occur when the project's configuration
-// does not automatically pick up the library's JSX type extensions.
-declare global {
-  namespace JSX {
-    interface IntrinsicElements extends ThreeElements {}
-  }
-}
+// FIX: Removed the local 'declare global' block. JSX type augmentation is now handled
+// globally in `src/main.tsx` to correctly merge types for standard HTML and
+// @react-three/fiber elements, fixing all related JSX errors.
 
 interface GenerativeArtNodeProps {
   item: PortfolioItem;
