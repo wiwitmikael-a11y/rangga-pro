@@ -9,7 +9,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 // FIX: Per coding guidelines, the API key must be sourced directly from process.env.API_KEY at the time of use.
 // The `import.meta.env` syntax was causing a TypeScript error and is not the recommended way to access the key.
 
-function App() {
+function MuseumApp() {
   const [selectedItem, setSelectedItem] = useState<PortfolioItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [isStarted, setIsStarted] = useState(false);
@@ -143,4 +143,4 @@ function App() {
   );
 }
 
-export default App;
+export default MuseumApp;

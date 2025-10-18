@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
+import MuseumApp from './App';
 import type { ThreeElements } from '@react-three/fiber';
 
 // FIX: Add global JSX type declarations to include both standard HTML
@@ -17,6 +17,6 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <React.StrictMode>
-    <App />
+    <MuseumApp />
   </React.StrictMode>
 );
