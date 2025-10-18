@@ -36,7 +36,7 @@ export const PORTFOLIO_ITEMS: PortfolioItem[] = [
     description: 'Crafting narratives in motion. From conceptual cinematography to final edit, creating immersive visual stories that engage, inform, and inspire.',
     position3D: [5, 0, 5],
   },
-    {
+  {
     id: 'generative-art',
     title: 'Generative Art',
     category: 'Right Brain / Creativity',

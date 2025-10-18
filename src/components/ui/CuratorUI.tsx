@@ -31,19 +31,20 @@ export function CuratorUI({ isOpen, onClose, messages, onSendMessage, isLoading,
       ...styles.container,
       transform: isOpen ? 'translateY(0)' : 'translateY(100%)',
       opacity: isOpen ? 1 : 0,
+      visibility: isOpen ? 'visible' : 'hidden',
     }}>
-      <button onClick={onClose} style={styles.closeButton} aria-label="Close Curator Panel">×</button>
       <div style={styles.header}>
         <h3 style={styles.title}>AI Curator</h3>
         {selectedItem && <p style={styles.subtitle}>Discussing: {selectedItem.title}</p>}
+        <button onClick={onClose} style={styles.closeButton} aria-label="Close Curator Panel">×</button>
       </div>
       <div style={styles.chatArea}>
         {messages.map((msg) => (
-          <div key={msg.id} style={msg.sender === 'user' ? styles.userMessage : styles.curatorMessage}>
+          <div key={msg.id} style={{...styles.message, ...(msg.sender === 'user' ? styles.userMessage : styles.curatorMessage)}}>
             {msg.text}
           </div>
         ))}
-        {isLoading && <div style={styles.curatorMessage}>Thinking...</div>}
+        {isLoading && <div style={{...styles.message, ...styles.curatorMessage}}>Thinking...</div>}
         <div ref={chatEndRef} />
       </div>
       <form onSubmit={handleSubmit} style={styles.inputForm}>
@@ -51,11 +52,12 @@ export function CuratorUI({ isOpen, onClose, messages, onSendMessage, isLoading,
           type="text"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
-          placeholder="Ask a question or give a command..."
+          placeholder="Ask a question..."
           style={styles.input}
           disabled={isLoading}
+          aria-label="Chat input"
         />
-        <button type="submit" style={styles.sendButton} disabled={isLoading}>
+        <button type="submit" style={styles.sendButton} disabled={isLoading} aria-label="Send message">
           Send
         </button>
       </form>
@@ -77,32 +79,37 @@ const styles: { [key: string]: React.CSSProperties } = {
     zIndex: 100,
     display: 'flex',
     flexDirection: 'column',
-    transition: 'transform 0.5s ease-out, opacity 0.5s ease-out',
-    fontFamily: 'sans-serif',
+    transition: 'transform 0.5s ease-out, opacity 0.5s ease-out, visibility 0.5s',
     color: '#fff',
+    fontFamily: `system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif`,
+  },
+  header: {
+    padding: '15px 20px',
+    borderBottom: '1px solid #333',
+    position: 'relative',
+  },
+  title: {
+    margin: 0,
+    fontSize: '1.1rem',
+  },
+  subtitle: {
+    margin: '2px 0 0 0',
+    fontSize: '0.8rem',
+    color: '#aaa',
+    fontWeight: 'normal',
   },
   closeButton: {
     position: 'absolute',
-    top: '10px',
-    right: '10px',
+    top: '50%',
+    right: '15px',
+    transform: 'translateY(-50%)',
     background: 'transparent',
     border: 'none',
     color: '#888',
     fontSize: '24px',
     cursor: 'pointer',
-  },
-  header: {
-    padding: '15px 20px',
-    borderBottom: '1px solid #333',
-  },
-  title: {
-    margin: 0,
-    fontSize: '1.2rem',
-  },
-  subtitle: {
-    margin: '0',
-    fontSize: '0.8rem',
-    color: '#aaa',
+    padding: '5px',
+    lineHeight: '1',
   },
   chatArea: {
     flex: 1,
@@ -112,23 +119,24 @@ const styles: { [key: string]: React.CSSProperties } = {
     flexDirection: 'column',
     gap: '15px',
   },
+  message: {
+    padding: '10px 15px',
+    borderRadius: '18px',
+    maxWidth: '80%',
+    lineHeight: 1.5,
+    wordWrap: 'break-word',
+  },
   userMessage: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#007aff',
     color: 'white',
     alignSelf: 'flex-end',
     borderRadius: '18px 18px 4px 18px',
-    padding: '10px 15px',
-    maxWidth: '80%',
-    lineHeight: 1.5,
   },
   curatorMessage: {
     backgroundColor: '#333',
     color: '#eee',
     alignSelf: 'flex-start',
     borderRadius: '18px 18px 18px 4px',
-    padding: '10px 15px',
-    maxWidth: '80%',
-    lineHeight: 1.5,
   },
   inputForm: {
     display: 'flex',
@@ -149,7 +157,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '10px 20px',
     borderRadius: '20px',
     border: 'none',
-    background: '#007bff',
+    background: '#007aff',
     color: 'white',
     cursor: 'pointer',
   }

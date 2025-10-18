@@ -1,11 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import MuseumApp from './App';
+import App from './App';
 import type { ThreeElements } from '@react-three/fiber';
 
-// FIX: Add global JSX type declarations to include both standard HTML
-// and @react-three/fiber elements. This resolves TypeScript errors
-// about properties not existing on 'JSX.IntrinsicElements' project-wide.
+// Augment JSX standard types to include Three.js elements from @react-three/fiber.
+// This is a robust way to prevent JSX-related TypeScript errors across the project.
 declare global {
   namespace JSX {
     interface IntrinsicElements extends ThreeElements {}
@@ -17,6 +16,6 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <React.StrictMode>
-    <MuseumApp />
+    <App />
   </React.StrictMode>
 );

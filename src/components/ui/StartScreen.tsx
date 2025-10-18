@@ -38,8 +38,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     position: 'fixed',
     top: 0,
     left: 0,
-    width: '100vw',
-    height: '100vh',
+    width: '100%',
+    height: '100%',
     background: '#000',
     display: 'flex',
     justifyContent: 'center',
@@ -47,6 +47,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#fff',
     fontFamily: 'monospace',
     textAlign: 'center',
+    zIndex: 1000,
   },
   content: {
     animation: 'fadeIn 1.5s ease-out',
@@ -62,6 +63,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     margin: '10px 0 40px',
     color: '#ccc',
     letterSpacing: '0.05em',
+    fontWeight: 'normal',
   },
   startButton: {
     background: 'transparent',
