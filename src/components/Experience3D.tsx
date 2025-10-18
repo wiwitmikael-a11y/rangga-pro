@@ -13,7 +13,8 @@ interface GenerativeArtNodeProps {
   params: GenArtParams;
 }
 
-function GenerativeArtNode({ item, onSelectItem, params }: GenerativeArtNodeProps) {
+// FIX: Refactored component to use React.FC to correctly handle the 'key' prop in list rendering.
+const GenerativeArtNode: React.FC<GenerativeArtNodeProps> = ({ item, onSelectItem, params }) => {
     const meshRef = useRef<THREE.Mesh>(null!);
     const [hovered, setHovered] = useState(false);
   
@@ -55,7 +56,8 @@ interface PortfolioNodeProps {
   onSelectItem: (item: PortfolioItem | null) => void;
 }
 
-function PortfolioNode({ item, onSelectItem }: PortfolioNodeProps) {
+// FIX: Refactored component to use React.FC to correctly handle the 'key' prop in list rendering.
+const PortfolioNode: React.FC<PortfolioNodeProps> = ({ item, onSelectItem }) => {
   const meshRef = useRef<THREE.Mesh>(null!);
   const [hovered, setHovered] = useState(false);
 
