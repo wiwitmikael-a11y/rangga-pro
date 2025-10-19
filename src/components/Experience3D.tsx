@@ -1,7 +1,7 @@
-import React, { useRef, useState, useMemo, useEffect } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Text, Stars, MeshDistortMaterial, Billboard, Sparkles, Trail, useTexture, Plane } from '@react-three/drei';
-import { EffectComposer, Bloom, GodRays } from '@react-three/postprocessing';
+import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import { CityDistrict, PortfolioSubItem, GenArtParams, ChatMessage } from '../types';
 import { DISTRICTS } from '../constants';
@@ -339,7 +339,7 @@ interface Experience3DProps {
   isListening: boolean;
 }
 
-export function Experience3D({ 
+export default function Experience3D({ 
     onSelectDistrict,
     onSelectSubItem,
     selectedDistrict,
@@ -352,8 +352,6 @@ export function Experience3D({
     isListening
 }: Experience3DProps) {
     const curatorRef = useRef<THREE.Group>(null!);
-    const [godRaysSource, setGodRaysSource] = useState<THREE.Group | null>(null);
-    useEffect(() => setGodRaysSource(curatorRef.current), [curatorRef]);
 
   return (
     <Canvas style={{ position: 'fixed', top: 0, left: 0, zIndex: 1 }} camera={{ position: [0, 5, 40], fov: 60 }}>
@@ -409,13 +407,6 @@ export function Experience3D({
 
        <EffectComposer>
         <Bloom luminanceThreshold={0.2} luminanceSmoothing={0.9} height={300} intensity={1.8} />
-        {godRaysSource && <GodRays sun={godRaysSource} config={{
-            samples: 60,
-            density: 0.97,
-            decay: 0.97,
-            weight: 0.6,
-            exposure: 0.4
-        }}/>}
        </EffectComposer>
     </Canvas>
   );

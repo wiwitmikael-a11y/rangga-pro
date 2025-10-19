@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Experience3D } from './components/Experience3D';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Loader } from './components/ui/Loader';
 import { StartScreen } from './components/ui/StartScreen';
 import { ChatInput } from './components/ui/ChatInput';
 import { CityDistrict, PortfolioSubItem, ChatMessage, GenArtParams } from './types';
 import { GoogleGenAI, Type } from "@google/genai";
 import { useSpeechRecognition } from './hooks/useSpeechRecognition';
+
+const Experience3D = lazy(() => import('./components/Experience3D'));
 
 function App() {
   const [selectedDistrict, setSelectedDistrict] = useState<CityDistrict | null>(null);
@@ -143,18 +144,20 @@ function App() {
 
   return (
     <>
-      <Experience3D 
-        onSelectDistrict={handleSelectDistrict}
-        onSelectSubItem={handleSelectSubItem}
-        selectedDistrict={selectedDistrict}
-        selectedSubItem={selectedSubItem}
-        genArtParams={genArtParams}
-        messages={chatMessages}
-        onGoHome={handleGoHome}
-        isChatActive={isChatActive}
-        isCuratorLoading={isCuratorLoading}
-        isListening={isListening}
-      />
+      <Suspense fallback={<Loader />}>
+        <Experience3D 
+          onSelectDistrict={handleSelectDistrict}
+          onSelectSubItem={handleSelectSubItem}
+          selectedDistrict={selectedDistrict}
+          selectedSubItem={selectedSubItem}
+          genArtParams={genArtParams}
+          messages={chatMessages}
+          onGoHome={handleGoHome}
+          isChatActive={isChatActive}
+          isCuratorLoading={isCuratorLoading}
+          isListening={isListening}
+        />
+      </Suspense>
       {isChatActive && (
           <ChatInput 
             onSubmit={handleAskCurator}
