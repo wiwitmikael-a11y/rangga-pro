@@ -1,36 +1,35 @@
 import React from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrthographicCamera, Stars } from '@react-three/drei';
-import { PORTFOLIO_DATA } from '../../constants';
+import { CityDistrict, PortfolioSubItem } from '../types';
+import { PORTFOLIO_DATA } from '../constants';
 import { FloatingIsland } from './scene/FloatingIsland';
+import { CentralCore } from './scene/CentralCore';
 import { FlyingVehicles } from './scene/FlyingVehicles';
 import { CameraRig } from './scene/CameraRig';
-import { CityDistrict, PortfolioSubItem } from '../../types';
 
 interface Experience3DProps {
+  selectedDistrict: CityDistrict | null;
   onSelectDistrict: (district: CityDistrict | null) => void;
   onSelectSubItem: (item: PortfolioSubItem) => void;
-  selectedDistrict: CityDistrict | null;
 }
 
-const Experience3D: React.FC<Experience3DProps> = ({ onSelectDistrict, onSelectSubItem, selectedDistrict }) => {
+const Experience3D: React.FC<Experience3DProps> = ({
+  selectedDistrict,
+  onSelectDistrict,
+  onSelectSubItem,
+}) => {
   return (
-    <Canvas style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: '#050515' }}>
-      <OrthographicCamera makeDefault position={[15, 15, 15]} zoom={40} />
-      <CameraRig selectedDistrict={selectedDistrict} />
-
+    <Canvas
+      style={{ position: 'fixed', top: 0, left: 0, background: '#000510' }}
+      camera={{ position: [0, 2, 14], fov: 50 }}
+    >
       <ambientLight intensity={0.5} />
-      <directionalLight 
-        position={[10, 20, 5]} 
-        intensity={1.5} 
-        castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-      />
-      <pointLight position={[-10, -10, -10]} intensity={0.5} color="#00aaff" />
-
-      <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
+      <pointLight position={[0, 5, 0]} intensity={1} color="#00aaff" />
       
+      <fog attach="fog" args={['#000510', 10, 30]} />
+
+      <CentralCore />
+
       {PORTFOLIO_DATA.map((district) => (
         <FloatingIsland
           key={district.id}
@@ -40,8 +39,10 @@ const Experience3D: React.FC<Experience3DProps> = ({ onSelectDistrict, onSelectS
           isSelected={selectedDistrict?.id === district.id}
         />
       ))}
+      
+      <FlyingVehicles count={50} />
 
-      <FlyingVehicles count={20} />
+      <CameraRig selectedDistrict={selectedDistrict} />
     </Canvas>
   );
 };
