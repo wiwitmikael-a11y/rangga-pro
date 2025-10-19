@@ -217,7 +217,7 @@ const FlyingVehicle: React.FC<{ curve: THREE.CatmullRomCurve3, speed: number, of
         const geometries = [
             new THREE.BoxGeometry(0.1, 0.1, 0.5),
             new THREE.ConeGeometry(0.15, 0.5, 3),
-            new THREE.DodehedronGeometry(0.2, 0)
+            new THREE.DodecahedronGeometry(0.2, 0)
         ];
         return geometries[Math.floor(Math.random() * geometries.length)];
     }, []);
