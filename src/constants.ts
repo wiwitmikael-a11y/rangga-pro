@@ -5,7 +5,7 @@ export const PORTFOLIO_DATA: CityDistrict[] = [
     id: 'tech-hub',
     title: 'Tech Hub',
     description: 'Cutting-edge software engineering and cloud solutions.',
-    position3D: [-5, 0, 0],
+    position3D: [-8, 2, 0], // Left
     color: '#00ffff',
     subItems: [
       {
@@ -15,7 +15,7 @@ export const PORTFOLIO_DATA: CityDistrict[] = [
         content: `Built a highly scalable, resilient cloud-native platform using a microservices architecture on Kubernetes.
 - Technologies: Go, Docker, Kubernetes, gRPC, Prometheus.
 - Outcome: Reduced infrastructure costs by 30% and improved service uptime to 99.99%.`,
-        position: [-1, 0, 0],
+        position: [-0.5, 1, 1],
       },
       {
         id: 'project-b',
@@ -24,7 +24,7 @@ export const PORTFOLIO_DATA: CityDistrict[] = [
         content: `Developed a machine learning engine for real-time fraud detection.
 - Technologies: Python, TensorFlow, Scikit-learn, Kafka.
 - Outcome: Successfully identified and prevented fraudulent transactions, saving the company millions.`,
-        position: [1, 0, 0],
+        position: [1, 0.5, -0.5],
       },
     ],
   },
@@ -32,7 +32,7 @@ export const PORTFOLIO_DATA: CityDistrict[] = [
     id: 'design-district',
     title: 'Design District',
     description: 'Creative UI/UX design and immersive user experiences.',
-    position3D: [5, 0, 0],
+    position3D: [8, 0, 0], // Right
     color: '#ff00ff',
     subItems: [
       {
@@ -43,7 +43,7 @@ export const PORTFOLIO_DATA: CityDistrict[] = [
 - Process: User Research, Wireframing, Prototyping, A/B Testing.
 - Tools: Figma, Adobe XD, React Native.
 - Outcome: Increased user engagement by 50% and received a 4.8-star rating on the App Store.`,
-        position: [-1, 0, 0],
+        position: [-1, 0.8, -1],
       },
        {
         id: 'project-d',
@@ -52,7 +52,7 @@ export const PORTFOLIO_DATA: CityDistrict[] = [
         content: `Created a comprehensive brand identity and design system for a tech startup.
 - Deliverables: Logo, Color Palette, Typography, UI Kit, Brand Guidelines.
 - Impact: Established a strong, recognizable brand presence that resonated with the target audience.`,
-        position: [1, 0, 0],
+        position: [0.5, 1.2, 0.8],
       },
     ],
   },
@@ -60,7 +60,7 @@ export const PORTFOLIO_DATA: CityDistrict[] = [
     id: 'data-nexus',
     title: 'Data Nexus',
     description: 'Advanced data analytics and visualization.',
-    position3D: [0, 0, -5],
+    position3D: [0, -2, -8], // Front
     color: '#ffff00',
     subItems: [
         {
@@ -70,7 +70,7 @@ export const PORTFOLIO_DATA: CityDistrict[] = [
             content: `Engineered a real-time data visualization dashboard for monitoring key business metrics.
 - Technologies: D3.js, React, Node.js, WebSocket.
 - Feature: Provided stakeholders with live, actionable insights, improving decision-making speed by 40%.`,
-            position: [0, 0, -1],
+            position: [0, 1.5, 0],
         },
     ],
   },
