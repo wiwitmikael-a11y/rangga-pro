@@ -18,7 +18,15 @@ function App() {
   useEffect(() => {
     // Simulate initial asset loading
     const timer = setTimeout(() => setLoading(false), 1500);
-    return () => clearTimeout(timer);
+    
+    // Disable right-click context menu
+    const handleContextMenu = (e: MouseEvent) => e.preventDefault();
+    document.addEventListener('contextmenu', handleContextMenu);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('contextmenu', handleContextMenu);
+    };
   }, []);
   
   const handleStart = () => {

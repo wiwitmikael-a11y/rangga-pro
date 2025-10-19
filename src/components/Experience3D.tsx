@@ -1,7 +1,6 @@
 import React from 'react';
 import { Canvas } from '@react-three/fiber';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-// Fix: Add PortfolioSubItem to imports to be used in the props interface.
 import { CityDistrict, PortfolioSubItem } from '../types';
 import { portfolioData } from '../constants';
 import CameraRig from './scene/CameraRig';
@@ -9,15 +8,15 @@ import PCBFloor from './scene/PCBFloor';
 import DistrictBuilding from './scene/DistrictBuilding';
 import HolographicPanel from './scene/HolographicPanel';
 import DataBridge from './scene/DataBridge';
+import FloatingParticles from './scene/FloatingParticles';
 
 interface Experience3DProps {
   onSelectDistrict: (district: CityDistrict | null) => void;
   selectedDistrict: CityDistrict | null;
-  // Fix: Add onSelectSubItem to the component's props interface.
   onSelectSubItem: (item: PortfolioSubItem) => void;
 }
 
-const Experience3D: React.FC<Experience3DProps> = ({ onSelectDistrict, selectedDistrict }) => {
+const Experience3D: React.FC<Experience3DProps> = ({ onSelectDistrict, selectedDistrict, onSelectSubItem }) => {
   const districtMap = new Map(portfolioData.map(d => [d.id, d]));
 
   return (
@@ -33,15 +32,17 @@ const Experience3D: React.FC<Experience3DProps> = ({ onSelectDistrict, selectedD
 
       <group>
         <PCBFloor />
+        <FloatingParticles />
         
         {portfolioData.map(district => (
           <React.Fragment key={district.id}>
             <DistrictBuilding
               district={district}
               onSelect={() => onSelectDistrict(district)}
+              onSelectSubItem={onSelectSubItem}
               isSelected={selectedDistrict?.id === district.id}
             />
-            <HolographicPanel district={district} />
+            {selectedDistrict?.id === district.id && <HolographicPanel district={district} />}
             {district.connections?.map(connId => {
               const targetDistrict = districtMap.get(connId);
               if (targetDistrict) {

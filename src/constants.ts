@@ -7,7 +7,7 @@ export const portfolioData: CityDistrict[] = [
     description: 'The central processing core of the digital metropolis. Welcome to my world.',
     position3D: [0, 0, 0],
     shape: 'tower',
-    connections: ['about', 'services', 'portfolio-1', 'contact-2'],
+    connections: ['about', 'services', 'portfolio-1', 'contact'],
     subItems: [],
   },
   {
@@ -79,27 +79,10 @@ export const portfolioData: CityDistrict[] = [
     ],
   },
   {
-    id: 'contact-1',
+    id: 'contact',
     title: 'CONTACT',
     description: 'Connect and collaborate. Let\'s build the future together.',
     position3D: [15, 0, 8],
-    shape: 'ring',
-    connections: ['contact-2'],
-    subItems: [
-        {
-        id: 'email',
-        title: 'Email',
-        description: 'Direct line for inquiries and collaborations.',
-        content: 'For any questions or collaboration proposals, feel free to reach out at: contact@rangga.pro',
-        position: [0, 2.5, 0],
-      },
-    ],
-  },
-    {
-    id: 'contact-2',
-    title: 'CONTACT',
-    description: 'Connect and collaborate. Let\'s build the future together.',
-    position3D: [0, 0, 8],
     shape: 'tower',
     connections: [],
     subItems: [
