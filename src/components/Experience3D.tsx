@@ -20,16 +20,14 @@ const DistrictBuilding: React.FC<{ district: CityDistrict; onSelectDistrict: (di
   const [hovered, setHovered] = useState(false);
   const buildingHeight = 12;
   
-  const geometry = useMemo(() => {
-    const shape = new THREE.Shape();
-    shape.moveTo(0, 0);
-    shape.lineTo(2, 1);
-    shape.lineTo(3, 4);
-    shape.lineTo(1, 5);
-    shape.lineTo(-1, 4);
-    shape.lineTo(0, 0);
-    const extrudeSettings = { depth: buildingHeight, bevelEnabled: false };
-    return new THREE.ExtrudeGeometry(shape, extrudeSettings);
+  // Simplified cylinder-based geometry for performance
+  const buildingParts = useMemo(() => {
+    return [
+      { radius: 2, height: buildingHeight * 0.4, y: 0 },
+      { radius: 1.8, height: buildingHeight * 0.3, y: buildingHeight * 0.45 },
+      { radius: 1.5, height: buildingHeight * 0.25, y: buildingHeight * 0.75 },
+      { radius: 0.5, height: buildingHeight * 0.2, y: buildingHeight * 1.0 },
+    ]
   }, [buildingHeight]);
 
   useFrame((state, delta) => {
@@ -38,8 +36,8 @@ const DistrictBuilding: React.FC<{ district: CityDistrict; onSelectDistrict: (di
         const targetScale = isSelected ? 1.2 : (hovered ? 1.1 : 1);
         groupRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), delta * 3);
         const targetOpacity = isAnyDistrictSelected && !isSelected ? 0.1 : 1;
-        const text = groupRef.current.children[2] as any;
-        if(text.material) {
+        const text = groupRef.current.children.find(c => c.type === 'Text') as any;
+        if(text && text.material) {
           text.material.opacity += (targetOpacity - text.material.opacity) * (delta * 2);
         }
     }
@@ -53,11 +51,18 @@ const DistrictBuilding: React.FC<{ district: CityDistrict; onSelectDistrict: (di
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
     >
-      <mesh geometry={geometry} material={buildingMaterial} />
-      <mesh geometry={geometry} scale={[0.95, 0.95, 0.95]}>
-          <meshStandardMaterial color={district.color} emissive={district.color} emissiveIntensity={isSelected ? 3 : (hovered ? 2 : 1)} toneMapped={false} />
-      </mesh>
-      <Text position={[0, buildingHeight / 2 + 3, 0]} fontSize={1} color="white" anchorX="center" anchorY="middle" material-transparent={true}>
+        {/* Simplified main building structure */}
+        {buildingParts.map((part, i) => (
+            <mesh key={i} position-y={part.y} material={buildingMaterial}>
+                <cylinderGeometry args={[part.radius * 0.9, part.radius, part.height, 8]} />
+            </mesh>
+        ))}
+         {/* Emissive wireframe overlay */}
+        <mesh>
+            <cylinderGeometry args={[2.05, 2.05, buildingHeight, 6]} />
+            <meshStandardMaterial color={district.color} emissive={district.color} emissiveIntensity={isSelected ? 3 : (hovered ? 2 : 1)} toneMapped={false} wireframe />
+        </mesh>
+      <Text position={[0, buildingHeight + 2, 0]} fontSize={1} color="white" anchorX="center" anchorY="middle" material-transparent={true}>
         {district.title}
       </Text>
     </group>
@@ -154,8 +159,9 @@ const CuratorEntity: React.FC<{ onClick: () => void; isChatActive: boolean; isLo
     return (
         <group ref={ref} onClick={(e) => { e.stopPropagation(); onClick(); }}>
             {isLoading && <Sparkles count={50} scale={4} size={8} speed={0.4} color="#00aaff" />}
-            <mesh rotation-x={Math.PI / 2}>
-                <octahedronGeometry args={[2, 0]} />
+            {/* Simplified geometry */}
+            <mesh>
+                <sphereGeometry args={[2, 32, 32]} />
                 <meshStandardMaterial 
                     color="#ffffff" 
                     emissive="#00aaff" 
@@ -167,7 +173,7 @@ const CuratorEntity: React.FC<{ onClick: () => void; isChatActive: boolean; isLo
                 />
             </mesh>
             <mesh ref={innerCoreRef} scale={[0.5, 0.5, 0.5]}>
-                 <icosahedronGeometry args={[1, 1]} />
+                 <sphereGeometry args={[1, 32, 32]} />
                  <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={1} roughness={0} toneMapped={false}/>
             </mesh>
         </group>
@@ -212,21 +218,13 @@ const FlyingVehicle: React.FC<{ curve: THREE.CatmullRomCurve3, speed: number, of
             meshRef.current.lookAt(pos.clone().add(tangent));
         }
     });
-
-    const geometry = useMemo(() => {
-        const geometries = [
-            new THREE.BoxGeometry(0.1, 0.1, 0.5),
-            new THREE.ConeGeometry(0.15, 0.5, 3),
-            new THREE.DodecahedronGeometry(0.2, 0)
-        ];
-        return geometries[Math.floor(Math.random() * geometries.length)];
-    }, []);
-
+    
+    // Simplified to a single geometry type for all vehicles
     return (
         <group>
             <Trail width={0.2} length={5} color={new THREE.Color(color)} attenuation={(t) => t * t}>
                 <mesh ref={meshRef}>
-                    <primitive object={geometry} />
+                    <sphereGeometry args={[0.2, 8, 8]} />
                     <meshStandardMaterial emissive={color} color={color} toneMapped={false} />
                 </mesh>
             </Trail>
@@ -267,10 +265,10 @@ const Cityscape = () => {
                   toneMapped={false}
                 />
             </mesh>
-            {/* Flying Vehicles */}
+            {/* Flying Vehicles (Reduced count) */}
             {curves.map((curve, i) => (
-                Array.from({ length: 5 }).map((_, j) => (
-                    <FlyingVehicle key={`${i}-${j}`} curve={curve} speed={0.03 + Math.random() * 0.05} offset={j * 0.2} color={['#ff477e', '#00f5d4', '#e047ff'][i % 3]}/>
+                Array.from({ length: 2 }).map((_, j) => (
+                    <FlyingVehicle key={`${i}-${j}`} curve={curve} speed={0.03 + Math.random() * 0.05} offset={j * 0.5} color={['#ff477e', '#00f5d4', '#e047ff'][i % 3]}/>
                 ))
             ))}
         </group>
