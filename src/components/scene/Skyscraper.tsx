@@ -57,8 +57,6 @@ const Skyscraper: React.FC<SkyscraperProps> = ({ district, onSelect, onSelectSub
   const { position, height = 20, type } = district;
   const [hovered, setHovered] = useState(false);
 
-  // FIX: The useMemo hook should return the arguments for the geometry, not a JSX element.
-  // This preserves the random dimensions across re-renders.
   const buildingGeoArgs = useMemo<[number, number, number]>(() => {
     const width = type === 'major' ? 5 : 2 + Math.random() * 2;
     const depth = type === 'major' ? 5 : 2 + Math.random() * 2;
@@ -72,8 +70,6 @@ const Skyscraper: React.FC<SkyscraperProps> = ({ district, onSelect, onSelectSub
       onPointerOver={e => { e.stopPropagation(); if (type === 'major') { setHovered(true); document.body.style.cursor = 'pointer'; } }}
       onPointerOut={() => { if (type === 'major') { setHovered(false); document.body.style.cursor = 'auto'; } }}
     >
-      {/* FIX: The geometry component (<boxGeometry>) should be a child of <mesh>, 
-          and not passed as a JSX element to the `geometry` prop. */}
       <mesh material={baseMaterial}>
         <boxGeometry args={buildingGeoArgs} />
       </mesh>
