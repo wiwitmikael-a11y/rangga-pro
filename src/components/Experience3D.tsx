@@ -1,6 +1,6 @@
 import React, { useRef, useState, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Text, Stars, MeshDistortMaterial, Billboard, Sparkles, Trail, useTexture, Plane } from '@react-three/drei';
+import { Text, Stars, MeshDistortMaterial, Billboard, Trail, useTexture, Plane } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import { CityDistrict, PortfolioSubItem, GenArtParams, ChatMessage } from '../types';
@@ -158,7 +158,6 @@ const CuratorEntity: React.FC<{ onClick: () => void; isChatActive: boolean; isLo
 
     return (
         <group ref={ref} onClick={(e) => { e.stopPropagation(); onClick(); }}>
-            {isLoading && <Sparkles count={50} scale={4} size={8} speed={0.4} color="#00aaff" />}
             {/* Simplified geometry */}
             <mesh>
                 <sphereGeometry args={[2, 32, 32]} />
@@ -219,16 +218,12 @@ const FlyingVehicle: React.FC<{ curve: THREE.CatmullRomCurve3, speed: number, of
         }
     });
     
-    // Simplified to a single geometry type for all vehicles
+    // Simplified: No more Trail effect
     return (
-        <group>
-            <Trail width={0.2} length={5} color={new THREE.Color(color)} attenuation={(t) => t * t}>
-                <mesh ref={meshRef}>
-                    <sphereGeometry args={[0.2, 8, 8]} />
-                    <meshStandardMaterial emissive={color} color={color} toneMapped={false} />
-                </mesh>
-            </Trail>
-        </group>
+        <mesh ref={meshRef}>
+            <sphereGeometry args={[0.2, 8, 8]} />
+            <meshStandardMaterial emissive={color} color={color} toneMapped={false} />
+        </mesh>
     )
 };
 
@@ -239,7 +234,7 @@ const Cityscape = () => {
     circuitTexture.repeat.set(10, 10);
 
     const curves = useMemo(() => {
-        return Array.from({ length: 10 }, () => {
+        return Array.from({ length: 5 }, () => { // Reduced from 10 to 5 curves
             const points = [];
             for (let i = 0; i < 10; i++) {
                 points.push(new THREE.Vector3(
@@ -356,7 +351,7 @@ export default function Experience3D({
       <fog attach="fog" args={['#050505', 25, 80]} />
       <color attach="background" args={['#050505']} />
       <ambientLight intensity={0.1} />
-      <Stars radius={200} depth={100} count={8000} factor={6} saturation={0} fade speed={1} />
+      <Stars radius={200} depth={100} count={5000} factor={6} saturation={0} fade speed={1} />
 
       <Cityscape />
       
@@ -404,7 +399,7 @@ export default function Experience3D({
        <CameraRig selectedDistrict={selectedDistrict} selectedSubItem={selectedSubItem} />
 
        <EffectComposer>
-        <Bloom luminanceThreshold={0.2} luminanceSmoothing={0.9} height={300} intensity={1.8} />
+        <Bloom luminanceThreshold={0.2} luminanceSmoothing={0.9} height={300} intensity={1.5} />
        </EffectComposer>
     </Canvas>
   );
