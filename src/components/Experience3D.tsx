@@ -1,10 +1,10 @@
-import React, { useRef, useState, useMemo, useEffect } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Text, Stars, MeshDistortMaterial, Billboard, Sparkles, Trail, useTexture } from '@react-three/drei';
-import { EffectComposer, Bloom, GodRays } from '@react-three/postprocessing';
+import { Text, Stars, MeshDistortMaterial, Billboard, Trail, useTexture, Plane } from '@react-three/drei';
+import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
-import { PortfolioItem, GenArtParams, ChatMessage } from '../types';
-import { PORTFOLIO_ITEMS } from '../constants';
+import { CityDistrict, PortfolioSubItem, GenArtParams, ChatMessage } from '../types';
+import { DISTRICTS } from '../constants';
 
 // --- Building Components ---
 const buildingMaterial = new THREE.MeshStandardMaterial({
@@ -15,21 +15,19 @@ const buildingMaterial = new THREE.MeshStandardMaterial({
     metalness: 0.8,
 });
 
-const PortfolioBuilding: React.FC<{ item: PortfolioItem; onSelectItem: (item: PortfolioItem) => void; isSelected: boolean; }> = ({ item, onSelectItem, isSelected }) => {
+const DistrictBuilding: React.FC<{ district: CityDistrict; onSelectDistrict: (district: CityDistrict) => void; isSelected: boolean; isAnyDistrictSelected: boolean }> = ({ district, onSelectDistrict, isSelected, isAnyDistrictSelected }) => {
   const groupRef = useRef<THREE.Group>(null!);
   const [hovered, setHovered] = useState(false);
-  const buildingHeight = item.category === 'Left Brain / Logic' ? 8 : 6;
+  const buildingHeight = 12;
   
-  const geometry = useMemo(() => {
-    const shape = new THREE.Shape();
-    shape.moveTo(0, 0);
-    shape.lineTo(1, 0.5);
-    shape.lineTo(1.5, 2);
-    shape.lineTo(0.5, 2.5);
-    shape.lineTo(-0.5, 2);
-    shape.lineTo(0, 0);
-    const extrudeSettings = { depth: buildingHeight, bevelEnabled: false };
-    return new THREE.ExtrudeGeometry(shape, extrudeSettings);
+  // Simplified cylinder-based geometry for performance
+  const buildingParts = useMemo(() => {
+    return [
+      { radius: 2, height: buildingHeight * 0.4, y: 0 },
+      { radius: 1.8, height: buildingHeight * 0.3, y: buildingHeight * 0.45 },
+      { radius: 1.5, height: buildingHeight * 0.25, y: buildingHeight * 0.75 },
+      { radius: 0.5, height: buildingHeight * 0.2, y: buildingHeight * 1.0 },
+    ]
   }, [buildingHeight]);
 
   useFrame((state, delta) => {
@@ -37,50 +35,89 @@ const PortfolioBuilding: React.FC<{ item: PortfolioItem; onSelectItem: (item: Po
         groupRef.current.rotation.y += delta * 0.05;
         const targetScale = isSelected ? 1.2 : (hovered ? 1.1 : 1);
         groupRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), delta * 3);
+        const targetOpacity = isAnyDistrictSelected && !isSelected ? 0.1 : 1;
+        const text = groupRef.current.children.find(c => c.type === 'Text') as any;
+        if(text && text.material) {
+          text.material.opacity += (targetOpacity - text.material.opacity) * (delta * 2);
+        }
     }
   });
 
   return (
     <group 
-        position={[item.position3D[0], item.position3D[1] - 2, item.position3D[2]]}
+        position={[district.position3D[0], district.position3D[1] - 4, district.position3D[2]]}
         ref={groupRef}
-        onClick={() => onSelectItem(item)}
+        onClick={(e) => { e.stopPropagation(); onSelectDistrict(district); }}
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
     >
-      <mesh geometry={geometry} material={buildingMaterial} />
-      <mesh geometry={geometry} scale={[0.95, 0.95, 0.95]}>
-          <meshStandardMaterial color={item.color} emissive={item.color} emissiveIntensity={isSelected ? 3 : (hovered ? 2 : 1)} toneMapped={false} />
-      </mesh>
-      <Text position={[0, buildingHeight / 2 + 2, 0]} fontSize={0.5} color="white" anchorX="center" anchorY="middle">
-        {item.title}
+        {/* Simplified main building structure */}
+        {buildingParts.map((part, i) => (
+            <mesh key={i} position-y={part.y} material={buildingMaterial}>
+                <cylinderGeometry args={[part.radius * 0.9, part.radius, part.height, 8]} />
+            </mesh>
+        ))}
+         {/* Emissive wireframe overlay */}
+        <mesh>
+            <cylinderGeometry args={[2.05, 2.05, buildingHeight, 6]} />
+            <meshStandardMaterial color={district.color} emissive={district.color} emissiveIntensity={isSelected ? 3 : (hovered ? 2 : 1)} toneMapped={false} wireframe />
+        </mesh>
+      <Text position={[0, buildingHeight + 2, 0]} fontSize={1} color="white" anchorX="center" anchorY="middle" material-transparent={true}>
+        {district.title}
       </Text>
     </group>
   );
 };
 
-const GenerativeArtBuilding: React.FC<{ item: PortfolioItem; onSelectItem: (item: PortfolioItem) => void; params: GenArtParams; isSelected: boolean }> = ({ item, onSelectItem, params, isSelected }) => {
+
+const DigitalBanner: React.FC<{ item: PortfolioSubItem; onSelectSubItem: (item: PortfolioSubItem) => void; isVisible: boolean; color: string }> = ({ item, onSelectSubItem, isVisible, color }) => {
+    const groupRef = useRef<THREE.Group>(null!);
+    const [hovered, setHovered] = useState(false);
+    
+    useFrame((state, delta) => {
+        if(groupRef.current) {
+            const targetScale = isVisible ? (hovered ? 1.1 : 1) : 0;
+            groupRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), delta * 5);
+        }
+    });
+
+    return(
+        <group ref={groupRef} position={item.position} onClick={(e) => {e.stopPropagation(); onSelectSubItem(item)}} onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
+            <Plane args={[4, 1.5]}>
+                <meshStandardMaterial color="#000" emissive={color} emissiveIntensity={hovered ? 0.8 : 0.4} transparent opacity={0.8} />
+            </Plane>
+            <Plane args={[4.1, 1.6]}>
+                 <meshStandardMaterial wireframe color={color} emissive={color} emissiveIntensity={1} />
+            </Plane>
+            <Text position={[0, 0, 0.1]} fontSize={0.3} color="white" anchorX="center" anchorY="middle" maxWidth={3.5}>
+                {item.title}
+            </Text>
+        </group>
+    )
+}
+
+const GenerativeArtObject: React.FC<{ item: PortfolioSubItem; onSelectSubItem: (item: PortfolioSubItem) => void; params: GenArtParams; isVisible: boolean; color: string }> = ({ item, onSelectSubItem, params, isVisible, color }) => {
     const groupRef = useRef<THREE.Group>(null!);
     const [hovered, setHovered] = useState(false);
   
     useFrame((state, delta) => {
-        const targetScale = isSelected ? 1.2 : (hovered ? 1.1 : 1);
         if(groupRef.current) {
-            groupRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), delta * 3);
+            const targetScale = isVisible ? (hovered ? 1.1 : 1) : 0;
+            groupRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), delta * 5);
             groupRef.current.rotation.y += delta * 0.1;
         }
     });
   
     return (
       <group 
-        position={[item.position3D[0], item.position3D[1] + 1, item.position3D[2]]}
+        position={item.position}
         ref={groupRef}
-        onClick={() => onSelectItem(item)}
+        onClick={(e) => { e.stopPropagation(); onSelectSubItem(item) }}
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
       >
         <mesh>
-          <sphereGeometry args={[2, 128, 128]} />
+          <sphereGeometry args={[1.5, 64, 64]} />
           <MeshDistortMaterial
               key={JSON.stringify(params)} 
               color={params.color}
@@ -88,16 +125,17 @@ const GenerativeArtBuilding: React.FC<{ item: PortfolioItem; onSelectItem: (item
               speed={params.speed}
               roughness={0.1}
               emissive={params.color}
-              emissiveIntensity={isSelected ? 3 : 1.5}
+              emissiveIntensity={hovered ? 3 : 1.5}
               toneMapped={false}
           />
         </mesh>
-        <Text position={[0, 3, 0]} fontSize={0.5} color="white" anchorX="center" anchorY="middle">
+        <Text position={[0, 2.2, 0]} fontSize={0.3} color="white" anchorX="center" anchorY="middle">
           {item.title}
         </Text>
       </group>
     );
 };
+
 
 // --- World and Atmosphere ---
 const CuratorEntity: React.FC<{ onClick: () => void; isChatActive: boolean; isLoading: boolean; isListening: boolean; ref: React.Ref<THREE.Group> }> = React.forwardRef(({ onClick, isChatActive, isLoading, isListening }, ref) => {
@@ -119,10 +157,10 @@ const CuratorEntity: React.FC<{ onClick: () => void; isChatActive: boolean; isLo
     });
 
     return (
-        <group ref={ref} onClick={onClick}>
-            {isLoading && <Sparkles count={50} scale={4} size={8} speed={0.4} color="#00aaff" />}
-            <mesh rotation-x={Math.PI / 2}>
-                <octahedronGeometry args={[2, 0]} />
+        <group ref={ref} onClick={(e) => { e.stopPropagation(); onClick(); }}>
+            {/* Simplified geometry */}
+            <mesh>
+                <sphereGeometry args={[2, 32, 32]} />
                 <meshStandardMaterial 
                     color="#ffffff" 
                     emissive="#00aaff" 
@@ -134,7 +172,7 @@ const CuratorEntity: React.FC<{ onClick: () => void; isChatActive: boolean; isLo
                 />
             </mesh>
             <mesh ref={innerCoreRef} scale={[0.5, 0.5, 0.5]}>
-                 <icosahedronGeometry args={[1, 1]} />
+                 <sphereGeometry args={[1, 32, 32]} />
                  <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={1} roughness={0} toneMapped={false}/>
             </mesh>
         </group>
@@ -179,25 +217,13 @@ const FlyingVehicle: React.FC<{ curve: THREE.CatmullRomCurve3, speed: number, of
             meshRef.current.lookAt(pos.clone().add(tangent));
         }
     });
-
-    const geometry = useMemo(() => {
-        const geometries = [
-            new THREE.BoxGeometry(0.1, 0.1, 0.5),
-            new THREE.ConeGeometry(0.15, 0.5, 3),
-            new THREE.DodecahedronGeometry(0.2, 0)
-        ];
-        return geometries[Math.floor(Math.random() * geometries.length)];
-    }, []);
-
+    
+    // Simplified: No more Trail effect
     return (
-        <group>
-            <Trail width={0.2} length={5} color={new THREE.Color(color)} attenuation={(t) => t * t}>
-                <mesh ref={meshRef}>
-                    <primitive object={geometry} />
-                    <meshStandardMaterial emissive={color} color={color} toneMapped={false} />
-                </mesh>
-            </Trail>
-        </group>
+        <mesh ref={meshRef}>
+            <sphereGeometry args={[0.2, 8, 8]} />
+            <meshStandardMaterial emissive={color} color={color} toneMapped={false} />
+        </mesh>
     )
 };
 
@@ -208,13 +234,13 @@ const Cityscape = () => {
     circuitTexture.repeat.set(10, 10);
 
     const curves = useMemo(() => {
-        return Array.from({ length: 5 }, () => {
+        return Array.from({ length: 5 }, () => { // Reduced from 10 to 5 curves
             const points = [];
             for (let i = 0; i < 10; i++) {
                 points.push(new THREE.Vector3(
-                    (Math.random() - 0.5) * 40,
-                    Math.random() * 10 + 2,
-                    (Math.random() - 0.5) * 40
+                    (Math.random() - 0.5) * 60,
+                    Math.random() * 15 + 2,
+                    (Math.random() - 0.5) * 60
                 ));
             }
             return new THREE.CatmullRomCurve3(points, true, 'catmullrom', 0.5);
@@ -224,8 +250,8 @@ const Cityscape = () => {
     return (
         <group>
             {/* Ground */}
-            <mesh position={[0, -2.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-                <planeGeometry args={[100, 100]} />
+            <mesh position={[0, -4.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+                <planeGeometry args={[150, 150]} />
                 <meshStandardMaterial 
                   map={circuitTexture} 
                   emissiveMap={circuitTexture} 
@@ -234,63 +260,59 @@ const Cityscape = () => {
                   toneMapped={false}
                 />
             </mesh>
-            {/* Flying Vehicles */}
+            {/* Flying Vehicles (Reduced count) */}
             {curves.map((curve, i) => (
-                Array.from({ length: 5 }).map((_, j) => (
-                    <FlyingVehicle key={`${i}-${j}`} curve={curve} speed={0.05 + Math.random() * 0.05} offset={j * 0.2} color={['#ff477e', '#00f5d4', '#e047ff'][i % 3]}/>
+                Array.from({ length: 2 }).map((_, j) => (
+                    <FlyingVehicle key={`${i}-${j}`} curve={curve} speed={0.03 + Math.random() * 0.05} offset={j * 0.5} color={['#ff477e', '#00f5d4', '#e047ff'][i % 3]}/>
                 ))
-            ))}
-            {/* Ambient Characters */}
-            {Array.from({ length: 50 }).map((_, i) => (
-                 <mesh key={i} position={[(Math.random() - 0.5) * 50, -2, (Math.random() - 0.5) * 50]}>
-                     <boxGeometry args={[0.2, 1, 0.2]} />
-                     <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={0.2} />
-                 </mesh>
             ))}
         </group>
     );
 };
 
+const OVERVIEW_POSITION = new THREE.Vector3(0, 8, 35);
+const OVERVIEW_LOOKAT = new THREE.Vector3(0, 0, 0);
 
-function CameraRig({ selectedItem, isChatActive }: { selectedItem: PortfolioItem | null, isChatActive: boolean }) {
-    const { camera, clock } = useThree();
-    const cinematicTime = useRef(0);
+function CameraRig({ selectedDistrict, selectedSubItem }: { selectedDistrict: CityDistrict | null, selectedSubItem: PortfolioSubItem | null }) {
+    const { camera } = useThree();
     
     const targetPosition = useMemo(() => {
-        if (selectedItem) {
-            const itemPos = new THREE.Vector3(...selectedItem.position3D);
-            const camPos = itemPos.clone();
-            camPos.y += 4;
-            camPos.x += Math.sign(camPos.x) * 5;
-            camPos.z += Math.sign(camPos.z) * 5;
+        if (selectedDistrict) {
+            const districtPos = new THREE.Vector3(...selectedDistrict.position3D);
+            if(selectedSubItem) {
+                const subItemPos = new THREE.Vector3(...selectedSubItem.position);
+                const finalPos = districtPos.clone().add(subItemPos);
+                finalPos.y += 2;
+                finalPos.z += 6;
+                return finalPos;
+            }
+            const camPos = districtPos.clone();
+            camPos.y += 5;
+            camPos.z += (Math.abs(camPos.z) > 1 ? Math.sign(camPos.z) : 1) * 12;
+            camPos.x += (Math.abs(camPos.x) > 1 ? Math.sign(camPos.x) : 1) * 12;
             return camPos;
         }
-         // If chat is active but nothing selected, focus on curator
-        if (isChatActive) {
-            return new THREE.Vector3(0, 3, 8);
-        }
-        // Default cinematic view
-        return new THREE.Vector3();
-    }, [selectedItem, isChatActive]);
+        return OVERVIEW_POSITION;
+    }, [selectedDistrict, selectedSubItem]);
 
     const lookAtPosition = useMemo(() => {
-        return selectedItem ? new THREE.Vector3(selectedItem.position3D[0], selectedItem.position3D[1] + 2, selectedItem.position3D[2]) : new THREE.Vector3(0, 1, 0);
-    }, [selectedItem]);
+        if (selectedDistrict) {
+            const districtPos = new THREE.Vector3(...selectedDistrict.position3D);
+            if (selectedSubItem) {
+                 const subItemPos = new THREE.Vector3(...selectedSubItem.position);
+                 return districtPos.clone().add(subItemPos);
+            }
+            return districtPos;
+        }
+        return OVERVIEW_LOOKAT;
+    }, [selectedDistrict, selectedSubItem]);
     
     useFrame((state, delta) => {
-        let finalTargetPosition = targetPosition;
-        if (!selectedItem && !isChatActive) {
-            // Cinematic camera movement
-            cinematicTime.current += delta * 0.05;
-            const angle = cinematicTime.current;
-            finalTargetPosition = new THREE.Vector3(Math.sin(angle) * 18, 5, Math.cos(angle) * 18);
-        }
-
-        state.camera.position.lerp(finalTargetPosition, 1 * delta);
+        state.camera.position.lerp(targetPosition, 2 * delta);
         
         if (!state.camera.userData.lookAt) state.camera.userData.lookAt = lookAtPosition.clone();
         
-        state.camera.userData.lookAt.lerp(lookAtPosition, 1 * delta);
+        state.camera.userData.lookAt.lerp(lookAtPosition, 2 * delta);
         state.camera.lookAt(state.camera.userData.lookAt);
     });
 
@@ -298,62 +320,86 @@ function CameraRig({ selectedItem, isChatActive }: { selectedItem: PortfolioItem
 }
 
 interface Experience3DProps {
-  onSelectItem: (item: PortfolioItem | null) => void;
-  selectedItem: PortfolioItem | null;
+  onSelectDistrict: (district: CityDistrict | null) => void;
+  onSelectSubItem: (item: PortfolioSubItem) => void;
+  selectedDistrict: CityDistrict | null;
+  selectedSubItem: PortfolioSubItem | null;
   genArtParams: GenArtParams;
   messages: ChatMessage[];
-  onActivateChat: () => void;
+  onGoHome: () => void;
   isChatActive: boolean;
   isCuratorLoading: boolean;
   isListening: boolean;
 }
 
-export function Experience3D({ 
-    onSelectItem, 
-    selectedItem, 
+export default function Experience3D({ 
+    onSelectDistrict,
+    onSelectSubItem,
+    selectedDistrict,
+    selectedSubItem,
     genArtParams, 
     messages, 
-    onActivateChat, 
+    onGoHome, 
     isChatActive,
     isCuratorLoading,
     isListening
 }: Experience3DProps) {
     const curatorRef = useRef<THREE.Group>(null!);
-    const [godRaysSource, setGodRaysSource] = useState<THREE.Group | null>(null);
-    useEffect(() => setGodRaysSource(curatorRef.current), [curatorRef]);
 
   return (
-    <Canvas style={{ position: 'fixed', top: 0, left: 0, zIndex: 1 }} camera={{ position: [0, 5, 20], fov: 75 }}>
-      <fog attach="fog" args={['#050505', 15, 50]} />
+    <Canvas style={{ position: 'fixed', top: 0, left: 0, zIndex: 1 }} camera={{ position: [0, 5, 40], fov: 60 }}>
+      <fog attach="fog" args={['#050505', 25, 80]} />
       <color attach="background" args={['#050505']} />
       <ambientLight intensity={0.1} />
-      <Stars radius={200} depth={100} count={8000} factor={6} saturation={0} fade speed={1} />
+      <Stars radius={200} depth={100} count={5000} factor={6} saturation={0} fade speed={1} />
 
       <Cityscape />
       
-      <CuratorEntity ref={curatorRef} onClick={onActivateChat} isChatActive={isChatActive} isLoading={isCuratorLoading} isListening={isListening} />
+      <CuratorEntity ref={curatorRef} onClick={onGoHome} isChatActive={isChatActive} isLoading={isCuratorLoading} isListening={isListening} />
 
       {isChatActive && <Conversation messages={messages} />}
-
-      {PORTFOLIO_ITEMS.map(item => {
-        const isSelected = selectedItem?.id === item.id;
-        if (item.id === 'generative-art') {
-            return <GenerativeArtBuilding key={item.id} item={item} onSelectItem={onSelectItem} params={genArtParams} isSelected={isSelected} />
-        }
-        return <PortfolioBuilding key={item.id} item={item} onSelectItem={onSelectItem} isSelected={isSelected}/>
-      })}
       
-       <CameraRig selectedItem={selectedItem} isChatActive={isChatActive} />
+      {DISTRICTS.map(district => (
+        <group key={district.id}>
+          <DistrictBuilding 
+            district={district} 
+            onSelectDistrict={onSelectDistrict} 
+            isSelected={selectedDistrict?.id === district.id}
+            isAnyDistrictSelected={!!selectedDistrict}
+          />
+          <group position={district.position3D}>
+            {district.subItems.map(item => {
+              const isVisible = selectedDistrict?.id === district.id;
+              if (item.id === 'generative-art') {
+                return (
+                  <GenerativeArtObject
+                    key={item.id}
+                    item={item}
+                    onSelectSubItem={onSelectSubItem}
+                    params={genArtParams}
+                    isVisible={isVisible}
+                    color={district.color}
+                  />
+                );
+              }
+              return (
+                <DigitalBanner
+                  key={item.id}
+                  item={item}
+                  onSelectSubItem={onSelectSubItem}
+                  isVisible={isVisible}
+                  color={district.color}
+                />
+              );
+            })}
+          </group>
+        </group>
+      ))}
+      
+       <CameraRig selectedDistrict={selectedDistrict} selectedSubItem={selectedSubItem} />
 
        <EffectComposer>
-        <Bloom luminanceThreshold={0.2} luminanceSmoothing={0.9} height={300} intensity={1.8} />
-        {godRaysSource && <GodRays sun={godRaysSource} config={{
-            samples: 60,
-            density: 0.97,
-            decay: 0.97,
-            weight: 0.6,
-            exposure: 0.4
-        }}/>}
+        <Bloom luminanceThreshold={0.2} luminanceSmoothing={0.9} height={300} intensity={1.5} />
        </EffectComposer>
     </Canvas>
   );

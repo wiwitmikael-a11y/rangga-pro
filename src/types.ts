@@ -1,11 +1,20 @@
-export interface PortfolioItem {
+export interface PortfolioSubItem {
   id: string;
   title: string;
-  category: 'Left Brain / Logic' | 'Right Brain / Creativity';
+  description: string;
+  bannerImage?: string; // Placeholder for future image uploads
+  position: [number, number, number]; // Position relative to the district center
+}
+
+export interface CityDistrict {
+  id: string;
+  title: string;
   description: string;
   position3D: [number, number, number];
   color: string;
+  subItems: PortfolioSubItem[];
 }
+
 
 export interface ChatMessage {
   id: number;
