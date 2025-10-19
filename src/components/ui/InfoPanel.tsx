@@ -1,6 +1,5 @@
 import React from 'react';
 import { PortfolioSubItem } from '../../types';
-import { CuratorUI } from './CuratorUI';
 
 interface InfoPanelProps {
   item: PortfolioSubItem;
@@ -16,12 +15,15 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({ item, onClose }) => {
         <div style={styles.content}>
           <p>{item.content}</p>
         </div>
-        <CuratorUI item={item} />
       </div>
        <style>{`
         @keyframes slideIn {
             from { transform: translateX(100%); }
             to { transform: translateX(0); }
+        }
+        @keyframes fadeInBackdrop {
+            from { background-color: rgba(0, 10, 20, 0); }
+            to { background-color: rgba(0, 10, 20, 0.85); }
         }
       `}</style>
     </div>
@@ -64,6 +66,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     justifyContent: 'center',
     alignItems: 'center',
     lineHeight: 1,
+    transition: 'background-color 0.2s, color 0.2s',
   },
   title: {
     fontSize: '1.5rem',

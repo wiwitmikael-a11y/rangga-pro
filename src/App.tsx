@@ -5,6 +5,7 @@ import { InfoPanel } from './components/ui/InfoPanel';
 import { HUD } from './components/ui/HUD';
 import { CityDistrict, PortfolioSubItem } from './types';
 
+// Lazy load the 3D experience
 const Experience3D = lazy(() => import('./components/Experience3D'));
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
   const [selectedSubItem, setSelectedSubItem] = useState<PortfolioSubItem | null>(null);
 
   useEffect(() => {
+    // Simulate initial asset loading
     const timer = setTimeout(() => setLoading(false), 1500);
     return () => clearTimeout(timer);
   }, []);
