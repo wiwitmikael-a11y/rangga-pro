@@ -11,9 +11,8 @@ export interface CityDistrict {
   id: string;
   title: string;
   description: string;
-  position3D: [number, number, number];
-  shape: 'tower' | 'platform' | 'ring';
-  // Defines which other district IDs this district should connect to with a data bridge
-  connections?: string[]; 
-  subItems: PortfolioSubItem[];
+  position: [number, number, number]; // Grid position [x, 0, z]
+  type: 'major' | 'minor'; // Major districts are portfolio items, minor are ambient buildings
+  height?: number;
+  subItems?: PortfolioSubItem[];
 }

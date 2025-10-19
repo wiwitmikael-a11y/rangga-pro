@@ -1,13 +1,11 @@
 import React from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Canvas } from '@react-three-fiber';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { CityDistrict, PortfolioSubItem } from '../types';
 import { portfolioData } from '../constants';
 import CameraRig from './scene/CameraRig';
-import PCBFloor from './scene/PCBFloor';
-import DistrictBuilding from './scene/DistrictBuilding';
-import HolographicPanel from './scene/HolographicPanel';
-import DataBridge from './scene/DataBridge';
+import Skyscraper from './scene/Skyscraper';
+import GroundGrid from './scene/GroundGrid';
 import FloatingParticles from './scene/FloatingParticles';
 
 interface Experience3DProps {
@@ -17,45 +15,34 @@ interface Experience3DProps {
 }
 
 const Experience3D: React.FC<Experience3DProps> = ({ onSelectDistrict, selectedDistrict, onSelectSubItem }) => {
-  const districtMap = new Map(portfolioData.map(d => [d.id, d]));
-
   return (
     <Canvas
-      orthographic
-      camera={{ position: [50, 50, 50], zoom: 20, up: [0, 1, 0] }}
+      camera={{ position: [60, 60, 60], fov: 50 }}
       style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#050810' }}
     >
-      <ambientLight intensity={0.1} />
-      <hemisphereLight intensity={0.2} color="#ffffff" groundColor="#ff00ff" />
+      <fog attach="fog" args={['#050810', 50, 200]} />
+      <ambientLight intensity={0.2} />
+      <pointLight position={[0, 50, 0]} intensity={0.5} color="#ff00ff" />
       
       <CameraRig selectedDistrict={selectedDistrict} />
 
       <group>
-        <PCBFloor />
-        <FloatingParticles />
+        <GroundGrid />
+        <FloatingParticles count={5000} />
         
         {portfolioData.map(district => (
-          <React.Fragment key={district.id}>
-            <DistrictBuilding
-              district={district}
-              onSelect={() => onSelectDistrict(district)}
-              onSelectSubItem={onSelectSubItem}
-              isSelected={selectedDistrict?.id === district.id}
-            />
-            {selectedDistrict?.id === district.id && <HolographicPanel district={district} />}
-            {district.connections?.map(connId => {
-              const targetDistrict = districtMap.get(connId);
-              if (targetDistrict) {
-                return <DataBridge key={`${district.id}-${connId}`} start={district.position3D} end={targetDistrict.position3D} />
-              }
-              return null;
-            })}
-          </React.Fragment>
+          <Skyscraper
+            key={district.id}
+            district={district}
+            onSelect={() => onSelectDistrict(district)}
+            onSelectSubItem={onSelectSubItem}
+            isSelected={selectedDistrict?.id === district.id}
+          />
         ))}
       </group>
 
       <EffectComposer>
-        <Bloom luminanceThreshold={0.8} luminanceSmoothing={0.9} height={300} intensity={1.5} />
+        <Bloom luminanceThreshold={0.6} luminanceSmoothing={0.5} height={400} intensity={1.8} />
       </EffectComposer>
     </Canvas>
   );

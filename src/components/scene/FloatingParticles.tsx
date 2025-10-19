@@ -2,23 +2,33 @@ import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-const FloatingParticles = () => {
+interface FloatingParticlesProps {
+  count: number;
+}
+
+const FloatingParticles: React.FC<FloatingParticlesProps> = ({ count }) => {
   const pointsRef = useRef<THREE.Points>(null!);
 
   const particles = useMemo(() => {
-    const count = 2000;
     const positions = new Float32Array(count * 3);
     for (let i = 0; i < count * 3; i++) {
-      positions[i] = (Math.random() - 0.5) * 80; // Spread particles across a large area
+      positions[i] = (Math.random() - 0.5) * 150; 
+      positions[i+1] = Math.random() * 50; // particles from ground up to the sky
     }
     return positions;
-  }, []);
+  }, [count]);
 
-  useFrame((state) => {
-    const t = state.clock.getElapsedTime();
+  useFrame((state, delta) => {
     if (pointsRef.current) {
-        pointsRef.current.rotation.y = t * 0.02;
-        pointsRef.current.rotation.x = t * 0.01;
+      // Gently drift particles downwards
+      const positions = pointsRef.current.geometry.attributes.position.array as Float32Array;
+      for (let i = 0; i < positions.length; i += 3) {
+        positions[i+1] -= 0.5 * delta;
+        if (positions[i+1] < 0) {
+          positions[i+1] = 50;
+        }
+      }
+      pointsRef.current.geometry.attributes.position.needsUpdate = true;
     }
   });
 
@@ -33,10 +43,10 @@ const FloatingParticles = () => {
         />
       </bufferGeometry>
       <pointsMaterial
-        size={0.1}
+        size={0.05}
         color="#00ffff"
         transparent
-        opacity={0.5}
+        opacity={0.3}
         blending={THREE.AdditiveBlending}
         depthWrite={false}
         toneMapped={false}
