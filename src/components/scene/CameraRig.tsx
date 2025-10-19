@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
@@ -12,25 +13,34 @@ export const CameraRig: React.FC<{ selectedDistrict: CityDistrict | null }> = ({
   const lookAtTarget = new THREE.Vector3();
 
   useEffect(() => {
-    // Enable damping for smoother camera movements
     if (controlsRef.current) {
       controlsRef.current.enableDamping = true;
       controlsRef.current.dampingFactor = 0.05;
+      // For orthographic, zoom is controlled by zoom property, not distance
+      controlsRef.current.minZoom = 30;
+      controlsRef.current.maxZoom = 100;
     }
   }, []);
 
   useFrame((_, delta) => {
+    let targetZoom = 40; // Default zoom for overview
+
     if (selectedDistrict) {
       const [x, y, z] = selectedDistrict.position3D;
-      targetPosition.set(x, y + 1.5, z + 6); // Zoom in on the island
+      targetPosition.set(x + 5, y + 5, z + 5); 
       lookAtTarget.set(x, y, z);
+      targetZoom = 80; // Zoom in on the island
     } else {
-      targetPosition.set(0, 2, 14); // City overview
+      targetPosition.set(15, 15, 15); // City overview position
       lookAtTarget.set(0, 0, 0);
     }
 
-    // Smoothly move camera and orbit controls target
+    // Smoothly move camera, orbit controls target, and zoom
     camera.position.lerp(targetPosition, delta * 2);
+    if ('zoom' in camera) {
+       (camera as THREE.OrthographicCamera).zoom = THREE.MathUtils.lerp((camera as THREE.OrthographicCamera).zoom, targetZoom, delta * 2);
+       camera.updateProjectionMatrix();
+    }
     controlsRef.current.target.lerp(lookAtTarget, delta * 2);
     controlsRef.current.update();
   });
@@ -38,8 +48,6 @@ export const CameraRig: React.FC<{ selectedDistrict: CityDistrict | null }> = ({
   return (
       <OrbitControls 
         ref={controlsRef} 
-        minDistance={3} 
-        maxDistance={30} 
         enablePan={false}
       />
   );

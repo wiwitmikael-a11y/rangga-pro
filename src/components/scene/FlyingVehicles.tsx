@@ -1,6 +1,6 @@
+
 import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-// `PointLight` is not exported from `drei`. Use the R3F primitive `<pointLight />` instead.
 import { Trail } from '@react-three/drei';
 import * as THREE from 'three';
 
@@ -10,18 +10,20 @@ const Vehicle: React.FC<{ curve: THREE.CatmullRomCurve3, speed: number, offset: 
     useFrame(({ clock }) => {
         const time = (clock.getElapsedTime() * speed + offset) % 1;
         const pos = curve.getPointAt(time);
-        lightRef.current.position.copy(pos);
+        if(lightRef.current) {
+            lightRef.current.position.copy(pos);
+        }
     });
 
     return (
         <group>
             <Trail
-                width={0.5}
-                length={4}
-                color={new THREE.Color(Math.random(), Math.random(), Math.random())}
+                width={0.4}
+                length={3}
+                color={new THREE.Color().setHSL(Math.random(), 0.8, 0.6)}
                 attenuation={(t) => t * t}
             >
-                <pointLight ref={lightRef} intensity={2} distance={2} />
+                <pointLight ref={lightRef} intensity={1.5} distance={2} />
             </Trail>
         </group>
     );
@@ -29,17 +31,17 @@ const Vehicle: React.FC<{ curve: THREE.CatmullRomCurve3, speed: number, offset: 
 
 
 export const FlyingVehicles = () => {
-    const numVehicles = 30;
+    const numVehicles = 12; // Reduced from 30
 
     const curves = useMemo(() => {
         return Array.from({ length: numVehicles }).map(() => {
             const points = [];
-            const radius = 6 + Math.random() * 8;
+            const radius = 7 + Math.random() * 8;
             for (let i = 0; i <= 16; i++) {
                 points.push(
                     new THREE.Vector3(
                         Math.sin(i / 16 * Math.PI * 2) * radius,
-                        (Math.random() - 0.5) * 10,
+                        (Math.random() - 0.5) * 8,
                         Math.cos(i / 16 * Math.PI * 2) * radius
                     )
                 );
@@ -54,7 +56,7 @@ export const FlyingVehicles = () => {
                 <Vehicle 
                     key={i} 
                     curve={curve} 
-                    speed={0.05 + Math.random() * 0.05} 
+                    speed={0.02 + Math.random() * 0.02} // Reduced speed
                     offset={Math.random()} 
                 />
             ))}
