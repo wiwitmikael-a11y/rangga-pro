@@ -9,9 +9,9 @@ export const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
     <div style={styles.container}>
       <div style={styles.content}>
         <h1 style={styles.title}>rangga.pro</h1>
-        <h2 style={styles.subtitle}>A Digital Museum</h2>
+        <h2 style={styles.subtitle}>A Digital Metropolis</h2>
         <button id="start-button" onClick={onStart} style={styles.startButton}>
-          START
+          ENTER
         </button>
       </div>
       <style>{`

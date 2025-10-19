@@ -3,7 +3,7 @@ import React from 'react';
 export const Loader = () => {
   return (
     <div style={styles.container}>
-      <p style={styles.text}>Constructing Digital Museum...</p>
+      <p style={styles.text}>Booting Metropolis Core...</p>
     </div>
   );
 };

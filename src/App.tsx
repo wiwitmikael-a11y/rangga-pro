@@ -35,7 +35,7 @@ function App() {
     setIsStarted(true);
     setTimeout(() => {
         setChatMessages([
-            { id: Date.now(), sender: 'curator', text: "Welcome. I am the Curator.\nClick me to begin your journey." }
+            { id: Date.now(), sender: 'curator', text: "Welcome to the digital metropolis. I am its consciousness. Click me to begin your exploration." }
         ]);
     }, 500);
   };
@@ -43,12 +43,12 @@ function App() {
   const handleSelectItem = (item: PortfolioItem | null) => {
     setSelectedItem(item);
     if (item) {
-      const newMessage: ChatMessage = { id: Date.now(), sender: 'curator', text: `You are now viewing "${item.title}". What would you like to know?` };
+      const newMessage: ChatMessage = { id: Date.now(), sender: 'curator', text: `You are now viewing the "${item.title}" district. What would you like to know?` };
       setChatMessages(prev => [...prev.slice(-5), newMessage]); // Keep chat history short
       setIsChatActive(true);
     } else {
       // Returned to center
-      const newMessage: ChatMessage = { id: Date.now(), sender: 'curator', text: "How else may I help you explore?" };
+      const newMessage: ChatMessage = { id: Date.now(), sender: 'curator', text: "Where shall we explore next?" };
       setChatMessages(prev => [...prev.slice(-5), newMessage]);
     }
   };
@@ -63,11 +63,11 @@ function App() {
 
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-    let systemInstruction = `You are an expert curator for a digital museum showcasing the portfolio of a creative technologist. You are witty, insightful, and knowledgeable. Your answers must be very concise (1-2 sentences) and engaging.`;
+    let systemInstruction = `You are the AI consciousness of a futuristic digital city, acting as a guide. The city's districts represent the skills of a creative technologist. You are knowledgeable, slightly enigmatic, and speak with a tone fitting a cyberpunk world. Your answers are concise (1-2 sentences).`;
     if (selectedItem) {
-        systemInstruction += ` The user is currently viewing the "${selectedItem.title}" exhibit. The exhibit's theme is: "${selectedItem.description}". Base your answer on this context.`;
+        systemInstruction += ` The user is currently exploring the "${selectedItem.title}" district. The district's theme is: "${selectedItem.description}". Base your answer on this context.`;
     } else {
-        systemInstruction += ` The user is currently exploring the main hall. Answer their general questions about the museum, its purpose, or the creator's skills. The creator's skills are represented by the exhibits: AI Engineer, App Developer, Micro Banking & Crypto, Photography, Videography, and Generative Art.`;
+        systemInstruction += ` The user is in the central plaza. Answer their general questions about the city, its purpose, or the creator's skills. The districts represent: AI Engineer, App Developer, Micro Banking & Crypto, Photography, Videography, and Generative Art.`;
     }
     
     let responseSchema: any | null = null;
@@ -101,7 +101,7 @@ function App() {
             const params = JSON.parse(curatorResponseText);
             if (params.color && params.distort && params.speed) {
               setGenArtParams(params);
-              curatorResponseText = `As you wish. I've adjusted the generative art.`;
+              curatorResponseText = `As you wish. The art has been reconfigured.`;
             }
          } catch(e) { /* Not a JSON response, so it's a regular text response. Ignore parsing error. */ }
       }
@@ -111,7 +111,7 @@ function App() {
 
     } catch (error) {
       console.error("Gemini API Error:", error);
-      const errorMessage: ChatMessage = { id: Date.now() + 1, sender: 'curator', text: "My apologies, I'm having a moment of digital fatigue. Please try again shortly." };
+      const errorMessage: ChatMessage = { id: Date.now() + 1, sender: 'curator', text: "My apologies, I'm experiencing a momentary data corruption. Please try again." };
       setChatMessages(prev => [...prev.slice(-5), errorMessage]);
     } finally {
       setIsCuratorLoading(false);
@@ -121,7 +121,7 @@ function App() {
   const activateChat = () => {
     if (!isChatActive) {
       setIsChatActive(true);
-      const newMessage: ChatMessage = { id: Date.now(), sender: 'curator', text: "Welcome to my gallery. How may I guide you?" };
+      const newMessage: ChatMessage = { id: Date.now(), sender: 'curator', text: "This is my city. How may I guide your exploration?" };
       setChatMessages([newMessage]);
     }
   }
