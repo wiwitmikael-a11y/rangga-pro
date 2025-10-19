@@ -1,67 +1,69 @@
 import React, { useState, useEffect } from 'react';
 import { Experience3D } from './components/Experience3D';
 import { Loader } from './components/ui/Loader';
-import { CuratorUI } from './components/ui/CuratorUI';
 import { StartScreen } from './components/ui/StartScreen';
+import { ChatInput } from './components/ui/ChatInput';
 import { PortfolioItem, ChatMessage, GenArtParams } from './types';
 import { GoogleGenAI, Type } from "@google/genai";
+import { useSpeechRecognition } from './hooks/useSpeechRecognition';
 
 function App() {
   const [selectedItem, setSelectedItem] = useState<PortfolioItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [isStarted, setIsStarted] = useState(false);
-  const [isCuratorOpen, setIsCuratorOpen] = useState(false);
+  const [isChatActive, setIsChatActive] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isCuratorLoading, setIsCuratorLoading] = useState(false);
   const [genArtParams, setGenArtParams] = useState<GenArtParams>({ color: '#ffffff', distort: 0.4, speed: 2 });
+  const [promptValue, setPromptValue] = useState('');
+
+  const handleSpeechResult = (transcript: string) => {
+    setPromptValue(transcript);
+    // Automatically submit the transcript as a prompt
+    handleAskCurator(transcript);
+  };
+  
+  const { isListening, startListening, isSpeechRecognitionSupported } = useSpeechRecognition(handleSpeechResult);
+
 
   useEffect(() => {
-    // Simulate asset loading time
     const timer = setTimeout(() => setLoading(false), 1500);
     return () => clearTimeout(timer);
   }, []);
   
   const handleStart = () => {
     setIsStarted(true);
-    // Introduce the curator after a brief delay for a smoother transition
     setTimeout(() => {
         setChatMessages([
-            { id: Date.now(), sender: 'curator', text: "Welcome to the Digital Museum! I'm your AI Curator. Explore the exhibits by clicking the glowing orbs. If you have any questions, just ask!" }
+            { id: Date.now(), sender: 'curator', text: "Welcome. I am the Curator.\nClick me to begin your journey." }
         ]);
-        setIsCuratorOpen(true);
     }, 500);
   };
 
   const handleSelectItem = (item: PortfolioItem | null) => {
     setSelectedItem(item);
     if (item) {
-      const newMessage: ChatMessage = { id: Date.now(), sender: 'curator', text: `You are now viewing the "${item.title}" exhibit. Feel free to ask me anything about it.` };
-       setChatMessages(prev => {
-          // Prevent duplicate "viewing" messages if user clicks the same item again
-          if (prev.some(m => m.text === newMessage.text)) {
-              return prev;
-          }
-          return [...prev, newMessage];
-      });
-      setIsCuratorOpen(true);
+      const newMessage: ChatMessage = { id: Date.now(), sender: 'curator', text: `You are now viewing "${item.title}". What would you like to know?` };
+      setChatMessages(prev => [...prev.slice(-5), newMessage]); // Keep chat history short
+      setIsChatActive(true);
+    } else {
+      // Returned to center
+      const newMessage: ChatMessage = { id: Date.now(), sender: 'curator', text: "How else may I help you explore?" };
+      setChatMessages(prev => [...prev.slice(-5), newMessage]);
     }
   };
-  
-  const handleCloseCurator = () => {
-      setSelectedItem(null); // Return camera to default position
-      setIsCuratorOpen(false);
-  }
 
   const handleAskCurator = async (prompt: string) => {
     if (!prompt.trim()) return;
 
     const newUserMessage: ChatMessage = { id: Date.now(), sender: 'user', text: prompt };
-    setChatMessages(prev => [...prev, newUserMessage]);
+    setChatMessages(prev => [...prev.slice(-5), newUserMessage]);
     setIsCuratorLoading(true);
+    setPromptValue('');
 
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-    let systemInstruction = `You are an expert curator for a digital museum showcasing the portfolio of a creative technologist. You are witty, insightful, and knowledgeable. Your answers should be concise and engaging.`;
+    let systemInstruction = `You are an expert curator for a digital museum showcasing the portfolio of a creative technologist. You are witty, insightful, and knowledgeable. Your answers must be very concise (1-2 sentences) and engaging.`;
     if (selectedItem) {
         systemInstruction += ` The user is currently viewing the "${selectedItem.title}" exhibit. The exhibit's theme is: "${selectedItem.description}". Base your answer on this context.`;
     } else {
@@ -99,22 +101,30 @@ function App() {
             const params = JSON.parse(curatorResponseText);
             if (params.color && params.distort && params.speed) {
               setGenArtParams(params);
-              curatorResponseText = `Of course. I've adjusted the generative art to your specifications.`;
+              curatorResponseText = `As you wish. I've adjusted the generative art.`;
             }
          } catch(e) { /* Not a JSON response, so it's a regular text response. Ignore parsing error. */ }
       }
 
       const newCuratorMessage: ChatMessage = { id: Date.now() + 1, sender: 'curator', text: curatorResponseText };
-      setChatMessages(prev => [...prev, newCuratorMessage]);
+      setChatMessages(prev => [...prev.slice(-5), newCuratorMessage]);
 
     } catch (error) {
       console.error("Gemini API Error:", error);
-      const errorMessage: ChatMessage = { id: Date.now() + 1, sender: 'curator', text: "I seem to be having trouble connecting to my thoughts right now. Please try again in a moment." };
-      setChatMessages(prev => [...prev, errorMessage]);
+      const errorMessage: ChatMessage = { id: Date.now() + 1, sender: 'curator', text: "My apologies, I'm having a moment of digital fatigue. Please try again shortly." };
+      setChatMessages(prev => [...prev.slice(-5), errorMessage]);
     } finally {
       setIsCuratorLoading(false);
     }
   };
+  
+  const activateChat = () => {
+    if (!isChatActive) {
+      setIsChatActive(true);
+      const newMessage: ChatMessage = { id: Date.now(), sender: 'curator', text: "Welcome to my gallery. How may I guide you?" };
+      setChatMessages([newMessage]);
+    }
+  }
 
   if (loading) {
     return <Loader />;
@@ -130,15 +140,21 @@ function App() {
         onSelectItem={handleSelectItem} 
         selectedItem={selectedItem}
         genArtParams={genArtParams}
-      />
-      <CuratorUI
-        isOpen={isCuratorOpen}
-        onClose={handleCloseCurator}
         messages={chatMessages}
-        onSendMessage={handleAskCurator}
-        isLoading={isCuratorLoading}
-        selectedItem={selectedItem}
+        onActivateChat={activateChat}
+        isChatActive={isChatActive}
       />
+      {isChatActive && (
+          <ChatInput 
+            onSubmit={handleAskCurator}
+            isLoading={isCuratorLoading}
+            isListening={isListening}
+            onListen={startListening}
+            isSpeechSupported={isSpeechRecognitionSupported}
+            promptValue={promptValue}
+            setPromptValue={setPromptValue}
+          />
+      )}
     </>
   );
 }

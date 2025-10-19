@@ -4,6 +4,7 @@ export interface PortfolioItem {
   category: 'Left Brain / Logic' | 'Right Brain / Creativity';
   description: string;
   position3D: [number, number, number];
+  color: string;
 }
 
 export interface ChatMessage {

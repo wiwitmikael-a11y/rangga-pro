@@ -7,6 +7,7 @@ export const PORTFOLIO_ITEMS: PortfolioItem[] = [
     category: 'Left Brain / Logic',
     description: 'Architecting intelligent systems. From neural network design to deploying scalable machine learning models that solve real-world problems with data-driven insights.',
     position3D: [-5, 0, -5],
+    color: '#00aaff',
   },
   {
     id: 'app-dev',
@@ -14,6 +15,7 @@ export const PORTFOLIO_ITEMS: PortfolioItem[] = [
     category: 'Left Brain / Logic',
     description: 'Building functional and beautiful digital experiences. Specializing in creating robust application structures, clean code, and intuitive user flows from front to back.',
     position3D: [5, 0, -5],
+    color: '#00f5d4',
   },
   {
     id: 'finance-crypto',
@@ -21,6 +23,7 @@ export const PORTFOLIO_ITEMS: PortfolioItem[] = [
     category: 'Left Brain / Logic',
     description: 'Navigating the frontiers of finance. Analyzing market data, developing trading strategies, and exploring the systemic impact of micro-banking and decentralized technologies.',
     position3D: [0, 0, -10],
+    color: '#00d4ff',
   },
   {
     id: 'photography',
@@ -28,6 +31,7 @@ export const PORTFOLIO_ITEMS: PortfolioItem[] = [
     category: 'Right Brain / Creativity',
     description: 'Capturing moments and emotions through the lens. A study of light, composition, and storytelling to freeze a moment in time and convey a powerful narrative.',
     position3D: [-5, 0, 5],
+    color: '#ff477e',
   },
   {
     id: 'videography',
@@ -35,6 +39,7 @@ export const PORTFOLIO_ITEMS: PortfolioItem[] = [
     category: 'Right Brain / Creativity',
     description: 'Crafting narratives in motion. From conceptual cinematography to final edit, creating immersive visual stories that engage, inform, and inspire.',
     position3D: [5, 0, 5],
+    color: '#ff7e47',
   },
   {
     id: 'generative-art',
@@ -42,5 +47,6 @@ export const PORTFOLIO_ITEMS: PortfolioItem[] = [
     category: 'Right Brain / Creativity',
     description: 'Where code becomes the canvas. Using algorithms and AI to explore emergent aesthetics, creating unique and unpredictable visual forms that bridge logic and art.',
     position3D: [0, 0, 10],
+    color: '#e047ff',
   },
 ];
