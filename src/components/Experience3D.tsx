@@ -1,64 +1,43 @@
-
-import React, { Suspense } from 'react';
-import { Canvas } from '@react--three/fiber';
-import { Stars } from '@react-three/drei';
-import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import { CityDistrict, PortfolioSubItem } from '../types';
-import { PORTFOLIO_DATA } from '../constants';
-
+import React from 'react';
+import { Canvas } from '@react-three/fiber';
 import { CameraRig } from './scene/CameraRig';
 import { FloatingIsland } from './scene/FloatingIsland';
 import { FlyingVehicles } from './scene/FlyingVehicles';
+import { PORTFOLIO_DATA } from '../constants';
+import { CityDistrict, PortfolioSubItem } from '../types';
 
-// --- PROPS ---
 interface Experience3DProps {
   onSelectDistrict: (district: CityDistrict | null) => void;
   onSelectSubItem: (item: PortfolioSubItem) => void;
   selectedDistrict: CityDistrict | null;
 }
 
-// --- MAIN COMPONENT ---
-const Experience3D: React.FC<Experience3DProps> = ({
-  onSelectDistrict,
-  onSelectSubItem,
-  selectedDistrict,
-}) => {
+const Experience3D: React.FC<Experience3DProps> = ({ onSelectDistrict, onSelectSubItem, selectedDistrict }) => {
   return (
-    <Canvas 
+    <Canvas
       orthographic
-      camera={{ 
-        position: [15, 15, 15], 
-        zoom: 40,
-        near: 1,
-        far: 100
-      }}
+      camera={{ position: [15, 15, 15], zoom: 40, near: 0.1, far: 1000 }}
+      style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: '#050505' }}
     >
-      <color attach="background" args={['#05050c']} />
-      <fog attach="fog" args={['#05050c', 20, 50]} />
-      <ambientLight intensity={0.3} />
-      <pointLight position={[0, 10, 0]} intensity={0.5} />
-      
-      <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={0.5} />
-      
-      <Suspense fallback={null}>
-        <FlyingVehicles />
-        {PORTFOLIO_DATA.map(district => (
-          <FloatingIsland
-            key={district.id}
-            district={district}
-            onSelect={() => onSelectDistrict(district)}
-            onSelectSubItem={onSelectSubItem}
-            isSelected={selectedDistrict?.id === district.id}
-            isFaded={selectedDistrict !== null && selectedDistrict.id !== district.id}
-          />
-        ))}
-      </Suspense>
+      <ambientLight intensity={0.5} />
+      <directionalLight position={[10, 10, 5]} intensity={1} />
+      <pointLight position={[-10, -10, -10]} intensity={0.5} />
 
       <CameraRig selectedDistrict={selectedDistrict} />
 
-      <EffectComposer>
-        <Bloom luminanceThreshold={0.2} luminanceSmoothing={0.9} height={300} intensity={1.2} />
-      </EffectComposer>
+      {PORTFOLIO_DATA.map((district) => (
+        <FloatingIsland
+          key={district.id}
+          district={district}
+          onSelectDistrict={onSelectDistrict}
+          onSelectSubItem={onSelectSubItem}
+          isSelected={selectedDistrict?.id === district.id}
+        />
+      ))}
+
+      <FlyingVehicles />
+      
+      <fog attach="fog" args={['#050505', 20, 50]} />
     </Canvas>
   );
 };

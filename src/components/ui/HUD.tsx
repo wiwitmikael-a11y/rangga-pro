@@ -7,52 +7,83 @@ interface HUDProps {
 }
 
 export const HUD: React.FC<HUDProps> = ({ selectedDistrict, onGoHome }) => {
-  const isVisible = !!selectedDistrict;
+  const isDistrictSelected = !!selectedDistrict;
 
   return (
-    <div style={{...styles.container, opacity: isVisible ? 1 : 0, pointerEvents: isVisible ? 'auto' : 'none'}}>
-      <button onClick={onGoHome} style={styles.homeButton}>
-        &lt; City Overview
-      </button>
-      <div style={styles.districtInfo}>
-        <h3 style={styles.districtTitle}>{selectedDistrict?.title}</h3>
-        <p style={styles.districtDescription}>{selectedDistrict?.description}</p>
+    <>
+      <div style={{...styles.topContainer, ...(isDistrictSelected ? styles.visible : styles.hiddenTop)}}>
+        <h2 style={styles.title}>{selectedDistrict?.title}</h2>
+        <p style={styles.description}>{selectedDistrict?.description}</p>
       </div>
-    </div>
+       <div style={styles.bottomContainer}>
+         <button 
+            onClick={onGoHome} 
+            style={{...styles.homeButton, ...(isDistrictSelected ? styles.visible : styles.hiddenBottom)}}>
+            City Overview
+          </button>
+      </div>
+    </>
   );
 };
 
+const commonContainerStyles: React.CSSProperties = {
+  position: 'fixed',
+  fontFamily: 'monospace',
+  color: 'white',
+  padding: '20px',
+  textShadow: '0 0 5px #00aaff',
+  pointerEvents: 'none',
+  zIndex: 10,
+};
+
 const styles: { [key: string]: React.CSSProperties } = {
-  container: {
-    position: 'fixed',
-    top: '30px',
-    left: '30px',
-    zIndex: 50,
-    color: 'white',
-    fontFamily: 'monospace',
-    transition: 'opacity 0.5s ease',
+  topContainer: {
+    ...commonContainerStyles,
+    top: 0,
+    left: 0,
+    textAlign: 'left',
+    transition: 'opacity 0.5s ease, transform 0.5s ease',
+  },
+  bottomContainer: {
+    ...commonContainerStyles,
+    bottom: 0,
+    left: '50%',
+    transform: 'translateX(-50%)',
+    textAlign: 'center',
+    padding: '30px',
+  },
+  title: {
+    margin: 0,
+    fontSize: '2rem',
+  },
+  description: {
+    margin: '5px 0 0 0',
+    fontSize: '1rem',
+    color: '#ccc',
   },
   homeButton: {
-    background: 'rgba(0, 170, 255, 0.1)',
-    border: '1px solid rgba(0, 170, 255, 0.5)',
+    background: 'transparent',
+    border: '1px solid #00aaff',
     color: '#00aaff',
-    padding: '10px 15px',
+    padding: '10px 20px',
     fontSize: '1rem',
     cursor: 'pointer',
     borderRadius: '5px',
-    transition: 'all 0.3s ease',
+    transition: 'all 0.5s ease',
+    textTransform: 'uppercase',
+    letterSpacing: '0.1em',
+    pointerEvents: 'all',
   },
-  districtInfo: {
-    marginTop: '20px',
-    maxWidth: '300px',
+  visible: {
+    opacity: 1,
+    transform: 'translateY(0)',
   },
-  districtTitle: {
-    margin: '0 0 5px 0',
-    fontSize: '1.5rem',
-    textShadow: '0 0 3px #fff',
+  hiddenTop: {
+    opacity: 0,
+    transform: 'translateY(-20px)',
   },
-  districtDescription: {
-    margin: 0,
-    color: '#ccc',
+  hiddenBottom: {
+    opacity: 0,
+    transform: 'translateY(20px)',
   },
 };
