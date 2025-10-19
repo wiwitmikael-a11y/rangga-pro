@@ -1,9 +1,8 @@
+
 export interface PortfolioSubItem {
   id: string;
   title: string;
-  // A brief description for the 3D banner
   description: string; 
-  // Detailed content for the 2D InfoPanel, can include markdown or plain text.
   content: string; 
   position: [number, number, number];
 }
@@ -13,6 +12,8 @@ export interface CityDistrict {
   title: string;
   description: string;
   position3D: [number, number, number];
-  color: string;
+  shape: 'tower' | 'platform' | 'ring';
+  // Defines which other district IDs this district should connect to with a data bridge
+  connections?: string[]; 
   subItems: PortfolioSubItem[];
 }

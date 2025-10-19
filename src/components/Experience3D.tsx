@@ -1,50 +1,61 @@
-// FIX: Implemented the main 3D scene component to resolve placeholder errors.
 import React from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Stars } from '@react-three/drei';
+import { EffectComposer, Bloom } from '@react-three/postprocessing';
+// Fix: Add PortfolioSubItem to imports to be used in the props interface.
 import { CityDistrict, PortfolioSubItem } from '../types';
 import { portfolioData } from '../constants';
-import DistrictNode from './scene/DistrictNode';
-import DataHubNode from './scene/DataHubNode';
 import CameraRig from './scene/CameraRig';
-import CentralCore from './scene/CentralCore';
-import FlyingVehicles from './scene/FlyingVehicles';
-import DataStream from './scene/DataStream';
-import FloatingIsland from './scene/FloatingIsland';
+import PCBFloor from './scene/PCBFloor';
+import DistrictBuilding from './scene/DistrictBuilding';
+import HolographicPanel from './scene/HolographicPanel';
+import DataBridge from './scene/DataBridge';
 
 interface Experience3DProps {
   onSelectDistrict: (district: CityDistrict | null) => void;
-  onSelectSubItem: (item: PortfolioSubItem) => void;
   selectedDistrict: CityDistrict | null;
+  // Fix: Add onSelectSubItem to the component's props interface.
+  onSelectSubItem: (item: PortfolioSubItem) => void;
 }
 
-const Experience3D: React.FC<Experience3DProps> = ({ onSelectDistrict, onSelectSubItem, selectedDistrict }) => {
+const Experience3D: React.FC<Experience3DProps> = ({ onSelectDistrict, selectedDistrict }) => {
+  const districtMap = new Map(portfolioData.map(d => [d.id, d]));
+
   return (
     <Canvas
-      camera={{ position: [0, 20, 40], fov: 60 }}
-      style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#000510' }}
+      orthographic
+      camera={{ position: [50, 50, 50], zoom: 20, up: [0, 1, 0] }}
+      style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#050810' }}
     >
-      <ambientLight intensity={0.2} />
-      <pointLight position={[0, 20, 0]} intensity={1.5} color="#00aaff" />
-      <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
-
+      <ambientLight intensity={0.1} />
+      <hemisphereLight intensity={0.2} color="#ffffff" groundColor="#ff00ff" />
+      
       <CameraRig selectedDistrict={selectedDistrict} />
 
       <group>
-        <FloatingIsland />
-        <CentralCore />
-        <DataStream />
-        <FlyingVehicles />
-
-        {!selectedDistrict && portfolioData.map(district => (
-          <DistrictNode key={district.id} district={district} onSelect={() => onSelectDistrict(district)} />
-        ))}
-
-        {selectedDistrict && selectedDistrict.subItems.map(item => (
-           <DataHubNode key={item.id} item={item} district={selectedDistrict} onSelect={() => onSelectSubItem(item)} />
+        <PCBFloor />
+        
+        {portfolioData.map(district => (
+          <React.Fragment key={district.id}>
+            <DistrictBuilding
+              district={district}
+              onSelect={() => onSelectDistrict(district)}
+              isSelected={selectedDistrict?.id === district.id}
+            />
+            <HolographicPanel district={district} />
+            {district.connections?.map(connId => {
+              const targetDistrict = districtMap.get(connId);
+              if (targetDistrict) {
+                return <DataBridge key={`${district.id}-${connId}`} start={district.position3D} end={targetDistrict.position3D} />
+              }
+              return null;
+            })}
+          </React.Fragment>
         ))}
       </group>
-      
+
+      <EffectComposer>
+        <Bloom luminanceThreshold={0.8} luminanceSmoothing={0.9} height={300} intensity={1.5} />
+      </EffectComposer>
     </Canvas>
   );
 };

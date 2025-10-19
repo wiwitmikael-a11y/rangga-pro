@@ -1,4 +1,3 @@
-// FIX: Implemented component to resolve placeholder errors and provide camera functionality.
 import { useFrame } from '@react-three/fiber';
 import { Vector3 } from 'three';
 import { CityDistrict } from '../../types';
@@ -11,23 +10,33 @@ const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict }) => {
   const vec = new Vector3();
 
   useFrame((state) => {
+    const camera = state.camera as any; // Using "any" to access orthographic properties like zoom
     let targetPosition: [number, number, number];
+    let targetZoom: number;
+
     if (selectedDistrict) {
-      targetPosition = [
-        selectedDistrict.position3D[0],
-        selectedDistrict.position3D[1] + 5,
-        selectedDistrict.position3D[2] + 15,
-      ];
+      const [x, _, z] = selectedDistrict.position3D;
+      targetPosition = [x + 20, 20, z + 20];
+      targetZoom = 60;
     } else {
-      targetPosition = [0, 15, 35];
+      targetPosition = [40, 40, 40];
+      targetZoom = 25;
     }
 
-    state.camera.position.lerp(vec.set(...targetPosition), 0.025);
-    state.camera.lookAt(0, 5, 0);
-    state.camera.updateProjectionMatrix();
+    // Smoothly interpolate camera position
+    camera.position.lerp(vec.set(...targetPosition), 0.04);
+    
+    // Smoothly interpolate camera zoom
+    camera.zoom = THREE.MathUtils.lerp(camera.zoom, targetZoom, 0.04);
+
+    camera.lookAt(0, 0, 0);
+    camera.updateProjectionMatrix();
   });
 
   return null;
 };
+
+// Import THREE globally if it's not automatically available
+import * as THREE from 'three';
 
 export default CameraRig;
