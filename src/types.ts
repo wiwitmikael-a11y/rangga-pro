@@ -1,9 +1,11 @@
 export interface PortfolioSubItem {
   id: string;
   title: string;
-  description: string;
-  bannerImage?: string; // Placeholder for future image uploads
-  position: [number, number, number]; // Position relative to the district center
+  // A brief description for the 3D banner
+  description: string; 
+  // Detailed content for the 2D InfoPanel, can include markdown or plain text.
+  content: string; 
+  position: [number, number, number];
 }
 
 export interface CityDistrict {
@@ -13,17 +15,4 @@ export interface CityDistrict {
   position3D: [number, number, number];
   color: string;
   subItems: PortfolioSubItem[];
-}
-
-
-export interface ChatMessage {
-  id: number;
-  sender: 'user' | 'curator';
-  text: string;
-}
-
-export interface GenArtParams {
-  color: string;
-  distort: number;
-  speed: number;
 }

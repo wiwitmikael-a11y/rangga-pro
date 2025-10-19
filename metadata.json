@@ -1,7 +1,5 @@
 {
-  "requestFramePermissions": [
-    "microphone"
-  ],
-  "name": "rangga.pro - The Digital Museum",
+  "requestFramePermissions": [],
+  "name": "rangga.pro - The Digital Metropolis",
   "description": ""
 }
