@@ -1,6 +1,6 @@
 import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-// FIX: `PointLight` is not exported from `drei`. Use the R3F primitive `<pointLight />` instead.
+// `PointLight` is not exported from `drei`. Use the R3F primitive `<pointLight />` instead.
 import { Trail } from '@react-three/drei';
 import * as THREE from 'three';
 

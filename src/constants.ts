@@ -2,76 +2,86 @@ import { CityDistrict } from './types';
 
 export const PORTFOLIO_DATA: CityDistrict[] = [
   {
-    id: 'tech-hub',
-    title: 'Tech Hub',
-    description: 'Cutting-edge software engineering and cloud solutions.',
-    position3D: [-8, 2, 0], // Left
-    color: '#00ffff',
+    id: 'backend',
+    title: 'Backend Engineering',
+    description: 'Scalable APIs, databases, and cloud infrastructure.',
+    position3D: [-5, 0, -5],
+    color: '#ff4136', // Red
     subItems: [
       {
-        id: 'project-a',
-        title: 'Cloud-Native Platform',
-        description: 'A scalable cloud-native application.',
-        content: `Built a highly scalable, resilient cloud-native platform using a microservices architecture on Kubernetes.
-- Technologies: Go, Docker, Kubernetes, gRPC, Prometheus.
-- Outcome: Reduced infrastructure costs by 30% and improved service uptime to 99.99%.`,
-        position: [-0.5, 1, 1],
+        id: 'api-design',
+        title: 'REST & GraphQL APIs',
+        description: 'Designing robust and efficient APIs.',
+        content: 'Experienced in creating well-documented RESTful and GraphQL APIs using Node.js, Express, and Apollo Server. Focused on performance, security, and developer experience.',
+        position: [-1, 1, 0],
       },
       {
-        id: 'project-b',
-        title: 'Machine Learning Engine',
-        description: 'An innovative machine learning platform.',
-        content: `Developed a machine learning engine for real-time fraud detection.
-- Technologies: Python, TensorFlow, Scikit-learn, Kafka.
-- Outcome: Successfully identified and prevented fraudulent transactions, saving the company millions.`,
-        position: [1, 0.5, -0.5],
+        id: 'database-management',
+        title: 'Database Management',
+        description: 'SQL and NoSQL database solutions.',
+        content: 'Proficient with both relational (PostgreSQL, MySQL) and NoSQL (MongoDB, Redis) databases. Skilled in schema design, query optimization, and data migration strategies.',
+        position: [0, 1.5, -1],
+      },
+      {
+        id: 'cloud-devops',
+        title: 'Cloud & DevOps',
+        description: 'CI/CD, Docker, and Cloud Services.',
+        content: 'Hands-on experience with AWS and Google Cloud. Implemented CI/CD pipelines using GitHub Actions, containerized applications with Docker, and managed infrastructure as code.',
+        position: [1, 1, 0],
       },
     ],
   },
   {
-    id: 'design-district',
-    title: 'Design District',
-    description: 'Creative UI/UX design and immersive user experiences.',
-    position3D: [8, 0, 0], // Right
-    color: '#ff00ff',
+    id: 'frontend',
+    title: 'Frontend Development',
+    description: 'Interactive UIs with modern frameworks.',
+    position3D: [5, 0, -5],
+    color: '#0074d9', // Blue
     subItems: [
       {
-        id: 'project-c',
-        title: 'Mobile App Redesign',
-        description: 'A futuristic user interface for a mobile app.',
-        content: `Led the complete redesign of a flagship mobile application focusing on user experience and accessibility.
-- Process: User Research, Wireframing, Prototyping, A/B Testing.
-- Tools: Figma, Adobe XD, React Native.
-- Outcome: Increased user engagement by 50% and received a 4.8-star rating on the App Store.`,
-        position: [-1, 0.8, -1],
+        id: 'react-nextjs',
+        title: 'React & Next.js',
+        description: 'Building dynamic, server-rendered applications.',
+        content: 'Expert in building complex user interfaces with React and Next.js. Strong understanding of component-based architecture, state management (Redux, Zustand), and performance optimization.',
+        position: [-1, 1, 0],
+      },
+      {
+        id: '3d-web',
+        title: '3D on the Web',
+        description: 'Engaging experiences with Three.js & R3F.',
+        content: 'Passionate about creating immersive 3D web experiences using Three.js and React Three Fiber. Skilled in modeling, shaders, and performance tuning for web-based 3D graphics.',
+        position: [0, 1.5, -1],
       },
        {
-        id: 'project-d',
-        title: 'Branding Identity',
-        description: 'A complete branding guide for a new startup.',
-        content: `Created a comprehensive brand identity and design system for a tech startup.
-- Deliverables: Logo, Color Palette, Typography, UI Kit, Brand Guidelines.
-- Impact: Established a strong, recognizable brand presence that resonated with the target audience.`,
-        position: [0.5, 1.2, 0.8],
+        id: 'ui-ux',
+        title: 'UI/UX & Design Systems',
+        description: 'Creating intuitive and consistent user experiences.',
+        content: 'Focused on user-centric design principles. Experienced in building and maintaining design systems, ensuring visual consistency and reusability across large-scale applications.',
+        position: [1, 1, 0],
       },
     ],
   },
   {
-    id: 'data-nexus',
-    title: 'Data Nexus',
-    description: 'Advanced data analytics and visualization.',
-    position3D: [0, -2, -8], // Front
-    color: '#ffff00',
+    id: 'ai-integration',
+    title: 'AI & GenAI',
+    description: 'Integrating intelligent features into applications.',
+    position3D: [0, 0, 5],
+    color: '#2ecc40', // Green
     subItems: [
-        {
-            id: 'project-e',
-            title: 'Real-Time Dashboard',
-            description: 'Interactive real-time data dashboard.',
-            content: `Engineered a real-time data visualization dashboard for monitoring key business metrics.
-- Technologies: D3.js, React, Node.js, WebSocket.
-- Feature: Provided stakeholders with live, actionable insights, improving decision-making speed by 40%.`,
-            position: [0, 1.5, 0],
-        },
+      {
+        id: 'gemini-api',
+        title: 'Google Gemini API',
+        description: 'Leveraging large language models for creative solutions.',
+        content: 'Skilled in integrating the Google Gemini API to build applications with advanced text generation, summarization, and function calling capabilities. Implemented RAG patterns for domain-specific knowledge.',
+        position: [-1, 1, 0],
+      },
+      {
+        id: 'computer-vision',
+        title: 'Computer Vision',
+        description: 'Image analysis and object detection.',
+        content: 'Experience with computer vision libraries like OpenCV and integrating models for tasks such as image classification, object detection, and facial recognition into web applications.',
+        position: [0, 1.5, 0],
+      },
     ],
   },
 ];
