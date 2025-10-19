@@ -5,7 +5,6 @@ import { fileURLToPath } from 'url'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: './', // Fix: Ensure asset paths are relative to fix 404 on lazy-loaded chunks.
   plugins: [react()],
   resolve: {
     alias: {
