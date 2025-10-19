@@ -1,5 +1,5 @@
 import React from 'react';
-import { Canvas } from '@react-three-fiber';
+import { Canvas } from '@react-three/fiber';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { CityDistrict, PortfolioSubItem } from '../types';
 import { portfolioData } from '../constants';
