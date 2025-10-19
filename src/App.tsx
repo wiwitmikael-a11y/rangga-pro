@@ -143,6 +143,8 @@ function App() {
         messages={chatMessages}
         onActivateChat={activateChat}
         isChatActive={isChatActive}
+        isCuratorLoading={isCuratorLoading}
+        isListening={isListening}
       />
       {isChatActive && (
           <ChatInput 
