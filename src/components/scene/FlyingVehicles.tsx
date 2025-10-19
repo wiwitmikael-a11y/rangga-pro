@@ -1,59 +1,48 @@
+// FIX: Implemented component to add ambient vehicles and resolve placeholder errors.
 import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import { Group, Vector3, CatmullRomCurve3 } from 'three';
 
-const Vehicle: React.FC<{ initialPosition: [number, number, number], color: string, speed: number, radius: number }> = ({ initialPosition, color, speed, radius }) => {
-  const meshRef = useRef<THREE.Mesh>(null!);
-  const angle = useRef(Math.random() * Math.PI * 2);
+const Vehicle = () => {
+  const ref = useRef<Group>(null!);
+  
+  const { curve, speed } = useMemo(() => {
+    const points = Array.from({ length: 5 }, () => 
+      new Vector3(
+        (Math.random() - 0.5) * 50,
+        Math.random() * 20,
+        (Math.random() - 0.5) * 50
+      )
+    );
+    const curve = new CatmullRomCurve3(points, true, 'catmullrom', 0.5);
+    const speed = Math.random() * 0.05 + 0.02;
+    return { curve, speed };
+  }, []);
 
-  useFrame((_, delta) => {
-    if (meshRef.current) {
-      angle.current += delta * speed;
-      const x = Math.cos(angle.current) * radius;
-      const z = Math.sin(angle.current) * radius;
-      meshRef.current.position.set(x, initialPosition[1], z);
+  useFrame((state, delta) => {
+    if(ref.current) {
+        const time = (state.clock.elapsedTime * speed) % 1;
+        const point = curve.getPointAt(time);
+        ref.current.position.copy(point);
+        
+        const tangent = curve.getTangentAt(time).normalize();
+        ref.current.quaternion.setFromUnitVectors(new Vector3(0,0,1), tangent);
     }
   });
 
   return (
-    <mesh ref={meshRef} position={initialPosition}>
-      <sphereGeometry args={[0.05, 8, 8]} />
-      <meshBasicMaterial color={color} />
-    </mesh>
-  );
-};
-
-export const FlyingVehicles: React.FC<{ count: number }> = ({ count }) => {
-  const vehicles = useMemo(() => {
-    const temp = [];
-    for (let i = 0; i < count; i++) {
-      const radius = 10 + Math.random() * 10;
-      const y = Math.random() * 10;
-      const angle = Math.random() * Math.PI * 2;
-      const x = Math.cos(angle) * radius;
-      const z = Math.sin(angle) * radius;
-      
-      temp.push({
-        position: [x, y, z] as [number, number, number],
-        color: ['#ff69b4', '#00aaff', '#39ff14'][Math.floor(Math.random() * 3)],
-        speed: 0.1 + Math.random() * 0.2,
-        radius: radius,
-      });
-    }
-    return temp;
-  }, [count]);
-
-  return (
-    <group>
-      {vehicles.map((vehicle, i) => (
-        <Vehicle 
-          key={i} 
-          initialPosition={vehicle.position}
-          color={vehicle.color}
-          speed={vehicle.speed}
-          radius={vehicle.radius}
-        />
-      ))}
+    <group ref={ref}>
+      <mesh>
+        <boxGeometry args={[0.1, 0.1, 0.5]} />
+        <meshStandardMaterial emissive="#ff0000" emissiveIntensity={2} toneMapped={false} />
+      </mesh>
     </group>
   );
 };
+
+const FlyingVehicles = () => {
+  const vehicles = useMemo(() => Array.from({ length: 30 }, (_, i) => <Vehicle key={i} />), []);
+  return <>{vehicles}</>;
+};
+
+export default FlyingVehicles;

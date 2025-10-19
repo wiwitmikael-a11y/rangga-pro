@@ -1,67 +1,50 @@
+// FIX: Implemented the main 3D scene component to resolve placeholder errors.
 import React from 'react';
 import { Canvas } from '@react-three/fiber';
-import { EffectComposer, Bloom, DepthOfField } from '@react-three/postprocessing';
+import { Stars } from '@react-three/drei';
 import { CityDistrict, PortfolioSubItem } from '../types';
-import { PORTFOLIO_DATA } from '../constants';
-import { FlyingVehicles } from './scene/FlyingVehicles';
-import { CameraRig } from './scene/CameraRig';
-import { DistrictNode } from './scene/DistrictNode'; // New component
+import { portfolioData } from '../constants';
+import DistrictNode from './scene/DistrictNode';
+import DataHubNode from './scene/DataHubNode';
+import CameraRig from './scene/CameraRig';
+import CentralCore from './scene/CentralCore';
+import FlyingVehicles from './scene/FlyingVehicles';
+import DataStream from './scene/DataStream';
+import FloatingIsland from './scene/FloatingIsland';
 
 interface Experience3DProps {
-  selectedDistrict: CityDistrict | null;
   onSelectDistrict: (district: CityDistrict | null) => void;
   onSelectSubItem: (item: PortfolioSubItem) => void;
+  selectedDistrict: CityDistrict | null;
 }
 
-const Experience3D: React.FC<Experience3DProps> = ({
-  selectedDistrict,
-  onSelectDistrict,
-  onSelectSubItem,
-}) => {
+const Experience3D: React.FC<Experience3DProps> = ({ onSelectDistrict, onSelectSubItem, selectedDistrict }) => {
   return (
     <Canvas
-      shadows
-      style={{ position: 'fixed', top: 0, left: 0, background: '#05050a' }}
-      camera={{ position: [0, 2, 14], fov: 50 }}
+      camera={{ position: [0, 20, 40], fov: 60 }}
+      style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#000510' }}
     >
-      {/* Enhanced Lighting Setup */}
-      <hemisphereLight intensity={0.15} groundColor="black" />
-      <spotLight
-        position={[10, 10, 10]}
-        angle={0.3}
-        penumbra={1}
-        intensity={2}
-        castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-      />
-      
-      <fog attach="fog" args={['#05050a', 15, 35]} />
-
-      {PORTFOLIO_DATA.map((district) => (
-        <DistrictNode
-          key={district.id}
-          district={district}
-          onSelectDistrict={onSelectDistrict}
-          onSelectSubItem={onSelectSubItem}
-          isSelected={selectedDistrict?.id === district.id}
-          isActive={!!selectedDistrict}
-        />
-      ))}
-      
-      <FlyingVehicles count={20} />
+      <ambientLight intensity={0.2} />
+      <pointLight position={[0, 20, 0]} intensity={1.5} color="#00aaff" />
+      <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
 
       <CameraRig selectedDistrict={selectedDistrict} />
 
-      <EffectComposer>
-        <Bloom luminanceThreshold={0.8} intensity={0.8} levels={8} mipmapBlur />
-        <DepthOfField
-          focusDistance={0}
-          focalLength={0.02}
-          bokehScale={2}
-          height={480}
-        />
-      </EffectComposer>
+      <group>
+        <FloatingIsland />
+        <CentralCore />
+        <DataStream />
+        <FlyingVehicles />
+
+        {!selectedDistrict && portfolioData.map(district => (
+          <DistrictNode key={district.id} district={district} onSelect={() => onSelectDistrict(district)} />
+        ))}
+
+        {selectedDistrict && selectedDistrict.subItems.map(item => (
+           <DataHubNode key={item.id} item={item} district={selectedDistrict} onSelect={() => onSelectSubItem(item)} />
+        ))}
+      </group>
+      
     </Canvas>
   );
 };
