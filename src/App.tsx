@@ -1,131 +1,149 @@
-import React, { useState, useEffect, Suspense, lazy, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense, useMemo, useRef } from 'react';
 import { Loader } from './components/ui/Loader';
 import { StartScreen } from './components/ui/StartScreen';
 import { HUD } from './components/ui/HUD';
-import { CityDistrict, PerformanceTier } from './types';
-import { portfolioData } from './constants';
+import Experience3D from './components/Experience3D';
+import { CityDistrict, PerformanceTier, PortfolioSubItem } from './types';
 import { usePerformance } from './hooks/usePerformance';
-
-// Lazy load the 3D experience
-const Experience3D = lazy(() => import('./components/Experience3D'));
+import { NexusProtocolGame } from './components/game/NexusProtocolGame';
+import HolographicProjector from './components/scene/HolographicProjector';
+import { portfolioData } from './constants';
 
 function App() {
   const [loading, setLoading] = useState(true);
   const [isStarted, setIsStarted] = useState(false);
-  
+  const [bootComplete, setBootComplete] = useState(false);
   const [selectedDistrict, setSelectedDistrict] = useState<CityDistrict | null>(null);
-  const [unlockedProjects, setUnlockedProjects] = useState<Set<string>>(new Set());
+  const [hoveredDistrictId, setHoveredDistrictId] = useState<string | null>(null);
   
-  const { initialTier, setPerformanceTier, performanceTier } = usePerformance();
+  const [unlockedItems, setUnlockedItems] = useState<Set<string>>(new Set());
+  const [showGame, setShowGame] = useState<CityDistrict | null>(null);
+  const [showProjector, setShowProjector] = useState<PortfolioSubItem | null>(null);
 
-  const ambientSoundRef = useRef<HTMLAudioElement | null>(null);
-  const clickSoundRef = useRef<HTMLAudioElement | null>(null);
-  const hoverSoundRef = useRef<HTMLAudioElement | null>(null);
-  const scanSoundRef = useRef<HTMLAudioElement | null>(null);
+  const { initialTier, performanceTier, setPerformanceTier } = usePerformance();
+  const audioContext = useMemo(() => new (window.AudioContext || (window as any).webkitAudioContext)(), []);
+  const scanSoundBuffer = useRef<AudioBuffer | null>(null);
 
   useEffect(() => {
-    ambientSoundRef.current = document.getElementById('ambient-sound') as HTMLAudioElement;
-    clickSoundRef.current = document.getElementById('click-sound') as HTMLAudioElement;
-    hoverSoundRef.current = document.getElementById('hover-sound') as HTMLAudioElement;
-    scanSoundRef.current = document.getElementById('scan-sound') as HTMLAudioElement;
-    
-    const timer = setTimeout(() => setLoading(false), 3500);
-    
-    const handleContextMenu = (e: MouseEvent) => e.preventDefault();
-    document.addEventListener('contextmenu', handleContextMenu);
+    // Pre-load sound effect
+    fetch('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/sounds/scanner_ui.wav')
+      .then(response => response.arrayBuffer())
+      .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
+      .then(audioBuffer => {
+        scanSoundBuffer.current = audioBuffer;
+      });
 
-    return () => {
-      clearTimeout(timer);
-      document.removeEventListener('contextmenu', handleContextMenu);
-    };
-  }, []);
+    const timer = setTimeout(() => setLoading(false), 5500); // Sync with Loader animation
+    return () => clearTimeout(timer);
+  }, [audioContext]);
   
-  const playClickSound = useCallback(() => {
-    if (clickSoundRef.current) {
-      clickSoundRef.current.currentTime = 0;
-      clickSoundRef.current.play();
-    }
-  }, []);
-
-  const playHoverSound = useCallback(() => {
-    if (hoverSoundRef.current) {
-        hoverSoundRef.current.currentTime = 0;
-        hoverSoundRef.current.volume = 0.4;
-        hoverSoundRef.current.play();
-    }
-  }, []);
-
   const playScanSound = useCallback(() => {
-    if (scanSoundRef.current) {
-        scanSoundRef.current.currentTime = 0;
-        scanSoundRef.current.volume = 0.5;
-        scanSoundRef.current.play();
+    if (scanSoundBuffer.current && audioContext.state === 'running') {
+      const source = audioContext.createBufferSource();
+      source.buffer = scanSoundBuffer.current;
+      source.connect(audioContext.destination);
+      source.start(0);
     }
-  }, []);
-
+  }, [audioContext]);
+  
   const handleStart = useCallback(() => {
-    // This will trigger the boot sequence in StartScreen
-    // isStarted will be set to true by StartScreen after the sequence
-  }, []);
+      // Resume audio context on user interaction
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+      setIsStarted(true);
+  }, [audioContext]);
 
   const handleBootComplete = useCallback(() => {
-    setIsStarted(true);
-    if (ambientSoundRef.current) {
-        ambientSoundRef.current.volume = 0.3;
-        ambientSoundRef.current.play();
+    setBootComplete(true);
+  }, []);
+
+  const handleDistrictSelect = useCallback((district: CityDistrict | null) => {
+    if (district?.id === 'contact-terminal') {
+      // Special handling for contact terminal if needed
+      setSelectedDistrict(district);
+      return;
     }
-    playClickSound();
-  }, [playClickSound]);
 
-  const handleSelectDistrict = useCallback((district: CityDistrict | null) => {
+    const isUnlocked = unlockedItems.has(district?.id || '');
+    if (district && !isUnlocked && district.id !== 'intro-architect') { // intro-architect is always unlocked
+      setShowGame(district);
+    } else {
+      setSelectedDistrict(district);
+    }
+  }, [unlockedItems]);
+
+  const handleGameWin = useCallback((district: CityDistrict) => {
+    setUnlockedItems(prev => new Set(prev).add(district.id));
+    setShowGame(null);
     setSelectedDistrict(district);
-    playClickSound();
-  }, [playClickSound]);
+  }, []);
   
-  const handleGoHome = useCallback(() => {
-    setSelectedDistrict(null);
-    playClickSound();
-  }, [playClickSound]);
-
-  const handleUnlockProjects = useCallback(() => {
-    const allProjectIds = portfolioData
-        .find(d => d.id === 'portfolio')?.subItems?.map(item => item.id) || [];
-    setUnlockedProjects(new Set(allProjectIds));
-    // Optional: play an "unlock" sound effect here
-    playClickSound();
-  }, [playClickSound]);
-
+  const handleProjectClick = useCallback((item: PortfolioSubItem) => {
+    setShowProjector(item);
+    setSelectedDistrict(null); // Hide district info while projector is open
+  }, []);
+  
+  const handleProjectorClose = useCallback(() => {
+    if (showProjector) {
+      const parentDistrict = portfolioData.find(d => d.subItems?.some(s => s.id === showProjector.id));
+      if (parentDistrict) {
+        setSelectedDistrict(parentDistrict);
+      }
+    }
+    setShowProjector(null);
+  }, [showProjector]);
 
   if (loading) {
     return <Loader />;
   }
-  
-  return (
-    <>
-      <StartScreen 
-        onStart={handleStart} 
-        onBootComplete={handleBootComplete} 
+
+  if (!bootComplete) {
+    return (
+      <StartScreen
+        onStart={handleStart}
         isStarted={isStarted}
+        onBootComplete={handleBootComplete}
         playScanSound={playScanSound}
       />
-      {isStarted && initialTier && (
-        <Suspense fallback={<Loader />}>
-          <Experience3D 
-            onSelectDistrict={handleSelectDistrict}
-            selectedDistrict={selectedDistrict}
-            onDistrictHover={playHoverSound}
-            unlockedProjects={unlockedProjects}
-            onUnlockProjects={handleUnlockProjects}
-            performanceTier={performanceTier}
-          />
-           <HUD 
-            selectedDistrict={selectedDistrict}
-            onGoHome={handleGoHome}
-            performanceTier={performanceTier}
-            onSetPerformanceTier={setPerformanceTier}
-          />
-        </Suspense>
+    );
+  }
+  
+  // Render null until performance tier is detected to avoid flicker
+  if (!initialTier) return null;
+
+  return (
+    <>
+      <Suspense fallback={null}>
+        <Experience3D
+          onDistrictSelect={handleDistrictSelect}
+          onDistrictHover={setHoveredDistrictId}
+          selectedDistrict={selectedDistrict}
+          hoveredDistrictId={hoveredDistrictId}
+          performanceTier={performanceTier}
+          unlockedItems={unlockedItems}
+          onProjectClick={handleProjectClick}
+        />
+      </Suspense>
+      <HUD
+        selectedDistrict={selectedDistrict}
+        onGoHome={() => handleDistrictSelect(null)}
+        performanceTier={performanceTier}
+        onSetPerformanceTier={setPerformanceTier}
+      />
+      {showGame && (
+        <NexusProtocolGame
+          district={showGame}
+          onWin={() => handleGameWin(showGame)}
+          onExit={() => setShowGame(null)}
+        />
       )}
+       {showProjector && (
+         <HolographicProjector 
+            item={showProjector}
+            onClose={handleProjectorClose}
+         />
+       )}
     </>
   );
 }

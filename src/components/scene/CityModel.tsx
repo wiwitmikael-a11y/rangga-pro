@@ -1,5 +1,9 @@
+
+// Fix: Add a type-only import to explicitly load TypeScript definitions for react-three-fiber,
+// which extends the JSX namespace and allows using R3F elements like <primitive>.
+import type { ThreeElements } from '@react-three/fiber';
 import React, { useMemo } from 'react';
-import { useGLTF, useTexture } from '@react-three/drei';
+import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 
 const MODEL_PATH = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/cyberpunk_downtown_loop.glb';
@@ -7,53 +11,46 @@ const MODEL_PATH = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/
 export default function CityModel() {
   const { scene } = useGLTF(MODEL_PATH);
 
-  // Load PBR textures for the city buildings
-  const [map, metalnessMap, normalMap, roughnessMap, emissiveMap] = useTexture([
-      'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/textures/Sci-fi_Panel_002_basecolor.jpg',
-      'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/textures/Sci-fi_Panel_002_metallic.jpg',
-      'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/textures/Sci-fi_Panel_002_normal.jpg',
-      'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/textures/Sci-fi_Panel_002_roughness.jpg',
-      'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/textures/Sci-fi_Panel_002_emissive.jpg',
-  ]);
+  const processedScene = useMemo(() => {
+    const clone = scene.clone();
+    clone.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+            // Enable shadows for all meshes in the city
+            child.castShadow = true;
+            child.receiveShadow = true;
 
-  const newMaterial = useMemo(() => {
-      const material = new THREE.MeshStandardMaterial({
-          map: map,
-          metalnessMap: metalnessMap,
-          normalMap: normalMap,
-          roughnessMap: roughnessMap,
-          emissiveMap: emissiveMap,
-          emissive: '#00ffff', // A cyan glow for the emissive parts
-          emissiveIntensity: 2.0,
-      });
+            // This function enhances an existing material instead of replacing it
+            const enhanceMaterial = (material: THREE.Material) => {
+                if (material instanceof THREE.MeshStandardMaterial) {
+                    // Make surfaces more reflective and "wet" looking
+                    material.metalness = Math.min(1.0, material.metalness + 0.2);
+                    material.roughness = Math.max(0.1, material.roughness - 0.3);
 
-      // Configure texture tiling
-      for (const texture of [map, metalnessMap, normalMap, roughnessMap, emissiveMap]) {
-          texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-          texture.repeat.set(2, 2); 
-      }
+                    // If the original material has an emissive map, boost its intensity
+                    if (material.emissiveMap) {
+                        material.emissiveIntensity = 2.5;
+                    }
+                    material.needsUpdate = true;
+                }
+            };
 
-      return material;
-  }, [map, metalnessMap, normalMap, roughnessMap, emissiveMap]);
-
-  const clonedScene = useMemo(() => {
-      const clone = scene.clone();
-      clone.traverse((child) => {
-          if (child instanceof THREE.Mesh) {
-              // Replace material of all meshes in the model
-              child.material = newMaterial;
-          }
-      });
-      return clone;
-  }, [scene, newMaterial]);
+            // Safely handle both single material and arrays of materials
+            if (Array.isArray(child.material)) {
+                child.material.forEach(enhanceMaterial);
+            } else {
+                enhanceMaterial(child.material);
+            }
+        }
+    });
+    return clone;
+  }, [scene]);
 
   return (
     <primitive 
-      object={clonedScene} 
+      object={processedScene} 
       scale={8} 
       position={[0, -5, 0]} 
       rotation={[0, 0, 0]} 
-      receiveShadow
     />
   );
 }

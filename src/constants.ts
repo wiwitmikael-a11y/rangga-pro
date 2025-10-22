@@ -1,92 +1,85 @@
-// src/constants.ts
 import { CityDistrict } from './types';
 
-// Define the major portfolio districts
-const majorDistricts: CityDistrict[] = [
+export const portfolioData: CityDistrict[] = [
   {
-    id: 'home',
-    title: 'CENTRAL CORE',
-    description: 'The central processing core of the digital metropolis. Welcome to my world.',
-    position: [0, 0, 0],
-    type: 'major',
-    subItems: [
-       {
-        id: 'welcome',
-        title: 'Welcome Core',
-        description: 'Central Hub.',
-        content: 'This is the central hub of my digital world. Explore my portfolio, learn more about my skills, and get in touch.',
-        position: [0, 6, 4],
-        imageUrl: 'https://images.unsplash.com/photo-1593349323313-1a0e895f7267?q=80&w=1920&auto=format&fit=crop',
-      },
-    ],
-  },
-  {
-    id: 'about',
-    title: 'THE ARCHITECT',
-    description: 'Deconstructing the architect. Who I am, my journey, and my philosophy.',
-    position: [-40, 0, 10],
+    id: 'intro-architect',
+    title: 'The Architect',
+    description: 'Core Identity & Portfolio Philosophy',
+    position: [-20, 0, -20],
     type: 'major',
     subItems: [
       {
-        id: 'bio',
-        title: 'Dossier',
-        description: 'My story and professional journey.',
-        content: 'I am a technologist with a passion for building immersive digital experiences. My background spans across full-stack development, AI engineering, and UI/UX design, driven by a curiosity for how technology shapes our world.',
-        position: [0, 6, 3],
-        imageUrl: 'https://images.unsplash.com/photo-1634903234237-9759be5244a3?q=80&w=1920&auto=format&fit=crop',
+        id: 'sub-philosophy',
+        title: 'Design Philosophy',
+        description: 'My approach to creating digital experiences.',
+        content: `I believe in crafting user-centric, performant, and visually compelling applications. Every line of code and every design choice is made with purpose, aiming to bridge the gap between complex technology and intuitive user interaction. This portfolio is a manifestation of that philosophy—a digital world built to be explored.\n\n[Link Here]`,
+        position: [-4, 5, 0],
+        imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/textures/tech_abstract_1.jpg'
+      },
+       {
+        id: 'sub-skills',
+        title: 'Core Competencies',
+        description: 'A summary of my technical skills.',
+        content: `Frontend: React, Next.js, TypeScript, Three.js (R3F)\nBackend: Node.js, Express, Databases (SQL/NoSQL)\nCloud & DevOps: Docker, CI/CD, Vercel\n\nMy expertise lies in building full-stack applications with a strong focus on 3D visualizations and interactive UIs.`,
+        position: [4, 5, 0],
+        imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/textures/tech_abstract_2.jpg'
       },
     ],
   },
   {
-    id: 'portfolio',
-    title: 'THE VAULT',
-    description: 'A curated collection of projects and case studies.',
-    position: [30, 0, -50],
+    id: 'project-nexus',
+    title: 'Project Nexus',
+    description: 'Interactive Data Visualization Platform',
+    position: [25, 0, -15],
     type: 'major',
     subItems: [
        {
-        id: 'project-a',
-        title: 'Project Cygnus',
-        description: 'An interactive 3D data visualization platform.',
-        content: 'Led the development of Project Cygnus, a real-time 3D analytics dashboard built with Three.js and React. It visualizes complex network traffic, helping security analysts identify anomalies instantly.',
-        position: [-8, 6, 5],
-        imageUrl: 'https://images.unsplash.com/photo-1677756119517-756a188d2d94?q=80&w=1920&auto=format&fit=crop',
+        id: 'sub-nexus-1',
+        title: 'Real-time Dashboard',
+        description: 'Frontend architecture for live data streams.',
+        content: `Developed a highly performant dashboard using React and WebSockets to visualize real-time market data. Implemented custom hooks for state management and data fetching, ensuring a smooth user experience even with high-frequency updates.`,
+        position: [0, 5, -4],
+        imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/textures/tech_abstract_3.jpg'
       },
        {
-        id: 'project-b',
-        title: 'AI Chatbot Framework',
-        description: 'A framework for building intelligent conversational agents.',
-        content: 'Developed a proprietary AI chatbot framework using natural language processing models. The framework is now used to power customer service bots for several clients, reducing support ticket volume by 40%.',
-        position: [8, 6, 5],
-        imageUrl: 'https://images.unsplash.com/photo-1534723452862-4c874018d66d?q=80&w=1920&auto=format&fit=crop',
+        id: 'sub-nexus-2',
+        title: '3D Globe Visualization',
+        description: 'Built with Three.js and React Three Fiber.',
+        content: `Created an interactive 3D globe to display geographical data points. Utilized React Three Fiber for component-based 3D scene management and shaders for custom visual effects, such as atmospheric glow and data pulse animations.`,
+        position: [0, 5, 4],
+        imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/textures/tech_abstract_4.jpg'
       },
-    ],
+    ]
   },
   {
-    id: 'contact',
-    title: 'THE TERMINAL',
-    description: 'Connect and collaborate. Let\'s build the future together.',
-    position: [10, 0, 60],
-    type: 'major',
-    subItems: [
-       {
-        id: 'linkedin',
-        title: 'Comms Link',
-        description: 'Professional network and profile.',
-        content: 'You can find my detailed professional history and connect with me on LinkedIn. [Link Here]',
-        position: [0, 6, 3],
-        imageUrl: 'https://images.unsplash.com/photo-1611944212129-29955ae40213?q=80&w=1920&auto=format&fit=crop',
-      },
-    ],
-  },
-  {
-    id: 'game',
-    title: 'NEXUS PROTOCOL',
-    description: 'Route the datastreams. Solve the protocol challenge.',
-    position: [-30, 0, -40],
-    type: 'major',
-    subItems: [], // Game will have a custom display, not sub-items
+    id: 'contact-terminal',
+    title: 'Contact Terminal',
+    description: 'Get in Touch',
+    position: [0, 0, 30],
+    type: 'major'
   },
 ];
 
-export const portfolioData: CityDistrict[] = [...majorDistricts];
+// Generate some ambient buildings for decoration
+export const ambientDistricts: CityDistrict[] = [];
+const gridSize = 5;
+const spacing = 40;
+for (let x = -gridSize; x <= gridSize; x++) {
+  for (let z = -gridSize; z <= gridSize; z++) {
+    // Avoid placing ambient buildings where major districts are
+    const isOccupied = portfolioData.some(
+      d => Math.abs(d.position[0] - x * spacing) < spacing && Math.abs(d.position[2] - z * spacing) < spacing
+    );
+
+    if (!isOccupied && Math.random() > 0.5) {
+      ambientDistricts.push({
+        id: `ambient_${x}_${z}`,
+        title: '',
+        description: '',
+        position: [x * spacing + (Math.random() - 0.5) * 10, 0, z * spacing + (Math.random() - 0.5) * 10],
+        type: 'minor',
+        height: Math.random() * 30 + 10,
+      });
+    }
+  }
+}
