@@ -1,130 +1,153 @@
-// Fix: Add a type-only import to explicitly load TypeScript definitions for react-three-fiber,
-// which extends the JSX namespace and allows using R3F elements like <group> and <mesh>.
-import type { ThreeElements } from '@react-three/fiber';
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+/// <reference types="@react-three/fiber" />
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { Box, Text } from '@react-three/drei';
 import * as THREE from 'three';
-import { Text } from '@react-three/drei';
-import DataTrail from '../scene/DataTrail';
 
 interface NexusProtocolGameProps {
   onGameComplete: () => void;
 }
 
-const NODE_COUNT = 5;
-const CONNECTION_RADIUS = 15;
-
-interface Node {
-  id: number;
-  position: THREE.Vector3;
-  connected: boolean;
-}
+const COLORS = ['#ff4444', '#44ff44', '#4444ff', '#ffff44'];
+const SEQUENCE_LENGTH = 5;
 
 const GameNode: React.FC<{
   position: [number, number, number];
-  isConnected: boolean;
-  isTarget: boolean;
+  color: string;
   onClick: () => void;
-}> = ({ position, isConnected, isTarget, onClick }) => {
+  isLit: boolean;
+}> = ({ position, color, onClick, isLit }) => {
   const meshRef = useRef<THREE.Mesh>(null!);
-  const color = isConnected ? '#00ff00' : isTarget ? '#ffff00' : '#ff0000';
-  const emissiveIntensity = isConnected || isTarget ? 2 : 1;
 
-  useFrame(({ clock }) => {
-      if (meshRef.current) {
-          meshRef.current.position.y = position[1] + Math.sin(clock.elapsedTime * 2 + position[0]) * 0.5;
-      }
+  useFrame((_, delta) => {
+    if (meshRef.current) {
+      const material = meshRef.current.material as THREE.MeshStandardMaterial;
+      const targetIntensity = isLit ? 3 : 0.5;
+      material.emissiveIntensity = THREE.MathUtils.lerp(material.emissiveIntensity, targetIntensity, delta * 20);
+    }
   });
 
   return (
-    <mesh ref={meshRef} position={position} onClick={onClick}>
-      <sphereGeometry args={[1, 16, 16]} />
+    <Box
+      ref={meshRef}
+      args={[2, 2, 2]}
+      position={position}
+      onClick={onClick}
+      onPointerOver={() => (document.body.style.cursor = 'pointer')}
+      onPointerOut={() => (document.body.style.cursor = 'auto')}
+    >
       <meshStandardMaterial
         color={color}
         emissive={color}
-        emissiveIntensity={emissiveIntensity}
-        toneMapped={false}
+        emissiveIntensity={0.5}
+        metalness={0.8}
+        roughness={0.2}
       />
-    </mesh>
+    </Box>
   );
 };
 
+
 const NexusProtocolGame: React.FC<NexusProtocolGameProps> = ({ onGameComplete }) => {
-  const [nodes, setNodes] = useState<Node[]>([]);
-  const [targetNodeIndex, setTargetNodeIndex] = useState(0);
-  const [gameStatus, setGameStatus] = useState<'playing' | 'won'>('playing');
+  const [sequence, setSequence] = useState<number[]>([]);
+  const [playerSequence, setPlayerSequence] = useState<number[]>([]);
+  const [gameState, setGameState] = useState<'WATCH' | 'PLAY' | 'WIN' | 'LOSE'>('WATCH');
+  const [litNode, setLitNode] = useState<number | null>(null);
+
+  const nodePositions: [number, number, number][] = useMemo(() => [
+    [-3, 0, 0], [3, 0, 0], [0, 0, -3], [0, 0, 3]
+  ], []);
+
+  const generateSequence = useCallback(() => {
+    const newSequence = Array.from({ length: SEQUENCE_LENGTH }, () => Math.floor(Math.random() * COLORS.length));
+    setSequence(newSequence);
+  }, []);
+  
+  useEffect(() => {
+    generateSequence();
+  }, [generateSequence]);
 
   useEffect(() => {
-    // Initialize nodes in a circle
-    const newNodes: Node[] = [];
-    for (let i = 0; i < NODE_COUNT; i++) {
-      const angle = (i / NODE_COUNT) * Math.PI * 2;
-      newNodes.push({
-        id: i,
-        position: new THREE.Vector3(
-          Math.cos(angle) * CONNECTION_RADIUS,
-          5,
-          Math.sin(angle) * CONNECTION_RADIUS
-        ),
-        connected: false,
-      });
+    if (gameState === 'WATCH' && sequence.length > 0) {
+      let i = 0;
+      const interval = setInterval(() => {
+        setLitNode(sequence[i]);
+        setTimeout(() => setLitNode(null), 400);
+        i++;
+        if (i >= sequence.length) {
+          clearInterval(interval);
+          setTimeout(() => setGameState('PLAY'), 500);
+        }
+      }, 800);
+      return () => clearInterval(interval);
     }
-    setNodes(newNodes);
-  }, []);
+  }, [gameState, sequence]);
+  
+  useEffect(() => {
+    if (gameState !== 'PLAY') return;
 
-  const handleNodeClick = (clickedIndex: number) => {
-    if (gameStatus !== 'playing' || clickedIndex !== targetNodeIndex) return;
-
-    const newNodes = [...nodes];
-    newNodes[clickedIndex].connected = true;
-    setNodes(newNodes);
-
-    if (targetNodeIndex === NODE_COUNT - 1) {
-      setGameStatus('won');
-      setTimeout(onGameComplete, 2000);
-    } else {
-      setTargetNodeIndex(targetNodeIndex + 1);
+    if (playerSequence.length > 0) {
+        const index = playerSequence.length - 1;
+        if (sequence[index] !== playerSequence[index]) {
+            setGameState('LOSE');
+            return;
+        }
     }
+    
+    if (playerSequence.length === sequence.length && sequence.length > 0) {
+      setGameState('WIN');
+    }
+  }, [playerSequence, sequence, gameState]);
+
+  const handleNodeClick = (index: number) => {
+    if (gameState !== 'PLAY') return;
+    setPlayerSequence(prev => [...prev, index]);
+    setLitNode(index);
+    setTimeout(() => setLitNode(null), 200);
   };
   
-  const linePoints = useMemo(() => {
-      const points: THREE.Vector3[] = [new THREE.Vector3(0,5,0)];
-      for(let i = 0; i < targetNodeIndex; i++) {
-          if (nodes[i]?.connected) {
-              points.push(nodes[i].position);
-          }
-      }
-       if (nodes[targetNodeIndex]?.connected) {
-           points.push(nodes[targetNodeIndex].position);
-       }
-      return points;
-  }, [nodes, targetNodeIndex]);
-
+  const handleReset = () => {
+      generateSequence();
+      setPlayerSequence([]);
+      setGameState('WATCH');
+  }
 
   return (
-    <group>
-      <DataTrail />
-      {nodes.map((node, index) => (
+    <group position={[0, 10, 0]}>
+      <Text position={[0, 5, 0]} fontSize={1} color="white" anchorX="center">
+        NEXUS PROTOCOL
+      </Text>
+      
+      {nodePositions.map((pos, i) => (
         <GameNode
-          key={node.id}
-          position={node.position.toArray()}
-          isConnected={node.connected}
-          isTarget={index === targetNodeIndex && gameStatus === 'playing'}
-          onClick={() => handleNodeClick(index)}
+          key={i}
+          position={pos}
+          color={COLORS[i]}
+          onClick={() => handleNodeClick(i)}
+          isLit={litNode === i}
         />
       ))}
-      <line>
-          <bufferGeometry setFromPoints={linePoints} />
-          <lineBasicMaterial color="#00ffff" linewidth={3} />
-      </line>
-      {gameStatus === 'won' && (
-          <Text position={[0, 15, 0]} fontSize={2} color="#00ff00">
-              NEXUS ESTABLISHED
-          </Text>
+      
+      {gameState === 'WIN' && (
+        <Text position={[0, -4, 0]} fontSize={0.8} color="#44ff44" anchorX="center" onClick={onGameComplete}>
+          ACCESS GRANTED! (Click to Continue)
+        </Text>
       )}
-       <Text position={[0, 20, 0]} fontSize={1} color="white" anchorY="top" textAlign="center">
-         Connect the data nodes in sequence to establish the nexus protocol.
-       </Text>
+      {gameState === 'LOSE' && (
+        <Text position={[0, -4, 0]} fontSize={0.8} color="#ff4444" anchorX="center" onClick={handleReset}>
+          SEQUENCE FAILED! (Click to Retry)
+        </Text>
+      )}
+       {gameState === 'WATCH' && (
+        <Text position={[0, -4, 0]} fontSize={0.6} color="white" anchorX="center">
+          ...OBSERVE SEQUENCE...
+        </Text>
+      )}
+       {gameState === 'PLAY' && (
+        <Text position={[0, -4, 0]} fontSize={0.6} color="white" anchorX="center">
+          ...REPEAT SEQUENCE...
+        </Text>
+      )}
     </group>
   );
 };

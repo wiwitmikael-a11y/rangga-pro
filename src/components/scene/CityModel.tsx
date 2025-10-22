@@ -1,6 +1,4 @@
-// Fix: Add a type-only import to explicitly load TypeScript definitions for react-three-fiber,
-// which extends the JSX namespace and allows using R3F elements like <primitive>.
-import type { ThreeElements } from '@react-three/fiber';
+/// <reference types="@react-three/fiber" />
 import React, { useLayoutEffect, useMemo } from 'react';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';

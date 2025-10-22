@@ -1,69 +1,119 @@
-// Fix: Add a type-only import to explicitly load TypeScript definitions for react-three-fiber,
-// which extends the JSX namespace and allows using R3F elements like <group> and <mesh>.
-import type { ThreeElements } from '@react-three/fiber';
-import React, { useRef, useState } from 'react';
+/// <reference types="@react-three/fiber" />
+import React, { useState, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Text } from '@react-three/drei';
+import { Text, Box } from '@react-three/drei';
 import * as THREE from 'three';
 import { CityDistrict } from '../../types';
 
 interface ContactTerminalProps {
   district: CityDistrict;
-  onDistrictSelect: (district: CityDistrict) => void;
-  onDistrictHover: (id: string | null) => void;
+  onSelect: (district: CityDistrict) => void;
+  onHover: (id: string | null) => void;
+  isSelected: boolean;
 }
 
-const ContactTerminal: React.FC<ContactTerminalProps> = ({ district, onDistrictSelect, onDistrictHover }) => {
-  const groupRef = useRef<THREE.Group>(null!);
+const ContactTerminal: React.FC<ContactTerminalProps> = ({ district, onSelect, onHover, isSelected }) => {
+  const meshRef = useRef<THREE.Mesh>(null!);
   const [isHovered, setIsHovered] = useState(false);
+  
+  const color = isSelected ? '#00ffff' : isHovered ? '#00aaff' : '#005577';
+  const emissiveIntensityTarget = isSelected ? 2 : isHovered ? 1.5 : 0.8;
 
-  useFrame(({ clock }) => {
-    if (groupRef.current) {
-      groupRef.current.position.y = Math.sin(clock.getElapsedTime() * 0.5) * 0.5;
+  useFrame((state, delta) => {
+    if (meshRef.current) {
+      const material = meshRef.current.material as THREE.MeshStandardMaterial;
+      material.emissiveIntensity = THREE.MathUtils.lerp(material.emissiveIntensity, emissiveIntensityTarget, delta * 5);
+      
+      if (isSelected) {
+        meshRef.current.position.y = Math.sin(state.clock.elapsedTime * 2) * 0.5;
+        meshRef.current.rotation.y = state.clock.elapsedTime * 0.2;
+      } else {
+        meshRef.current.position.y = THREE.MathUtils.lerp(meshRef.current.position.y, 0, delta * 5);
+      }
     }
   });
-  
+
   const handlePointerOver = (e: any) => {
     e.stopPropagation();
     setIsHovered(true);
+    onHover(district.id);
     document.body.style.cursor = 'pointer';
-    onDistrictHover(district.id);
   };
 
   const handlePointerOut = (e: any) => {
     e.stopPropagation();
     setIsHovered(false);
+    onHover(null);
     document.body.style.cursor = 'auto';
-    onDistrictHover(null);
+  };
+
+  const handleClick = (e: any) => {
+    e.stopPropagation();
+    onSelect(district);
   };
   
+  const handleContactClick = (url: string) => {
+    window.open(url, '_blank');
+  };
+
   return (
-    <group
-      ref={groupRef}
-      position={district.position}
-      onClick={() => onDistrictSelect(district)}
-      onPointerOver={handlePointerOver}
-      onPointerOut={handlePointerOut}
-    >
-      <mesh>
-        <boxGeometry args={[10, 1, 10]} />
-        <meshStandardMaterial color="#002233" />
-      </mesh>
-      <mesh position={[0, 1, 0]}>
-        <cylinderGeometry args={[0.5, 0.5, 2, 32]} />
-        <meshStandardMaterial color="#00aaff" emissive="#00ffff" emissiveIntensity={isHovered ? 2 : 1} toneMapped={false} />
-      </mesh>
-      <Text
-        position={[0, 4, 0]}
-        fontSize={1}
-        color="#00ffff"
-        anchorX="center"
-        anchorY="middle"
+    <group position={district.position}>
+      <mesh
+        ref={meshRef}
+        onClick={handleClick}
+        onPointerOver={handlePointerOver}
+        onPointerOut={handlePointerOut}
       >
-        CONTACT
-      </Text>
+        <cylinderGeometry args={[5, 5, 1, 6]} />
+        <meshStandardMaterial
+          color={color}
+          emissive={color}
+          transparent
+          opacity={0.8}
+          metalness={0.9}
+          roughness={0.1}
+        />
+      </mesh>
+
+      {isSelected && (
+        <>
+            <Text position={[0, 3, 0]} fontSize={0.8} color="white" anchorX="center">
+                Contact Me
+            </Text>
+            <InteractiveButton
+                position={[-3, 1.5, 3]}
+                text="LinkedIn"
+                onClick={() => handleContactClick('https://www.linkedin.com')}
+            />
+            <InteractiveButton
+                position={[0, 1.5, 4.5]}
+                text="GitHub"
+                onClick={() => handleContactClick('https://www.github.com')}
+            />
+            <InteractiveButton
+                position={[3, 1.5, 3]}
+                text="Email"
+                onClick={() => (window.location.href = 'mailto:example@example.com')}
+            />
+        </>
+      )}
     </group>
   );
 };
+
+const InteractiveButton: React.FC<{position: [number, number, number], text: string, onClick: () => void}> = ({ position, text, onClick }) => {
+    const [hovered, setHovered] = useState(false);
+    const scale = hovered ? 1.2 : 1;
+    return (
+        <group position={position} scale={scale} onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)} onClick={onClick}>
+            <Box args={[2, 0.8, 0.2]}>
+                <meshStandardMaterial color={hovered ? '#00ffff' : '#005577'} emissive={hovered ? '#00ffff' : '#005577'} emissiveIntensity={1} />
+            </Box>
+            <Text position={[0, 0, 0.15]} fontSize={0.3} color="white" anchorX="center" anchorY="middle">
+                {text}
+            </Text>
+        </group>
+    )
+}
 
 export default ContactTerminal;

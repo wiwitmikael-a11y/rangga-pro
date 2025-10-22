@@ -1,6 +1,4 @@
-// Fix: Add a type-only import to explicitly load TypeScript definitions for react-three-fiber,
-// which extends the JSX namespace and allows using R3F elements like <points>.
-import type { ThreeElements } from '@react-three/fiber';
+/// <reference types="@react-three/fiber" />
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
