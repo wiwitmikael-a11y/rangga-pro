@@ -5,7 +5,7 @@ import * as THREE from 'three';
 const DataTrail: React.FC = () => {
   const count = 50;
   const mesh = useRef<THREE.InstancedMesh>(null!);
-  const { viewport, mouse } = useThree();
+  const { camera, mouse } = useThree();
   
   const dummy = useMemo(() => new THREE.Object3D(), []);
   
@@ -21,15 +21,21 @@ const DataTrail: React.FC = () => {
     return temp;
   }, [count]);
 
+  // Use a stable Raycaster setup to find the mouse position in 3D space
+  const raycaster = useMemo(() => new THREE.Raycaster(), []);
+  const groundPlane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), []); // An invisible plane at y=0
+  const intersectionPoint = useMemo(() => new THREE.Vector3(), []);
+
   useFrame((state, delta) => {
     if (!mesh.current) return;
     
-    // Calculate mouse position in 3D space
-    const vec = new THREE.Vector3(mouse.x, mouse.y, 0.5);
-    vec.unproject(state.camera);
-    const dir = vec.sub(state.camera.position).normalize();
-    const distance = -state.camera.position.z / dir.z;
-    const pos = state.camera.position.clone().add(dir.multiplyScalar(distance));
+    // Update raycaster from the current mouse and camera position
+    raycaster.setFromCamera(mouse, camera);
+
+    // Find the precise point where the mouse ray intersects the invisible ground plane
+    raycaster.ray.intersectPlane(groundPlane, intersectionPoint);
+    
+    const pos = intersectionPoint;
 
     particles.forEach((particle, i) => {
       if (particle.life <= 0) {
