@@ -10,9 +10,10 @@ import { portfolioData } from '../../constants';
 interface CameraRigProps {
   selectedDistrict: CityDistrict | null;
   hoveredDistrictId: string | null;
+  isGameActive: boolean;
 }
 
-const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, hoveredDistrictId }) => {
+const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, hoveredDistrictId, isGameActive }) => {
   const controlsRef = useRef<OrbitControlsImpl>(null!);
   const [isIntroDone, setIsIntroDone] = useState(false);
 
@@ -28,16 +29,26 @@ const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, hoveredDistrict
   useFrame((state, delta) => {
     if (!controlsRef.current) return;
 
-    const isFocused = !!selectedDistrict;
+    const isFocused = !!selectedDistrict || isGameActive;
     
     // Define camera and control targets
     const [dx, dy, dz] = selectedDistrict?.position || [0, 0, 0];
     
     // Initial fly-through animation
     const introTargetPosition = cameraTargetVec.set(80, 40, 120);
-    const cameraTargetPosition = isFocused 
-      ? cameraTargetVec.set(dx + 25, 20, dz + 25) 
-      : introTargetPosition;
+
+    let cameraTargetPosition;
+    let controlsTargetPosition;
+
+    if(isGameActive) {
+      cameraTargetPosition = cameraTargetVec.set(0, 20, 25);
+      controlsTargetPosition = controlsTargetVec.set(0, 0, 0);
+    } else if (selectedDistrict) {
+      cameraTargetPosition = cameraTargetVec.set(dx + 25, 20, dz + 25) 
+    } else {
+      cameraTargetPosition = introTargetPosition;
+    }
+    
 
     const hoveredDistrict = portfolioData.find(d => d.id === hoveredDistrictId);
     const [hx, hy, hz] = hoveredDistrict?.position || [0, 0, 0];
@@ -47,10 +58,13 @@ const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, hoveredDistrict
     if (!isFocused && hoveredDistrictId && isIntroDone) {
         defaultControlsTarget.lerp(new THREE.Vector3(hx, 0, hz), 0.1);
     }
+    
+    if(!isGameActive && selectedDistrict) {
+        controlsTargetPosition = controlsTargetVec.set(dx, 10, dz) 
+    } else if (!isGameActive && !selectedDistrict) {
+        controlsTargetPosition = defaultControlsTarget;
+    }
 
-    const controlsTargetPosition = isFocused 
-      ? controlsTargetVec.set(dx, 10, dz) 
-      : defaultControlsTarget;
 
     // Smoothly interpolate camera position and controls target
     let speed = delta * 1.5;

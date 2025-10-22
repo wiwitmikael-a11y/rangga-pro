@@ -6,6 +6,7 @@ interface HUDProps {
   onGoHome: () => void;
   performanceTier: PerformanceTier;
   onSetPerformanceTier: (tier: PerformanceTier) => void;
+  isGameActive: boolean;
 }
 
 const SettingsPanel: React.FC<{
@@ -36,19 +37,24 @@ const SettingsPanel: React.FC<{
 };
 
 
-export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, performanceTier, onSetPerformanceTier }) => {
+export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, performanceTier, onSetPerformanceTier, isGameActive }) => {
   const isDistrictSelected = !!selectedDistrict;
-  const breadcrumb = isDistrictSelected 
+  const breadcrumb = isGameActive
+    ? 'METROPOLIS CORE > /NEXUS_PROTOCOL_BREACH/'
+    : isDistrictSelected 
     ? `METROPOLIS CORE > /${selectedDistrict.id.toUpperCase()}_DISTRICT/`
     : 'METROPOLIS CORE';
   const [showSettings, setShowSettings] = useState(false);
+  
+  const showHomeButton = isDistrictSelected || isGameActive;
+  const homeButtonText = isGameActive ? 'Abort Mission' : 'City Overview';
 
   return (
     <>
        <div style={styles.breadcrumbContainer}>
           <p style={styles.breadcrumbText}>{breadcrumb}</p>
       </div>
-      <div style={{...styles.topContainer, ...(isDistrictSelected ? styles.visible : styles.hiddenTop)}}>
+      <div style={{...styles.topContainer, ...(isDistrictSelected && !isGameActive ? styles.visible : styles.hiddenTop)}}>
         <div style={styles.panelBackground}>
           <h2 style={styles.title}>{selectedDistrict?.title}</h2>
           <p style={styles.description}>{selectedDistrict?.description}</p>
@@ -57,8 +63,8 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
        <div style={styles.bottomContainer}>
          <button 
             onClick={onGoHome} 
-            style={{...styles.homeButton, ...(isDistrictSelected ? styles.visible : styles.hiddenBottom)}}>
-            City Overview
+            style={{...styles.homeButton, ...(showHomeButton ? styles.visible : styles.hiddenBottom)}}>
+            {homeButtonText}
           </button>
       </div>
       <div style={styles.settingsContainer}>

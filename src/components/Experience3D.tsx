@@ -1,136 +1,133 @@
-import React, { Suspense } from 'react';
+import React from 'react';
+import { Canvas } from '@react-three/fiber';
+import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
+import { CityDistrict, PortfolioSubItem, PerformanceTier } from '../types';
 import { portfolioData, ambientDistricts } from '../constants';
-import { CityDistrict, PerformanceTier, PortfolioSubItem } from '../types';
 import CameraRig from '../CameraRig';
-import CityModel from './scene/CityModel';
+import { CityModel } from './scene/CityModel';
 import DistrictBuilding from './scene/DistrictBuilding';
 import ArchitectDataCore from './scene/ArchitectDataCore';
 import ContactTerminal from './scene/ContactTerminal';
 import HolographicProjector from './scene/HolographicProjector';
-import FlyingVehicles from './scene/FlyingVehicles';
-import FloatingParticles from './scene/FloatingParticles';
-import DataTrail from './scene/DataTrail';
-import Rain from './scene/Rain';
 import { GroundPlane } from './scene/GroundPlane';
-import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
+import Rain from './scene/Rain';
+import FloatingParticles from './scene/FloatingParticles';
+import FlyingVehicles from './scene/FlyingVehicles';
+import NexusProtocolGame from './game/NexusProtocolGame';
 
 interface Experience3DProps {
   selectedDistrict: CityDistrict | null;
-  onDistrictSelect: (district: CityDistrict) => void;
+  onSelectDistrict: (district: CityDistrict | null) => void;
   hoveredDistrictId: string | null;
-  onDistrictHover: (id: string | null) => void;
-  projectedItem: PortfolioSubItem | null;
-  onProjectClick: (item: PortfolioSubItem) => void;
-  onCloseProjector: () => void;
+  onHoverDistrict: (id: string | null) => void;
+  selectedProject: PortfolioSubItem | null;
+  onCloseProject: () => void;
+  isGameActive: boolean;
+  onGameComplete: () => void;
   unlockedItems: Set<string>;
+  onProjectClick: (item: PortfolioSubItem) => void;
   performanceTier: PerformanceTier;
 }
 
-const Experience3D: React.FC<Experience3DProps> = ({
+const performanceConfig = {
+    PERFORMANCE: { rain: 500, particles: 100, vehicles: 5, postProcessing: false },
+    BALANCED: { rain: 2000, particles: 200, vehicles: 10, postProcessing: true },
+    QUALITY: { rain: 5000, particles: 500, vehicles: 20, postProcessing: true },
+};
+
+export const Experience3D: React.FC<Experience3DProps> = ({
   selectedDistrict,
-  onDistrictSelect,
+  onSelectDistrict,
   hoveredDistrictId,
-  onDistrictHover,
-  projectedItem,
-  onProjectClick,
-  onCloseProjector,
+  onHoverDistrict,
+  selectedProject,
+  onCloseProject,
+  isGameActive,
+  onGameComplete,
   unlockedItems,
+  onProjectClick,
   performanceTier,
 }) => {
-
-  const qualitySettings = {
-    'PERFORMANCE': { vehicles: 20, particles: 200, rain: 500, bloom: false },
-    'BALANCED': { vehicles: 50, particles: 500, rain: 2000, bloom: true },
-    'QUALITY': { vehicles: 100, particles: 1000, rain: 5000, bloom: true },
-  }[performanceTier];
-
+    const config = performanceConfig[performanceTier];
 
   return (
-    <>
-      {/* Lights */}
-      <ambientLight intensity={0.2} />
-      <directionalLight 
-        position={[10, 50, -50]} 
-        intensity={0.5} 
-        color="#00aaff" 
-        castShadow 
+    <Canvas
+      shadows
+      camera={{ position: [80, 40, 120], fov: 50 }}
+      dpr={[1, 2]}
+    >
+      <fog attach="fog" args={['#030710', 50, 300]} />
+      <color attach="background" args={['#030710']} />
+      <ambientLight intensity={0.5} />
+      <directionalLight
+        position={[10, 50, 20]}
+        intensity={1}
+        castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
       />
-      <pointLight position={[-20, 15, -20]} intensity={1} color="cyan" distance={100} />
-      <pointLight position={[25, 15, -15]} intensity={1} color="magenta" distance={100} />
-      <pointLight position={[0, 15, 30]} intensity={1} color="yellow" distance={100} />
-      <fog attach="fog" args={['#000510', 50, 300]} />
-
-      <CameraRig selectedDistrict={selectedDistrict} hoveredDistrictId={hoveredDistrictId} />
-
-      <Suspense fallback={null}>
-        <CityModel />
-        <GroundPlane />
-
-        {/* Major Districts */}
-        {portfolioData.map((district) => {
-          if (district.id === 'intro-architect') {
-            return (
-              <ArchitectDataCore
-                key={district.id}
-                district={district}
-                selectedDistrict={selectedDistrict}
-                onDistrictSelect={onDistrictSelect}
-                onDistrictHover={onDistrictHover}
-                unlockedItems={unlockedItems}
-                onProjectClick={onProjectClick}
-              />
-            );
-          }
-          if (district.id === 'contact-terminal') {
-             return (
-              <ContactTerminal
-                key={district.id}
-                district={district}
-                onDistrictSelect={onDistrictSelect}
-                onDistrictHover={onDistrictHover}
-              />
-             )
-          }
-          // For other major projects
-          return (
-            <DistrictBuilding
-              key={district.id}
-              district={district}
-              onSelect={onDistrictSelect}
-              onHover={onDistrictHover}
-              isSelected={selectedDistrict?.id === district.id}
-              isUnlocked={district.subItems ? district.subItems.every(si => unlockedItems.has(si.id)) : true}
-            />
-          );
-        })}
-        
-        {/* Ambient Districts */}
-        {ambientDistricts.map((district) => (
-          <DistrictBuilding key={district.id} district={district} />
-        ))}
-        
-        {/* Projector */}
-        {projectedItem && <HolographicProjector item={projectedItem} onClose={onCloseProjector} />}
-
-        {/* Ambient Effects */}
-        <FlyingVehicles count={qualitySettings.vehicles} />
-        <FloatingParticles count={qualitySettings.particles} />
-        <Rain count={qualitySettings.rain} />
-        {!selectedDistrict && <DataTrail />}
-
-      </Suspense>
       
-      {/* Post-processing */}
-      {qualitySettings.bloom && (
-        <EffectComposer disableNormalPass>
-            <Bloom luminanceThreshold={0.5} intensity={0.8} mipmapBlur />
+      <CameraRig selectedDistrict={selectedDistrict} hoveredDistrictId={hoveredDistrictId} isGameActive={isGameActive} />
+
+      <CityModel />
+      <GroundPlane />
+
+      {portfolioData.map((district) => {
+        if (district.id === 'intro-architect' || district.id === 'project-nexus') {
+            return (
+                <ArchitectDataCore
+                    key={district.id}
+                    district={district}
+                    selectedDistrict={selectedDistrict}
+                    onDistrictSelect={onSelectDistrict}
+                    onDistrictHover={onHoverDistrict}
+                    unlockedItems={unlockedItems}
+                    onProjectClick={onProjectClick}
+                />
+            );
+        }
+        if (district.id === 'contact-terminal') {
+            return (
+                <ContactTerminal 
+                    key={district.id}
+                    district={district}
+                    onDistrictSelect={onSelectDistrict}
+                    onDistrictHover={onHoverDistrict}
+                />
+            );
+        }
+        return (
+            <DistrictBuilding
+                key={district.id}
+                district={district}
+                onSelect={onSelectDistrict}
+                onHover={onHoverDistrict}
+                isSelected={selectedDistrict?.id === district.id}
+            />
+        );
+      })}
+      {ambientDistricts.map((district) => (
+        <DistrictBuilding key={district.id} district={district} isUnlocked={false} />
+      ))}
+      
+      {selectedProject && (
+        <HolographicProjector item={selectedProject} onClose={onCloseProject} />
+      )}
+
+      {isGameActive && <NexusProtocolGame onGameComplete={onGameComplete} />}
+      
+      {/* Environment Effects */}
+      <Rain count={config.rain} />
+      <FloatingParticles count={config.particles} />
+      <FlyingVehicles count={config.vehicles} />
+      
+      {config.postProcessing && (
+        <EffectComposer>
+            <Bloom luminanceThreshold={0.8} luminanceSmoothing={0.9} height={300} intensity={1.5} />
             <Vignette eskil={false} offset={0.1} darkness={1.1} />
         </EffectComposer>
       )}
-    </>
+
+    </Canvas>
   );
 };
-
-export default Experience3D;
