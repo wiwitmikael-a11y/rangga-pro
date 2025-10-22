@@ -1,11 +1,16 @@
-
+// Fix: Add a type-only import to explicitly load TypeScript definitions for react-three-fiber,
+// which extends the JSX namespace and allows using R3F elements like <points>.
+import type { ThreeElements } from '@react-three/fiber';
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-const Rain: React.FC = () => {
+interface RainProps {
+    count: number;
+}
+
+const Rain: React.FC<RainProps> = ({ count }) => {
     const pointsRef = useRef<THREE.Points>(null!);
-    const count = 2000;
 
     const particles = useMemo(() => {
         const positions = new Float32Array(count * 3);
@@ -15,7 +20,7 @@ const Rain: React.FC = () => {
             positions[i * 3 + 2] = (Math.random() - 0.5) * 200;
         }
         return { positions };
-    }, []);
+    }, [count]);
 
     useFrame((state, delta) => {
         if (pointsRef.current) {

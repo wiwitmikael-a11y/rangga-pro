@@ -1,4 +1,6 @@
-
+// Fix: Add a type-only import to explicitly load TypeScript definitions for react-three-fiber,
+// which extends the JSX namespace and allows using R3F elements like <group> and <mesh>.
+import type { ThreeElements } from '@react-three/fiber';
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -19,6 +21,7 @@ const ArchitectDataCore: React.FC<ArchitectDataCoreProps> = ({
   selectedDistrict,
   onDistrictSelect,
   onDistrictHover,
+  unlockedItems,
   onProjectClick
 }) => {
   const groupRef = useRef<THREE.Group>(null!);
@@ -57,7 +60,7 @@ const ArchitectDataCore: React.FC<ArchitectDataCoreProps> = ({
             <ProjectDisplay
               key={item.id}
               item={item}
-              isLocked={false} // Architect items are always unlocked
+              isLocked={!unlockedItems.has(item.id)}
               onClick={() => onProjectClick(item)}
             />
           ))}

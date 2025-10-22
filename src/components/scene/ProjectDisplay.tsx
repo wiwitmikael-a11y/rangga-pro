@@ -1,4 +1,6 @@
-
+// Fix: Add a type-only import to explicitly load TypeScript definitions for react-three-fiber,
+// which extends the JSX namespace and allows using R3F elements like <group>.
+import type { ThreeElements } from '@react-three/fiber';
 import React, { useRef, useState, useEffect } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';

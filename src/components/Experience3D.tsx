@@ -1,72 +1,66 @@
-
 import React, { Suspense } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { Preload } from '@react-three/drei';
+import { portfolioData, ambientDistricts } from '../constants';
 import { CityDistrict, PerformanceTier, PortfolioSubItem } from '../types';
 import CameraRig from '../CameraRig';
 import CityModel from './scene/CityModel';
-import { GroundPlane } from './scene/GroundPlane';
-import { portfolioData, ambientDistricts } from '../constants';
 import DistrictBuilding from './scene/DistrictBuilding';
-import FloatingParticles from './scene/FloatingParticles';
-import FlyingVehicles from './scene/FlyingVehicles';
-import Rain from './scene/Rain';
-import DataTrail from './scene/DataTrail';
 import ArchitectDataCore from './scene/ArchitectDataCore';
 import ContactTerminal from './scene/ContactTerminal';
-
-// Performance-based settings
-const performanceSettings = {
-  PERFORMANCE: { fov: 60, particles: 200, vehicles: 5, effects: false, rain: false },
-  BALANCED: { fov: 50, particles: 500, vehicles: 10, effects: true, rain: true },
-  QUALITY: { fov: 45, particles: 1000, vehicles: 20, effects: true, rain: true },
-};
+import HolographicProjector from './scene/HolographicProjector';
+import FlyingVehicles from './scene/FlyingVehicles';
+import FloatingParticles from './scene/FloatingParticles';
+import DataTrail from './scene/DataTrail';
+import Rain from './scene/Rain';
+import { GroundPlane } from './scene/GroundPlane';
+import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 
 interface Experience3DProps {
-  onDistrictSelect: (district: CityDistrict | null) => void;
-  onDistrictHover: (id: string | null) => void;
   selectedDistrict: CityDistrict | null;
+  onDistrictSelect: (district: CityDistrict) => void;
   hoveredDistrictId: string | null;
-  performanceTier: PerformanceTier;
-  unlockedItems: Set<string>;
+  onDistrictHover: (id: string | null) => void;
+  projectedItem: PortfolioSubItem | null;
   onProjectClick: (item: PortfolioSubItem) => void;
+  onCloseProjector: () => void;
+  unlockedItems: Set<string>;
+  performanceTier: PerformanceTier;
 }
 
 const Experience3D: React.FC<Experience3DProps> = ({
-  onDistrictSelect,
-  onDistrictHover,
   selectedDistrict,
+  onDistrictSelect,
   hoveredDistrictId,
-  performanceTier,
-  unlockedItems,
+  onDistrictHover,
+  projectedItem,
   onProjectClick,
+  onCloseProjector,
+  unlockedItems,
+  performanceTier,
 }) => {
-  const settings = performanceSettings[performanceTier];
+
+  const qualitySettings = {
+    'PERFORMANCE': { vehicles: 20, particles: 200, rain: 500, bloom: false },
+    'BALANCED': { vehicles: 50, particles: 500, rain: 2000, bloom: true },
+    'QUALITY': { vehicles: 100, particles: 1000, rain: 5000, bloom: true },
+  }[performanceTier];
+
 
   return (
-    <Canvas
-      shadows
-      camera={{ position: [0, 150, 200], fov: settings.fov }}
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100vw',
-        height: '100vh',
-        background: '#050510',
-      }}
-    >
-      <fog attach="fog" args={['#050510', 50, 300]} />
+    <>
+      {/* Lights */}
       <ambientLight intensity={0.2} />
-      <directionalLight
-        position={[10, 50, -50]}
-        intensity={1.5}
-        castShadow
+      <directionalLight 
+        position={[10, 50, -50]} 
+        intensity={0.5} 
+        color="#00aaff" 
+        castShadow 
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
       />
-      <pointLight position={[-20, 20, -20]} intensity={1} color="#00ffff" distance={100} />
-      <pointLight position={[25, 20, -15]} intensity={1} color="#ff00ff" distance={100} />
+      <pointLight position={[-20, 15, -20]} intensity={1} color="cyan" distance={100} />
+      <pointLight position={[25, 15, -15]} intensity={1} color="magenta" distance={100} />
+      <pointLight position={[0, 15, 30]} intensity={1} color="yellow" distance={100} />
+      <fog attach="fog" args={['#000510', 50, 300]} />
 
       <CameraRig selectedDistrict={selectedDistrict} hoveredDistrictId={hoveredDistrictId} />
 
@@ -74,27 +68,32 @@ const Experience3D: React.FC<Experience3DProps> = ({
         <CityModel />
         <GroundPlane />
 
-        {/* Major Portfolio Districts */}
+        {/* Major Districts */}
         {portfolioData.map((district) => {
           if (district.id === 'intro-architect') {
-            return <ArchitectDataCore 
-              key={district.id}
-              district={district}
-              selectedDistrict={selectedDistrict}
-              onDistrictSelect={onDistrictSelect}
-              onDistrictHover={onDistrictHover}
-              unlockedItems={unlockedItems}
-              onProjectClick={onProjectClick}
-            />;
+            return (
+              <ArchitectDataCore
+                key={district.id}
+                district={district}
+                selectedDistrict={selectedDistrict}
+                onDistrictSelect={onDistrictSelect}
+                onDistrictHover={onDistrictHover}
+                unlockedItems={unlockedItems}
+                onProjectClick={onProjectClick}
+              />
+            );
           }
           if (district.id === 'contact-terminal') {
-            return <ContactTerminal
-              key={district.id}
-              district={district}
-              onDistrictSelect={onDistrictSelect}
-              onDistrictHover={onDistrictHover}
-            />
+             return (
+              <ContactTerminal
+                key={district.id}
+                district={district}
+                onDistrictSelect={onDistrictSelect}
+                onDistrictHover={onDistrictHover}
+              />
+             )
           }
+          // For other major projects
           return (
             <DistrictBuilding
               key={district.id}
@@ -102,27 +101,36 @@ const Experience3D: React.FC<Experience3DProps> = ({
               onSelect={onDistrictSelect}
               onHover={onDistrictHover}
               isSelected={selectedDistrict?.id === district.id}
-              isUnlocked={unlockedItems.has(district.id)}
+              isUnlocked={district.subItems ? district.subItems.every(si => unlockedItems.has(si.id)) : true}
             />
           );
         })}
         
-        {/* Ambient Minor Districts */}
+        {/* Ambient Districts */}
         {ambientDistricts.map((district) => (
           <DistrictBuilding key={district.id} district={district} />
         ))}
         
-        {settings.particles > 0 && <FloatingParticles count={settings.particles} />}
-        {settings.vehicles > 0 && <FlyingVehicles count={settings.vehicles} />}
-        {settings.rain && <Rain />}
+        {/* Projector */}
+        {projectedItem && <HolographicProjector item={projectedItem} onClose={onCloseProjector} />}
 
-        <DataTrail />
+        {/* Ambient Effects */}
+        <FlyingVehicles count={qualitySettings.vehicles} />
+        <FloatingParticles count={qualitySettings.particles} />
+        <Rain count={qualitySettings.rain} />
+        {!selectedDistrict && <DataTrail />}
 
-        <Preload all />
       </Suspense>
-
-    </Canvas>
+      
+      {/* Post-processing */}
+      {qualitySettings.bloom && (
+        <EffectComposer disableNormalPass>
+            <Bloom luminanceThreshold={0.5} intensity={0.8} mipmapBlur />
+            <Vignette eskil={false} offset={0.1} darkness={1.1} />
+        </EffectComposer>
+      )}
+    </>
   );
 };
 
-export default React.memo(Experience3D);
+export default Experience3D;
