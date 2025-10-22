@@ -1,38 +1,62 @@
-// FIX: Import React to resolve 'Cannot find namespace 'React'' error for React.FC type.
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { CityDistrict } from '../../types';
 import * as THREE from 'three';
 import { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
+import { portfolioData } from '../../constants';
+
 
 interface CameraRigProps {
   selectedDistrict: CityDistrict | null;
+  hoveredDistrictId: string | null;
 }
 
-const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict }) => {
+const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, hoveredDistrictId }) => {
   const controlsRef = useRef<OrbitControlsImpl>(null!);
+  const [isIntroDone, setIsIntroDone] = useState(false);
 
   const cameraTargetVec = new THREE.Vector3();
   const controlsTargetVec = new THREE.Vector3();
 
-  useFrame((state) => {
+  useEffect(() => {
+    // The intro animation will happen on the first render via useFrame
+    const timer = setTimeout(() => setIsIntroDone(true), 3000); // Duration of the intro fly-through
+    return () => clearTimeout(timer);
+  }, []);
+
+  useFrame((state, delta) => {
     if (!controlsRef.current) return;
 
     const isFocused = !!selectedDistrict;
     
     // Define camera and control targets
     const [dx, dy, dz] = selectedDistrict?.position || [0, 0, 0];
+    
+    // Initial fly-through animation
+    const introTargetPosition = cameraTargetVec.set(80, 40, 120);
     const cameraTargetPosition = isFocused 
       ? cameraTargetVec.set(dx + 25, 20, dz + 25) 
-      : cameraTargetVec.set(80, 40, 120);
+      : introTargetPosition;
+
+    const hoveredDistrict = portfolioData.find(d => d.id === hoveredDistrictId);
+    const [hx, hy, hz] = hoveredDistrict?.position || [0, 0, 0];
       
+    // Default target is the center, but if hovering, subtly shift towards the hovered district
+    const defaultControlsTarget = controlsTargetVec.set(0, 0, 0);
+    if (!isFocused && hoveredDistrictId && isIntroDone) {
+        defaultControlsTarget.lerp(new THREE.Vector3(hx, 0, hz), 0.1);
+    }
+
     const controlsTargetPosition = isFocused 
       ? controlsTargetVec.set(dx, 10, dz) 
-      : controlsTargetVec.set(0, 0, 0);
+      : defaultControlsTarget;
 
     // Smoothly interpolate camera position and controls target
-    const speed = isFocused ? 0.08 : 0.02;
+    let speed = delta * 1.5;
+    if (isFocused) speed *= 2;
+    if (!isIntroDone) speed = delta * 0.5;
+
     state.camera.position.lerp(cameraTargetPosition, speed);
     controlsRef.current.target.lerp(controlsTargetPosition, speed);
     
@@ -47,7 +71,7 @@ const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict }) => {
       enableDamping
       dampingFactor={0.1}
       minDistance={10}
-      maxDistance={200}
+      maxDistance={250} // Increased max distance for intro
       minPolarAngle={Math.PI / 8}
       maxPolarAngle={Math.PI / 2.2}
       mouseButtons={{

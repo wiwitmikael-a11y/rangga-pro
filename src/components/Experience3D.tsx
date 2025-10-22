@@ -1,8 +1,6 @@
-import React, { Suspense, useState, useEffect } from 'react';
+import React, { Suspense, useState, useEffect, lazy, useRef } from 'react';
 import * as THREE from 'three';
-// FIX: This side-effect import extends the JSX namespace to include react-three-fiber elements, resolving TypeScript errors.
-import '@react-three/fiber';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useThree } from '@react-three/fiber';
 import { Box, Environment } from '@react-three/drei';
 import { EffectComposer, Bloom, ChromaticAberration, Selection, Select, Outline, Glitch, DepthOfField } from '@react-three/postprocessing';
 import { CityDistrict, PortfolioSubItem } from '../types';
@@ -13,13 +11,18 @@ import CityModel from './scene/CityModel';
 import FlyingVehicles from './scene/FlyingVehicles';
 import { GroundPlane } from './scene/GroundPlane';
 import { ProjectDisplay } from './scene/ProjectDisplay';
+import DataTrail from './scene/DataTrail';
+import HolographicProjector from './scene/HolographicProjector';
+
+const NexusProtocolGame = lazy(() => import('./game/NexusProtocolGame'));
 
 
 interface Experience3DProps {
   selectedDistrict: CityDistrict | null;
   onSelectDistrict: (district: CityDistrict | null) => void;
-  onSelectSubItem: (item: PortfolioSubItem) => void;
   onDistrictHover: () => void;
+  unlockedProjects: Set<string>;
+  onUnlockProjects: () => void;
 }
 
 // District interaction volume
@@ -62,24 +65,34 @@ const DistrictSelector: React.FC<{
 const Experience3D: React.FC<Experience3DProps> = ({ 
   selectedDistrict, 
   onSelectDistrict,
-  onSelectSubItem,
-  onDistrictHover
+  onDistrictHover,
+  unlockedProjects,
+  onUnlockProjects
 }) => {
-  const [hoveredDistrictId, setHoveredDistrictId] = useState<string | null>(null);
+  const [hoveredDistrictId, setHoveredDistrictId] = useState<string | null>('home'); // Initially highlight home
   const [glitchActive, setGlitchActive] = useState(false);
+  const [projectToDisplay, setProjectToDisplay] = useState<PortfolioSubItem | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setHoveredDistrictId(null), 2000); // Remove initial highlight
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (selectedDistrict) {
       setGlitchActive(true);
       const timer = setTimeout(() => setGlitchActive(false), 600);
       return () => clearTimeout(timer);
+    } else {
+        // When going home, close any open project
+        setProjectToDisplay(null);
     }
   }, [selectedDistrict]);
   
   return (
     <Canvas
       shadows
-      camera={{ position: [80, 40, 120], fov: 45 }}
+      camera={{ position: [150, 80, 150], fov: 45 }} // Start further for fly-through
       style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: '#000' }}
     >
       {/* Lighting & Environment */}
@@ -99,13 +112,19 @@ const Experience3D: React.FC<Experience3DProps> = ({
       </Suspense>
 
       {/* Scene Components */}
-      <CameraRig selectedDistrict={selectedDistrict} />
+      <CameraRig selectedDistrict={selectedDistrict} hoveredDistrictId={hoveredDistrictId} />
       <FloatingParticles count={500} />
       <FlyingVehicles count={15} />
       <GroundPlane />
-      <Suspense fallback={null}>
+      <DataTrail />
+       <Suspense fallback={null}>
           <CityModel />
       </Suspense>
+
+      {/* Holographic Projector for content display */}
+      {projectToDisplay && (
+          <HolographicProjector item={projectToDisplay} onClose={() => setProjectToDisplay(null)} />
+      )}
 
       {/* Post-processing effects */}
       <EffectComposer autoClear={false}>
@@ -137,25 +156,36 @@ const Experience3D: React.FC<Experience3DProps> = ({
                       district={district}
                       isHovered={hoveredDistrictId === district.id && selectedDistrict?.id !== district.id}
                       onPointerOver={() => {
-                          if (hoveredDistrictId !== district.id) {
-                              onDistrictHover();
-                          }
+                          if (hoveredDistrictId !== district.id) onDistrictHover();
                           setHoveredDistrictId(district.id)
                       }}
                       onPointerOut={() => setHoveredDistrictId(null)}
                       onClick={() => onSelectDistrict(district)}
                    />
 
-                  {selectedDistrict?.id === district.id && district.subItems?.map(subItem => (
-                      <ProjectDisplay
-                          key={subItem.id}
-                          item={subItem}
-                          onClick={(e) => {
-                              e.stopPropagation();
-                              onSelectSubItem(subItem);
-                          }}
-                      />
-                  ))}
+                  {selectedDistrict?.id === district.id && (
+                    <>
+                      {district.id === 'game' ? (
+                        <Suspense fallback={null}>
+                            <NexusProtocolGame onUnlock={onUnlockProjects} />
+                        </Suspense>
+                      ) : (
+                        district.subItems?.map(subItem => (
+                            <ProjectDisplay
+                                key={subItem.id}
+                                item={subItem}
+                                isLocked={district.id === 'portfolio' && !unlockedProjects.has(subItem.id)}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (district.id !== 'portfolio' || unlockedProjects.has(subItem.id)) {
+                                       setProjectToDisplay(subItem);
+                                    }
+                                }}
+                            />
+                        ))
+                      )}
+                    </>
+                  )}
                 </group>
               );
           })}

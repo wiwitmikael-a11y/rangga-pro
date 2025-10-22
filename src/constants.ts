@@ -1,10 +1,11 @@
+// src/constants.ts
 import { CityDistrict } from './types';
 
 // Define the major portfolio districts
 const majorDistricts: CityDistrict[] = [
   {
     id: 'home',
-    title: 'HOME',
+    title: 'CENTRAL CORE',
     description: 'The central processing core of the digital metropolis. Welcome to my world.',
     position: [0, 0, 0],
     type: 'major',
@@ -21,14 +22,14 @@ const majorDistricts: CityDistrict[] = [
   },
   {
     id: 'about',
-    title: 'ABOUT',
+    title: 'THE ARCHITECT',
     description: 'Deconstructing the architect. Who I am, my journey, and my philosophy.',
     position: [-40, 0, 10],
     type: 'major',
     subItems: [
       {
         id: 'bio',
-        title: 'The Architect',
+        title: 'Dossier',
         description: 'My story and professional journey.',
         content: 'I am a technologist with a passion for building immersive digital experiences. My background spans across full-stack development, AI engineering, and UI/UX design, driven by a curiosity for how technology shapes our world.',
         position: [0, 6, 3],
@@ -38,7 +39,7 @@ const majorDistricts: CityDistrict[] = [
   },
   {
     id: 'portfolio',
-    title: 'PORTFOLIO',
+    title: 'THE VAULT',
     description: 'A curated collection of projects and case studies.',
     position: [30, 0, -50],
     type: 'major',
@@ -63,20 +64,28 @@ const majorDistricts: CityDistrict[] = [
   },
   {
     id: 'contact',
-    title: 'CONTACT',
+    title: 'THE TERMINAL',
     description: 'Connect and collaborate. Let\'s build the future together.',
     position: [10, 0, 60],
     type: 'major',
     subItems: [
        {
         id: 'linkedin',
-        title: 'LinkedIn',
+        title: 'Comms Link',
         description: 'Professional network and profile.',
         content: 'You can find my detailed professional history and connect with me on LinkedIn. [Link Here]',
         position: [0, 6, 3],
         imageUrl: 'https://images.unsplash.com/photo-1611944212129-29955ae40213?q=80&w=1920&auto=format&fit=crop',
       },
     ],
+  },
+  {
+    id: 'game',
+    title: 'NEXUS PROTOCOL',
+    description: 'Route the datastreams. Solve the protocol challenge.',
+    position: [-30, 0, -40],
+    type: 'major',
+    subItems: [], // Game will have a custom display, not sub-items
   },
 ];
 
