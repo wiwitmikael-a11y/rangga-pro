@@ -16,3 +16,5 @@ export interface CityDistrict {
   height?: number;
   subItems?: PortfolioSubItem[];
 }
+
+export type PerformanceTier = 'PERFORMANCE' | 'BALANCED' | 'QUALITY';

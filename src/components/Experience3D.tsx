@@ -1,9 +1,9 @@
-import React, { Suspense, useState, useEffect, lazy, useRef } from 'react';
+import React, { Suspense, useState, useEffect, lazy, useMemo } from 'react';
 import * as THREE from 'three';
-import { Canvas, useThree } from '@react-three/fiber';
+import { Canvas } from '@react-three/fiber';
 import { Box, Environment } from '@react-three/drei';
 import { EffectComposer, Bloom, ChromaticAberration, Selection, Select, Outline, Glitch, DepthOfField } from '@react-three/postprocessing';
-import { CityDistrict, PortfolioSubItem } from '../types';
+import { CityDistrict, PortfolioSubItem, PerformanceTier } from '../types';
 import { portfolioData } from '../constants';
 import CameraRig from './scene/CameraRig';
 import FloatingParticles from './scene/FloatingParticles';
@@ -23,7 +23,46 @@ interface Experience3DProps {
   onDistrictHover: () => void;
   unlockedProjects: Set<string>;
   onUnlockProjects: () => void;
+  performanceTier: PerformanceTier;
 }
+
+// Performance configurations based on tier
+const performanceConfigs = {
+  PERFORMANCE: {
+    particleCount: 150,
+    vehicleCount: 5,
+    shadows: false,
+    postProcessing: {
+      bloom: true,
+      chromaticAberration: false,
+      glitch: true,
+      depthOfField: false,
+    }
+  },
+  BALANCED: {
+    particleCount: 300,
+    vehicleCount: 10,
+    shadows: true,
+    postProcessing: {
+      bloom: true,
+      chromaticAberration: true,
+      glitch: true,
+      depthOfField: false,
+    }
+  },
+  QUALITY: {
+    particleCount: 500,
+    vehicleCount: 15,
+    shadows: true,
+    postProcessing: {
+      bloom: true,
+      chromaticAberration: true,
+      glitch: true,
+      depthOfField: true,
+    }
+  }
+};
+
 
 // District interaction volume
 const DistrictSelector: React.FC<{
@@ -67,11 +106,15 @@ const Experience3D: React.FC<Experience3DProps> = ({
   onSelectDistrict,
   onDistrictHover,
   unlockedProjects,
-  onUnlockProjects
+  onUnlockProjects,
+  performanceTier
 }) => {
   const [hoveredDistrictId, setHoveredDistrictId] = useState<string | null>('home'); // Initially highlight home
   const [glitchActive, setGlitchActive] = useState(false);
   const [projectToDisplay, setProjectToDisplay] = useState<PortfolioSubItem | null>(null);
+
+  const config = useMemo(() => performanceConfigs[performanceTier], [performanceTier]);
+
 
   useEffect(() => {
     const timer = setTimeout(() => setHoveredDistrictId(null), 2000); // Remove initial highlight
@@ -100,7 +143,7 @@ const Experience3D: React.FC<Experience3DProps> = ({
       <directionalLight 
         position={[50, 80, 50]} 
         intensity={1.5} 
-        castShadow 
+        castShadow={config.shadows}
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
       />
@@ -113,8 +156,8 @@ const Experience3D: React.FC<Experience3DProps> = ({
 
       {/* Scene Components */}
       <CameraRig selectedDistrict={selectedDistrict} hoveredDistrictId={hoveredDistrictId} />
-      <FloatingParticles count={500} />
-      <FlyingVehicles count={15} />
+      <FloatingParticles count={config.particleCount} />
+      <FlyingVehicles count={config.vehicleCount} />
       <GroundPlane />
       <DataTrail />
        <Suspense fallback={null}>
@@ -128,21 +171,21 @@ const Experience3D: React.FC<Experience3DProps> = ({
 
       {/* Post-processing effects */}
       <EffectComposer autoClear={false}>
-          <Bloom luminanceThreshold={0.2} luminanceSmoothing={0.9} height={300} intensity={1.5} />
-          <ChromaticAberration offset={new THREE.Vector2(0.001, 0.001)} />
+          {config.postProcessing.bloom && <Bloom luminanceThreshold={0.2} luminanceSmoothing={0.9} height={300} intensity={1.5} />}
+          {config.postProcessing.chromaticAberration && <ChromaticAberration offset={new THREE.Vector2(0.001, 0.001)} />}
           <Outline blur visibleEdgeColor="#00ffff" edgeStrength={100} width={1000} />
-          <Glitch
+          {config.postProcessing.glitch && <Glitch
             delay={new THREE.Vector2(1.5, 3.5)}
             duration={new THREE.Vector2(0.2, 0.4)}
             strength={new THREE.Vector2(0.01, 0.03)}
             active={glitchActive}
-          />
-          <DepthOfField
+          />}
+          {config.postProcessing.depthOfField && <DepthOfField
               focusDistance={0.1}
               focalLength={0.2}
               bokehScale={selectedDistrict ? 4 : 0}
               height={480}
-          />
+          />}
       </EffectComposer>
 
       {/* Interactive layer */}

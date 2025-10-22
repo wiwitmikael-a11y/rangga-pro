@@ -2,8 +2,9 @@ import React, { useState, useEffect, Suspense, lazy, useRef, useCallback } from 
 import { Loader } from './components/ui/Loader';
 import { StartScreen } from './components/ui/StartScreen';
 import { HUD } from './components/ui/HUD';
-import { CityDistrict } from './types';
+import { CityDistrict, PerformanceTier } from './types';
 import { portfolioData } from './constants';
+import { usePerformance } from './hooks/usePerformance';
 
 // Lazy load the 3D experience
 const Experience3D = lazy(() => import('./components/Experience3D'));
@@ -14,6 +15,8 @@ function App() {
   
   const [selectedDistrict, setSelectedDistrict] = useState<CityDistrict | null>(null);
   const [unlockedProjects, setUnlockedProjects] = useState<Set<string>>(new Set());
+  
+  const { initialTier, setPerformanceTier, performanceTier } = usePerformance();
 
   const ambientSoundRef = useRef<HTMLAudioElement | null>(null);
   const clickSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -105,7 +108,7 @@ function App() {
         isStarted={isStarted}
         playScanSound={playScanSound}
       />
-      {isStarted && (
+      {isStarted && initialTier && (
         <Suspense fallback={<Loader />}>
           <Experience3D 
             onSelectDistrict={handleSelectDistrict}
@@ -113,10 +116,13 @@ function App() {
             onDistrictHover={playHoverSound}
             unlockedProjects={unlockedProjects}
             onUnlockProjects={handleUnlockProjects}
+            performanceTier={performanceTier}
           />
            <HUD 
             selectedDistrict={selectedDistrict}
             onGoHome={handleGoHome}
+            performanceTier={performanceTier}
+            onSetPerformanceTier={setPerformanceTier}
           />
         </Suspense>
       )}
