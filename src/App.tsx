@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useEffect, Suspense, lazy, useRef } from 'react';
 import { Loader } from './components/ui/Loader';
 import { StartScreen } from './components/ui/StartScreen';
 import { InfoPanel } from './components/ui/InfoPanel';
@@ -15,11 +15,15 @@ function App() {
   const [selectedDistrict, setSelectedDistrict] = useState<CityDistrict | null>(null);
   const [selectedSubItem, setSelectedSubItem] = useState<PortfolioSubItem | null>(null);
 
+  const ambientSoundRef = useRef<HTMLAudioElement | null>(null);
+  const clickSoundRef = useRef<HTMLAudioElement | null>(null);
+
   useEffect(() => {
-    // Simulate initial asset loading
+    ambientSoundRef.current = document.getElementById('ambient-sound') as HTMLAudioElement;
+    clickSoundRef.current = document.getElementById('click-sound') as HTMLAudioElement;
+    
     const timer = setTimeout(() => setLoading(false), 1500);
     
-    // Disable right-click context menu
     const handleContextMenu = (e: MouseEvent) => e.preventDefault();
     document.addEventListener('contextmenu', handleContextMenu);
 
@@ -29,26 +33,42 @@ function App() {
     };
   }, []);
   
+  const playClickSound = () => {
+    if (clickSoundRef.current) {
+      clickSoundRef.current.currentTime = 0;
+      clickSoundRef.current.play();
+    }
+  };
+
   const handleStart = () => {
     setIsStarted(true);
+    if (ambientSoundRef.current) {
+        ambientSoundRef.current.volume = 0.3;
+        ambientSoundRef.current.play();
+    }
+    playClickSound();
   };
 
   const handleSelectDistrict = (district: CityDistrict | null) => {
     setSelectedDistrict(district);
-    setSelectedSubItem(null); // Deselect sub-item when changing districts
+    setSelectedSubItem(null);
+    playClickSound();
   };
 
   const handleSelectSubItem = (item: PortfolioSubItem) => {
     setSelectedSubItem(item);
+    playClickSound();
   };
   
   const handleGoHome = () => {
     setSelectedDistrict(null);
     setSelectedSubItem(null);
+    playClickSound();
   };
 
   const handleClosePanel = () => {
     setSelectedSubItem(null);
+    playClickSound();
   }
 
   if (loading) {

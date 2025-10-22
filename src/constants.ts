@@ -8,7 +8,6 @@ const majorDistricts: CityDistrict[] = [
     description: 'The central processing core of the digital metropolis. Welcome to my world.',
     position: [0, 0, 0],
     type: 'major',
-    height: 35,
     subItems: [
        {
         id: 'welcome',
@@ -23,9 +22,8 @@ const majorDistricts: CityDistrict[] = [
     id: 'about',
     title: 'ABOUT',
     description: 'Deconstructing the architect. Who I am, my journey, and my philosophy.',
-    position: [-20, 0, 5],
+    position: [-40, 0, 10],
     type: 'major',
-    height: 25,
     subItems: [
       {
         id: 'bio',
@@ -40,9 +38,8 @@ const majorDistricts: CityDistrict[] = [
     id: 'portfolio',
     title: 'PORTFOLIO',
     description: 'A curated collection of projects and case studies.',
-    position: [15, 0, -10],
+    position: [30, 0, -50],
     type: 'major',
-    height: 30,
     subItems: [
        {
         id: 'project-a',
@@ -64,9 +61,8 @@ const majorDistricts: CityDistrict[] = [
     id: 'contact',
     title: 'CONTACT',
     description: 'Connect and collaborate. Let\'s build the future together.',
-    position: [5, 0, 20],
+    position: [10, 0, 60],
     type: 'major',
-    height: 22,
     subItems: [
        {
         id: 'linkedin',
@@ -79,27 +75,4 @@ const majorDistricts: CityDistrict[] = [
   },
 ];
 
-// Procedurally generate minor ambient districts to fill the city
-const minorDistricts: CityDistrict[] = [];
-const citySize = 8; // Grid of 16x16
-const spacing = 8;
-
-for (let x = -citySize; x <= citySize; x++) {
-  for (let z = -citySize; z <= citySize; z++) {
-    // Avoid placing minor districts where major ones already exist
-    const isOccupied = majorDistricts.some(d => d.position[0] === x * spacing && d.position[2] === z * spacing);
-    if (!isOccupied && Math.random() > 0.3) {
-      const id = `minor-${x}-${z}`;
-      minorDistricts.push({
-        id,
-        title: '',
-        description: '',
-        position: [x * spacing, 0, z * spacing],
-        type: 'minor',
-        height: 10 + Math.random() * 15,
-      });
-    }
-  }
-}
-
-export const portfolioData: CityDistrict[] = [...majorDistricts, ...minorDistricts];
+export const portfolioData: CityDistrict[] = [...majorDistricts];

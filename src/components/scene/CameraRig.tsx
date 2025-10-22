@@ -22,11 +22,11 @@ const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict }) => {
     // Define camera and control targets
     const [dx, dy, dz] = selectedDistrict?.position || [0, 0, 0];
     const cameraTargetPosition = isFocused 
-      ? cameraTargetVec.set(dx + 20, 20, dz + 20) 
-      : cameraTargetVec.set(60, 60, 60);
+      ? cameraTargetVec.set(dx + 30, 25, dz + 30) 
+      : cameraTargetVec.set(100, 50, 100);
       
     const controlsTargetPosition = isFocused 
-      ? controlsTargetVec.set(dx, 5, dz) 
+      ? controlsTargetVec.set(dx, 10, dz) 
       : controlsTargetVec.set(0, 0, 0);
 
     // Smoothly interpolate camera position and controls target
@@ -44,7 +44,7 @@ const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict }) => {
       enablePan={true}
       enableRotate={true}
       minDistance={10}
-      maxDistance={150}
+      maxDistance={200}
       minPolarAngle={Math.PI / 8}
       maxPolarAngle={Math.PI / 2.2}
       mouseButtons={{

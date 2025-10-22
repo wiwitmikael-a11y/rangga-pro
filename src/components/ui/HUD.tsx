@@ -12,8 +12,10 @@ export const HUD: React.FC<HUDProps> = ({ selectedDistrict, onGoHome }) => {
   return (
     <>
       <div style={{...styles.topContainer, ...(isDistrictSelected ? styles.visible : styles.hiddenTop)}}>
-        <h2 style={styles.title}>{selectedDistrict?.title}</h2>
-        <p style={styles.description}>{selectedDistrict?.description}</p>
+        <div style={styles.panelBackground}>
+          <h2 style={styles.title}>{selectedDistrict?.title}</h2>
+          <p style={styles.description}>{selectedDistrict?.description}</p>
+        </div>
       </div>
        <div style={styles.bottomContainer}>
          <button 
@@ -41,8 +43,18 @@ const styles: { [key: string]: React.CSSProperties } = {
     ...commonContainerStyles,
     top: 0,
     left: 0,
+    width: 'clamp(300px, 40vw, 500px)',
     textAlign: 'left',
     transition: 'opacity 0.5s ease, transform 0.5s ease',
+  },
+  panelBackground: {
+    backgroundColor: 'rgba(0, 20, 40, 0.7)',
+    backdropFilter: 'blur(5px)',
+    padding: '20px',
+    border: '1px solid #00aaff',
+    borderTop: 'none',
+    borderLeft: 'none',
+    borderBottomRightRadius: '10px',
   },
   bottomContainer: {
     ...commonContainerStyles,
@@ -55,6 +67,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   title: {
     margin: 0,
     fontSize: '2rem',
+    color: '#00ffff'
   },
   description: {
     margin: '5px 0 0 0',
@@ -62,7 +75,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#ccc',
   },
   homeButton: {
-    background: 'transparent',
+    background: 'rgba(0, 20, 40, 0.7)',
     border: '1px solid #00aaff',
     color: '#00aaff',
     padding: '10px 20px',
@@ -73,6 +86,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     textTransform: 'uppercase',
     letterSpacing: '0.1em',
     pointerEvents: 'all',
+    backdropFilter: 'blur(5px)',
   },
   visible: {
     opacity: 1,
