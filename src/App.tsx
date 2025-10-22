@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy, useRef } from 'react';
+import React, { useState, useEffect, Suspense, lazy, useRef, useCallback } from 'react';
 import { Loader } from './components/ui/Loader';
 import { StartScreen } from './components/ui/StartScreen';
 import { InfoPanel } from './components/ui/InfoPanel';
@@ -17,12 +17,14 @@ function App() {
 
   const ambientSoundRef = useRef<HTMLAudioElement | null>(null);
   const clickSoundRef = useRef<HTMLAudioElement | null>(null);
+  const hoverSoundRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     ambientSoundRef.current = document.getElementById('ambient-sound') as HTMLAudioElement;
     clickSoundRef.current = document.getElementById('click-sound') as HTMLAudioElement;
+    hoverSoundRef.current = document.getElementById('hover-sound') as HTMLAudioElement;
     
-    const timer = setTimeout(() => setLoading(false), 1500);
+    const timer = setTimeout(() => setLoading(false), 3500); // Increased loading time for new boot sequence
     
     const handleContextMenu = (e: MouseEvent) => e.preventDefault();
     document.addEventListener('contextmenu', handleContextMenu);
@@ -33,43 +35,51 @@ function App() {
     };
   }, []);
   
-  const playClickSound = () => {
+  const playClickSound = useCallback(() => {
     if (clickSoundRef.current) {
       clickSoundRef.current.currentTime = 0;
       clickSoundRef.current.play();
     }
-  };
+  }, []);
 
-  const handleStart = () => {
+  const playHoverSound = useCallback(() => {
+    if (hoverSoundRef.current) {
+        hoverSoundRef.current.currentTime = 0;
+        hoverSoundRef.current.volume = 0.4;
+        hoverSoundRef.current.play();
+    }
+  }, []);
+
+  const handleStart = useCallback(() => {
     setIsStarted(true);
     if (ambientSoundRef.current) {
         ambientSoundRef.current.volume = 0.3;
         ambientSoundRef.current.play();
     }
     playClickSound();
-  };
+  }, [playClickSound]);
 
-  const handleSelectDistrict = (district: CityDistrict | null) => {
+  const handleSelectDistrict = useCallback((district: CityDistrict | null) => {
     setSelectedDistrict(district);
     setSelectedSubItem(null);
     playClickSound();
-  };
+  }, [playClickSound]);
 
-  const handleSelectSubItem = (item: PortfolioSubItem) => {
+  const handleSelectSubItem = useCallback((item: PortfolioSubItem) => {
     setSelectedSubItem(item);
     playClickSound();
-  };
+  }, [playClickSound]);
   
-  const handleGoHome = () => {
+  const handleGoHome = useCallback(() => {
     setSelectedDistrict(null);
     setSelectedSubItem(null);
     playClickSound();
-  };
+  }, [playClickSound]);
 
-  const handleClosePanel = () => {
+  const handleClosePanel = useCallback(() => {
     setSelectedSubItem(null);
     playClickSound();
-  }
+  }, [playClickSound]);
 
   if (loading) {
     return <Loader />;
@@ -86,6 +96,7 @@ function App() {
           onSelectDistrict={handleSelectDistrict}
           onSelectSubItem={handleSelectSubItem}
           selectedDistrict={selectedDistrict}
+          onDistrictHover={playHoverSound}
         />
          <HUD 
           selectedDistrict={selectedDistrict}

@@ -1,12 +1,31 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
-export const Loader = () => {
+const bootSequence = [
+  "Booting Metropolis Core...",
+  "Loading Neural Mesh...",
+  "Calibrating Render Engine...",
+  "Establishing Datalink...",
+  "Metropolis Online"
+];
+
+export const Loader = React.memo(() => {
+  const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+  
+  useEffect(() => {
+    if (currentMessageIndex < bootSequence.length - 1) {
+      const timer = setTimeout(() => {
+        setCurrentMessageIndex(currentMessageIndex + 1);
+      }, 700);
+      return () => clearTimeout(timer);
+    }
+  }, [currentMessageIndex]);
+
   return (
     <div style={styles.container}>
-      <p style={styles.text}>Booting Metropolis Core...</p>
+      <p style={styles.text}>{bootSequence[currentMessageIndex]}</p>
     </div>
   );
-};
+});
 
 const styles: { [key: string]: React.CSSProperties } = {
     container: {
@@ -27,5 +46,6 @@ const styles: { [key: string]: React.CSSProperties } = {
         fontFamily: 'monospace',
         letterSpacing: '0.1em',
         textShadow: '0 0 5px #fff',
+        animation: 'fadeIn 0.7s ease-in-out',
     }
 }

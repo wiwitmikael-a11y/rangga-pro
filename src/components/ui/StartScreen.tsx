@@ -4,7 +4,7 @@ interface StartScreenProps {
   onStart: () => void;
 }
 
-export const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
+export const StartScreen: React.FC<StartScreenProps> = React.memo(({ onStart }) => {
   return (
     <div style={styles.container}>
       <div style={styles.content}>
@@ -31,7 +31,7 @@ export const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
       `}</style>
     </div>
   );
-};
+});
 
 const styles: { [key: string]: React.CSSProperties } = {
   container: {

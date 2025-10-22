@@ -4,6 +4,7 @@ export interface PortfolioSubItem {
   description: string; 
   content: string; 
   position: [number, number, number];
+  imageUrl?: string;
 }
 
 export interface CityDistrict {

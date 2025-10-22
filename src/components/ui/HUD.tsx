@@ -6,11 +6,17 @@ interface HUDProps {
   onGoHome: () => void;
 }
 
-export const HUD: React.FC<HUDProps> = ({ selectedDistrict, onGoHome }) => {
+export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome }) => {
   const isDistrictSelected = !!selectedDistrict;
+  const breadcrumb = isDistrictSelected 
+    ? `METROPOLIS CORE > /${selectedDistrict.id.toUpperCase()}_DISTRICT/`
+    : 'METROPOLIS CORE';
 
   return (
     <>
+       <div style={styles.breadcrumbContainer}>
+          <p style={styles.breadcrumbText}>{breadcrumb}</p>
+      </div>
       <div style={{...styles.topContainer, ...(isDistrictSelected ? styles.visible : styles.hiddenTop)}}>
         <div style={styles.panelBackground}>
           <h2 style={styles.title}>{selectedDistrict?.title}</h2>
@@ -26,7 +32,7 @@ export const HUD: React.FC<HUDProps> = ({ selectedDistrict, onGoHome }) => {
       </div>
     </>
   );
-};
+});
 
 const commonContainerStyles: React.CSSProperties = {
   position: 'fixed',
@@ -38,6 +44,28 @@ const commonContainerStyles: React.CSSProperties = {
 };
 
 const styles: { [key: string]: React.CSSProperties } = {
+  breadcrumbContainer: {
+    position: 'fixed',
+    top: '20px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    fontFamily: 'monospace',
+    color: '#00aaff',
+    backgroundColor: 'rgba(0, 20, 40, 0.7)',
+    padding: '5px 15px',
+    border: '1px solid #00aaff',
+    borderRadius: '5px',
+    zIndex: 10,
+    textShadow: '0 0 5px #00aaff',
+    pointerEvents: 'none',
+    whiteSpace: 'nowrap',
+    transition: 'opacity 0.5s ease',
+  },
+  breadcrumbText: {
+    margin: 0,
+    fontSize: '0.9rem',
+    letterSpacing: '0.1em',
+  },
   topContainer: {
     ...commonContainerStyles,
     top: 0,

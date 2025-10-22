@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { PortfolioSubItem } from '../../types';
 
 interface InfoPanelProps {
@@ -6,14 +6,32 @@ interface InfoPanelProps {
   onClose: () => void;
 }
 
-export const InfoPanel: React.FC<InfoPanelProps> = ({ item, onClose }) => {
+export const InfoPanel: React.FC<InfoPanelProps> = React.memo(({ item, onClose }) => {
+  const [isLinkHovered, setIsLinkHovered] = useState(false);
+  const contentParts = item.content.split('[Link Here]');
+
   return (
     <div style={styles.container} onClick={(e) => e.stopPropagation()}>
       <div style={styles.panel}>
         <button onClick={onClose} style={styles.closeButton}>&times;</button>
         <h2 style={styles.title}>{item.title}</h2>
         <div style={styles.content}>
-          <p>{item.content}</p>
+          <p>
+            {contentParts[0]}
+            {contentParts.length > 1 && (
+              <a 
+                href="https://linkedin.com" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                style={{...styles.linkButton, ...(isLinkHovered ? styles.linkButtonHover : {})}}
+                onMouseEnter={() => setIsLinkHovered(true)}
+                onMouseLeave={() => setIsLinkHovered(false)}
+              >
+                Visit LinkedIn
+              </a>
+            )}
+            {contentParts[1]}
+          </p>
         </div>
       </div>
        <style>{`
@@ -28,7 +46,7 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({ item, onClose }) => {
       `}</style>
     </div>
   );
-};
+});
 
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
@@ -41,7 +59,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     backdropFilter: 'blur(15px)',
     borderLeft: '1px solid #00aaff',
     color: 'white',
-    fontFamily: 'monospace',
+    fontFamily: '"Courier New", Courier, monospace',
     padding: '30px',
     zIndex: 100,
     overflowY: 'auto',
@@ -76,9 +94,25 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   content: {
     fontSize: '1rem',
-    lineHeight: '1.6',
+    lineHeight: '1.7',
     whiteSpace: 'pre-wrap',
-    color: '#f0f0f0',
+    color: '#a7d1d0',
     textShadow: '1px 1px 2px rgba(0,0,0,0.5)',
+  },
+  linkButton: {
+    display: 'inline-block',
+    marginTop: '15px',
+    padding: '10px 15px',
+    border: '1px solid #00ffff',
+    color: '#00ffff',
+    backgroundColor: 'rgba(0, 255, 255, 0.1)',
+    textDecoration: 'none',
+    borderRadius: '3px',
+    transition: 'all 0.3s ease',
+    cursor: 'pointer',
+  },
+  linkButtonHover: {
+      backgroundColor: 'rgba(0, 255, 255, 0.3)',
+      boxShadow: '0 0 10px #00ffff',
   },
 };

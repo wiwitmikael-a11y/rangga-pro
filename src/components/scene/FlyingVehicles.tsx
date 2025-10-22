@@ -47,6 +47,8 @@ const FlyingVehicles: React.FC<FlyingVehicleProps> = ({ count }) => {
         }
 
         dummy.position.copy(vehicle.position);
+        // Make vehicle look towards its direction
+        dummy.lookAt(vehicle.position.clone().add(vehicle.direction));
         dummy.updateMatrix();
         meshRef.current.setMatrixAt(i, dummy.matrix);
       });
@@ -56,8 +58,8 @@ const FlyingVehicles: React.FC<FlyingVehicleProps> = ({ count }) => {
 
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
-      <boxGeometry args={[1, 0.2, 0.4]} />
-      <meshBasicMaterial color="#ff00ff" toneMapped={false} />
+      <capsuleGeometry args={[0.1, 0.5, 4, 8]} />
+      <meshStandardMaterial color="#ffffff" emissive="#ff00ff" emissiveIntensity={2} toneMapped={false} />
     </instancedMesh>
   );
 };
