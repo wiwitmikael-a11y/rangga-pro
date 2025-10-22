@@ -33,7 +33,6 @@ const commonContainerStyles: React.CSSProperties = {
   fontFamily: 'monospace',
   color: 'white',
   padding: '20px',
-  textShadow: '0 0 5px #00aaff',
   pointerEvents: 'none',
   zIndex: 10,
 };
@@ -48,8 +47,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: 'opacity 0.5s ease, transform 0.5s ease',
   },
   panelBackground: {
-    backgroundColor: 'rgba(0, 20, 40, 0.7)',
-    backdropFilter: 'blur(5px)',
+    backgroundColor: 'rgba(0, 20, 40, 0.85)',
+    backdropFilter: 'blur(10px)',
     padding: '20px',
     border: '1px solid #00aaff',
     borderTop: 'none',
@@ -67,12 +66,14 @@ const styles: { [key: string]: React.CSSProperties } = {
   title: {
     margin: 0,
     fontSize: '2rem',
-    color: '#00ffff'
+    color: '#FFFFFF',
+    textShadow: '1px 1px 2px rgba(0,0,0,0.7), 0 0 8px #00ffff',
   },
   description: {
     margin: '5px 0 0 0',
     fontSize: '1rem',
-    color: '#ccc',
+    color: '#e0e0e0',
+    textShadow: '1px 1px 2px rgba(0,0,0,0.7)',
   },
   homeButton: {
     background: 'rgba(0, 20, 40, 0.7)',

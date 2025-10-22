@@ -1,5 +1,5 @@
 import React, { Suspense, useState } from 'react';
-// FIX: Add side-effect import to extend JSX namespace for react-three-fiber elements.
+// FIX: This side-effect import extends the JSX namespace to include react-three-fiber elements, resolving TypeScript errors.
 import '@react-three/fiber';
 import { Canvas } from '@react-three/fiber';
 import { Box, Text } from '@react-three/drei';
@@ -115,16 +115,17 @@ const Experience3D: React.FC<Experience3DProps> = ({
       style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: '#000' }}
     >
       {/* Lighting */}
-      <ambientLight intensity={0.5} />
+      <ambientLight intensity={0.8} />
       <directionalLight 
         position={[50, 80, 50]} 
-        intensity={1.5} 
+        intensity={2.0} 
         castShadow 
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
       />
-      <pointLight position={[-10, 10, -10]} color="#00aaff" intensity={2} distance={150} />
-      <fog attach="fog" args={['#050810', 80, 300]} />
+      <pointLight position={[-40, 20, -30]} color="#ff00ff" intensity={3} distance={200} />
+      <pointLight position={[50, 30, 40]} color="#00aaff" intensity={4} distance={250} />
+      <fog attach="fog" args={['#050810', 120, 350]} />
 
       {/* Scene Components */}
       <CameraRig selectedDistrict={selectedDistrict} />

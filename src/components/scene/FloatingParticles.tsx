@@ -1,5 +1,5 @@
 import React, { useMemo, useRef } from 'react';
-// FIX: Added a side-effect import to ensure TypeScript recognizes react-three-fiber's custom JSX elements.
+// FIX: This side-effect import extends the JSX namespace to include react-three-fiber elements, resolving TypeScript errors.
 import '@react-three/fiber';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';

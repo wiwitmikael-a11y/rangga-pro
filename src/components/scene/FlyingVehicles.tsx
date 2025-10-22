@@ -1,5 +1,5 @@
 import React, { useMemo, useRef } from 'react';
-// FIX: All JSX elements from react-three-fiber were causing TypeScript errors. Adding this side-effect import brings the necessary type definitions into scope.
+// FIX: This side-effect import extends the JSX namespace to include react-three-fiber elements, resolving TypeScript errors.
 import '@react-three/fiber';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -9,7 +9,7 @@ interface FlyingVehicleProps {
 }
 
 const FlyingVehicles: React.FC<FlyingVehicleProps> = ({ count }) => {
-  const groupRef = useRef<THREE.Group>(null!);
+  const meshRef = useRef<THREE.InstancedMesh>(null!);
 
   const vehicles = useMemo(() => {
     const temp = [];
@@ -36,7 +36,7 @@ const FlyingVehicles: React.FC<FlyingVehicleProps> = ({ count }) => {
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
   useFrame(() => {
-    if (groupRef.current) {
+    if (meshRef.current) {
       vehicles.forEach((vehicle, i) => {
         vehicle.position.addScaledVector(vehicle.direction, vehicle.speed);
 
@@ -48,14 +48,14 @@ const FlyingVehicles: React.FC<FlyingVehicleProps> = ({ count }) => {
 
         dummy.position.copy(vehicle.position);
         dummy.updateMatrix();
-        (groupRef.current as any).setMatrixAt(i, dummy.matrix);
+        meshRef.current.setMatrixAt(i, dummy.matrix);
       });
-      (groupRef.current as any).instanceMatrix.needsUpdate = true;
+      meshRef.current.instanceMatrix.needsUpdate = true;
     }
   });
 
   return (
-    <instancedMesh ref={groupRef as any} args={[undefined, undefined, count]}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
       <boxGeometry args={[1, 0.2, 0.4]} />
       <meshBasicMaterial color="#ff00ff" toneMapped={false} />
     </instancedMesh>

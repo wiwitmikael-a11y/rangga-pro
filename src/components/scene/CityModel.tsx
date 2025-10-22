@@ -1,5 +1,5 @@
 import React from 'react';
-// FIX: Added import for '@react-three/fiber' to bring its JSX type definitions into scope.
+// FIX: This side-effect import extends the JSX namespace to include react-three-fiber elements, resolving TypeScript errors.
 import '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 
