@@ -11,6 +11,7 @@ interface ProjectDisplayProps {
 
 export const ProjectDisplay: React.FC<ProjectDisplayProps> = ({ item, onClick }) => {
   const groupRef = useRef<THREE.Group>(null!);
+  const imageMaterialRef = useRef<THREE.MeshStandardMaterial>(null!);
   const [isHovered, setIsHovered] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -24,6 +25,11 @@ export const ProjectDisplay: React.FC<ProjectDisplayProps> = ({ item, onClick })
 
     const targetScale = isVisible ? (isHovered ? 1.1 : 1) : 0;
     groupRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), delta * 5);
+    
+    // Holographic flicker effect
+    if (imageMaterialRef.current && !isHovered) {
+        imageMaterialRef.current.opacity = 0.8 + Math.sin(state.clock.elapsedTime * 5 + item.position[0]) * 0.1;
+    }
   });
 
   const handlePointerOver = (e: any) => {
@@ -58,6 +64,7 @@ export const ProjectDisplay: React.FC<ProjectDisplayProps> = ({ item, onClick })
           position={[0, 0.5, 0.15]}
         >
           <meshStandardMaterial 
+            ref={imageMaterialRef}
             transparent 
             opacity={isHovered ? 1 : 0.8} 
             emissive={"#ffffff"} 

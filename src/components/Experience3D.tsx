@@ -1,4 +1,4 @@
-import React, { Suspense, useState, useRef, useEffect } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import * as THREE from 'three';
 // FIX: This side-effect import extends the JSX namespace to include react-three-fiber elements, resolving TypeScript errors.
 import '@react-three/fiber';
@@ -69,11 +69,9 @@ const Experience3D: React.FC<Experience3DProps> = ({
   const [glitchActive, setGlitchActive] = useState(false);
 
   useEffect(() => {
-    // FIX: Replaced explicit NodeJS.Timeout type with inferred type from setTimeout and improved logic
-    // to avoid potential runtime errors with uninitialized timer variable.
     if (selectedDistrict) {
       setGlitchActive(true);
-      const timer = setTimeout(() => setGlitchActive(false), 600); // Activate glitch for 600ms on transition
+      const timer = setTimeout(() => setGlitchActive(false), 600);
       return () => clearTimeout(timer);
     }
   }, [selectedDistrict]);
@@ -105,33 +103,31 @@ const Experience3D: React.FC<Experience3DProps> = ({
       <FloatingParticles count={500} />
       <FlyingVehicles count={15} />
       <GroundPlane />
-
-      <Selection>
-        {/* Post-processing effects */}
-        <EffectComposer autoClear={false}>
-            <Bloom luminanceThreshold={0.2} luminanceSmoothing={0.9} height={300} intensity={1.5} />
-            <ChromaticAberration offset={new THREE.Vector2(0.001, 0.001)} />
-            <Outline blur visibleEdgeColor="#00ffff" edgeStrength={100} width={1000} />
-            <Glitch
-              delay={new THREE.Vector2(1.5, 3.5)}
-              duration={new THREE.Vector2(0.2, 0.4)}
-              strength={new THREE.Vector2(0.01, 0.03)}
-              active={glitchActive}
-            />
-            <DepthOfField
-                focusDistance={0.1}
-                focalLength={0.2}
-                bokehScale={selectedDistrict ? 4 : 0}
-                height={480}
-            />
-        </EffectComposer>
-
-        {/* Cityscape */}
-        <Suspense fallback={null}>
+      <Suspense fallback={null}>
           <CityModel />
-        </Suspense>
+      </Suspense>
 
-        {/* Interactive layer */}
+      {/* Post-processing effects */}
+      <EffectComposer autoClear={false}>
+          <Bloom luminanceThreshold={0.2} luminanceSmoothing={0.9} height={300} intensity={1.5} />
+          <ChromaticAberration offset={new THREE.Vector2(0.001, 0.001)} />
+          <Outline blur visibleEdgeColor="#00ffff" edgeStrength={100} width={1000} />
+          <Glitch
+            delay={new THREE.Vector2(1.5, 3.5)}
+            duration={new THREE.Vector2(0.2, 0.4)}
+            strength={new THREE.Vector2(0.01, 0.03)}
+            active={glitchActive}
+          />
+          <DepthOfField
+              focusDistance={0.1}
+              focalLength={0.2}
+              bokehScale={selectedDistrict ? 4 : 0}
+              height={480}
+          />
+      </EffectComposer>
+
+      {/* Interactive layer */}
+      <Selection>
         <group>
           {portfolioData.map((district) => {
               if (district.type !== 'major') return null;
