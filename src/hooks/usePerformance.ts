@@ -5,8 +5,11 @@ import type { PerformanceTier } from '../types';
 export const usePerformance = () => {
   const gpuInfo = useDetectGPU();
   
-  // Tentukan tingkatan awal berdasarkan info GPU, hanya sekali.
-  const initialTier = useMemo((): PerformanceTier | null => {
+  // Sediakan nilai default untuk mencegah halaman kosong saat refresh.
+  const [performanceTier, setPerformanceTier] = useState<PerformanceTier>('BALANCED');
+
+  // Tentukan tingkatan ideal berdasarkan info GPU, hanya sekali.
+  const idealTier = useMemo((): PerformanceTier | null => {
     if (!gpuInfo?.tier) return null; // Tunggu info GPU tersedia
     
     // Logika sederhana: Tier 3 (ponsel/IGP) -> PERFORMANCE
@@ -17,19 +20,15 @@ export const usePerformance = () => {
     return 'PERFORMANCE';
   }, [gpuInfo?.tier]);
 
-  // Gunakan state untuk tingkatan yang dapat diubah oleh pengguna.
-  const [performanceTier, setPerformanceTier] = useState<PerformanceTier>('BALANCED');
 
-  // Set tingkatan awal sekali saat tersedia.
+  // Perbarui tingkatan dari default ke ideal sekali saat tersedia.
   useEffect(() => {
-    if (initialTier) {
-      setPerformanceTier(initialTier);
+    if (idealTier) {
+      setPerformanceTier(idealTier);
     }
-  }, [initialTier]);
+  }, [idealTier]);
   
   return { 
-    initialTier, // Untuk mencegah render sebelum deteksi selesai
     performanceTier,
-    setPerformanceTier 
   };
 };

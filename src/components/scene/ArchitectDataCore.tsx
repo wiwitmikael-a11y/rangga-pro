@@ -47,7 +47,7 @@ const ArchitectDataCore: React.FC<ArchitectDataCoreProps> = ({
       >
         <primitive 
           object={arcadeMachine} 
-          scale={5} 
+          scale={0.5} 
           position-y={-3} 
           rotation-y={Math.PI * 0.25}
         />

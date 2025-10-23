@@ -1,45 +1,12 @@
-
-import React, { useState, useMemo } from 'react';
-import type { CityDistrict, PerformanceTier } from '../../types';
-
-interface SettingsPanelProps {
-  currentTier: PerformanceTier;
-  onSetTier: (tier: PerformanceTier) => void;
-  onClose: () => void;
-}
-
-const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentTier, onSetTier, onClose }) => {
-    return (
-        <div style={styles.settingsPanel}>
-            <h4 style={styles.settingsTitle}>Quality Settings</h4>
-            <div style={styles.settingsButtons}>
-                {(['PERFORMANCE', 'BALANCED', 'QUALITY'] as PerformanceTier[]).map(tier => (
-                    <button
-                        key={tier}
-                        onClick={() => onSetTier(tier)}
-                        style={{
-                            ...styles.settingsButton,
-                            ...(currentTier === tier ? styles.settingsButtonActive : {})
-                        }}
-                    >
-                        {tier.charAt(0) + tier.slice(1).toLowerCase()}
-                    </button>
-                ))}
-            </div>
-            <button onClick={onClose} style={styles.settingsCloseButton}>&times;</button>
-        </div>
-    );
-};
+import React, { useMemo } from 'react';
+import type { CityDistrict } from '../../types';
 
 interface HUDProps {
   selectedDistrict: CityDistrict | null;
   onGoHome: () => void;
-  performanceTier: PerformanceTier;
-  onSetPerformanceTier: (tier: PerformanceTier) => void;
 }
 
-export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, performanceTier, onSetPerformanceTier }) => {
-  const [showSettings, setShowSettings] = useState(false);
+export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome }) => {
 
   const breadcrumb = useMemo(() => {
     if (selectedDistrict) return `METROPOLIS.CORE > /${selectedDistrict.id.toUpperCase()}_DISTRICT/`;
@@ -67,19 +34,6 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
             onClick={onGoHome} 
             style={{...styles.hudButton, ...(showHomeButton ? styles.visible : styles.hiddenBottom)}}>
             {homeButtonText}
-          </button>
-      </div>
-
-      <div style={styles.settingsContainer}>
-          {showSettings && (
-              <SettingsPanel 
-                currentTier={performanceTier}
-                onSetTier={onSetPerformanceTier}
-                onClose={() => setShowSettings(false)}
-              />
-          )}
-          <button onClick={() => setShowSettings(!showSettings)} style={{...styles.hudButton, ...styles.settingsToggleButton}}>
-              ?
           </button>
       </div>
     </>
@@ -175,71 +129,5 @@ const styles: { [key: string]: React.CSSProperties } = {
     opacity: 0,
     transform: 'translateY(20px)',
     pointerEvents: 'none',
-  },
-  settingsContainer: {
-    position: 'fixed',
-    bottom: '20px',
-    right: '20px',
-    zIndex: 20,
-    pointerEvents: 'all',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-end',
-    gap: '10px',
-  },
-  settingsToggleButton: {
-      width: '40px',
-      height: '40px',
-      borderRadius: '50%',
-      padding: 0,
-      fontSize: '1.5rem',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-  },
-  settingsPanel: {
-    ...glassmorphism,
-    borderRadius: '5px',
-    padding: '15px',
-    position: 'relative',
-    width: '150px',
-  },
-  settingsTitle: {
-      margin: '0 0 10px 0',
-      color: '#fff',
-      fontSize: '1rem',
-      textAlign: 'center',
-      textTransform: 'uppercase',
-      letterSpacing: '0.1em',
-  },
-  settingsButtons: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '8px',
-  },
-  settingsButton: {
-      background: 'transparent',
-      border: '1px solid #0077aa',
-      color: '#00aaff',
-      padding: '5px 10px',
-      cursor: 'pointer',
-      borderRadius: '3px',
-      width: '100%',
-      textAlign: 'left',
-  },
-  settingsButtonActive: {
-      background: '#00aaff',
-      color: '#000',
-  },
-  settingsCloseButton: {
-      position: 'absolute',
-      top: '5px',
-      right: '5px',
-      background: 'transparent',
-      border: 'none',
-      color: '#aaa',
-      cursor: 'pointer',
-      fontSize: '1.5rem',
-      lineHeight: 1,
   },
 };

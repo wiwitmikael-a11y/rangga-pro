@@ -49,27 +49,19 @@ export const Experience3D: React.FC<Experience3DProps> = ({
   return (
     <Canvas
       shadows={settings.shadows}
-      camera={{ position: [80, 40, 120], fov: 50, near: 0.1, far: 500 }}
+      camera={{ position: [80, 40, 120], fov: 50, near: 0.1, far: 1000 }}
       dpr={[1, 1.5]} // Clamp pixel ratio for performance
     >
-      <fog attach="fog" args={['#050810', 80, 300]} />
+      <fog attach="fog" args={['#050810', 80, 400]} />
       <color attach="background" args={['#050810']} />
       
       <ambientLight intensity={0.2} />
-      <directionalLight
-        position={[10, 50, -50]}
-        intensity={1.5}
-        castShadow={settings.shadows}
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-        shadow-bias={-0.0001}
-      />
       
       <Suspense fallback={null}>
         <CameraRig selectedDistrict={selectedDistrict} />
         
         <CityModel />
-        <CityCore />
+        <CityCore castShadow={settings.shadows} />
         <GroundPlane />
         <FlyingVehicles count={settings.vehicles} />
         <FloatingParticles count={settings.particles} />

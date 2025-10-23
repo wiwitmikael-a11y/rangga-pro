@@ -29,11 +29,11 @@ const FlyingVehicles: React.FC<FlyingVehiclesProps> = ({ count }) => {
 
   const vehicles = useMemo(() => Array.from({ length: count }, () => {
     const t = Math.random() * 100;
-    const factor = 20 + Math.random() * 80;
+    const factor = 40 + Math.random() * 150;
     const speed = 0.005 + Math.random() * 0.01;
-    const xFactor = -100 + Math.random() * 200;
-    const yFactor = 10 + Math.random() * 20;
-    const zFactor = -100 + Math.random() * 200;
+    const xFactor = -250 + Math.random() * 500;
+    const yFactor = 20 + Math.random() * 50; // Terbang lebih tinggi
+    const zFactor = -250 + Math.random() * 500;
     const modelIndex = Math.floor(Math.random() * modelUrls.length);
     return { t, factor, speed, xFactor, yFactor, zFactor, modelIndex };
   }), [count]);
@@ -54,13 +54,13 @@ const FlyingVehicles: React.FC<FlyingVehiclesProps> = ({ count }) => {
       
       const pos = new THREE.Vector3(
         xFactor + Math.cos(a) * factor,
-        yFactor + Math.sin(b) * 10,
+        yFactor + Math.sin(b) * 20,
         zFactor + Math.sin(a) * factor
       );
 
       const nextPos = new THREE.Vector3(
         xFactor + Math.cos(a + speed * 10) * factor,
-        yFactor + Math.sin(b + speed * 10) * 10,
+        yFactor + Math.sin(b + speed * 10) * 20,
         zFactor + Math.sin(a + speed * 10) * factor
       );
 
@@ -87,8 +87,8 @@ const FlyingVehicles: React.FC<FlyingVehiclesProps> = ({ count }) => {
             key={i} 
             ref={meshRefs[i]} 
             args={[undefined, undefined, vehicles.filter(v => v.modelIndex === i).length]} 
-            // Perbarui logika penskalaan: DeLorean sekarang berada di indeks 1.
-            scale={i === 1 ? 3 : 0.5} 
+            // Perbarui logika penskalaan: Skala diperkecil drastis
+            scale={i === 1 ? 0.2 : 0.03} 
         >
           <primitive object={primitive} />
         </instancedMesh>

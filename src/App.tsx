@@ -1,4 +1,4 @@
-import { useState, Suspense, useCallback, useMemo } from 'react';
+import { Suspense, useCallback, useMemo, useState } from 'react';
 import { useProgress } from '@react-three/drei';
 import { Loader } from './components/ui/Loader';
 import { StartScreen } from './components/ui/StartScreen';
@@ -9,7 +9,6 @@ import { usePerformance } from './hooks/usePerformance';
 
 // Enum untuk state aplikasi untuk kejelasan yang lebih baik
 enum AppState {
-  LOADING,
   START_SCREEN,
   EXPLORING,
 }
@@ -21,7 +20,7 @@ function AppContent() {
   const [selectedProject, setSelectedProject] = useState<PortfolioSubItem | null>(null);
   const [unlockedItems] = useState<Set<string>>(new Set(['sub-philosophy', 'sub-skills', 'sub-nexus-1', 'sub-nexus-2']));
 
-  const { initialTier, performanceTier, setPerformanceTier } = usePerformance();
+  const { performanceTier } = usePerformance();
 
   const handleStart = useCallback(() => {
     setAppState(AppState.EXPLORING);
@@ -47,8 +46,6 @@ function AppContent() {
     setSelectedProject(null);
   }, []);
   
-  if (!initialTier) return null;
-
   const content = useMemo(() => {
     switch (appState) {
       case AppState.START_SCREEN:
@@ -71,15 +68,13 @@ function AppContent() {
             <HUD
               selectedDistrict={selectedDistrict}
               onGoHome={handleGoHome}
-              performanceTier={performanceTier}
-              onSetPerformanceTier={setPerformanceTier}
             />
           </>
         );
       default:
         return null;
     }
-  }, [appState, handleStart, selectedDistrict, handleSelectDistrict, selectedProject, handleCloseProject, unlockedItems, handleProjectClick, performanceTier, handleGoHome, setPerformanceTier]);
+  }, [appState, handleStart, selectedDistrict, handleSelectDistrict, selectedProject, handleCloseProject, unlockedItems, handleProjectClick, performanceTier, handleGoHome]);
 
   return content;
 }

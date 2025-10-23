@@ -27,7 +27,7 @@ export const CityModel: React.FC = React.memo(() => {
     });
   }, [clonedScene]);
 
-  return <primitive object={clonedScene} position={[0, -5, 0]} />;
+  return <primitive object={clonedScene} position={[0, -5, 0]} scale={15} />;
 });
 
 // Preload model untuk memastikan tersedia saat dibutuhkan
