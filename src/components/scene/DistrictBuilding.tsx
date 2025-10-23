@@ -9,7 +9,6 @@ import { Text } from '@react-three/drei';
 interface DistrictBuildingProps {
   district: CityDistrict;
   onSelect?: (district: CityDistrict) => void;
-  onHover?: (id: string | null) => void;
   isSelected?: boolean;
   isUnlocked?: boolean;
 }
@@ -22,7 +21,6 @@ const LOCKED_COLOR = new THREE.Color('#333333');
 const DistrictBuilding: React.FC<DistrictBuildingProps> = ({
   district,
   onSelect,
-  onHover,
   isSelected,
   isUnlocked = true,
 }) => {
@@ -53,20 +51,16 @@ const DistrictBuilding: React.FC<DistrictBuildingProps> = ({
 
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
-    if (onHover && onSelect) {
+    if (onSelect) { // Only allow hover effects if the item is selectable
       setIsHovered(true);
-      onHover(district.id);
       document.body.style.cursor = 'pointer';
     }
   };
 
   const handlePointerOut = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
-    if (onHover && onSelect) {
-      setIsHovered(false);
-      onHover(null);
-      document.body.style.cursor = 'auto';
-    }
+    setIsHovered(false);
+    document.body.style.cursor = 'auto';
   };
   
   const handleClick = (e: ThreeEvent<MouseEvent>) => {

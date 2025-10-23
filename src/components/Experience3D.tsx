@@ -19,7 +19,6 @@ interface Experience3DProps {
 
 export const Experience3D: React.FC<Experience3DProps> = ({ performanceTier }) => {
   const [selectedDistrict, setSelectedDistrict] = useState<CityDistrict | null>(null);
-  const [hoveredDistrictId, setHoveredDistrictId] = useState<string | null>(null);
 
   const handleDistrictSelect = useCallback((district: CityDistrict) => {
     setSelectedDistrict(district);
@@ -67,7 +66,6 @@ export const Experience3D: React.FC<Experience3DProps> = ({ performanceTier }) =
           districts={portfolioData}
           selectedDistrict={selectedDistrict}
           onDistrictSelect={handleDistrictSelect}
-          onDistrictHover={setHoveredDistrictId}
         />
 
         <FlyingVehicles count={performanceSettings.vehicles} />

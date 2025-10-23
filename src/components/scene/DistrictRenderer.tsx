@@ -7,14 +7,12 @@ interface DistrictRendererProps {
   districts: CityDistrict[];
   selectedDistrict: CityDistrict | null;
   onDistrictSelect: (district: CityDistrict) => void;
-  onDistrictHover: (id: string | null) => void;
 }
 
 export const DistrictRenderer: React.FC<DistrictRendererProps> = ({
   districts,
   selectedDistrict,
   onDistrictSelect,
-  onDistrictHover,
 }) => {
   return (
     <group>
@@ -38,7 +36,6 @@ export const DistrictRenderer: React.FC<DistrictRendererProps> = ({
             key={district.id}
             district={district}
             onSelect={undefined} // Minor buildings aren't selectable
-            onHover={onDistrictHover}
             isUnlocked={true}
             isSelected={false}
           />
