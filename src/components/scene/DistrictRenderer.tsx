@@ -1,4 +1,5 @@
-/// <reference types="@react-three/fiber" />
+// Fix: Use the correct reference path for R3F type definitions.
+/// <reference types="@react-three/fiber/patch" />
 import React from 'react';
 import { CityDistrict, PortfolioSubItem } from '../../types';
 import { portfolioData, ambientDistricts } from '../../constants';

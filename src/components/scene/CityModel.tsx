@@ -1,4 +1,5 @@
-/// <reference types="@react-three/fiber" />
+// Fix: Use the correct reference path for R3F type definitions.
+/// <reference types="@react-three/fiber/patch" />
 import React, { useLayoutEffect, useMemo } from 'react';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';

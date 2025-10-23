@@ -1,4 +1,5 @@
-/// <reference types="@react-three/fiber" />
+// Fix: Use the correct reference path for R3F type definitions.
+/// <reference types="@react-three/fiber/patch" />
 import React, { useRef, useState, useEffect } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';

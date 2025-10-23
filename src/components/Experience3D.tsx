@@ -1,3 +1,5 @@
+// Fix: Add reference to react-three/fiber patch to extend JSX.IntrinsicElements
+/// <reference types="@react-three/fiber/patch" />
 import React, { lazy, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Preload } from '@react-three/drei';
@@ -55,7 +57,7 @@ export const Experience3D: React.FC<Experience3DProps> = ({
     <Canvas
       shadows
       camera={{ position: [80, 40, 120], fov: 50 }}
-      dpr={[1, 2]} // Pixel ratio for performance
+      dpr={[1, 1.5]} // Clamp pixel ratio for performance
     >
       <fog attach="fog" args={['#050810', 50, 250]} />
       <color attach="background" args={['#050810']} />
@@ -97,8 +99,8 @@ export const Experience3D: React.FC<Experience3DProps> = ({
       </Suspense>
       
       {settings.effects && (
-        <EffectComposer>
-          <Bloom luminanceThreshold={0.3} luminanceSmoothing={0.9} height={300} intensity={0.8} />
+        <EffectComposer disableNormalPass>
+          <Bloom mipmapBlur luminanceThreshold={0.6} luminanceSmoothing={0.9} height={300} intensity={0.6} />
           <Vignette eskil={false} offset={0.1} darkness={1.1} />
         </EffectComposer>
       )}
