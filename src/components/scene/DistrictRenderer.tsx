@@ -2,6 +2,7 @@ import React from 'react';
 import type { CityDistrict } from '../../types';
 import DistrictBuilding from './DistrictBuilding';
 import HolographicDistrictLabel from './HolographicDistrictLabel';
+import { HolographicProjector } from './HolographicProjector';
 
 interface DistrictRendererProps {
   districts: CityDistrict[];
@@ -21,12 +22,14 @@ export const DistrictRenderer: React.FC<DistrictRendererProps> = ({
 
         if (district.type === 'major') {
           return (
-            <HolographicDistrictLabel
-              key={district.id}
-              district={district}
-              isSelected={isSelected}
-              onSelect={onDistrictSelect}
-            />
+            <group key={district.id} position={district.position}>
+                <HolographicProjector position={[0, -5, 0]} />
+                <HolographicDistrictLabel
+                  district={district}
+                  isSelected={isSelected}
+                  onSelect={onDistrictSelect}
+                />
+            </group>
           );
         }
 

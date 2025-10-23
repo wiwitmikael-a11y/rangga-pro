@@ -1,4 +1,3 @@
-/// <reference types="@react-three/fiber" />
 
 export type PerformanceTier = 'PERFORMANCE' | 'BALANCED' | 'QUALITY';
 

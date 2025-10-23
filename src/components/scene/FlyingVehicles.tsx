@@ -1,4 +1,4 @@
-/// <reference types="@react-three/fiber" />
+// FIX: Remove the triple-slash directive for @react-three/fiber types.
 
 import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';

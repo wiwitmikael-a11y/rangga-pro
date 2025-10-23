@@ -1,4 +1,4 @@
-/// <reference types="@react-three/fiber" />
+// FIX: Remove the triple-slash directive for @react-three/fiber types.
 
 import React, { useRef, useState, useEffect } from 'react';
 import * as THREE from 'three';
@@ -36,7 +36,6 @@ const AccessDeniedMessage: React.FC = () => (
         lineHeight={1.2}
     >
         ACCESS DENIED.
-        ROUTE DATASTREAM VIA NEXUS PROTOCOL TO DECRYPT.
     </Text>
 );
 
@@ -47,7 +46,6 @@ export const ProjectDisplay: React.FC<ProjectDisplayProps> = ({ item, isLocked, 
   const [showDeniedMsg, setShowDeniedMsg] = useState(false);
 
   useEffect(() => {
-    // Tunda kemunculan untuk efek staggered
     const timer = setTimeout(() => setIsVisible(true), Math.random() * 400 + 100);
     return () => clearTimeout(timer);
   }, []);
@@ -81,7 +79,7 @@ export const ProjectDisplay: React.FC<ProjectDisplayProps> = ({ item, isLocked, 
     document.body.style.cursor = 'auto';
   };
 
-  const baseOpacity = isLocked ? 0.3 : 0.7;
+  const baseOpacity = isLocked ? 0.3 : 0.8;
   const imageOpacity = isLocked ? 0.2 : (isHovered ? 1 : 0.9);
 
   return (
@@ -94,7 +92,15 @@ export const ProjectDisplay: React.FC<ProjectDisplayProps> = ({ item, isLocked, 
       scale={0}
     >
       <RoundedBox args={[6, 8.5, 0.2]} radius={0.1}>
-        <meshStandardMaterial color="#051020" roughness={0.2} metalness={0.5} transparent opacity={baseOpacity} />
+        <meshStandardMaterial 
+          color="#051020" 
+          roughness={0.2} 
+          metalness={0.5} 
+          transparent 
+          opacity={baseOpacity} 
+          emissive={isHovered && !isLocked ? '#00ffff' : '#000000'}
+          emissiveIntensity={0.5}
+        />
       </RoundedBox>
 
       {item.imageUrl && (

@@ -1,6 +1,4 @@
-
-/// <reference types="@react-three/fiber" />
-
+// FIX: Remove the triple-slash directive for @react-three/fiber types.
 import React, { useRef, useState } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
@@ -50,7 +48,7 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
   return (
     <group
       ref={groupRef}
-      position={[district.position[0], 15, district.position[2]]}
+      position={[0, 10, 0]} // Positioned relative to the parent group (DistrictRenderer)
       onClick={handleClick}
       onPointerOver={handlePointerOver}
       onPointerOut={handlePointerOut}
