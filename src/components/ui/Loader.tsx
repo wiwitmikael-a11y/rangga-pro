@@ -1,98 +1,28 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useMemo } from 'react';
 
-const stages = [
-  { message: "INITIATING KERNEL BOOTSTRAP...", delay: 200 },
-  { message: "MEMORY CHECK....................[PASS]", delay: 300 },
-  { message: "LOADING V-BIOS..................[OK]", delay: 250 },
-  { message: "DETECTING R3F RENDERER V8.16....[OK]", delay: 400 },
-  { message: "ESTABLISHING DATALINK...........[SECURE]", delay: 500 },
-  { message: "COMPILING MODULES...", delay: 300, isProgress: true },
-  { message: "BUILD SUCCESSFUL. 10 MODULES COMPILED.", delay: 200 },
-  { message: "INJECTING METROPOLIS OS V1.0...", delay: 600 },
-  { message: "ALL SYSTEMS NOMINAL.", delay: 400 },
-  { message: "AWAITING ARCHITECT INPUT...", delay: 500 },
-];
+interface LoaderProps {
+  progress: number;
+}
 
-const generateAsciiArt = () => {
-    const chars = ['█', '▓', '▒', '░', ' '];
-    let art = '';
-    for (let i = 0; i < 5; i++) {
-        for (let j = 0; j < 40; j++) {
-            art += chars[Math.floor(Math.random() * chars.length)];
-        }
-        art += '\n';
-    }
-    return art;
-};
-
-export const Loader = React.memo(() => {
-    const [log, setLog] = useState<string[]>(['> Connecting to rangga.pro...']);
-    const [progress, setProgress] = useState(0);
-    const [currentStageIndex, setCurrentStageIndex] = useState(0);
-    const [asciiArt, setAsciiArt] = useState('');
-    const containerRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const artInterval = setInterval(() => {
-            setAsciiArt(generateAsciiArt());
-        }, 150);
-        return () => clearInterval(artInterval);
-    }, []);
-
-    useEffect(() => {
-        if (currentStageIndex >= stages.length) return;
-
-        const currentStage = stages[currentStageIndex];
-        const timer = setTimeout(() => {
-            setLog(prev => [...prev, `> ${currentStage.message}`]);
-            if (!currentStage.isProgress) {
-                setCurrentStageIndex(prev => prev + 1);
-            }
-        }, currentStage.delay);
-
-        return () => clearTimeout(timer);
-    }, [currentStageIndex]);
-
-    useEffect(() => {
-        if (stages[currentStageIndex]?.isProgress) {
-            const interval = setInterval(() => {
-                setProgress(prev => {
-                    const newValue = prev + 1;
-                    if (newValue >= 100) {
-                        clearInterval(interval);
-                        setCurrentStageIndex(i => i + 1);
-                        return 100;
-                    }
-                    return newValue;
-                });
-            }, 30);
-            return () => clearInterval(interval);
-        }
-    }, [currentStageIndex]);
-
-    useEffect(() => {
-        if (containerRef.current) {
-            containerRef.current.scrollTop = containerRef.current.scrollHeight;
-        }
-    }, [log, progress]);
+export const Loader: React.FC<LoaderProps> = React.memo(({ progress }) => {
 
     const progressBar = useMemo(() => {
-        const barWidth = 30;
+        const barWidth = 40;
         const filledWidth = Math.floor((progress / 100) * barWidth);
         const bar = `[${'█'.repeat(filledWidth)}${'-'.repeat(barWidth - filledWidth)}]`;
-        return `${bar} ${progress}%`;
+        return `${bar} ${Math.round(progress)}%`;
     }, [progress]);
 
     return (
         <div style={styles.container}>
             <div style={styles.scanlineEffect} />
-            <pre style={styles.asciiArt}>{asciiArt}</pre>
-            <div ref={containerRef} style={styles.logContainer}>
-                {log.map((line, index) => (
-                    <p key={index} style={styles.text}>{line}</p>
-                ))}
-                {stages[currentStageIndex]?.isProgress && <p style={styles.text}>{progressBar}</p>}
-                {currentStageIndex < stages.length && <span style={styles.cursor}>_</span>}
+            <div style={styles.content}>
+                <h2 style={styles.title}>ACCESSING METROPOLIS.CORE</h2>
+                <p style={styles.text}>DECRYPTING DATA STREAMS...</p>
+                <div style={styles.progressBarContainer}>
+                  <pre style={styles.text}>{progressBar}</pre>
+                </div>
+                <span style={styles.cursor}>_</span>
             </div>
             <style>{`
                 @keyframes blink { 50% { opacity: 0; } }
@@ -108,6 +38,8 @@ const styles: { [key: string]: React.CSSProperties } = {
         inset: 0,
         display: 'flex',
         flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
         backgroundColor: 'black',
         zIndex: 2000,
         color: 'var(--primary-color)',
@@ -126,20 +58,14 @@ const styles: { [key: string]: React.CSSProperties } = {
         opacity: 0.1,
         zIndex: 1,
     },
-    asciiArt: {
-        width: '100%',
-        textAlign: 'center',
-        margin: '0 0 20px 0',
-        textShadow: '0 0 5px var(--primary-color)',
-        opacity: 0.5,
-        fontSize: '0.5em',
-        lineHeight: 1.2,
+    content: {
+      textAlign: 'center',
     },
-    logContainer: {
-        flex: 1,
-        width: '100%',
-        overflowY: 'auto',
-        overflowX: 'hidden',
+    title: {
+      textShadow: '0 0 5px var(--primary-color)',
+      letterSpacing: '0.1em',
+      margin: '0 0 10px 0',
+      textTransform: 'uppercase',
     },
     text: {
         margin: '2px 0',
@@ -147,8 +73,12 @@ const styles: { [key: string]: React.CSSProperties } = {
         textShadow: '0 0 5px var(--primary-color)',
         letterSpacing: '0.05em',
     },
+    progressBarContainer: {
+      marginTop: '20px',
+    },
     cursor: {
         animation: 'blink 1s step-end infinite',
         marginLeft: '2px',
+        fontSize: '1.2em',
     }
 };
