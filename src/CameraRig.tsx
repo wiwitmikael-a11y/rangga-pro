@@ -31,33 +31,30 @@ const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, hoveredDistrict
 
     const isFocused = !!selectedDistrict || isGameActive;
     
-    // Define camera and control targets
+    // Use default position [0,0,0] if selectedDistrict is null
     const [dx, , dz] = selectedDistrict?.position || [0, 0, 0];
     
-    // Initial fly-through animation
-    const introTargetPosition = cameraTargetVec.set(80, 40, 120);
-    
-    let cameraTargetPosition;
-    let controlsTargetPosition;
+    // Define camera and control targets
+    let cameraTargetPosition: THREE.Vector3;
+    let controlsTargetPosition: THREE.Vector3;
 
-    // Define hovered district for overview calculations
-    const hoveredDistrict = portfolioData.find((d: CityDistrict) => d.id === hoveredDistrictId);
-    const [hx, , hz] = hoveredDistrict?.position || [0, 0, 0];
-
-    if(isGameActive) {
-      cameraTargetPosition = cameraTargetVec.set(dx + 25, 20, dz + 25);
-      controlsTargetPosition = controlsTargetVec.set(dx, 0, dz);
+    if (isGameActive) {
+        // Game is at a fixed position [0, 10, 0]
+        cameraTargetPosition = cameraTargetVec.set(0, 20, 25);
+        controlsTargetPosition = controlsTargetVec.set(0, 10, 0); // look at the game
     } else if (selectedDistrict) {
-      cameraTargetPosition = cameraTargetVec.set(dx + 25, 20, dz + 25);
-      controlsTargetPosition = controlsTargetVec.set(dx, 10, dz);
-    } else {
-      cameraTargetPosition = introTargetPosition;
-       // Default target is the center, but if hovering, subtly shift towards the hovered district
-      const defaultControlsTarget = controlsTargetVec.set(0, 0, 0);
-      if (hoveredDistrictId && isIntroDone) {
-          defaultControlsTarget.lerp(new THREE.Vector3(hx, 0, hz), 0.1);
-      }
-      controlsTargetPosition = defaultControlsTarget;
+        cameraTargetPosition = cameraTargetVec.set(dx + 25, 20, dz + 25);
+        controlsTargetPosition = controlsTargetVec.set(dx, 10, dz);
+    } else { // Overview mode
+        cameraTargetPosition = cameraTargetVec.set(80, 40, 120);
+        
+        const hoveredDistrict = portfolioData.find((d: CityDistrict) => d.id === hoveredDistrictId);
+        const [hx, , hz] = hoveredDistrict?.position || [0, 0, 0];
+        const defaultTarget = new THREE.Vector3(0, 0, 0);
+        if (hoveredDistrictId && isIntroDone) {
+            defaultTarget.lerp(new THREE.Vector3(hx, 0, hz), 0.1);
+        }
+        controlsTargetPosition = defaultTarget;
     }
 
 

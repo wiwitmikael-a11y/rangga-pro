@@ -1,10 +1,10 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
-import { CityDistrict } from '../../types';
+import type { CityDistrict } from '../types';
 import * as THREE from 'three';
 import { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
-import { portfolioData } from '../../constants';
+import { portfolioData } from '../constants';
 
 
 interface CameraRigProps {
@@ -31,38 +31,30 @@ const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, hoveredDistrict
 
     const isFocused = !!selectedDistrict || isGameActive;
     
+    // Use default position [0,0,0] if selectedDistrict is null
+    const [dx, , dz] = selectedDistrict?.position || [0, 0, 0];
+    
     // Define camera and control targets
-    const [dx, dy, dz] = selectedDistrict?.position || [0, 0, 0];
-    
-    // Initial fly-through animation
-    const introTargetPosition = cameraTargetVec.set(80, 40, 120);
+    let cameraTargetPosition: THREE.Vector3;
+    let controlsTargetPosition: THREE.Vector3;
 
-    let cameraTargetPosition;
-    let controlsTargetPosition;
-
-    if(isGameActive) {
-      cameraTargetPosition = cameraTargetVec.set(0, 20, 25);
-      controlsTargetPosition = controlsTargetVec.set(0, 0, 0);
+    if (isGameActive) {
+        // Game is at a fixed position [0, 10, 0]
+        cameraTargetPosition = cameraTargetVec.set(0, 20, 25);
+        controlsTargetPosition = controlsTargetVec.set(0, 10, 0); // look at the game
     } else if (selectedDistrict) {
-      cameraTargetPosition = cameraTargetVec.set(dx + 25, 20, dz + 25) 
-    } else {
-      cameraTargetPosition = introTargetPosition;
-    }
-    
-
-    const hoveredDistrict = portfolioData.find(d => d.id === hoveredDistrictId);
-    const [hx, hy, hz] = hoveredDistrict?.position || [0, 0, 0];
-      
-    // Default target is the center, but if hovering, subtly shift towards the hovered district
-    const defaultControlsTarget = controlsTargetVec.set(0, 0, 0);
-    if (!isFocused && hoveredDistrictId && isIntroDone) {
-        defaultControlsTarget.lerp(new THREE.Vector3(hx, 0, hz), 0.1);
-    }
-    
-    if(!isGameActive && selectedDistrict) {
-        controlsTargetPosition = controlsTargetVec.set(dx, 10, dz) 
-    } else if (!isGameActive && !selectedDistrict) {
-        controlsTargetPosition = defaultControlsTarget;
+        cameraTargetPosition = cameraTargetVec.set(dx + 25, 20, dz + 25);
+        controlsTargetPosition = controlsTargetVec.set(dx, 10, dz);
+    } else { // Overview mode
+        cameraTargetPosition = cameraTargetVec.set(80, 40, 120);
+        
+        const hoveredDistrict = portfolioData.find((d: CityDistrict) => d.id === hoveredDistrictId);
+        const [hx, , hz] = hoveredDistrict?.position || [0, 0, 0];
+        const defaultTarget = new THREE.Vector3(0, 0, 0);
+        if (hoveredDistrictId && isIntroDone) {
+            defaultTarget.lerp(new THREE.Vector3(hx, 0, hz), 0.1);
+        }
+        controlsTargetPosition = defaultTarget;
     }
 
 
