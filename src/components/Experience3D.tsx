@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import { CityDistrict, PerformanceTier } from '../types';
@@ -15,10 +15,16 @@ import HolographicInfoPanel from './scene/HolographicInfoPanel';
 
 interface Experience3DProps {
   performanceTier: PerformanceTier;
+  onSceneReady: () => void;
 }
 
-export const Experience3D: React.FC<Experience3DProps> = ({ performanceTier }) => {
+export const Experience3D: React.FC<Experience3DProps> = ({ performanceTier, onSceneReady }) => {
   const [selectedDistrict, setSelectedDistrict] = useState<CityDistrict | null>(null);
+
+  // Signal that the component has successfully mounted
+  useEffect(() => {
+    onSceneReady();
+  }, [onSceneReady]);
 
   const handleDistrictSelect = useCallback((district: CityDistrict) => {
     setSelectedDistrict(district);

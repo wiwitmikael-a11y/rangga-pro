@@ -11,13 +11,18 @@ interface FlyingVehiclesProps {
 
 export const FlyingVehicles: React.FC<FlyingVehiclesProps> = React.memo(({ count }) => {
   const meshRef = useRef<THREE.InstancedMesh>(null!);
-  const { nodes } = useGLTF('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/sci-fi_flying_car.glb');
+  const { scene } = useGLTF('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/sci-fi_flying_car.glb');
   
-  // Safely access geometry
+  // Robust geometry extraction: Find the first available geometry in the scene
   const carGeometry = useMemo(() => {
-    const carNode = nodes.Car as THREE.Mesh;
-    return carNode ? carNode.geometry : new THREE.BoxGeometry();
-  }, [nodes]);
+    let geometry: THREE.BufferGeometry | null = null;
+    scene.traverse((child) => {
+      if (child instanceof THREE.Mesh && !geometry) {
+        geometry = child.geometry;
+      }
+    });
+    return geometry || new THREE.BoxGeometry(); // Fallback to a box if no mesh is found
+  }, [scene]);
 
   const dummy = useMemo(() => new THREE.Object3D(), []);
 

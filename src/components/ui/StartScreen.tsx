@@ -2,16 +2,34 @@ import React from 'react';
 
 interface StartScreenProps {
   onStart: () => void;
+  isExiting?: boolean;
 }
 
-export const StartScreen: React.FC<StartScreenProps> = React.memo(({ onStart }) => {
+export const StartScreen: React.FC<StartScreenProps> = React.memo(({ onStart, isExiting = false }) => {
+  const containerStyle: React.CSSProperties = {
+    ...styles.container,
+    opacity: isExiting ? 0 : 1,
+    pointerEvents: isExiting ? 'none' : 'auto',
+    transition: 'opacity 1s ease-out',
+  };
+
+  if (isExiting) {
+    // Return a minimal div that just handles the fade-out
+    return <div style={containerStyle} />;
+  }
+
   return (
-    <div style={styles.container}>
+    <div style={containerStyle}>
       <div style={styles.scanlineEffect} />
       <div style={styles.content}>
         <h1 style={styles.title}>METROPOLIS.CORE</h1>
         <p style={styles.subtitle}>A CYBERPUNK PORTFOLIO EXPERIENCE</p>
-        <button style={styles.startButton} onClick={onStart} onMouseOver={e => (e.currentTarget.style.backgroundColor = 'rgba(0, 170, 255, 0.2)')} onMouseOut={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+        <button 
+            style={styles.startButton} 
+            onClick={onStart} 
+            onMouseOver={e => (e.currentTarget.style.backgroundColor = 'rgba(0, 170, 255, 0.2)')} 
+            onMouseOut={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+        >
           [ ESTABLISH CONNECTION ]
         </button>
         <p style={styles.disclaimer}>Best experienced on a desktop browser with a dedicated GPU.</p>
