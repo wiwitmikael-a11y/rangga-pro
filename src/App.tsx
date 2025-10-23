@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense, useCallback, useMemo } from 'react';
+import { useState, Suspense, useCallback, useMemo } from 'react';
 import { useProgress } from '@react-three/drei';
 import { Loader } from './components/ui/Loader';
 import { StartScreen } from './components/ui/StartScreen';
