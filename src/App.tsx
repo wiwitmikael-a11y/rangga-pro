@@ -5,7 +5,6 @@ import { StartScreen } from './components/ui/StartScreen';
 import { Experience3D } from './components/Experience3D';
 import { HUD } from './components/ui/HUD';
 import type { CityDistrict, PortfolioSubItem } from './types';
-import { portfolioData } from './constants';
 import { usePerformance } from './hooks/usePerformance';
 
 // Enum untuk state aplikasi untuk kejelasan yang lebih baik
@@ -21,7 +20,7 @@ function App() {
   const [hoveredDistrictId, setHoveredDistrictId] = useState<string | null>(null);
   const [selectedProject, setSelectedProject] = useState<PortfolioSubItem | null>(null);
   // Game dihapus, item Nexus sekarang tidak terkunci secara default
-  const [unlockedItems, setUnlockedItems] = useState<Set<string>>(new Set(['sub-philosophy', 'sub-skills', 'sub-nexus-1', 'sub-nexus-2']));
+  const [unlockedItems] = useState<Set<string>>(new Set(['sub-philosophy', 'sub-skills', 'sub-nexus-1', 'sub-nexus-2']));
 
   const { initialTier, performanceTier, setPerformanceTier } = usePerformance();
   
@@ -90,7 +89,7 @@ function App() {
       default:
         return null;
     }
-  }, [appState, handleStart, selectedDistrict, handleSelectDistrict, hoveredDistrictId, selectedProject, handleCloseProject, unlockedItems, handleProjectClick, performanceTier, handleGoHome, setPerformanceTier]);
+  }, [appState, handleStart, selectedDistrict, handleSelectDistrict, selectedProject, handleCloseProject, unlockedItems, handleProjectClick, performanceTier, handleGoHome, setPerformanceTier]);
 
   return (
     <div style={{ width: '100vw', height: '100vh', background: 'var(--background-color)' }}>

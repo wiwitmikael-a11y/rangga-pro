@@ -1,4 +1,4 @@
-// FIX: Added the triple-slash directive to load type definitions for @react-three/fiber. This resolves TypeScript errors related to unrecognized JSX elements (e.g., <mesh>, <group>, <ambientLight>) and allows for proper type checking.
+// FIX: Added a triple-slash directive to include @react-three/fiber types, which resolves TypeScript errors related to unrecognized JSX elements.
 /// <reference types="@react-three/fiber" />
 
 import React, { useState, useRef, useMemo } from 'react';
