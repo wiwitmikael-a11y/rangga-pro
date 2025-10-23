@@ -1,8 +1,6 @@
-// FIX: The triple-slash directive must be at the top of the file to correctly load TypeScript types for @react-three/fiber.
 /// <reference types="@react-three/fiber" />
 
 import React from 'react';
-import * as THREE from 'three';
 
 export const GroundPlane: React.FC = React.memo(() => {
   return (
