@@ -1,4 +1,5 @@
 
+
 import { useState, useEffect, Suspense, useCallback, useMemo } from 'react';
 import { Loader } from './components/ui/Loader';
 import { StartScreen } from './components/ui/StartScreen';
@@ -17,7 +18,7 @@ enum AppState {
 function App() {
   const [appState, setAppState] = useState<AppState>(AppState.LOADING);
   const [selectedDistrict, setSelectedDistrict] = useState<CityDistrict | null>(null);
-  const [hoveredDistrictId, setHoveredDistrictId] = useState<string | null>(null);
+  const [, setHoveredDistrictId] = useState<string | null>(null);
   const [selectedProject, setSelectedProject] = useState<PortfolioSubItem | null>(null);
   // Game dihapus, item Nexus sekarang tidak terkunci secara default
   const [unlockedItems] = useState<Set<string>>(new Set(['sub-philosophy', 'sub-skills', 'sub-nexus-1', 'sub-nexus-2']));

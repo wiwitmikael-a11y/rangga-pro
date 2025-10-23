@@ -1,4 +1,4 @@
-// FIX: Added a triple-slash directive to include @react-three/fiber types, which resolves TypeScript errors related to unrecognized JSX elements.
+// Added a triple-slash directive to include @react-three/fiber types, resolving TypeScript errors with unrecognized JSX elements.
 /// <reference types="@react-three/fiber" />
 
 import React from 'react';
