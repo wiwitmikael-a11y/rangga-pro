@@ -1,20 +1,27 @@
+/// <reference types="@react-three/fiber" />
+
+export type PerformanceTier = 'PERFORMANCE' | 'BALANCED' | 'QUALITY';
+
+export interface CameraFocusPoint {
+  pos: [number, number, number];
+  lookAt: [number, number, number];
+}
+
 export interface PortfolioSubItem {
   id: string;
   title: string;
-  description: string; 
-  content: string; 
-  position: [number, number, number];
-  imageUrl?: string;
+  description: string;
+  imageUrl?: string; // Tautan ke gambar thumbnail proyek
+  position: [number, number, number]; // Posisi relatif terhadap distrik induk
 }
 
 export interface CityDistrict {
   id: string;
   title: string;
   description: string;
-  position: [number, number, number]; // Grid position [x, 0, z]
-  type: 'major' | 'minor'; // Major districts are portfolio items, minor are ambient buildings
-  height?: number;
+  position: [number, number, number];
+  type: 'major' | 'minor';
+  height?: number; // Untuk bangunan generik
   subItems?: PortfolioSubItem[];
+  cameraFocus?: CameraFocusPoint; // Posisi & target kamera unik
 }
-
-export type PerformanceTier = 'PERFORMANCE' | 'BALANCED' | 'QUALITY';

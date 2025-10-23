@@ -1,71 +1,44 @@
 /// <reference types="@react-three/fiber" />
 
-import { useRef, useEffect } from 'react';
-import { useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
-import type { CityDistrict } from './types';
+import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
+import { CityDistrict } from './types';
 
 interface CameraRigProps {
   selectedDistrict: CityDistrict | null;
 }
 
-const OVERVIEW_CAM_POS = new THREE.Vector3(80, 40, 120);
-const OVERVIEW_TARGET_POS = new THREE.Vector3(0, 0, 0);
+// Using a helper vector to avoid creating new Vector3 instances in the render loop
+const targetPosition = new THREE.Vector3();
+const targetLookAt = new THREE.Vector3();
+const OVERVIEW_LOOK_AT = new THREE.Vector3(0, 0, 0);
 
-const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict }) => {
-  const controlsRef = useRef<OrbitControlsImpl>(null!);
-  const { camera } = useThree();
-
-  // Efek ini menyetel posisi awal kamera secara instan.
-  useEffect(() => {
-    camera.position.set(150, 80, 200);
-  }, [camera]);
-
-  const cameraTargetPos = useRef(new THREE.Vector3()).current;
-  const controlsTargetPos = useRef(new THREE.Vector3()).current;
-
+export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict }) => {
   useFrame((state, delta) => {
-    if (!controlsRef.current) return;
-
-    const isFocused = !!selectedDistrict;
-
-    if (selectedDistrict) {
-        const [dx, dy, dz] = selectedDistrict.position;
-        cameraTargetPos.set(dx + 25, dy + 20, dz + 25);
-        controlsTargetPos.set(dx, dy + 10, dz);
-    } else { // Mode gambaran umum
-        cameraTargetPos.copy(OVERVIEW_CAM_POS);
-        controlsTargetPos.copy(OVERVIEW_TARGET_POS);
+    if (selectedDistrict?.cameraFocus) {
+      // Move to a unique, cinematic viewpoint for the selected district
+      targetPosition.set(...selectedDistrict.cameraFocus.pos);
+      targetLookAt.set(...selectedDistrict.cameraFocus.lookAt);
+    } else {
+      // Return to the default overview position, slowly orbiting
+      const time = state.clock.getElapsedTime();
+      const radius = 80;
+      targetPosition.set(
+        Math.sin(time * 0.1) * radius,
+        40,
+        Math.cos(time * 0.1) * radius
+      );
+      targetLookAt.copy(OVERVIEW_LOOK_AT);
     }
-
-    // Menginterpolasi posisi kamera dan target kontrol dengan mulus
-    const speed = delta * (isFocused ? 2.5 : 1.5);
-    state.camera.position.lerp(cameraTargetPos, speed);
-    controlsRef.current.target.lerp(controlsTargetPos, speed);
     
-    // Nonaktifkan panning saat fokus pada distrik untuk stabilitas yang lebih baik
-    controlsRef.current.enablePan = !isFocused;
-    controlsRef.current.update();
+    // Smoothly interpolate camera position
+    state.camera.position.lerp(targetPosition, delta * 2);
+    
+    // Smoothly interpolate camera lookAt target by updating the camera's quaternion
+    const tempCamera = state.camera.clone();
+    tempCamera.lookAt(targetLookAt);
+    state.camera.quaternion.slerp(tempCamera.quaternion, delta * 2);
   });
-
-  return (
-    <OrbitControls
-      ref={controlsRef}
-      enableDamping
-      dampingFactor={0.1}
-      minDistance={10}
-      maxDistance={250}
-      minPolarAngle={Math.PI / 8}
-      maxPolarAngle={Math.PI / 2.2}
-      mouseButtons={{
-        LEFT: THREE.MOUSE.ROTATE,
-        MIDDLE: THREE.MOUSE.DOLLY,
-        RIGHT: THREE.MOUSE.PAN,
-      }}
-    />
-  );
+  
+  return null; // This component does not render anything itself
 };
-
-export default CameraRig;

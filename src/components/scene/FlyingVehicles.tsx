@@ -1,102 +1,65 @@
 /// <reference types="@react-three/fiber" />
 
-import { useRef, useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
-
-// Menghapus 'flying_car.glb' yang tidak ada dan hanya menggunakan model yang tersedia.
-const modelUrls = [
-  'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/ship_space.glb',
-  'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/ship_delorean.glb',
-  'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/ship_copter.glb'
-];
 
 interface FlyingVehiclesProps {
   count: number;
 }
 
-const FlyingVehicles: React.FC<FlyingVehiclesProps> = ({ count }) => {
-  const models = useGLTF(modelUrls);
-  // Sesuaikan jumlah ref agar cocok dengan jumlah model.
-  const meshRefs = [
-      useRef<THREE.InstancedMesh>(null!),
-      useRef<THREE.InstancedMesh>(null!),
-      useRef<THREE.InstancedMesh>(null!)
-  ];
+export const FlyingVehicles: React.FC<FlyingVehiclesProps> = React.memo(({ count }) => {
+  const meshRef = useRef<THREE.InstancedMesh>(null!);
+  const { nodes } = useGLTF('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/sci-fi_flying_car.glb');
   
+  // Safely access geometry
+  const carGeometry = useMemo(() => {
+    const carNode = nodes.Car as THREE.Mesh;
+    return carNode ? carNode.geometry : new THREE.BoxGeometry();
+  }, [nodes]);
+
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
-  const vehicles = useMemo(() => Array.from({ length: count }, () => {
-    const t = Math.random() * 100;
-    const factor = 40 + Math.random() * 150;
-    const speed = 0.005 + Math.random() * 0.01;
-    const xFactor = -250 + Math.random() * 500;
-    const yFactor = 20 + Math.random() * 50; // Terbang lebih tinggi
-    const zFactor = -250 + Math.random() * 500;
-    const modelIndex = Math.floor(Math.random() * modelUrls.length);
-    return { t, factor, speed, xFactor, yFactor, zFactor, modelIndex };
-  }), [count]);
-
-  const clonedPrimitives = useMemo(() => models.map(m => m.scene.clone()), [models]);
+  const vehicles = useMemo(() => {
+    const temp = [];
+    const pathRadius = 60;
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const y = Math.random() * 20 + 10;
+      const speed = Math.random() * 0.2 + 0.1;
+      temp.push({ angle, y, speed, pathRadius: pathRadius + (Math.random() - 0.5) * 30 });
+    }
+    return temp;
+  }, [count]);
 
   useFrame((_, delta) => {
-    // Sesuaikan jumlah hitungan agar cocok dengan jumlah model.
-    const counts = [0, 0, 0];
+    if (!meshRef.current) return;
     
-    vehicles.forEach((vehicle) => {
-      let { factor, speed, xFactor, yFactor, zFactor, modelIndex } = vehicle;
-      vehicle.t += speed;
-      const { t } = vehicle;
-
-      const a = Math.cos(t) + Math.sin(t * 1) / 10;
-      const b = Math.sin(t) + Math.cos(t * 2) / 10;
+    vehicles.forEach((vehicle, i) => {
+      vehicle.angle += vehicle.speed * delta;
       
-      const pos = new THREE.Vector3(
-        xFactor + Math.cos(a) * factor,
-        yFactor + Math.sin(b) * 20,
-        zFactor + Math.sin(a) * factor
-      );
+      const x = Math.cos(vehicle.angle) * vehicle.pathRadius;
+      const z = Math.sin(vehicle.angle) * vehicle.pathRadius;
+      
+      dummy.position.set(x, vehicle.y, z);
 
-      const nextPos = new THREE.Vector3(
-        xFactor + Math.cos(a + speed * 10) * factor,
-        yFactor + Math.sin(b + speed * 10) * 20,
-        zFactor + Math.sin(a + speed * 10) * factor
-      );
+      // Look at the next point on the path
+      const nextX = Math.cos(vehicle.angle + 0.1) * vehicle.pathRadius;
+      const nextZ = Math.sin(vehicle.angle + 0.1) * vehicle.pathRadius;
+      dummy.lookAt(nextX, vehicle.y, nextZ);
 
-      dummy.position.lerp(pos, delta * 5);
-      dummy.lookAt(nextPos);
       dummy.updateMatrix();
-
-      const ref = meshRefs[modelIndex]?.current;
-      if (ref) {
-        ref.setMatrixAt(counts[modelIndex]++, dummy.matrix);
-      }
+      meshRef.current.setMatrixAt(i, dummy.matrix);
     });
-    
-    // Setelah semua matriks diperbarui, tandai untuk pembaruan render.
-    meshRefs.forEach(ref => {
-        if (ref.current) ref.current.instanceMatrix.needsUpdate = true;
-    });
+    meshRef.current.instanceMatrix.needsUpdate = true;
   });
-
+  
   return (
-    <>
-      {clonedPrimitives.map((primitive, i) => (
-        <instancedMesh 
-            key={i} 
-            ref={meshRefs[i]} 
-            args={[undefined, undefined, vehicles.filter(v => v.modelIndex === i).length]} 
-            // Perbarui logika penskalaan: Skala diperkecil drastis
-            scale={i === 1 ? 0.2 : 0.03} 
-        >
-          <primitive object={primitive} />
-        </instancedMesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[carGeometry, undefined, count]} scale={0.5}>
+        <meshStandardMaterial color="#555" metalness={0.8} roughness={0.3} />
+    </instancedMesh>
   );
-};
+});
 
-export default FlyingVehicles;
-// Preload semua model yang valid
-modelUrls.forEach(url => useGLTF.preload(url));
+useGLTF.preload('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/sci-fi_flying_car.glb');

@@ -1,145 +1,68 @@
 /// <reference types="@react-three/fiber" />
 
-import React, { useRef, useEffect, useState, useMemo } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Html } from '@react-three/drei';
+import { Cone, Cylinder, Torus } from '@react-three/drei';
 import * as THREE from 'three';
-import { PortfolioSubItem } from '../../types';
 
 interface HolographicProjectorProps {
-  item: PortfolioSubItem;
-  onClose: () => void;
+  position: [number, number, number];
 }
 
-const HolographicProjector: React.FC<HolographicProjectorProps> = ({ item, onClose }) => {
-  const groupRef = useRef<THREE.Group>(null!);
-  const [isVisible, setIsVisible] = useState(false);
+export const HolographicProjector: React.FC<HolographicProjectorProps> = ({ position }) => {
+  const holoRef = useRef<THREE.Group>(null!);
+  const coneRef = useRef<THREE.Mesh>(null!);
 
-  useEffect(() => {
-    setIsVisible(true);
-    // Saat item berubah, atur ulang visibilitas untuk memicu animasi masuk kembali
-    return () => setIsVisible(false);
-  }, [item]);
-
-  useFrame((state, delta) => {
-    if (!groupRef.current) return;
-    const targetScale = isVisible ? 1 : 0;
-    groupRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), delta * 8);
-
-    // Lihat ke arah kamera
-    groupRef.current.quaternion.slerp(state.camera.quaternion, delta * 4);
+  useFrame(({ clock }) => {
+    if (holoRef.current) {
+      holoRef.current.rotation.y = clock.getElapsedTime() * 0.5;
+    }
+    if (coneRef.current) {
+        (coneRef.current.material as THREE.ShaderMaterial).uniforms.time.value = clock.getElapsedTime();
+    }
   });
   
-  const [contentPart1, linkPart, contentPart2] = useMemo(() => {
-      const parts = item.content.split(/(\[Link Here\])/);
-      return [parts[0], parts[1], parts[2]];
-  }, [item.content]);
+  const shaderMaterial = useMemo(() => new THREE.ShaderMaterial({
+    uniforms: {
+      time: { value: 0 },
+      color: { value: new THREE.Color(0x00aaff) },
+    },
+    vertexShader: `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform float time;
+      uniform vec3 color;
+      varying vec2 vUv;
+      void main() {
+        float line = step(0.01, abs(sin((vUv.y + time * 0.1) * 20.0)));
+        float opacity = (1.0 - vUv.y) * 0.5;
+        gl_FragColor = vec4(color, line * opacity);
+      }
+    `,
+    transparent: true,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    blending: THREE.AdditiveBlending,
+  }), []);
 
   return (
-    <group ref={groupRef} position={[item.position[0], item.position[1] + 2, item.position[2] + 5]} scale={0}>
-      <mesh>
-        <planeGeometry args={[10, 8]} />
-        <meshStandardMaterial
-          color="#00aaff"
-          emissive="#00aaff"
-          emissiveIntensity={0.3}
-          transparent
-          opacity={0.15}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
-      <Html
-        transform
-        occlude="blending"
-        distanceFactor={1.5}
-        position={[0, 0, 0.1]}
-        style={styles.htmlContainer}
-      >
-        <div style={styles.contentWrapper}>
-            <h2 style={styles.title}>{item.title}</h2>
-            <p style={styles.paragraph}>
-                {contentPart1}
-                {linkPart && (
-                  <a 
-                    href="https://linkedin.com" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    style={styles.linkButton}
-                  >
-                    Visit LinkedIn
-                  </a>
-                )}
-                {contentPart2}
-            </p>
-            <button onClick={onClose} style={styles.closeButton} aria-label="Close Project">
-                &times;
-            </button>
-        </div>
-      </Html>
+    <group position={position}>
+      <Cylinder args={[1, 1, 0.5, 32]} position-y={0.25}>
+        <meshStandardMaterial color="#222" metalness={0.9} roughness={0.2} />
+      </Cylinder>
+      <group ref={holoRef} position-y={4}>
+        <Torus args={[2, 0.1, 16, 100]} rotation-x={Math.PI / 2}>
+          <meshStandardMaterial color="#00ffff" emissive="#00ffff" emissiveIntensity={2} toneMapped={false} />
+        </Torus>
+      </group>
+      <Cone ref={coneRef} args={[2.5, 4, 32]} position-y={2.5}>
+        <primitive object={shaderMaterial} attach="material" />
+      </Cone>
     </group>
   );
 };
-
-const styles: { [key: string]: React.CSSProperties } = {
-    htmlContainer: {
-        width: '600px',
-        height: '480px',
-        pointerEvents: 'none', // Biarkan scene 3D di-klik
-    },
-    contentWrapper: {
-        width: '100%',
-        height: '100%',
-        background: 'rgba(0, 20, 40, 0.9)',
-        color: '#a7d1d0',
-        padding: '25px',
-        borderRadius: '10px',
-        border: '1px solid #00aaff',
-        fontFamily: 'var(--font-family)',
-        fontSize: '16px',
-        lineHeight: '1.6',
-        overflowY: 'auto',
-        pointerEvents: 'auto', // Aktifkan pointer event di dalam wrapper
-        position: 'relative',
-        boxSizing: 'border-box',
-    },
-    title: { 
-        color: 'var(--primary-color)', 
-        textShadow: '0 0 5px var(--primary-color)', 
-        marginTop: '0' 
-    },
-    paragraph: {
-      whiteSpace: 'pre-wrap',
-    },
-    closeButton: {
-        position: 'absolute',
-        top: '15px',
-        right: '15px',
-        background: 'transparent',
-        border: '1px solid #00aaff',
-        color: '#00aaff',
-        width: '30px',
-        height: '30px',
-        borderRadius: '50%',
-        cursor: 'pointer',
-        fontSize: '1.2rem',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        lineHeight: 1,
-        transition: 'background-color 0.2s, color 0.2s',
-    },
-    linkButton: {
-        display: 'inline-block',
-        margin: '15px 5px',
-        padding: '8px 12px',
-        border: '1px solid var(--primary-color)',
-        color: 'var(--primary-color)',
-        backgroundColor: 'rgba(0, 255, 255, 0.1)',
-        textDecoration: 'none',
-        borderRadius: '3px',
-        transition: 'all 0.3s ease',
-        cursor: 'pointer',
-    },
-};
-
-export default HolographicProjector;

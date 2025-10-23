@@ -1,73 +1,52 @@
 import React from 'react';
 import type { CityDistrict, PortfolioSubItem } from '../../types';
-import { portfolioData, ambientDistricts } from '../../constants';
 import DistrictBuilding from './DistrictBuilding';
+import CityCore from './CityCore';
 import ArchitectDataCore from './ArchitectDataCore';
 import ContactTerminal from './ContactTerminal';
+import HolographicDistrictLabel from './HolographicDistrictLabel';
 
 interface DistrictRendererProps {
+  districts: CityDistrict[];
   selectedDistrict: CityDistrict | null;
-  onSelectDistrict: (district: CityDistrict) => void;
-  onHoverDistrict: (id: string | null) => void;
+  hoveredDistrictId: string | null;
   unlockedItems: Set<string>;
+  onDistrictSelect: (district: CityDistrict) => void;
+  onDistrictHover: (id: string | null) => void;
   onProjectClick: (item: PortfolioSubItem) => void;
 }
 
-// Map ID distrik ke komponen kustom
-const customDistrictComponents: { [key: string]: React.FC<any> } = {
-  'intro-architect': ArchitectDataCore,
-  'project-nexus': ArchitectDataCore,
-  'contact-terminal': ContactTerminal,
-};
-
-export const DistrictRenderer: React.FC<DistrictRendererProps> = React.memo(({
+export const DistrictRenderer: React.FC<DistrictRendererProps> = ({
+  districts,
   selectedDistrict,
-  onSelectDistrict,
-  onHoverDistrict,
-  unlockedItems,
-  onProjectClick,
+  onDistrictSelect,
 }) => {
   return (
-    <>
-      {/* Render distrik portofolio utama */}
-      {portfolioData.map(district => {
+    <group>
+      {districts.map((district) => {
         const isSelected = selectedDistrict?.id === district.id;
-        const Component = customDistrictComponents[district.id] || DistrictBuilding;
-
-        const commonProps = {
-          key: district.id,
-          district: district,
-          isSelected: isSelected,
-          onSelect: onSelectDistrict,
-          onHover: onHoverDistrict,
-          // Props khusus untuk komponen tertentu
-          ...(Component === ArchitectDataCore && {
-            selectedDistrict: selectedDistrict,
-            onDistrictSelect: onSelectDistrict,
-            onDistrictHover: onHoverDistrict,
-            unlockedItems: unlockedItems,
-            onProjectClick: onProjectClick,
-          }),
-          ...(Component === DistrictBuilding && {
-             isUnlocked: true // Anggap semua distrik utama lainnya selalu tidak terkunci
-          })
-        };
         
-        // Ganti nama prop agar sesuai dengan ContactTerminal
-        if (Component === ContactTerminal) {
-            commonProps.onSelect = (dist: CityDistrict) => onSelectDistrict(dist);
-            commonProps.onHover = (id: string | null) => onHoverDistrict(id);
+        if (district.type === 'major') {
+          // Render major districts as interactive holographic labels
+          return (
+            <HolographicDistrictLabel 
+              key={district.id}
+              district={district}
+              onSelect={onDistrictSelect}
+              isSelected={isSelected}
+            />
+          )
         }
 
-        return <Component {...commonProps} />;
+        // Render generic buildings for minor/ambient districts
+        return (
+          <DistrictBuilding
+            key={district.id}
+            district={district}
+            isSelected={false} // Ambient buildings are not selectable
+          />
+        );
       })}
-
-      {/* Render distrik minor ambient */}
-      {ambientDistricts.map(district => (
-        <DistrictBuilding key={district.id} district={district} />
-      ))}
-    </>
+    </group>
   );
-});
-
-export default DistrictRenderer;
+};
