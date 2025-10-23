@@ -1,4 +1,5 @@
-
+// FIX: Added the triple-slash directive to load type definitions for @react-three/fiber. This resolves TypeScript errors related to unrecognized JSX elements (e.g., <mesh>, <group>, <ambientLight>) and allows for proper type checking.
+/// <reference types="@react-three/fiber" />
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
@@ -67,7 +68,6 @@ const DataTrail: React.FC = () => {
   });
 
   return (
-    // FIX: Correctly type R3F intrinsic elements to resolve TypeScript errors.
     <instancedMesh ref={mesh} args={[undefined, undefined, count]}>
       <sphereGeometry args={[0.2, 8, 8]} />
       <meshStandardMaterial color="#00ffff" emissive="#00ffff" toneMapped={false} transparent opacity={0.5} />

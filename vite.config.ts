@@ -5,12 +5,15 @@ import { fileURLToPath } from 'url'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: './', // Fix: Ensure asset paths are relative to fix 404 on lazy-loaded chunks.
+  base: './', // Pastikan path aset relatif untuk build yang benar.
   plugins: [react()],
   resolve: {
     alias: {
-      // Fix: __dirname is not available in ES modules. Use import.meta.url to get the current file path.
+      // __dirname tidak tersedia di ES Modules, gunakan import.meta.url sebagai gantinya.
       '@': path.resolve(path.dirname(fileURLToPath(import.meta.url)), './src'),
     },
+  },
+  build: {
+    chunkSizeWarningLimit: 1000, // Tingkatkan batas peringatan ukuran chunk untuk scene 3D
   },
 })

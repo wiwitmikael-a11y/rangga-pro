@@ -1,4 +1,5 @@
-
+// FIX: Added the triple-slash directive to load type definitions for @react-three/fiber. This resolves TypeScript errors related to unrecognized JSX elements (e.g., <mesh>, <group>, <ambientLight>) and allows for proper type checking.
+/// <reference types="@react-three/fiber" />
 
 import React, { useState, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
@@ -31,7 +32,6 @@ const InteractiveButton: React.FC<InteractiveButtonProps> = ({ position, text, o
     });
 
     return (
-        // FIX: Correctly type R3F intrinsic elements to resolve TypeScript errors.
         <group 
             ref={groupRef}
             position={position} 
@@ -73,7 +73,6 @@ const ContactTerminal: React.FC<ContactTerminalProps> = ({ district, onSelect, o
   const handleContactClick = (url: string) => window.open(url, '_blank', 'noopener,noreferrer');
 
   return (
-    // FIX: Correctly type R3F intrinsic elements to resolve TypeScript errors.
     <group position={district.position}>
       <mesh
         ref={meshRef}

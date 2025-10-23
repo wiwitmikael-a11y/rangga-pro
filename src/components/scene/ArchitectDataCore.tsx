@@ -1,7 +1,9 @@
-
+// FIX: Added the triple-slash directive to load type definitions for @react-three/fiber. This resolves TypeScript errors related to unrecognized JSX elements (e.g., <mesh>, <group>, <ambientLight>) and allows for proper type checking.
+/// <reference types="@react-three/fiber" />
 
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import type { CityDistrict, PortfolioSubItem } from '../../types';
 import { ProjectDisplay } from './ProjectDisplay';
@@ -24,35 +26,36 @@ const ArchitectDataCore: React.FC<ArchitectDataCoreProps> = ({
   onProjectClick
 }) => {
   const groupRef = useRef<THREE.Group>(null!);
+  const { scene: arcadeMachine } = useGLTF('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/arcade_machine.glb');
   const isSelected = selectedDistrict?.id === district.id;
 
   useFrame(({ clock }) => {
     if (groupRef.current) {
       groupRef.current.rotation.y = clock.getElapsedTime() * 0.05;
+      // Animate selection
+      const targetScale = isSelected ? 1.1 : 1;
+      groupRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1);
     }
   });
 
   return (
-    // FIX: Correctly type R3F intrinsic elements to resolve TypeScript errors.
     <group position={district.position}>
-      <mesh
+      <group 
+        ref={groupRef}
         onClick={() => onDistrictSelect(district)}
         onPointerOver={(e) => { e.stopPropagation(); onDistrictHover(district.id); document.body.style.cursor = 'pointer'; }}
         onPointerOut={(e) => { e.stopPropagation(); onDistrictHover(null); document.body.style.cursor = 'auto'; }}
       >
-        <sphereGeometry args={[4, 32, 32]} />
-        <meshStandardMaterial
-          color={isSelected ? "#00ffff" : "#00aaff"}
-          emissive={isSelected ? "#00ffff" : "#00aaff"}
-          emissiveIntensity={isSelected ? 3 : 1}
-          transparent
-          opacity={0.3}
-          wireframe
+        <primitive 
+          object={arcadeMachine} 
+          scale={5} 
+          position-y={-3} 
+          rotation-y={Math.PI * 0.25}
         />
-      </mesh>
+      </group>
       
       {isSelected && district.subItems && (
-        <group ref={groupRef}>
+        <group>
           {district.subItems.map(item => (
             <ProjectDisplay
               key={item.id}
@@ -68,3 +71,4 @@ const ArchitectDataCore: React.FC<ArchitectDataCoreProps> = ({
 };
 
 export default ArchitectDataCore;
+useGLTF.preload('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/arcade_machine.glb');

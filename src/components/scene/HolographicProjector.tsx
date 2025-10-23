@@ -1,4 +1,5 @@
-
+// FIX: Added the triple-slash directive to load type definitions for @react-three/fiber. This resolves TypeScript errors related to unrecognized JSX elements (e.g., <mesh>, <group>, <ambientLight>) and allows for proper type checking.
+/// <reference types="@react-three/fiber" />
 
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
@@ -36,7 +37,6 @@ const HolographicProjector: React.FC<HolographicProjectorProps> = ({ item, onClo
   }, [item.content]);
 
   return (
-    // FIX: Correctly type R3F intrinsic elements to resolve TypeScript errors.
     <group ref={groupRef} position={[item.position[0], item.position[1] + 2, item.position[2] + 5]} scale={0}>
       <mesh>
         <planeGeometry args={[10, 8]} />

@@ -1,4 +1,5 @@
-
+// FIX: Added the triple-slash directive to load type definitions for @react-three/fiber. This resolves TypeScript errors related to unrecognized JSX elements (e.g., <mesh>, <group>, <ambientLight>) and allows for proper type checking.
+/// <reference types="@react-three/fiber" />
 
 import React, { useRef, useState, useEffect } from 'react';
 import * as THREE from 'three';
@@ -20,7 +21,6 @@ const LockIcon: React.FC = () => (
         anchorY="middle"
     >
         ?
-        {/* FIX: Correctly type R3F intrinsic elements to resolve TypeScript errors. */}
         <meshStandardMaterial color="#ff4444" emissive="#ff4444" emissiveIntensity={2} toneMapped={false} />
     </Text>
 );
@@ -86,7 +86,6 @@ export const ProjectDisplay: React.FC<ProjectDisplayProps> = ({ item, isLocked, 
   const imageOpacity = isLocked ? 0.2 : (isHovered ? 1 : 0.9);
 
   return (
-    // FIX: Correctly type R3F intrinsic elements to resolve TypeScript errors.
     <group
       ref={groupRef}
       position={item.position}

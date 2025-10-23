@@ -1,11 +1,12 @@
-
+// FIX: Added the triple-slash directive to load type definitions for @react-three/fiber. This resolves TypeScript errors related to unrecognized JSX elements (e.g., <mesh>, <group>, <ambientLight>) and allows for proper type checking.
+/// <reference types="@react-three/fiber" />
 
 import React, { useLayoutEffect, useMemo } from 'react';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 
 export const CityModel: React.FC = React.memo(() => {
-  const { scene } = useGLTF('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/city.glb');
+  const { scene } = useGLTF('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/cyberpunk_city.glb');
   
   const clonedScene = useMemo(() => scene.clone(), [scene]);
 
@@ -27,9 +28,8 @@ export const CityModel: React.FC = React.memo(() => {
     });
   }, [clonedScene]);
 
-  // FIX: Correctly type R3F intrinsic elements to resolve TypeScript errors.
   return <primitive object={clonedScene} position={[0, -5, 0]} />;
 });
 
 // Preload model untuk memastikan tersedia saat dibutuhkan
-useGLTF.preload('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/city.glb');
+useGLTF.preload('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/cyberpunk_city.glb');

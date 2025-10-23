@@ -1,4 +1,5 @@
-
+// FIX: Added the triple-slash directive to load type definitions for @react-three/fiber. This resolves TypeScript errors related to unrecognized JSX elements (e.g., <mesh>, <group>, <ambientLight>) and allows for proper type checking.
+/// <reference types="@react-three/fiber" />
 
 import { lazy, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
@@ -8,6 +9,7 @@ import type { CityDistrict, PortfolioSubItem, PerformanceTier } from '../types';
 
 // Lazy load komponen untuk kinerja
 const CityModel = lazy(() => import('./scene/CityModel').then(m => ({ default: m.CityModel })));
+const CityCore = lazy(() => import('./scene/CityCore'));
 const GroundPlane = lazy(() => import('./scene/GroundPlane').then(m => ({ default: m.GroundPlane })));
 const FlyingVehicles = lazy(() => import('./scene/FlyingVehicles'));
 const FloatingParticles = lazy(() => import('./scene/FloatingParticles'));
@@ -51,7 +53,6 @@ export const Experience3D: React.FC<Experience3DProps> = ({
       camera={{ position: [80, 40, 120], fov: 50, near: 0.1, far: 500 }}
       dpr={[1, 1.5]} // Clamp pixel ratio for performance
     >
-      {/* FIX: Correctly type R3F intrinsic elements to resolve TypeScript errors. */}
       <fog attach="fog" args={['#050810', 80, 300]} />
       <color attach="background" args={['#050810']} />
       
@@ -69,6 +70,7 @@ export const Experience3D: React.FC<Experience3DProps> = ({
         <CameraRig selectedDistrict={selectedDistrict} />
         
         <CityModel />
+        <CityCore />
         <GroundPlane />
         <FlyingVehicles count={settings.vehicles} />
         <FloatingParticles count={settings.particles} />

@@ -1,4 +1,5 @@
-
+// FIX: Added the triple-slash directive to load type definitions for @react-three/fiber. This resolves TypeScript errors related to unrecognized JSX elements (e.g., <mesh>, <group>, <ambientLight>) and allows for proper type checking.
+/// <reference types="@react-three/fiber" />
 
 import React from 'react';
 import * as THREE from 'three';
@@ -19,7 +20,6 @@ export const GroundPlane: React.FC = React.memo(() => {
   });
   
   return (
-    // FIX: Correctly type R3F intrinsic elements to resolve TypeScript errors.
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -5.1, 0]} receiveShadow>
       <planeGeometry args={[500, 500]} />
       <meshStandardMaterial 
