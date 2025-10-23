@@ -30,15 +30,15 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict }) => {
       );
       targetLookAt.copy(OVERVIEW_LOOK_AT);
     }
-    
+
     // Interpolasi posisi kamera secara mulus
     state.camera.position.lerp(targetPosition, delta * 2);
-    
+
     // Interpolasi target pandang kamera secara mulus dengan memperbarui quaternion
     const tempCamera = state.camera.clone();
     tempCamera.lookAt(targetLookAt);
     state.camera.quaternion.slerp(tempCamera.quaternion, delta * 2);
   });
-  
+
   return null; // Komponen ini tidak merender objek, hanya mengontrol kamera
 };

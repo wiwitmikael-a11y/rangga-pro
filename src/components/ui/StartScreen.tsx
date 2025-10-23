@@ -19,10 +19,10 @@ export const StartScreen: React.FC<StartScreenProps> = React.memo(({ onStart, is
       <div style={styles.content}>
         <h1 style={styles.title}>METROPOLIS.CORE</h1>
         <p style={styles.subtitle}>A CYBERPUNK PORTFOLIO EXPERIENCE</p>
-        <button 
-            style={styles.startButton} 
-            onClick={onStart} 
-            onMouseOver={e => (e.currentTarget.style.backgroundColor = 'rgba(0, 170, 255, 0.2)')} 
+        <button
+            style={styles.startButton}
+            onClick={onStart}
+            onMouseOver={e => (e.currentTarget.style.backgroundColor = 'rgba(0, 170, 255, 0.2)')}
             onMouseOut={e => (e.currentTarget.style.backgroundColor = 'transparent')}
         >
           [ ESTABLISH CONNECTION ]
