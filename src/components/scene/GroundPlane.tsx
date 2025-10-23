@@ -1,33 +1,17 @@
-// Added a triple-slash directive to include @react-three/fiber types, resolving TypeScript errors with unrecognized JSX elements.
+// FIX: The triple-slash directive must be at the top of the file to correctly load TypeScript types for @react-three/fiber.
 /// <reference types="@react-three/fiber" />
 
 import React from 'react';
 import * as THREE from 'three';
-import { useTexture } from '@react-three/drei';
 
 export const GroundPlane: React.FC = React.memo(() => {
-  const [map, roughnessMap, normalMap] = useTexture([
-    'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/textures/wet_asphalt_albedo.jpg',
-    'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/textures/wet_asphalt_roughness.jpg',
-    'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/textures/wet_asphalt_normal.jpg'
-  ]);
-
-  // Konfigurasi texture tiling untuk menutupi bidang besar
-  [map, roughnessMap, normalMap].forEach(texture => {
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(25, 25);
-  });
-  
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -5.1, 0]} receiveShadow>
       <planeGeometry args={[500, 500]} />
       <meshStandardMaterial 
-        map={map}
-        roughnessMap={roughnessMap}
-        normalMap={normalMap}
-        metalness={0.8} // Metalness tinggi pada genangan air memantulkan cahaya dengan baik
-        roughness={0.5} // Roughness dasar untuk aspal
+        color="#0a0a0a" // Warna gelap untuk aspal
+        metalness={0.8} // Efek metalik untuk pantulan seperti genangan air
+        roughness={0.4} // Sedikit kasar agar tidak seperti cermin sempurna
         envMapIntensity={0.5}
       />
     </mesh>
