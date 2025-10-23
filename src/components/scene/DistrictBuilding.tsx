@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef, useMemo } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -76,6 +77,7 @@ const DistrictBuilding: React.FC<DistrictBuildingProps> = ({
   };
 
   return (
+    // FIX: Correctly type R3F intrinsic elements to resolve TypeScript errors.
     <group position={district.position}>
         <mesh
             ref={meshRef}

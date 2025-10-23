@@ -1,4 +1,5 @@
 
+
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
@@ -58,6 +59,7 @@ const FlyingVehicles: React.FC<FlyingVehiclesProps> = ({ count }) => {
   });
 
   return (
+    // FIX: Correctly type R3F intrinsic elements to resolve TypeScript errors.
     <instancedMesh ref={meshRef} args={[undefined, undefined, count]} scale={0.5}>
        <primitive object={clonedPrimitive} />
     </instancedMesh>

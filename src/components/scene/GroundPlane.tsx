@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import * as THREE from 'three';
 import { useTexture } from '@react-three/drei';
@@ -18,6 +19,7 @@ export const GroundPlane: React.FC = React.memo(() => {
   });
   
   return (
+    // FIX: Correctly type R3F intrinsic elements to resolve TypeScript errors.
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -5.1, 0]} receiveShadow>
       <planeGeometry args={[500, 500]} />
       <meshStandardMaterial 

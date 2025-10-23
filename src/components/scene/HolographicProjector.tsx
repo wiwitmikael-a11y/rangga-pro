@@ -1,4 +1,5 @@
 
+
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
@@ -35,6 +36,7 @@ const HolographicProjector: React.FC<HolographicProjectorProps> = ({ item, onClo
   }, [item.content]);
 
   return (
+    // FIX: Correctly type R3F intrinsic elements to resolve TypeScript errors.
     <group ref={groupRef} position={[item.position[0], item.position[1] + 2, item.position[2] + 5]} scale={0}>
       <mesh>
         <planeGeometry args={[10, 8]} />

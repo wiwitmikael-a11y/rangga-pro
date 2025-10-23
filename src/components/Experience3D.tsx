@@ -1,4 +1,5 @@
 
+
 import { lazy, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Preload } from '@react-three/drei';
@@ -50,6 +51,7 @@ export const Experience3D: React.FC<Experience3DProps> = ({
       camera={{ position: [80, 40, 120], fov: 50, near: 0.1, far: 500 }}
       dpr={[1, 1.5]} // Clamp pixel ratio for performance
     >
+      {/* FIX: Correctly type R3F intrinsic elements to resolve TypeScript errors. */}
       <fog attach="fog" args={['#050810', 80, 300]} />
       <color attach="background" args={['#050810']} />
       

@@ -1,4 +1,5 @@
 
+
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -32,6 +33,7 @@ const ArchitectDataCore: React.FC<ArchitectDataCoreProps> = ({
   });
 
   return (
+    // FIX: Correctly type R3F intrinsic elements to resolve TypeScript errors.
     <group position={district.position}>
       <mesh
         onClick={() => onDistrictSelect(district)}

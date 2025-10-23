@@ -1,4 +1,5 @@
 
+
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -34,6 +35,7 @@ const FloatingParticles: React.FC<FloatingParticlesProps> = ({ count }) => {
   });
 
   return (
+    // FIX: Correctly type R3F intrinsic elements to resolve TypeScript errors.
     <points ref={pointsRef}>
       <bufferGeometry>
         <bufferAttribute

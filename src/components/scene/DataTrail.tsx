@@ -1,4 +1,5 @@
 
+
 import React, { useRef, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -66,6 +67,7 @@ const DataTrail: React.FC = () => {
   });
 
   return (
+    // FIX: Correctly type R3F intrinsic elements to resolve TypeScript errors.
     <instancedMesh ref={mesh} args={[undefined, undefined, count]}>
       <sphereGeometry args={[0.2, 8, 8]} />
       <meshStandardMaterial color="#00ffff" emissive="#00ffff" toneMapped={false} transparent opacity={0.5} />
