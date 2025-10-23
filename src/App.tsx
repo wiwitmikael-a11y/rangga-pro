@@ -8,26 +8,24 @@ import { usePerformance } from './hooks/usePerformance';
 const App: React.FC = () => {
   const [hasStarted, setHasStarted] = useState(false);
   const { progress } = useProgress();
-  const isLoading = !hasStarted || progress < 100;
   const { performanceTier } = usePerformance();
 
   const handleStart = useCallback(() => {
     setHasStarted(true);
   }, []);
 
-  // Show loader until assets are ready, then show start screen.
-  const showStartScreen = !hasStarted && progress >= 100;
+  const isLoaded = progress >= 100;
 
   return (
     <>
       <main style={{ width: '100vw', height: '100vh', backgroundColor: '#000' }}>
-        <Suspense fallback={<Loader progress={progress} />}>
-          {hasStarted && <Experience3D performanceTier={performanceTier} />}
+        <Suspense fallback={null}>
+          {hasStarted && isLoaded && <Experience3D performanceTier={performanceTier} />}
         </Suspense>
       </main>
       
-      {isLoading && <Loader progress={progress} />}
-      {showStartScreen && <StartScreen onStart={handleStart} />}
+      {!isLoaded && <Loader progress={progress} />}
+      {isLoaded && !hasStarted && <StartScreen onStart={handleStart} />}
     </>
   );
 };
