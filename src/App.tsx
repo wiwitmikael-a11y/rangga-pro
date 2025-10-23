@@ -1,9 +1,10 @@
+
 import { useState, useEffect, Suspense, useCallback, useMemo } from 'react';
 import { Loader } from './components/ui/Loader';
 import { StartScreen } from './components/ui/StartScreen';
 import { Experience3D } from './components/Experience3D';
 import { HUD } from './components/ui/HUD';
-import type { CityDistrict, PortfolioSubItem, PerformanceTier } from './types';
+import type { CityDistrict, PortfolioSubItem } from './types';
 import { portfolioData } from './constants';
 import { usePerformance } from './hooks/usePerformance';
 
@@ -19,8 +20,8 @@ function App() {
   const [selectedDistrict, setSelectedDistrict] = useState<CityDistrict | null>(null);
   const [hoveredDistrictId, setHoveredDistrictId] = useState<string | null>(null);
   const [selectedProject, setSelectedProject] = useState<PortfolioSubItem | null>(null);
-  const [isGameActive, setIsGameActive] = useState(false);
-  const [unlockedItems, setUnlockedItems] = useState<Set<string>>(new Set(['sub-philosophy', 'sub-skills']));
+  // Game dihapus, item Nexus sekarang tidak terkunci secara default
+  const [unlockedItems, setUnlockedItems] = useState<Set<string>>(new Set(['sub-philosophy', 'sub-skills', 'sub-nexus-1', 'sub-nexus-2']));
 
   const { initialTier, performanceTier, setPerformanceTier } = usePerformance();
   
@@ -37,15 +38,11 @@ function App() {
   const handleSelectDistrict = useCallback((district: CityDistrict | null) => {
     setSelectedDistrict(district);
     setSelectedProject(null); // Tutup tampilan proyek saat berganti distrik
-    if (district?.id === 'project-nexus') {
-        setIsGameActive(true);
-    }
   }, []);
 
   const handleGoHome = useCallback(() => {
     setSelectedDistrict(null);
     setSelectedProject(null);
-    setIsGameActive(false);
   }, []);
 
   const handleProjectClick = useCallback((item: PortfolioSubItem) => {
@@ -56,16 +53,6 @@ function App() {
   
   const handleCloseProject = useCallback(() => {
     setSelectedProject(null);
-  }, []);
-
-  const handleGameComplete = useCallback(() => {
-      setIsGameActive(false);
-      setUnlockedItems(prev => new Set([...prev, 'sub-nexus-1', 'sub-nexus-2']));
-      // Temukan distrik Nexus dan pilih untuk menampilkan item yang baru dibuka
-      const nexusDistrict = portfolioData.find(d => d.id === 'project-nexus');
-      if (nexusDistrict) {
-          setSelectedDistrict(nexusDistrict);
-      }
   }, []);
   
   // Tunggu deteksi GPU untuk mengatur tingkatan awal
@@ -84,12 +71,9 @@ function App() {
               <Experience3D
                 selectedDistrict={selectedDistrict}
                 onSelectDistrict={handleSelectDistrict}
-                hoveredDistrictId={hoveredDistrictId}
                 onHoverDistrict={setHoveredDistrictId}
                 selectedProject={selectedProject}
                 onCloseProject={handleCloseProject}
-                isGameActive={isGameActive}
-                onGameComplete={handleGameComplete}
                 unlockedItems={unlockedItems}
                 onProjectClick={handleProjectClick}
                 performanceTier={performanceTier}
@@ -100,15 +84,13 @@ function App() {
               onGoHome={handleGoHome}
               performanceTier={performanceTier}
               onSetPerformanceTier={setPerformanceTier}
-              isGameActive={isGameActive}
             />
           </>
         );
       default:
         return null;
     }
-    // FIX: Corrected typo in dependency array from 'onSetPerformanceTier' to 'setPerformanceTier'.
-  }, [appState, handleStart, selectedDistrict, handleSelectDistrict, hoveredDistrictId, selectedProject, handleCloseProject, isGameActive, handleGameComplete, unlockedItems, handleProjectClick, performanceTier, handleGoHome, setPerformanceTier]);
+  }, [appState, handleStart, selectedDistrict, handleSelectDistrict, hoveredDistrictId, selectedProject, handleCloseProject, unlockedItems, handleProjectClick, performanceTier, handleGoHome, setPerformanceTier]);
 
   return (
     <div style={{ width: '100vw', height: '100vh', background: 'var(--background-color)' }}>

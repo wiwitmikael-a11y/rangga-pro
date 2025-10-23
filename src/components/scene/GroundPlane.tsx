@@ -1,4 +1,4 @@
-/// <reference types="@react-three/fiber" />
+
 import React from 'react';
 import * as THREE from 'three';
 import { useTexture } from '@react-three/drei';

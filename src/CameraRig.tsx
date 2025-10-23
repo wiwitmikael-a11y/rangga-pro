@@ -1,3 +1,4 @@
+
 import { useRef, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
@@ -7,13 +8,12 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 
 interface CameraRigProps {
   selectedDistrict: CityDistrict | null;
-  isGameActive: boolean;
 }
 
 const OVERVIEW_CAM_POS = new THREE.Vector3(80, 40, 120);
 const OVERVIEW_TARGET_POS = new THREE.Vector3(0, 0, 0);
 
-const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, isGameActive }) => {
+const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict }) => {
   const controlsRef = useRef<OrbitControlsImpl>(null!);
   const { camera } = useThree();
 
@@ -28,13 +28,9 @@ const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, isGameActive })
   useFrame((state, delta) => {
     if (!controlsRef.current) return;
 
-    const isFocused = !!selectedDistrict || isGameActive;
+    const isFocused = !!selectedDistrict;
 
-    if (isGameActive) {
-        const [dx, dy, dz] = [0, 10, 0]; // Posisi tetap game
-        cameraTargetPos.set(dx, dy + 10, dz + 25);
-        controlsTargetPos.set(dx, dy, dz);
-    } else if (selectedDistrict) {
+    if (selectedDistrict) {
         const [dx, dy, dz] = selectedDistrict.position;
         cameraTargetPos.set(dx + 25, dy + 20, dz + 25);
         controlsTargetPos.set(dx, dy + 10, dz);

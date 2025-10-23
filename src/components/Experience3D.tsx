@@ -1,4 +1,4 @@
-/// <reference types="@react-three/fiber" />
+
 import { lazy, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Preload } from '@react-three/drei';
@@ -13,18 +13,14 @@ const FloatingParticles = lazy(() => import('./scene/FloatingParticles'));
 const Rain = lazy(() => import('./scene/Rain'));
 const DistrictRenderer = lazy(() => import('./scene/DistrictRenderer'));
 const HolographicProjector = lazy(() => import('./scene/HolographicProjector'));
-const NexusProtocolGame = lazy(() => import('../game/NexusProtocolGame'));
 const CameraRig = lazy(() => import('../CameraRig'));
 
 interface Experience3DProps {
   selectedDistrict: CityDistrict | null;
   onSelectDistrict: (district: CityDistrict | null) => void;
-  hoveredDistrictId: string | null;
   onHoverDistrict: (id: string | null) => void;
   selectedProject: PortfolioSubItem | null;
   onCloseProject: () => void;
-  isGameActive: boolean;
-  onGameComplete: () => void;
   unlockedItems: Set<string>;
   onProjectClick: (item: PortfolioSubItem) => void;
   performanceTier: PerformanceTier;
@@ -39,12 +35,9 @@ const performanceSettings = {
 export const Experience3D: React.FC<Experience3DProps> = ({
   selectedDistrict,
   onSelectDistrict,
-  hoveredDistrictId,
   onHoverDistrict,
   selectedProject,
   onCloseProject,
-  isGameActive,
-  onGameComplete,
   unlockedItems,
   onProjectClick,
   performanceTier,
@@ -71,7 +64,7 @@ export const Experience3D: React.FC<Experience3DProps> = ({
       />
       
       <Suspense fallback={null}>
-        <CameraRig selectedDistrict={selectedDistrict} isGameActive={isGameActive} />
+        <CameraRig selectedDistrict={selectedDistrict} />
         
         <CityModel />
         <GroundPlane />
@@ -91,11 +84,10 @@ export const Experience3D: React.FC<Experience3DProps> = ({
           <HolographicProjector item={selectedProject} onClose={onCloseProject} />
         )}
 
-        {isGameActive && <NexusProtocolGame onGameComplete={onGameComplete} />}
       </Suspense>
       
       {settings.effects && (
-        <EffectComposer disableNormalPass>
+        <EffectComposer enableNormalPass={false}>
           <Bloom mipmapBlur luminanceThreshold={0.7} luminanceSmoothing={0.9} height={300} intensity={0.8} />
           <Vignette eskil={false} offset={0.1} darkness={1.1} />
         </EffectComposer>

@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import type { CityDistrict, PerformanceTier } from '../../types';
 
@@ -35,20 +36,18 @@ interface HUDProps {
   onGoHome: () => void;
   performanceTier: PerformanceTier;
   onSetPerformanceTier: (tier: PerformanceTier) => void;
-  isGameActive: boolean;
 }
 
-export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, performanceTier, onSetPerformanceTier, isGameActive }) => {
+export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, performanceTier, onSetPerformanceTier }) => {
   const [showSettings, setShowSettings] = useState(false);
 
   const breadcrumb = useMemo(() => {
-    if (isGameActive) return 'METROPOLIS.CORE > /NEXUS_PROTOCOL_BREACH/';
     if (selectedDistrict) return `METROPOLIS.CORE > /${selectedDistrict.id.toUpperCase()}_DISTRICT/`;
     return 'METROPOLIS.CORE';
-  }, [isGameActive, selectedDistrict]);
+  }, [selectedDistrict]);
   
-  const showHomeButton = !!selectedDistrict || isGameActive;
-  const homeButtonText = isGameActive ? 'Abort Mission' : 'City Overview';
+  const showHomeButton = !!selectedDistrict;
+  const homeButtonText = 'City Overview';
 
   return (
     <>
@@ -56,7 +55,7 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
           <p style={styles.breadcrumbText}>{breadcrumb}</p>
       </div>
 
-      <div style={{...styles.topContainer, ...(selectedDistrict && !isGameActive ? styles.visible : styles.hiddenTop)}}>
+      <div style={{...styles.topContainer, ...(selectedDistrict ? styles.visible : styles.hiddenTop)}}>
         <div style={styles.panelBackground}>
           <h2 style={styles.title}>{selectedDistrict?.title}</h2>
           <p style={styles.description}>{selectedDistrict?.description}</p>

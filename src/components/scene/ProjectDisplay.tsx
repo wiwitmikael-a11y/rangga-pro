@@ -1,7 +1,7 @@
-/// <reference types="@react-three/fiber" />
+
 import React, { useRef, useState, useEffect } from 'react';
 import * as THREE from 'three';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, ThreeEvent } from '@react-three/fiber';
 import { RoundedBox, Image, Text } from '@react-three/drei';
 import { PortfolioSubItem } from '../../types';
 
@@ -58,7 +58,7 @@ export const ProjectDisplay: React.FC<ProjectDisplayProps> = ({ item, isLocked, 
     groupRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), delta * 8);
   });
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
     if (isLocked) {
         setShowDeniedMsg(true);
@@ -68,13 +68,13 @@ export const ProjectDisplay: React.FC<ProjectDisplayProps> = ({ item, isLocked, 
     }
   };
   
-  const handlePointerOver = (e: React.PointerEvent) => {
+  const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     setIsHovered(true);
     if (!isLocked) document.body.style.cursor = 'pointer';
   };
   
-  const handlePointerOut = (e: React.PointerEvent) => {
+  const handlePointerOut = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     setIsHovered(false);
     document.body.style.cursor = 'auto';

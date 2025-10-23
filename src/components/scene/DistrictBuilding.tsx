@@ -1,6 +1,6 @@
-/// <reference types="@react-three/fiber" />
-import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { useFrame } from '@react-three/fiber';
+
+import React, { useState, useRef, useMemo } from 'react';
+import { useFrame, ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { CityDistrict } from '../../types';
 import { Text } from '@react-three/drei';
@@ -50,7 +50,7 @@ const DistrictBuilding: React.FC<DistrictBuildingProps> = ({
     }
   });
 
-  const handlePointerOver = (e: React.PointerEvent) => {
+  const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     if (onHover && onSelect) {
       setIsHovered(true);
@@ -59,7 +59,7 @@ const DistrictBuilding: React.FC<DistrictBuildingProps> = ({
     }
   };
 
-  const handlePointerOut = (e: React.PointerEvent) => {
+  const handlePointerOut = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     if (onHover && onSelect) {
       setIsHovered(false);
@@ -68,7 +68,7 @@ const DistrictBuilding: React.FC<DistrictBuildingProps> = ({
     }
   };
   
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
     if (onSelect) {
       onSelect(district);

@@ -1,4 +1,4 @@
-/// <reference types="@react-three/fiber" />
+
 import React, { useState, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text, Box } from '@react-three/drei';
