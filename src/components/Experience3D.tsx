@@ -1,30 +1,24 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import { CityDistrict, PerformanceTier } from '../types';
 import { portfolioData } from '../constants';
 import { CameraRig } from '../CameraRig';
 import { CityModel } from './scene/CityModel';
-import { FlyingVehicles } from './scene/FlyingVehicles';
 import { GroundPlane } from './scene/GroundPlane';
 import FloatingParticles from './scene/FloatingParticles';
 import Rain from './scene/Rain';
 import { DistrictRenderer } from './scene/DistrictRenderer';
 import { HUD } from './ui/HUD';
 import HolographicInfoPanel from './scene/HolographicInfoPanel';
+import { FlyingVehicles } from './scene/FlyingVehicles';
 
 interface Experience3DProps {
   performanceTier: PerformanceTier;
-  onSceneReady: () => void;
 }
 
-export const Experience3D: React.FC<Experience3DProps> = ({ performanceTier, onSceneReady }) => {
+export const Experience3D: React.FC<Experience3DProps> = ({ performanceTier }) => {
   const [selectedDistrict, setSelectedDistrict] = useState<CityDistrict | null>(null);
-
-  // Signal that the component has successfully mounted
-  useEffect(() => {
-    onSceneReady();
-  }, [onSceneReady]);
 
   const handleDistrictSelect = useCallback((district: CityDistrict) => {
     setSelectedDistrict(district);

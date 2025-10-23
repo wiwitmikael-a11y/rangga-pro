@@ -2,21 +2,16 @@ import React from 'react';
 
 interface StartScreenProps {
   onStart: () => void;
-  isExiting?: boolean;
+  isExiting: boolean;
 }
 
-export const StartScreen: React.FC<StartScreenProps> = React.memo(({ onStart, isExiting = false }) => {
+export const StartScreen: React.FC<StartScreenProps> = React.memo(({ onStart, isExiting }) => {
   const containerStyle: React.CSSProperties = {
     ...styles.container,
     opacity: isExiting ? 0 : 1,
     pointerEvents: isExiting ? 'none' : 'auto',
     transition: 'opacity 1s ease-out',
   };
-
-  if (isExiting) {
-    // Return a minimal div that just handles the fade-out
-    return <div style={containerStyle} />;
-  }
 
   return (
     <div style={containerStyle}>
@@ -35,7 +30,7 @@ export const StartScreen: React.FC<StartScreenProps> = React.memo(({ onStart, is
         <p style={styles.disclaimer}>Best experienced on a desktop browser with a dedicated GPU.</p>
       </div>
        <style>{`
-          @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+          @keyframes fadeInStart { from { opacity: 0; } to { opacity: 1; } }
           @keyframes pulse {
             0% { text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
             50% { text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color); }
@@ -61,7 +56,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     textAlign: 'center',
     padding: '20px',
     boxSizing: 'border-box',
-    animation: 'fadeIn 1s ease-in',
+    animation: 'fadeInStart 1s ease-in',
   },
   scanlineEffect: {
     position: 'absolute',

@@ -1,4 +1,4 @@
-import React, { useState, Suspense, useCallback, useEffect } from 'react';
+import React, { useState, Suspense, useCallback } from 'react';
 import { useProgress } from '@react-three/drei';
 import { Experience3D } from './components/Experience3D';
 import { Loader } from './components/ui/Loader';
@@ -7,49 +7,41 @@ import { usePerformance } from './hooks/usePerformance';
 
 const App: React.FC = () => {
   const { progress } = useProgress();
-  const [hasEntered, setHasEntered] = useState(false);
-  const [isSceneReady, setIsSceneReady] = useState(false);
-  const [isExitingStartScreen, setIsExitingStartScreen] = useState(false);
+  const [appState, setAppState] = useState<'loading' | 'start' | 'entering' | 'experience'>('loading');
   const { performanceTier } = usePerformance();
 
   const isLoaded = progress >= 100;
 
-  const handleStart = useCallback(() => {
-    setHasEntered(true);
-  }, []);
-
-  const handleSceneReady = useCallback(() => {
-    setIsSceneReady(true);
-  }, []);
-
-  useEffect(() => {
-    if (hasEntered && isSceneReady) {
-      setIsExitingStartScreen(true);
-    }
-  }, [hasEntered, isSceneReady]);
+  // Transisi dari loading ke start screen setelah progress selesai
+  if (appState === 'loading' && isLoaded) {
+    setAppState('start');
+  }
   
-  // Conditionally render Experience3D to let it mount and report back when ready
-  const showExperience = isLoaded && hasEntered;
+  const handleStart = useCallback(() => {
+    setAppState('entering');
+    // Unmount StartScreen setelah transisi fade-out selesai
+    setTimeout(() => setAppState('experience'), 1000); 
+  }, []);
+  
+  const showStartScreen = appState === 'start' || appState === 'entering';
+  const showExperience = appState === 'entering' || appState === 'experience';
 
   return (
     <>
       <main style={{ width: '100vw', height: '100vh', backgroundColor: '#000' }}>
         <Suspense fallback={null}>
-          {showExperience && (
-            <Experience3D
-              performanceTier={performanceTier}
-              onSceneReady={handleSceneReady}
-            />
-          )}
+          {showExperience && <Experience3D performanceTier={performanceTier} />}
         </Suspense>
       </main>
       
-      {!isLoaded && <Loader progress={progress} />}
+      {appState === 'loading' && <Loader progress={progress} />}
       
-      {isLoaded && !hasEntered && <StartScreen onStart={handleStart} />}
-
-      {/* The StartScreen remains visible during the fade-out transition */}
-      {hasEntered && <StartScreen onStart={() => {}} isExiting={isExitingStartScreen} />}
+      {showStartScreen && (
+        <StartScreen 
+          onStart={handleStart} 
+          isExiting={appState === 'entering'} 
+        />
+      )}
     </>
   );
 };
