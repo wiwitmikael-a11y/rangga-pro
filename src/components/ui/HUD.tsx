@@ -14,7 +14,7 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome 
   }, [selectedDistrict]);
   
   const showHomeButton = !!selectedDistrict;
-  const homeButtonText = 'City Overview';
+  const homeButtonIcon = '⌂'; // Ikon rumah yang familiar
 
   return (
     <>
@@ -25,8 +25,10 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome 
       <div style={styles.bottomContainer}>
          <button 
             onClick={onGoHome} 
-            style={{...styles.hudButton, ...(showHomeButton ? styles.visible : styles.hiddenBottom)}}>
-            {homeButtonText}
+            style={{...styles.hudButton, ...(showHomeButton ? styles.visible : styles.hiddenBottom)}}
+            aria-label="Back to City Overview"
+          >
+            {homeButtonIcon}
           </button>
       </div>
     </>
@@ -72,13 +74,18 @@ const styles: { [key: string]: React.CSSProperties } = {
   hudButton: {
     ...glassmorphism,
     color: '#00aaff',
-    padding: '10px 20px',
-    fontSize: '1rem',
+    // Desain baru: Tombol ikon yang lebih kecil dan berbentuk lingkaran
+    width: '45px',
+    height: '45px',
+    borderRadius: '50%',
+    padding: '0',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    fontSize: '1.5rem', // Ukuran ikon di dalam tombol
+    lineHeight: 1,
     cursor: 'pointer',
-    borderRadius: '5px',
     transition: 'all 0.5s ease',
-    textTransform: 'uppercase',
-    letterSpacing: '0.1em',
     pointerEvents: 'all',
   },
   visible: {
