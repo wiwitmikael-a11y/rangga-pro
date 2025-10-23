@@ -1,10 +1,10 @@
+
 import React from 'react';
 import type { CityDistrict, PortfolioSubItem } from '../../types';
 import DistrictBuilding from './DistrictBuilding';
-import CityCore from './CityCore';
 import ArchitectDataCore from './ArchitectDataCore';
+import CityCore from './CityCore';
 import ContactTerminal from './ContactTerminal';
-import HolographicDistrictLabel from './HolographicDistrictLabel';
 
 interface DistrictRendererProps {
   districts: CityDistrict[];
@@ -19,23 +19,55 @@ interface DistrictRendererProps {
 export const DistrictRenderer: React.FC<DistrictRendererProps> = ({
   districts,
   selectedDistrict,
+  unlockedItems,
   onDistrictSelect,
+  onDistrictHover,
+  onProjectClick,
 }) => {
   return (
     <group>
       {districts.map((district) => {
         const isSelected = selectedDistrict?.id === district.id;
-        
+
         if (district.type === 'major') {
-          // Render major districts as interactive holographic labels
-          return (
-            <HolographicDistrictLabel 
-              key={district.id}
-              district={district}
-              onSelect={onDistrictSelect}
-              isSelected={isSelected}
-            />
-          )
+          switch (district.id) {
+            case 'intro-architect':
+              return (
+                <ArchitectDataCore
+                  key={district.id}
+                  district={district}
+                  selectedDistrict={selectedDistrict}
+                  unlockedItems={unlockedItems}
+                  onDistrictSelect={onDistrictSelect}
+                  onDistrictHover={onDistrictHover}
+                  onProjectClick={onProjectClick}
+                />
+              );
+            case 'project-nexus':
+              return (
+                <CityCore
+                  key={district.id}
+                  district={district}
+                  selectedDistrict={selectedDistrict}
+                  unlockedItems={unlockedItems}
+                  onDistrictSelect={onDistrictSelect}
+                  onDistrictHover={onDistrictHover}
+                  onProjectClick={onProjectClick}
+                />
+              );
+            case 'contact-terminal':
+              return (
+                <ContactTerminal
+                  key={district.id}
+                  district={district}
+                  isSelected={isSelected}
+                  onSelect={onDistrictSelect}
+                  onHover={onDistrictHover}
+                />
+              );
+            default:
+              return null;
+          }
         }
 
         // Render generic buildings for minor/ambient districts
@@ -44,6 +76,8 @@ export const DistrictRenderer: React.FC<DistrictRendererProps> = ({
             key={district.id}
             district={district}
             isSelected={false} // Ambient buildings are not selectable
+            onHover={onDistrictHover}
+            isUnlocked // Ambient buildings are unlocked by default
           />
         );
       })}
