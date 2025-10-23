@@ -1,5 +1,3 @@
-/// <reference types="@react-three/fiber" />
-
 import React, { useState, useCallback, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
@@ -22,9 +20,6 @@ interface Experience3DProps {
 export const Experience3D: React.FC<Experience3DProps> = ({ performanceTier }) => {
   const [selectedDistrict, setSelectedDistrict] = useState<CityDistrict | null>(null);
   const [hoveredDistrictId, setHoveredDistrictId] = useState<string | null>(null);
-  
-  // Example state for unlocked items
-  const [unlockedItems] = useState<Set<string>>(new Set(['tech-1', 'tech-2', 'tech-3', 'proj-1', 'proj-2', 'proj-3']));
 
   const handleDistrictSelect = useCallback((district: CityDistrict) => {
     setSelectedDistrict(district);
@@ -71,11 +66,8 @@ export const Experience3D: React.FC<Experience3DProps> = ({ performanceTier }) =
         <DistrictRenderer 
           districts={portfolioData}
           selectedDistrict={selectedDistrict}
-          hoveredDistrictId={hoveredDistrictId}
-          unlockedItems={unlockedItems}
           onDistrictSelect={handleDistrictSelect}
           onDistrictHover={setHoveredDistrictId}
-          onProjectClick={(item) => console.log('Project clicked:', item)}
         />
 
         <FlyingVehicles count={performanceSettings.vehicles} />
