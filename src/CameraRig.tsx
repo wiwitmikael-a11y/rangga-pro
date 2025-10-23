@@ -11,7 +11,7 @@ interface CameraRigProps {
 // Menggunakan vektor helper di luar loop untuk optimasi performa
 const targetPosition = new THREE.Vector3();
 const targetLookAt = new THREE.Vector3();
-const OVERVIEW_LOOK_AT = new THREE.Vector3(0, 0, 0);
+const OVERVIEW_LOOK_AT = new THREE.Vector3(0, 5, 0);
 
 export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict }) => {
   useFrame((state, delta) => {
@@ -22,22 +22,22 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict }) => {
     } else {
       // Kembali ke posisi overview default, mengorbit kota secara perlahan
       const time = state.clock.getElapsedTime();
-      const radius = 80;
+      const radius = 90; // Jarak kamera dari pusat
       targetPosition.set(
-        Math.sin(time * 0.1) * radius,
-        40,
-        Math.cos(time * 0.1) * radius
+        Math.sin(time * 0.08) * radius,
+        45, // Ketinggian kamera
+        Math.cos(time * 0.08) * radius
       );
       targetLookAt.copy(OVERVIEW_LOOK_AT);
     }
 
-    // Interpolasi posisi kamera secara mulus
-    state.camera.position.lerp(targetPosition, delta * 2);
+    // Interpolasi posisi kamera secara mulus untuk menghindari gerakan yang kaku
+    state.camera.position.lerp(targetPosition, delta * 1.5);
 
     // Interpolasi target pandang kamera secara mulus dengan memperbarui quaternion
     const tempCamera = state.camera.clone();
     tempCamera.lookAt(targetLookAt);
-    state.camera.quaternion.slerp(tempCamera.quaternion, delta * 2);
+    state.camera.quaternion.slerp(tempCamera.quaternion, delta * 1.5);
   });
 
   return null; // Komponen ini tidak merender objek, hanya mengontrol kamera
