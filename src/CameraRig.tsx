@@ -1,72 +1,54 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useRef, useEffect } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import type { CityDistrict } from './types';
 import * as THREE from 'three';
-import { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
-import { portfolioData } from './constants';
-
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 
 interface CameraRigProps {
   selectedDistrict: CityDistrict | null;
-  hoveredDistrictId: string | null;
   isGameActive: boolean;
 }
 
-const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, hoveredDistrictId, isGameActive }) => {
+const OVERVIEW_CAM_POS = new THREE.Vector3(80, 40, 120);
+const OVERVIEW_TARGET_POS = new THREE.Vector3(0, 0, 0);
+
+const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, isGameActive }) => {
   const controlsRef = useRef<OrbitControlsImpl>(null!);
-  const [isIntroDone, setIsIntroDone] = useState(false);
+  const { camera } = useThree();
 
-  const cameraTargetVec = new THREE.Vector3();
-  const controlsTargetVec = new THREE.Vector3();
-
+  // Efek ini menyetel posisi awal kamera secara instan.
   useEffect(() => {
-    // The intro animation will happen on the first render via useFrame
-    const timer = setTimeout(() => setIsIntroDone(true), 3000); // Duration of the intro fly-through
-    return () => clearTimeout(timer);
-  }, []);
+    camera.position.set(150, 80, 200);
+  }, [camera]);
+
+  const cameraTargetPos = useRef(new THREE.Vector3()).current;
+  const controlsTargetPos = useRef(new THREE.Vector3()).current;
 
   useFrame((state, delta) => {
     if (!controlsRef.current) return;
 
     const isFocused = !!selectedDistrict || isGameActive;
-    
-    // Use default position [0,0,0] if selectedDistrict is null
-    const [dx, , dz] = selectedDistrict?.position || [0, 0, 0];
-    
-    // Define camera and control targets
-    let cameraTargetPosition: THREE.Vector3;
-    let controlsTargetPosition: THREE.Vector3;
 
     if (isGameActive) {
-        // Game is at a fixed position [0, 10, 0]
-        cameraTargetPosition = cameraTargetVec.set(0, 20, 25);
-        controlsTargetPosition = controlsTargetVec.set(0, 10, 0); // look at the game
+        const [dx, dy, dz] = [0, 10, 0]; // Posisi tetap game
+        cameraTargetPos.set(dx, dy + 10, dz + 25);
+        controlsTargetPos.set(dx, dy, dz);
     } else if (selectedDistrict) {
-        cameraTargetPosition = cameraTargetVec.set(dx + 25, 20, dz + 25);
-        controlsTargetPosition = controlsTargetVec.set(dx, 10, dz);
-    } else { // Overview mode
-        cameraTargetPosition = cameraTargetVec.set(80, 40, 120);
-        
-        const hoveredDistrict = portfolioData.find((d: CityDistrict) => d.id === hoveredDistrictId);
-        const [hx, , hz] = hoveredDistrict?.position || [0, 0, 0];
-        const defaultTarget = new THREE.Vector3(0, 0, 0);
-        if (hoveredDistrictId && isIntroDone) {
-            defaultTarget.lerp(new THREE.Vector3(hx, 0, hz), 0.1);
-        }
-        controlsTargetPosition = defaultTarget;
+        const [dx, dy, dz] = selectedDistrict.position;
+        cameraTargetPos.set(dx + 25, dy + 20, dz + 25);
+        controlsTargetPos.set(dx, dy + 10, dz);
+    } else { // Mode gambaran umum
+        cameraTargetPos.copy(OVERVIEW_CAM_POS);
+        controlsTargetPos.copy(OVERVIEW_TARGET_POS);
     }
 
-
-    // Smoothly interpolate camera position and controls target
-    let speed = delta * 1.5;
-    if (isFocused) speed *= 2;
-    if (!isIntroDone) speed = delta * 0.5;
-
-    state.camera.position.lerp(cameraTargetPosition, speed);
-    controlsRef.current.target.lerp(controlsTargetPosition, speed);
+    // Menginterpolasi posisi kamera dan target kontrol dengan mulus
+    const speed = delta * (isFocused ? 2.5 : 1.5);
+    state.camera.position.lerp(cameraTargetPos, speed);
+    controlsRef.current.target.lerp(controlsTargetPos, speed);
     
-    // Disable panning when focused on a district for better stability
+    // Nonaktifkan panning saat fokus pada distrik untuk stabilitas yang lebih baik
     controlsRef.current.enablePan = !isFocused;
     controlsRef.current.update();
   });
@@ -77,7 +59,7 @@ const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, hoveredDistrict
       enableDamping
       dampingFactor={0.1}
       minDistance={10}
-      maxDistance={250} // Increased max distance for intro
+      maxDistance={250}
       minPolarAngle={Math.PI / 8}
       maxPolarAngle={Math.PI / 2.2}
       mouseButtons={{

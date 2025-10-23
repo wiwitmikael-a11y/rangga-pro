@@ -1,16 +1,50 @@
-// FIX: Added the triple-slash directive to provide types for R3F's custom JSX elements, resolving "Property does not exist on type 'JSX.IntrinsicElements'" errors.
 /// <reference types="@react-three/fiber" />
 import React, { useState, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text, Box } from '@react-three/drei';
 import * as THREE from 'three';
-import { CityDistrict } from '../../types';
+import type { CityDistrict } from '../../types';
 
 interface ContactTerminalProps {
   district: CityDistrict;
   onSelect: (district: CityDistrict) => void;
   onHover: (id: string | null) => void;
   isSelected: boolean;
+}
+
+interface InteractiveButtonProps {
+  position: [number, number, number];
+  text: string;
+  onClick: () => void;
+}
+
+const InteractiveButton: React.FC<InteractiveButtonProps> = ({ position, text, onClick }) => {
+    const [hovered, setHovered] = useState(false);
+    const scaleTarget = hovered ? 1.2 : 1;
+    const groupRef = useRef<THREE.Group>(null!);
+    
+    useFrame((_, delta) => {
+        if (groupRef.current) {
+            groupRef.current.scale.lerp(new THREE.Vector3(scaleTarget, scaleTarget, scaleTarget), delta * 8);
+        }
+    });
+
+    return (
+        <group 
+            ref={groupRef}
+            position={position} 
+            onPointerOver={(e) => { e.stopPropagation(); setHovered(true); document.body.style.cursor = 'pointer'; }} 
+            onPointerOut={() => { setHovered(false); document.body.style.cursor = 'auto'; }} 
+            onClick={onClick}
+        >
+            <Box args={[2, 0.8, 0.2]}>
+                <meshStandardMaterial color={hovered ? '#00ffff' : '#005577'} emissive={hovered ? '#00ffff' : '#005577'} emissiveIntensity={1.5} />
+            </Box>
+            <Text position={[0, 0, 0.15]} fontSize={0.3} color="white" anchorX="center" anchorY="middle">
+                {text}
+            </Text>
+        </group>
+    )
 }
 
 const ContactTerminal: React.FC<ContactTerminalProps> = ({ district, onSelect, onHover, isSelected }) => {
@@ -34,36 +68,15 @@ const ContactTerminal: React.FC<ContactTerminalProps> = ({ district, onSelect, o
     }
   });
 
-  const handlePointerOver = (e: any) => {
-    e.stopPropagation();
-    setIsHovered(true);
-    onHover(district.id);
-    document.body.style.cursor = 'pointer';
-  };
-
-  const handlePointerOut = (e: any) => {
-    e.stopPropagation();
-    setIsHovered(false);
-    onHover(null);
-    document.body.style.cursor = 'auto';
-  };
-
-  const handleClick = (e: any) => {
-    e.stopPropagation();
-    onSelect(district);
-  };
-  
-  const handleContactClick = (url: string) => {
-    window.open(url, '_blank');
-  };
+  const handleContactClick = (url: string) => window.open(url, '_blank', 'noopener,noreferrer');
 
   return (
     <group position={district.position}>
       <mesh
         ref={meshRef}
-        onClick={handleClick}
-        onPointerOver={handlePointerOver}
-        onPointerOut={handlePointerOut}
+        onClick={(e) => { e.stopPropagation(); onSelect(district); }}
+        onPointerOver={(e) => { e.stopPropagation(); setIsHovered(true); onHover(district.id); document.body.style.cursor = 'pointer'; }}
+        onPointerOut={(e) => { e.stopPropagation(); setIsHovered(false); onHover(null); document.body.style.cursor = 'auto'; }}
       >
         <cylinderGeometry args={[5, 5, 1, 6]} />
         <meshStandardMaterial
@@ -101,20 +114,5 @@ const ContactTerminal: React.FC<ContactTerminalProps> = ({ district, onSelect, o
     </group>
   );
 };
-
-const InteractiveButton: React.FC<{position: [number, number, number], text: string, onClick: () => void}> = ({ position, text, onClick }) => {
-    const [hovered, setHovered] = useState(false);
-    const scale = hovered ? 1.2 : 1;
-    return (
-        <group position={position} scale={scale} onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)} onClick={onClick}>
-            <Box args={[2, 0.8, 0.2]}>
-                <meshStandardMaterial color={hovered ? '#00ffff' : '#005577'} emissive={hovered ? '#00ffff' : '#005577'} emissiveIntensity={1} />
-            </Box>
-            <Text position={[0, 0, 0.15]} fontSize={0.3} color="white" anchorX="center" anchorY="middle">
-                {text}
-            </Text>
-        </group>
-    )
-}
 
 export default ContactTerminal;

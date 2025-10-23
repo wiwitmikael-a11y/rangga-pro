@@ -4,28 +4,33 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="A WebGL-based portfolio by Rangga, set in a digital metropolis." />
     <title>rangga.pro - The Digital Metropolis</title>
     <style>
+      @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
+      
+      :root {
+        --primary-color: #00ffff;
+        --background-color: #050810;
+        --font-family: 'Roboto Mono', monospace;
+      }
+
       body {
         margin: 0;
-        background-color: #000;
-        overflow: hidden; /* Prevent scrollbars */
+        background-color: var(--background-color);
+        overflow: hidden;
+        font-family: var(--font-family);
+        color: white;
       }
       #root {
         width: 100vw;
         height: 100vh;
-      }
-      /* Hide the audio players */
-      audio {
-        display: none;
+        isolation: isolate; /* Create a new stacking context for overlays */
       }
     </style>
   </head>
   <body>
     <div id="root"></div>
-    <audio id="vehicle-sound" loop></audio>
-    <audio id="success-sound"></audio>
-    <audio id="scan-sound"></audio>
     <script type="importmap">
 {
   "imports": {

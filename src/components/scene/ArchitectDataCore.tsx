@@ -1,9 +1,8 @@
-// FIX: Added the triple-slash directive to provide types for R3F's custom JSX elements, resolving "Property does not exist on type 'JSX.IntrinsicElements'" errors.
 /// <reference types="@react-three/fiber" />
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { CityDistrict, PortfolioSubItem } from '../../types';
+import type { CityDistrict, PortfolioSubItem } from '../../types';
 import { ProjectDisplay } from './ProjectDisplay';
 
 interface ArchitectDataCoreProps {
@@ -24,27 +23,25 @@ const ArchitectDataCore: React.FC<ArchitectDataCoreProps> = ({
   onProjectClick
 }) => {
   const groupRef = useRef<THREE.Group>(null!);
+  const isSelected = selectedDistrict?.id === district.id;
 
   useFrame(({ clock }) => {
     if (groupRef.current) {
       groupRef.current.rotation.y = clock.getElapsedTime() * 0.05;
     }
   });
-  
-  const isSelected = selectedDistrict?.id === district.id;
 
   return (
     <group position={district.position}>
-      {/* Central floating orb */}
       <mesh
         onClick={() => onDistrictSelect(district)}
-        onPointerOver={() => onDistrictHover(district.id)}
-        onPointerOut={() => onDistrictHover(null)}
+        onPointerOver={(e) => { e.stopPropagation(); onDistrictHover(district.id); document.body.style.cursor = 'pointer'; }}
+        onPointerOut={(e) => { e.stopPropagation(); onDistrictHover(null); document.body.style.cursor = 'auto'; }}
       >
         <sphereGeometry args={[4, 32, 32]} />
         <meshStandardMaterial
-          color="#00aaff"
-          emissive="#00ffff"
+          color={isSelected ? "#00ffff" : "#00aaff"}
+          emissive={isSelected ? "#00ffff" : "#00aaff"}
           emissiveIntensity={isSelected ? 3 : 1}
           transparent
           opacity={0.3}
@@ -52,10 +49,9 @@ const ArchitectDataCore: React.FC<ArchitectDataCoreProps> = ({
         />
       </mesh>
       
-      {/* Display project sub-items when district is selected */}
-      {isSelected && (
+      {isSelected && district.subItems && (
         <group ref={groupRef}>
-          {district.subItems?.map(item => (
+          {district.subItems.map(item => (
             <ProjectDisplay
               key={item.id}
               item={item}

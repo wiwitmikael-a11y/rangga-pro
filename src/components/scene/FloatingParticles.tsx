@@ -1,6 +1,5 @@
-// FIX: Added the triple-slash directive to provide types for R3F's custom JSX elements, resolving "Property does not exist on type 'JSX.IntrinsicElements'" errors.
 /// <reference types="@react-three/fiber" />
-import React, { useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -11,24 +10,23 @@ interface FloatingParticlesProps {
 const FloatingParticles: React.FC<FloatingParticlesProps> = ({ count }) => {
   const pointsRef = useRef<THREE.Points>(null!);
 
-  const particles = useMemo(() => {
-    const positions = new Float32Array(count * 3);
-    for (let i = 0; i < count * 3; i++) {
-      positions[i] = (Math.random() - 0.5) * 150; 
-      positions[i+1] = Math.random() * 50; // particles from ground up to the sky
+  const positions = useMemo(() => {
+    const arr = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      arr[i * 3] = (Math.random() - 0.5) * 200; 
+      arr[i * 3 + 1] = Math.random() * 50;
+      arr[i * 3 + 2] = (Math.random() - 0.5) * 200;
     }
-    return positions;
+    return arr;
   }, [count]);
 
-  useFrame((_state, delta) => {
+  useFrame((_, delta) => {
     if (pointsRef.current) {
-      // Gently drift particles downwards
-      // FIX: Corrected typo from Float3Array to Float32Array.
       const positions = pointsRef.current.geometry.attributes.position.array as Float32Array;
       for (let i = 0; i < positions.length; i += 3) {
-        positions[i+1] -= 0.5 * delta;
-        if (positions[i+1] < 0) {
-          positions[i+1] = 50;
+        positions[i + 1] -= 0.5 * delta;
+        if (positions[i + 1] < -5) {
+          positions[i + 1] = 50 + Math.random() * 10;
         }
       }
       pointsRef.current.geometry.attributes.position.needsUpdate = true;
@@ -40,13 +38,13 @@ const FloatingParticles: React.FC<FloatingParticlesProps> = ({ count }) => {
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
-          count={particles.length / 3}
-          array={particles}
+          count={count}
+          array={positions}
           itemSize={3}
         />
       </bufferGeometry>
       <pointsMaterial
-        size={0.05}
+        size={0.08}
         color="#00ffff"
         transparent
         opacity={0.3}

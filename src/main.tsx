@@ -1,11 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-// Fix: Explicitly use .tsx extension for the App import.
 import App from './App.tsx';
 
-const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
-);
+const rootElement = document.getElementById('root');
+
+if (!rootElement) {
+  throw new Error("Fatal Error: Root element 'root' not found in the DOM.");
+}
+
+const root = ReactDOM.createRoot(rootElement);
+
 root.render(
   <React.StrictMode>
     <App />

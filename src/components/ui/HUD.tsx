@@ -1,19 +1,13 @@
-import React, { useState } from 'react';
-import { CityDistrict, PerformanceTier } from '../../types';
+import React, { useState, useMemo } from 'react';
+import type { CityDistrict, PerformanceTier } from '../../types';
 
-interface HUDProps {
-  selectedDistrict: CityDistrict | null;
-  onGoHome: () => void;
-  performanceTier: PerformanceTier;
-  onSetPerformanceTier: (tier: PerformanceTier) => void;
-  isGameActive: boolean;
+interface SettingsPanelProps {
+  currentTier: PerformanceTier;
+  onSetTier: (tier: PerformanceTier) => void;
+  onClose: () => void;
 }
 
-const SettingsPanel: React.FC<{
-    currentTier: PerformanceTier;
-    onSetTier: (tier: PerformanceTier) => void;
-    onClose: () => void;
-}> = ({ currentTier, onSetTier, onClose }) => {
+const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentTier, onSetTier, onClose }) => {
     return (
         <div style={styles.settingsPanel}>
             <h4 style={styles.settingsTitle}>Quality Settings</h4>
@@ -31,42 +25,52 @@ const SettingsPanel: React.FC<{
                     </button>
                 ))}
             </div>
-            <button onClick={onClose} style={styles.settingsCloseButton}>Close</button>
+            <button onClick={onClose} style={styles.settingsCloseButton}>&times;</button>
         </div>
     );
 };
 
+interface HUDProps {
+  selectedDistrict: CityDistrict | null;
+  onGoHome: () => void;
+  performanceTier: PerformanceTier;
+  onSetPerformanceTier: (tier: PerformanceTier) => void;
+  isGameActive: boolean;
+}
 
 export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, performanceTier, onSetPerformanceTier, isGameActive }) => {
-  const isDistrictSelected = !!selectedDistrict;
-  const breadcrumb = isGameActive
-    ? 'METROPOLIS CORE > /NEXUS_PROTOCOL_BREACH/'
-    : isDistrictSelected 
-    ? `METROPOLIS CORE > /${selectedDistrict.id.toUpperCase()}_DISTRICT/`
-    : 'METROPOLIS CORE';
   const [showSettings, setShowSettings] = useState(false);
+
+  const breadcrumb = useMemo(() => {
+    if (isGameActive) return 'METROPOLIS.CORE > /NEXUS_PROTOCOL_BREACH/';
+    if (selectedDistrict) return `METROPOLIS.CORE > /${selectedDistrict.id.toUpperCase()}_DISTRICT/`;
+    return 'METROPOLIS.CORE';
+  }, [isGameActive, selectedDistrict]);
   
-  const showHomeButton = isDistrictSelected || isGameActive;
+  const showHomeButton = !!selectedDistrict || isGameActive;
   const homeButtonText = isGameActive ? 'Abort Mission' : 'City Overview';
 
   return (
     <>
-       <div style={styles.breadcrumbContainer}>
+      <div style={styles.breadcrumbContainer}>
           <p style={styles.breadcrumbText}>{breadcrumb}</p>
       </div>
-      <div style={{...styles.topContainer, ...(isDistrictSelected && !isGameActive ? styles.visible : styles.hiddenTop)}}>
+
+      <div style={{...styles.topContainer, ...(selectedDistrict && !isGameActive ? styles.visible : styles.hiddenTop)}}>
         <div style={styles.panelBackground}>
           <h2 style={styles.title}>{selectedDistrict?.title}</h2>
           <p style={styles.description}>{selectedDistrict?.description}</p>
         </div>
       </div>
-       <div style={styles.bottomContainer}>
+       
+      <div style={styles.bottomContainer}>
          <button 
             onClick={onGoHome} 
-            style={{...styles.homeButton, ...(showHomeButton ? styles.visible : styles.hiddenBottom)}}>
+            style={{...styles.hudButton, ...(showHomeButton ? styles.visible : styles.hiddenBottom)}}>
             {homeButtonText}
           </button>
       </div>
+
       <div style={styles.settingsContainer}>
           {showSettings && (
               <SettingsPanel 
@@ -75,7 +79,7 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
                 onClose={() => setShowSettings(false)}
               />
           )}
-          <button onClick={() => setShowSettings(!showSettings)} style={styles.settingsToggleButton}>
+          <button onClick={() => setShowSettings(!showSettings)} style={{...styles.hudButton, ...styles.settingsToggleButton}}>
               ?
           </button>
       </div>
@@ -83,26 +87,22 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
   );
 });
 
-const commonContainerStyles: React.CSSProperties = {
-  position: 'fixed',
-  fontFamily: 'monospace',
-  color: 'white',
-  padding: '20px',
-  pointerEvents: 'none',
-  zIndex: 10,
+const glassmorphism: React.CSSProperties = {
+  background: 'rgba(0, 20, 40, 0.7)',
+  backdropFilter: 'blur(10px)',
+  border: '1px solid rgba(0, 170, 255, 0.5)',
+  boxShadow: '0 0 15px rgba(0, 170, 255, 0.1)',
 };
 
 const styles: { [key: string]: React.CSSProperties } = {
   breadcrumbContainer: {
+    ...glassmorphism,
     position: 'fixed',
     top: '20px',
     left: '50%',
     transform: 'translateX(-50%)',
-    fontFamily: 'monospace',
     color: '#00aaff',
-    backgroundColor: 'rgba(0, 20, 40, 0.7)',
     padding: '5px 15px',
-    border: '1px solid #00aaff',
     borderRadius: '5px',
     zIndex: 10,
     textShadow: '0 0 5px #00aaff',
@@ -112,49 +112,46 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   breadcrumbText: {
     margin: 0,
-    fontSize: '0.9rem',
+    fontSize: 'clamp(0.8rem, 1.5vw, 0.9rem)',
     letterSpacing: '0.1em',
   },
   topContainer: {
-    ...commonContainerStyles,
+    position: 'fixed',
     top: 0,
     left: 0,
-    width: 'clamp(300px, 40vw, 500px)',
-    textAlign: 'left',
+    width: 'clamp(300px, 30vw, 450px)',
+    zIndex: 10,
     transition: 'opacity 0.5s ease, transform 0.5s ease',
+    pointerEvents: 'none',
   },
   panelBackground: {
-    backgroundColor: 'rgba(0, 20, 40, 0.85)',
-    backdropFilter: 'blur(10px)',
+    ...glassmorphism,
+    margin: '20px',
     padding: '20px',
-    border: '1px solid #00aaff',
-    borderTop: 'none',
-    borderLeft: 'none',
     borderBottomRightRadius: '10px',
+    borderTopLeftRadius: '10px',
   },
   bottomContainer: {
-    ...commonContainerStyles,
-    bottom: 0,
+    position: 'fixed',
+    bottom: '20px',
     left: '50%',
     transform: 'translateX(-50%)',
+    zIndex: 10,
     textAlign: 'center',
-    padding: '30px',
   },
   title: {
     margin: 0,
-    fontSize: '2rem',
+    fontSize: 'clamp(1.5rem, 3vw, 2rem)',
     color: '#FFFFFF',
-    textShadow: '1px 1px 2px rgba(0,0,0,0.7), 0 0 8px #00ffff',
+    textShadow: '0 0 8px var(--primary-color)',
   },
   description: {
     margin: '5px 0 0 0',
-    fontSize: '1rem',
+    fontSize: 'clamp(0.9rem, 1.5vw, 1rem)',
     color: '#e0e0e0',
-    textShadow: '1px 1px 2px rgba(0,0,0,0.7)',
   },
-  homeButton: {
-    background: 'rgba(0, 20, 40, 0.7)',
-    border: '1px solid #00aaff',
+  hudButton: {
+    ...glassmorphism,
     color: '#00aaff',
     padding: '10px 20px',
     fontSize: '1rem',
@@ -164,19 +161,21 @@ const styles: { [key: string]: React.CSSProperties } = {
     textTransform: 'uppercase',
     letterSpacing: '0.1em',
     pointerEvents: 'all',
-    backdropFilter: 'blur(5px)',
   },
   visible: {
     opacity: 1,
     transform: 'translateY(0)',
+    pointerEvents: 'all',
   },
   hiddenTop: {
     opacity: 0,
     transform: 'translateY(-20px)',
+    pointerEvents: 'none',
   },
   hiddenBottom: {
     opacity: 0,
     transform: 'translateY(20px)',
+    pointerEvents: 'none',
   },
   settingsContainer: {
     position: 'fixed',
@@ -193,29 +192,26 @@ const styles: { [key: string]: React.CSSProperties } = {
       width: '40px',
       height: '40px',
       borderRadius: '50%',
-      border: '1px solid #00aaff',
-      background: 'rgba(0, 20, 40, 0.7)',
-      color: '#00aaff',
-      cursor: 'pointer',
+      padding: 0,
       fontSize: '1.5rem',
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
-      lineHeight: '1',
-      backdropFilter: 'blur(5px)',
   },
   settingsPanel: {
-    background: 'rgba(0, 20, 40, 0.9)',
-    border: '1px solid #00aaff',
+    ...glassmorphism,
     borderRadius: '5px',
     padding: '15px',
-    backdropFilter: 'blur(10px)',
+    position: 'relative',
+    width: '150px',
   },
   settingsTitle: {
       margin: '0 0 10px 0',
       color: '#fff',
       fontSize: '1rem',
       textAlign: 'center',
+      textTransform: 'uppercase',
+      letterSpacing: '0.1em',
   },
   settingsButtons: {
       display: 'flex',
@@ -229,7 +225,7 @@ const styles: { [key: string]: React.CSSProperties } = {
       padding: '5px 10px',
       cursor: 'pointer',
       borderRadius: '3px',
-      width: '120px',
+      width: '100%',
       textAlign: 'left',
   },
   settingsButtonActive: {
@@ -237,11 +233,14 @@ const styles: { [key: string]: React.CSSProperties } = {
       color: '#000',
   },
   settingsCloseButton: {
-      marginTop: '10px',
+      position: 'absolute',
+      top: '5px',
+      right: '5px',
       background: 'transparent',
       border: 'none',
       color: '#aaa',
       cursor: 'pointer',
-      width: '100%',
+      fontSize: '1.5rem',
+      lineHeight: 1,
   },
 };

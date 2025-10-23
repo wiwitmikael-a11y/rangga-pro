@@ -1,4 +1,3 @@
-// FIX: Added the triple-slash directive to provide types for R3F's custom JSX elements, resolving "Property does not exist on type 'JSX.IntrinsicElements'" errors.
 /// <reference types="@react-three/fiber" />
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
@@ -23,7 +22,7 @@ const GameNode: React.FC<{
   useFrame((_, delta) => {
     if (meshRef.current) {
       const material = meshRef.current.material as THREE.MeshStandardMaterial;
-      const targetIntensity = isLit ? 3 : 0.5;
+      const targetIntensity = isLit ? 4 : 0.8;
       material.emissiveIntensity = THREE.MathUtils.lerp(material.emissiveIntensity, targetIntensity, delta * 20);
     }
   });
@@ -40,9 +39,10 @@ const GameNode: React.FC<{
       <meshStandardMaterial
         color={color}
         emissive={color}
-        emissiveIntensity={0.5}
+        emissiveIntensity={0.8}
         metalness={0.8}
         roughness={0.2}
+        toneMapped={false}
       />
     </Box>
   );
@@ -55,8 +55,8 @@ const NexusProtocolGame: React.FC<NexusProtocolGameProps> = ({ onGameComplete })
   const [gameState, setGameState] = useState<'WATCH' | 'PLAY' | 'WIN' | 'LOSE'>('WATCH');
   const [litNode, setLitNode] = useState<number | null>(null);
 
-  const nodePositions: [number, number, number][] = useMemo(() => [
-    [-3, 0, 0], [3, 0, 0], [0, 0, -3], [0, 0, 3]
+  const nodePositions = useMemo((): [number, number, number][] => [
+    [-3.5, 0, 0], [3.5, 0, 0], [0, 0, -3.5], [0, 0, 3.5]
   ], []);
 
   const generateSequence = useCallback(() => {
@@ -85,17 +85,15 @@ const NexusProtocolGame: React.FC<NexusProtocolGameProps> = ({ onGameComplete })
   }, [gameState, sequence]);
   
   useEffect(() => {
-    if (gameState !== 'PLAY') return;
+    if (gameState !== 'PLAY' || playerSequence.length === 0) return;
 
-    if (playerSequence.length > 0) {
-        const index = playerSequence.length - 1;
-        if (sequence[index] !== playerSequence[index]) {
-            setGameState('LOSE');
-            return;
-        }
+    const index = playerSequence.length - 1;
+    if (sequence[index] !== playerSequence[index]) {
+        setGameState('LOSE');
+        return;
     }
     
-    if (playerSequence.length === sequence.length && sequence.length > 0) {
+    if (playerSequence.length === sequence.length) {
       setGameState('WIN');
     }
   }, [playerSequence, sequence, gameState]);
@@ -113,9 +111,21 @@ const NexusProtocolGame: React.FC<NexusProtocolGameProps> = ({ onGameComplete })
       setGameState('WATCH');
   }
 
+  const statusText = {
+      WATCH: '...OBSERVE SEQUENCE...',
+      PLAY: '...REPEAT SEQUENCE...',
+      WIN: 'ACCESS GRANTED! (Click to Continue)',
+      LOSE: 'SEQUENCE FAILED! (Click to Retry)'
+  }[gameState];
+
+  const statusColor = {
+    WIN: '#44ff44',
+    LOSE: '#ff4444'
+  }[gameState] || 'white';
+
   return (
     <group position={[0, 10, 0]}>
-      <Text position={[0, 5, 0]} fontSize={1} color="white" anchorX="center">
+      <Text position={[0, 6, 0]} fontSize={1} color="white" anchorX="center" letterSpacing={0.1}>
         NEXUS PROTOCOL
       </Text>
       
@@ -129,26 +139,15 @@ const NexusProtocolGame: React.FC<NexusProtocolGameProps> = ({ onGameComplete })
         />
       ))}
       
-      {gameState === 'WIN' && (
-        <Text position={[0, -4, 0]} fontSize={0.8} color="#44ff44" anchorX="center" onClick={onGameComplete}>
-          ACCESS GRANTED! (Click to Continue)
-        </Text>
-      )}
-      {gameState === 'LOSE' && (
-        <Text position={[0, -4, 0]} fontSize={0.8} color="#ff4444" anchorX="center" onClick={handleReset}>
-          SEQUENCE FAILED! (Click to Retry)
-        </Text>
-      )}
-       {gameState === 'WATCH' && (
-        <Text position={[0, -4, 0]} fontSize={0.6} color="white" anchorX="center">
-          ...OBSERVE SEQUENCE...
-        </Text>
-      )}
-       {gameState === 'PLAY' && (
-        <Text position={[0, -4, 0]} fontSize={0.6} color="white" anchorX="center">
-          ...REPEAT SEQUENCE...
-        </Text>
-      )}
+      <Text 
+        position={[0, -4, 0]} 
+        fontSize={0.6} 
+        color={statusColor} 
+        anchorX="center"
+        onClick={gameState === 'WIN' ? onGameComplete : gameState === 'LOSE' ? handleReset : undefined}
+      >
+        {statusText}
+      </Text>
     </group>
   );
 };

@@ -1,131 +1,102 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 
-const initMessages = [
-  "INITIATING KERNEL BOOTSTRAP...",
-  "MEMORY CHECK....................[PASS]",
-  "LOADING V-BIOS..................[OK]",
-  "DETECTING R3F RENDERER V8.16....[OK]",
-  "ESTABLISHING DATALINK...........[SECURE]",
-  " "
+const stages = [
+  { message: "INITIATING KERNEL BOOTSTRAP...", delay: 200 },
+  { message: "MEMORY CHECK....................[PASS]", delay: 300 },
+  { message: "LOADING V-BIOS..................[OK]", delay: 250 },
+  { message: "DETECTING R3F RENDERER V8.16....[OK]", delay: 400 },
+  { message: "ESTABLISHING DATALINK...........[SECURE]", delay: 500 },
+  { message: "COMPILING MODULES...", delay: 300, isProgress: true },
+  { message: "BUILD SUCCESSFUL. 10 MODULES COMPILED.", delay: 200 },
+  { message: "INJECTING METROPOLIS OS V1.0...", delay: 600 },
+  { message: "ALL SYSTEMS NOMINAL.", delay: 400 },
+  { message: "AWAITING ARCHITECT INPUT...", delay: 500 },
 ];
 
-const compileFiles = [
-  "core/matrix_renderer.glsl",
-  "modules/physics_engine.dll",
-  "assets/city_model_LOD1.pak",
-  "shaders/bloom_effect.frag",
-  "net/comms_protocol.sys",
-  "ui/holographic_interface.jsx",
-  "core/audio_subsystem.lib",
-  "assets/vehicle_AI.pak",
-  "modules/particle_system.dll",
-  "finalizing_build...",
-];
-
-const finalMessages = [
-  " ",
-  "BUILD SUCCESSFUL. 10 MODULES COMPILED.",
-  "INJECTING METROPOLIS OS V1.0...",
-  "ALL SYSTEMS NOMINAL.",
-  "AWAITING ARCHITECT INPUT...",
-];
-
+const generateAsciiArt = () => {
+    const chars = ['█', '▓', '▒', '░', ' '];
+    let art = '';
+    for (let i = 0; i < 5; i++) {
+        for (let j = 0; j < 40; j++) {
+            art += chars[Math.floor(Math.random() * chars.length)];
+        }
+        art += '\n';
+    }
+    return art;
+};
 
 export const Loader = React.memo(() => {
     const [log, setLog] = useState<string[]>(['> Connecting to rangga.pro...']);
     const [progress, setProgress] = useState(0);
-    const [stage, setStage] = useState<'init' | 'compile' | 'finalize' | 'done'>('init');
+    const [currentStageIndex, setCurrentStageIndex] = useState(0);
+    const [asciiArt, setAsciiArt] = useState('');
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // Auto-scroll to bottom
+    useEffect(() => {
+        const artInterval = setInterval(() => {
+            setAsciiArt(generateAsciiArt());
+        }, 150);
+        return () => clearInterval(artInterval);
+    }, []);
+
+    useEffect(() => {
+        if (currentStageIndex >= stages.length) return;
+
+        const currentStage = stages[currentStageIndex];
+        const timer = setTimeout(() => {
+            setLog(prev => [...prev, `> ${currentStage.message}`]);
+            if (!currentStage.isProgress) {
+                setCurrentStageIndex(prev => prev + 1);
+            }
+        }, currentStage.delay);
+
+        return () => clearTimeout(timer);
+    }, [currentStageIndex]);
+
+    useEffect(() => {
+        if (stages[currentStageIndex]?.isProgress) {
+            const interval = setInterval(() => {
+                setProgress(prev => {
+                    const newValue = prev + 1;
+                    if (newValue >= 100) {
+                        clearInterval(interval);
+                        setCurrentStageIndex(i => i + 1);
+                        return 100;
+                    }
+                    return newValue;
+                });
+            }, 30);
+            return () => clearInterval(interval);
+        }
+    }, [currentStageIndex]);
+
     useEffect(() => {
         if (containerRef.current) {
             containerRef.current.scrollTop = containerRef.current.scrollHeight;
         }
     }, [log, progress]);
 
-    // Stage 1: Initialization
-    useEffect(() => {
-        if (stage === 'init') {
-            let delay = 100;
-            initMessages.forEach((msg, index) => {
-                setTimeout(() => {
-                    setLog(prev => [...prev, `> ${msg}`]);
-                    if (index === initMessages.length - 1) {
-                       setTimeout(() => setStage('compile'), 200);
-                    }
-                }, delay);
-                delay += (Math.random() * 150 + 50);
-            });
-        }
-    }, [stage]);
-    
-    // Stage 2: Compilation
-    useEffect(() => {
-        if (stage === 'compile') {
-            setLog(prev => [...prev, `> Compiling modules...`]);
-
-            const interval = setInterval(() => {
-                setProgress(prev => {
-                    const newProgress = prev + 2;
-                    if (newProgress >= 100) {
-                        clearInterval(interval);
-                        setTimeout(() => setStage('finalize'), 200);
-                        return 100;
-                    }
-                    
-                    const fileIndex = Math.floor(newProgress / 10);
-                    if (Math.floor((prev)/10) < fileIndex) {
-                        setLog(prev => [...prev, `  - Compiling ${compileFiles[fileIndex]}...`]);
-                    }
-
-                    return newProgress;
-                });
-            }, 50);
-            return () => clearInterval(interval);
-        }
-    }, [stage]);
-
-    // Stage 3: Finalization
-     useEffect(() => {
-        if (stage === 'finalize') {
-            let delay = 100;
-            finalMessages.forEach((msg, index) => {
-                setTimeout(() => {
-                    setLog(prev => [...prev, `> ${msg}`]);
-                     if (index === finalMessages.length - 1) {
-                       setStage('done');
-                    }
-                }, delay);
-                delay += (Math.random() * 150 + 100);
-            });
-        }
-    }, [stage]);
-
-
-    const renderProgressBar = () => {
+    const progressBar = useMemo(() => {
         const barWidth = 30;
         const filledWidth = Math.floor((progress / 100) * barWidth);
-        const emptyWidth = barWidth - filledWidth;
-        const bar = `[${'█'.repeat(filledWidth)}${'-'.repeat(emptyWidth)}]`;
+        const bar = `[${'█'.repeat(filledWidth)}${'-'.repeat(barWidth - filledWidth)}]`;
         return `${bar} ${progress}%`;
-    };
-
+    }, [progress]);
 
     return (
         <div style={styles.container}>
-            <div style={styles.scanlineEffect}></div>
+            <div style={styles.scanlineEffect} />
+            <pre style={styles.asciiArt}>{asciiArt}</pre>
             <div ref={containerRef} style={styles.logContainer}>
                 {log.map((line, index) => (
                     <p key={index} style={styles.text}>{line}</p>
                 ))}
-                {stage === 'compile' && <p style={styles.text}>{renderProgressBar()}</p>}
-                {stage !== 'done' && <span style={styles.cursor}>_</span>}
+                {stages[currentStageIndex]?.isProgress && <p style={styles.text}>{progressBar}</p>}
+                {currentStageIndex < stages.length && <span style={styles.cursor}>_</span>}
             </div>
             <style>{`
-                @keyframes blink {
-                    50% { opacity: 0; }
-                }
+                @keyframes blink { 50% { opacity: 0; } }
+                @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
             `}</style>
         </div>
     );
@@ -134,42 +105,46 @@ export const Loader = React.memo(() => {
 const styles: { [key: string]: React.CSSProperties } = {
     container: {
         position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
+        inset: 0,
         display: 'flex',
-        justifyContent: 'flex-start',
-        alignItems: 'flex-start',
+        flexDirection: 'column',
         backgroundColor: 'black',
         zIndex: 2000,
-        color: '#00ffff',
-        fontFamily: 'monospace',
-        fontSize: 'clamp(0.8rem, 2vw, 1rem)',
+        color: 'var(--primary-color)',
+        fontFamily: 'var(--font-family)',
+        fontSize: 'clamp(0.8rem, 1.5vw, 1rem)',
         padding: '20px',
         boxSizing: 'border-box',
+        animation: 'fadeIn 0.5s ease-out',
     },
     scanlineEffect: {
         position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
+        inset: 0,
         pointerEvents: 'none',
         background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0) 100%)',
         backgroundSize: '100% 4px',
-        opacity: 0.2,
+        opacity: 0.1,
+        zIndex: 1,
+    },
+    asciiArt: {
+        width: '100%',
+        textAlign: 'center',
+        margin: '0 0 20px 0',
+        textShadow: '0 0 5px var(--primary-color)',
+        opacity: 0.5,
+        fontSize: '0.5em',
+        lineHeight: 1.2,
     },
     logContainer: {
+        flex: 1,
         width: '100%',
-        height: '100%',
         overflowY: 'auto',
         overflowX: 'hidden',
     },
     text: {
         margin: '2px 0',
         whiteSpace: 'pre-wrap',
-        textShadow: '0 0 5px #00ffff',
+        textShadow: '0 0 5px var(--primary-color)',
         letterSpacing: '0.05em',
     },
     cursor: {

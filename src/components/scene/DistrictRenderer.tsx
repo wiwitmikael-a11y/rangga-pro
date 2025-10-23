@@ -1,6 +1,5 @@
-// FIX: Removed obsolete triple-slash directive for @react-three/fiber types, which was causing JSX type errors.
 import React from 'react';
-import { CityDistrict, PortfolioSubItem } from '../../types';
+import type { CityDistrict, PortfolioSubItem } from '../../types';
 import { portfolioData, ambientDistricts } from '../../constants';
 import DistrictBuilding from './DistrictBuilding';
 import ArchitectDataCore from './ArchitectDataCore';
@@ -14,7 +13,14 @@ interface DistrictRendererProps {
   onProjectClick: (item: PortfolioSubItem) => void;
 }
 
-const DistrictRenderer: React.FC<DistrictRendererProps> = ({
+// Map ID distrik ke komponen kustom
+const customDistrictComponents: { [key: string]: React.FC<any> } = {
+  'intro-architect': ArchitectDataCore,
+  'project-nexus': ArchitectDataCore,
+  'contact-terminal': ContactTerminal,
+};
+
+export const DistrictRenderer: React.FC<DistrictRendererProps> = React.memo(({
   selectedDistrict,
   onSelectDistrict,
   onHoverDistrict,
@@ -23,53 +29,45 @@ const DistrictRenderer: React.FC<DistrictRendererProps> = ({
 }) => {
   return (
     <>
-      {/* Render major portfolio districts */}
+      {/* Render distrik portofolio utama */}
       {portfolioData.map(district => {
         const isSelected = selectedDistrict?.id === district.id;
+        const Component = customDistrictComponents[district.id] || DistrictBuilding;
 
-        if (district.id === 'intro-architect' || district.id === 'project-nexus') {
-          return (
-            <ArchitectDataCore
-              key={district.id}
-              district={district}
-              selectedDistrict={selectedDistrict}
-              onDistrictSelect={onSelectDistrict}
-              onDistrictHover={onHoverDistrict}
-              unlockedItems={unlockedItems}
-              onProjectClick={onProjectClick}
-            />
-          );
+        const commonProps = {
+          key: district.id,
+          district: district,
+          isSelected: isSelected,
+          onSelect: onSelectDistrict,
+          onHover: onHoverDistrict,
+          // Props khusus untuk komponen tertentu
+          ...(Component === ArchitectDataCore && {
+            selectedDistrict: selectedDistrict,
+            onDistrictSelect: onSelectDistrict,
+            onDistrictHover: onHoverDistrict,
+            unlockedItems: unlockedItems,
+            onProjectClick: onProjectClick,
+          }),
+          ...(Component === DistrictBuilding && {
+             isUnlocked: true // Anggap semua distrik utama lainnya selalu tidak terkunci
+          })
+        };
+        
+        // Ganti nama prop agar sesuai dengan ContactTerminal
+        if (Component === ContactTerminal) {
+            commonProps.onSelect = (dist: CityDistrict) => onSelectDistrict(dist);
+            commonProps.onHover = (id: string | null) => onHoverDistrict(id);
         }
-        if (district.id === 'contact-terminal') {
-          return (
-            <ContactTerminal
-              key={district.id}
-              district={district}
-              onSelect={onSelectDistrict}
-              onHover={onHoverDistrict}
-              isSelected={isSelected}
-            />
-          );
-        }
-        // Fallback for other major districts
-        return (
-          <DistrictBuilding
-            key={district.id}
-            district={district}
-            onSelect={onSelectDistrict}
-            onHover={onHoverDistrict}
-            isSelected={isSelected}
-            isUnlocked // Assuming non-special major districts are always unlocked
-          />
-        );
+
+        return <Component {...commonProps} />;
       })}
 
-      {/* Render ambient minor districts */}
+      {/* Render distrik minor ambient */}
       {ambientDistricts.map(district => (
         <DistrictBuilding key={district.id} district={district} />
       ))}
     </>
   );
-};
+});
 
 export default DistrictRenderer;

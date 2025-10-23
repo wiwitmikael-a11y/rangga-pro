@@ -1,12 +1,11 @@
-// FIX: Added the triple-slash directive to provide types for R3F's custom JSX elements, resolving "Property does not exist on type 'JSX.IntrinsicElements'" errors.
 /// <reference types="@react-three/fiber" />
-import React, { lazy, Suspense } from 'react';
+import { lazy, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Preload } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
-import { CityDistrict, PortfolioSubItem, PerformanceTier } from '../types';
+import type { CityDistrict, PortfolioSubItem, PerformanceTier } from '../types';
 
-// Lazy load components for performance
+// Lazy load komponen untuk kinerja
 const CityModel = lazy(() => import('./scene/CityModel').then(m => ({ default: m.CityModel })));
 const GroundPlane = lazy(() => import('./scene/GroundPlane').then(m => ({ default: m.GroundPlane })));
 const FlyingVehicles = lazy(() => import('./scene/FlyingVehicles'));
@@ -14,9 +13,8 @@ const FloatingParticles = lazy(() => import('./scene/FloatingParticles'));
 const Rain = lazy(() => import('./scene/Rain'));
 const DistrictRenderer = lazy(() => import('./scene/DistrictRenderer'));
 const HolographicProjector = lazy(() => import('./scene/HolographicProjector'));
-const NexusProtocolGame = lazy(() => import('./game/NexusProtocolGame.tsx'));
-const CameraRig = lazy(() => import('../CameraRig.tsx'));
-
+const NexusProtocolGame = lazy(() => import('../game/NexusProtocolGame'));
+const CameraRig = lazy(() => import('../CameraRig'));
 
 interface Experience3DProps {
   selectedDistrict: CityDistrict | null;
@@ -33,9 +31,9 @@ interface Experience3DProps {
 }
 
 const performanceSettings = {
-  PERFORMANCE: { vehicles: 20, particles: 50, rain: 200, effects: false },
-  BALANCED: { vehicles: 40, particles: 150, rain: 1000, effects: true },
-  QUALITY: { vehicles: 60, particles: 300, rain: 3000, effects: true },
+  PERFORMANCE: { vehicles: 15, particles: 50, rain: 200, effects: false, shadows: false },
+  BALANCED: { vehicles: 30, particles: 150, rain: 1000, effects: true, shadows: true },
+  QUALITY: { vehicles: 50, particles: 300, rain: 3000, effects: true, shadows: true },
 };
 
 export const Experience3D: React.FC<Experience3DProps> = ({
@@ -55,33 +53,31 @@ export const Experience3D: React.FC<Experience3DProps> = ({
 
   return (
     <Canvas
-      shadows
-      camera={{ position: [80, 40, 120], fov: 50 }}
+      shadows={settings.shadows}
+      camera={{ position: [80, 40, 120], fov: 50, near: 0.1, far: 500 }}
       dpr={[1, 1.5]} // Clamp pixel ratio for performance
     >
-      <fog attach="fog" args={['#050810', 50, 250]} />
+      <fog attach="fog" args={['#050810', 80, 300]} />
       <color attach="background" args={['#050810']} />
       
       <ambientLight intensity={0.2} />
       <directionalLight
         position={[10, 50, -50]}
         intensity={1.5}
-        castShadow
+        castShadow={settings.shadows}
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
+        shadow-bias={-0.0001}
       />
-      <pointLight position={[-20, 20, -20]} intensity={0.5} color="#00ffff" />
-      <pointLight position={[25, 20, -15]} intensity={0.5} color="#00ffff" />
-      <pointLight position={[0, 20, 30]} intensity={0.5} color="#00ffff" />
-
+      
       <Suspense fallback={null}>
-        <CameraRig selectedDistrict={selectedDistrict} hoveredDistrictId={hoveredDistrictId} isGameActive={isGameActive} />
+        <CameraRig selectedDistrict={selectedDistrict} isGameActive={isGameActive} />
         
         <CityModel />
         <GroundPlane />
         <FlyingVehicles count={settings.vehicles} />
         <FloatingParticles count={settings.particles} />
-        <Rain count={settings.rain} />
+        {performanceTier !== 'PERFORMANCE' && <Rain count={settings.rain} />}
         
         <DistrictRenderer
           selectedDistrict={selectedDistrict}
@@ -99,8 +95,8 @@ export const Experience3D: React.FC<Experience3DProps> = ({
       </Suspense>
       
       {settings.effects && (
-        <EffectComposer enableNormalPass={false}>
-          <Bloom mipmapBlur luminanceThreshold={0.6} luminanceSmoothing={0.9} height={300} intensity={0.6} />
+        <EffectComposer disableNormalPass>
+          <Bloom mipmapBlur luminanceThreshold={0.7} luminanceSmoothing={0.9} height={300} intensity={0.8} />
           <Vignette eskil={false} offset={0.1} darkness={1.1} />
         </EffectComposer>
       )}

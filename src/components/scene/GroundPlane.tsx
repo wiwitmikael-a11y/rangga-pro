@@ -1,21 +1,20 @@
-// FIX: Added the triple-slash directive to provide types for R3F's custom JSX elements, resolving "Property does not exist on type 'JSX.IntrinsicElements'" errors.
 /// <reference types="@react-three/fiber" />
 import React from 'react';
 import * as THREE from 'three';
 import { useTexture } from '@react-three/drei';
 
-export const GroundPlane: React.FC = () => {
+export const GroundPlane: React.FC = React.memo(() => {
   const [map, roughnessMap, normalMap] = useTexture([
     'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/textures/wet_asphalt_albedo.jpg',
     'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/textures/wet_asphalt_roughness.jpg',
     'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/textures/wet_asphalt_normal.jpg'
   ]);
 
-  // Configure texture tiling to cover the large plane
+  // Konfigurasi texture tiling untuk menutupi bidang besar
   [map, roughnessMap, normalMap].forEach(texture => {
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(10, 10);
+    texture.repeat.set(25, 25);
   });
   
   return (
@@ -25,9 +24,10 @@ export const GroundPlane: React.FC = () => {
         map={map}
         roughnessMap={roughnessMap}
         normalMap={normalMap}
-        metalness={0.8} // High metalness on puddles reflects light well
-        roughness={0.5} // Base roughness for the asphalt
+        metalness={0.8} // Metalness tinggi pada genangan air memantulkan cahaya dengan baik
+        roughness={0.5} // Roughness dasar untuk aspal
+        envMapIntensity={0.5}
       />
     </mesh>
   );
-};
+});

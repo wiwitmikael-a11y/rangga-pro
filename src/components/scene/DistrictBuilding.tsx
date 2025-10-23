@@ -1,6 +1,5 @@
-// FIX: Added the triple-slash directive to provide types for R3F's custom JSX elements, resolving "Property does not exist on type 'JSX.IntrinsicElements'" errors.
 /// <reference types="@react-three/fiber" />
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { CityDistrict } from '../../types';
@@ -14,46 +13,53 @@ interface DistrictBuildingProps {
   isUnlocked?: boolean;
 }
 
+const UNLOCKED_COLOR = new THREE.Color('#005577');
+const HOVER_COLOR = new THREE.Color('#00aaff');
+const SELECTED_COLOR = new THREE.Color('#00ffff');
+const LOCKED_COLOR = new THREE.Color('#333333');
+
 const DistrictBuilding: React.FC<DistrictBuildingProps> = ({
   district,
   onSelect,
   onHover,
   isSelected,
-  isUnlocked = true, // Default to unlocked for ambient buildings
+  isUnlocked = true,
 }) => {
   const meshRef = useRef<THREE.Mesh>(null!);
   const [isHovered, setIsHovered] = useState(false);
   
   const height = district.height || 20;
-  const color = isSelected ? '#00ffff' : isHovered ? '#00aaff' : '#005577';
-  const emissiveIntensityTarget = isSelected ? 1.5 : isHovered ? 1 : 0.5;
-  const opacity = isUnlocked ? 0.7 : 0.3;
 
-  useFrame((state, delta) => {
+  const targetColor = useMemo(() => {
+    if (!isUnlocked) return LOCKED_COLOR;
+    if (isSelected) return SELECTED_COLOR;
+    if (isHovered) return HOVER_COLOR;
+    return UNLOCKED_COLOR;
+  }, [isSelected, isHovered, isUnlocked]);
+
+  const emissiveIntensityTarget = isSelected ? 1.5 : isHovered ? 1 : 0.5;
+  const targetY = isSelected ? Math.sin(Date.now() * 0.002) * 0.5 : 0;
+
+  useFrame((_, delta) => {
     if (meshRef.current) {
         const material = meshRef.current.material as THREE.MeshStandardMaterial;
-        // Smoothly interpolate emissive intensity for a glowing effect
         material.emissiveIntensity = THREE.MathUtils.lerp(material.emissiveIntensity, emissiveIntensityTarget, delta * 5);
-        
-        // Add a subtle bobbing animation when selected
-        if (isSelected) {
-            meshRef.current.position.y = Math.sin(state.clock.elapsedTime * 2) * 0.5;
-        } else {
-            meshRef.current.position.y = THREE.MathUtils.lerp(meshRef.current.position.y, 0, delta * 5);
-        }
+        material.color.lerp(targetColor, delta * 8);
+        material.emissive.copy(material.color);
+        meshRef.current.position.y = THREE.MathUtils.lerp(meshRef.current.position.y, targetY, delta * 5);
     }
   });
 
-  const handlePointerOver = (e: any) => {
+  const handlePointerOver = (e: React.PointerEvent) => {
     e.stopPropagation();
-    if (onHover && onSelect) { // Only trigger hover for interactive buildings
+    if (onHover && onSelect) {
       setIsHovered(true);
       onHover(district.id);
       document.body.style.cursor = 'pointer';
     }
   };
 
-  const handlePointerOut = (e: any) => {
+  const handlePointerOut = (e: React.PointerEvent) => {
     e.stopPropagation();
     if (onHover && onSelect) {
       setIsHovered(false);
@@ -62,7 +68,7 @@ const DistrictBuilding: React.FC<DistrictBuildingProps> = ({
     }
   };
   
-  const handleClick = (e: any) => {
+  const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onSelect) {
       onSelect(district);
@@ -81,16 +87,14 @@ const DistrictBuilding: React.FC<DistrictBuildingProps> = ({
         >
             <boxGeometry args={[8, height, 8]} />
             <meshStandardMaterial
-                color={color}
-                emissive={color}
                 transparent
-                opacity={opacity}
+                opacity={isUnlocked ? 0.7 : 0.3}
                 wireframe={!isUnlocked}
                 metalness={0.8}
                 roughness={0.2}
             />
         </mesh>
-        {isUnlocked === false && (
+        {!isUnlocked && (
             <Text
                 position={[0, height / 2 + 2, 0]}
                 fontSize={2}

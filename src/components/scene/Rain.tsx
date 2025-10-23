@@ -1,6 +1,5 @@
-// FIX: Added the triple-slash directive to provide types for R3F's custom JSX elements, resolving "Property does not exist on type 'JSX.IntrinsicElements'" errors.
 /// <reference types="@react-three/fiber" />
-import React, { useRef, useMemo } from 'react';
+import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -11,21 +10,21 @@ interface RainProps {
 const Rain: React.FC<RainProps> = ({ count }) => {
     const pointsRef = useRef<THREE.Points>(null!);
 
-    const particles = useMemo(() => {
-        const positions = new Float32Array(count * 3);
+    const positions = useMemo(() => {
+        const pos = new Float32Array(count * 3);
         for (let i = 0; i < count; i++) {
-            positions[i * 3] = (Math.random() - 0.5) * 200;
-            positions[i * 3 + 1] = Math.random() * 100;
-            positions[i * 3 + 2] = (Math.random() - 0.5) * 200;
+            pos[i * 3] = (Math.random() - 0.5) * 300;
+            pos[i * 3 + 1] = Math.random() * 100;
+            pos[i * 3 + 2] = (Math.random() - 0.5) * 300;
         }
-        return { positions };
+        return pos;
     }, [count]);
 
-    useFrame((_state, delta) => {
+    useFrame((_, delta) => {
         if (pointsRef.current) {
             const positions = pointsRef.current.geometry.attributes.position.array as Float32Array;
             for (let i = 0; i < count; i++) {
-                positions[i * 3 + 1] -= 20 * delta;
+                positions[i * 3 + 1] -= 30 * delta; // Kecepatan hujan yang konsisten
                 if (positions[i * 3 + 1] < -5) {
                     positions[i * 3 + 1] = 100;
                 }
@@ -40,15 +39,15 @@ const Rain: React.FC<RainProps> = ({ count }) => {
                 <bufferAttribute
                     attach="attributes-position"
                     count={count}
-                    array={particles.positions}
+                    array={positions}
                     itemSize={3}
                 />
             </bufferGeometry>
             <pointsMaterial
-                size={0.1}
+                size={0.15}
                 color="#00aaff"
                 transparent
-                opacity={0.2}
+                opacity={0.3}
                 depthWrite={false}
                 blending={THREE.AdditiveBlending}
                 toneMapped={false}
