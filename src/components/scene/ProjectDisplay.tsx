@@ -1,5 +1,4 @@
-// FIX: Corrected the reference path for @react-three/fiber types. The '/patch' subpath is obsolete.
-/// <reference types="@react-three/fiber" />
+// FIX: Removed obsolete triple-slash directive for @react-three/fiber types, which was causing JSX type errors.
 import React, { useRef, useState, useEffect } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
@@ -16,13 +15,11 @@ const LockIcon: React.FC = () => (
     <Text
         position={[0, 0, 0.2]}
         fontSize={2}
-        color="#ff4444"
         anchorX="center"
         anchorY="middle"
-        emissive="#ff4444"
-        emissiveIntensity={2}
     >
         ?
+        <meshStandardMaterial color="#ff4444" emissive="#ff4444" emissiveIntensity={2} toneMapped={false} />
     </Text>
 );
 

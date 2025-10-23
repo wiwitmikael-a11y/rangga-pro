@@ -1,10 +1,10 @@
-import React, { useState, useEffect, Suspense, useCallback } from 'react';
+import { useState, useEffect, Suspense, useCallback } from 'react';
 import { Loader } from './components/ui/Loader';
 import { StartScreen } from './components/ui/StartScreen';
 // Fix: Explicitly use .tsx extension for the Experience3D import to ensure it's resolved as a module.
 import { Experience3D } from './components/Experience3D.tsx';
 import { HUD } from './components/ui/HUD';
-import { CityDistrict, PortfolioSubItem, PerformanceTier } from './types';
+import type { CityDistrict, PortfolioSubItem, PerformanceTier } from './types';
 import { portfolioData } from './constants';
 import { usePerformance } from './hooks/usePerformance';
 

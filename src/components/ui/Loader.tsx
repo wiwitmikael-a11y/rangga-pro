@@ -63,7 +63,6 @@ export const Loader = React.memo(() => {
     // Stage 2: Compilation
     useEffect(() => {
         if (stage === 'compile') {
-            const compileLogIndex = log.length;
             setLog(prev => [...prev, `> Compiling modules...`]);
 
             const interval = setInterval(() => {

@@ -1,5 +1,4 @@
-// FIX: Corrected the reference path for @react-three/fiber types. The '/patch' subpath is obsolete.
-/// <reference types="@react-three/fiber" />
+// FIX: Removed obsolete triple-slash directive for @react-three/fiber types, which was causing JSX type errors.
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -21,7 +20,7 @@ const Rain: React.FC<RainProps> = ({ count }) => {
         return { positions };
     }, [count]);
 
-    useFrame((state, delta) => {
+    useFrame((_state, delta) => {
         if (pointsRef.current) {
             const positions = pointsRef.current.geometry.attributes.position.array as Float32Array;
             for (let i = 0; i < count; i++) {

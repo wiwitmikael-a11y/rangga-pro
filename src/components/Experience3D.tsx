@@ -1,5 +1,4 @@
-// FIX: Corrected the reference path for @react-three/fiber types. The '/patch' subpath is obsolete.
-/// <reference types="@react-three/fiber" />
+// FIX: Removed obsolete triple-slash directive for @react-three/fiber types, which was causing JSX type errors.
 import React, { lazy, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Preload } from '@react-three/drei';
@@ -14,8 +13,8 @@ const FloatingParticles = lazy(() => import('./scene/FloatingParticles'));
 const Rain = lazy(() => import('./scene/Rain'));
 const DistrictRenderer = lazy(() => import('./scene/DistrictRenderer'));
 const HolographicProjector = lazy(() => import('./scene/HolographicProjector'));
-const NexusProtocolGame = lazy(() => import('../game/NexusProtocolGame'));
-const CameraRig = lazy(() => import('../CameraRig'));
+const NexusProtocolGame = lazy(() => import('./game/NexusProtocolGame.tsx'));
+const CameraRig = lazy(() => import('../CameraRig.tsx'));
 
 
 interface Experience3DProps {
@@ -99,7 +98,7 @@ export const Experience3D: React.FC<Experience3DProps> = ({
       </Suspense>
       
       {settings.effects && (
-        <EffectComposer disableNormalPass>
+        <EffectComposer enableNormalPass={false}>
           <Bloom mipmapBlur luminanceThreshold={0.6} luminanceSmoothing={0.9} height={300} intensity={0.6} />
           <Vignette eskil={false} offset={0.1} darkness={1.1} />
         </EffectComposer>

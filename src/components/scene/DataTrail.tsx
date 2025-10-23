@@ -1,5 +1,4 @@
-// FIX: Corrected the reference path for @react-three/fiber types. The '/patch' subpath is obsolete.
-/// <reference types="@react-three/fiber" />
+// FIX: Removed obsolete triple-slash directive for @react-three/fiber types, which was causing JSX type errors.
 import React, { useRef, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -28,7 +27,7 @@ const DataTrail: React.FC = () => {
   const groundPlane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), []); // An invisible plane at y=0
   const intersectionPoint = useMemo(() => new THREE.Vector3(), []);
 
-  useFrame((state, delta) => {
+  useFrame((_state, delta) => {
     if (!mesh.current) return;
     
     // Update raycaster from the current mouse and camera position

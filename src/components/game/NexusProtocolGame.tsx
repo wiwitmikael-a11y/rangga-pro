@@ -1,5 +1,4 @@
-// FIX: Corrected the reference path for @react-three/fiber types. The '/patch' subpath is obsolete.
-/// <reference types="@react-three/fiber" />
+// FIX: Removed obsolete triple-slash directive for @react-three/fiber types, which was causing JSX type errors.
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Box, Text } from '@react-three/drei';

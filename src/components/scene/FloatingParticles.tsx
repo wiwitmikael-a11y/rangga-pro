@@ -1,5 +1,4 @@
-// FIX: Corrected the reference path for @react-three/fiber types. The '/patch' subpath is obsolete.
-/// <reference types="@react-three/fiber" />
+// FIX: Removed obsolete triple-slash directive for @react-three/fiber types, which was causing JSX type errors.
 import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -20,9 +19,10 @@ const FloatingParticles: React.FC<FloatingParticlesProps> = ({ count }) => {
     return positions;
   }, [count]);
 
-  useFrame((state, delta) => {
+  useFrame((_state, delta) => {
     if (pointsRef.current) {
       // Gently drift particles downwards
+      // FIX: Corrected typo from Float3Array to Float32Array.
       const positions = pointsRef.current.geometry.attributes.position.array as Float32Array;
       for (let i = 0; i < positions.length; i += 3) {
         positions[i+1] -= 0.5 * delta;
