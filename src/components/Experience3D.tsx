@@ -1,5 +1,5 @@
-// Fix: Add reference to react-three/fiber patch to extend JSX.IntrinsicElements
-/// <reference types="@react-three/fiber/patch" />
+// FIX: Corrected the reference path for @react-three/fiber types. The '/patch' subpath is obsolete.
+/// <reference types="@react-three/fiber" />
 import React, { lazy, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Preload } from '@react-three/drei';

@@ -1,5 +1,5 @@
-// Fix: Use the correct reference path for R3F type definitions.
-/// <reference types="@react-three/fiber/patch" />
+// FIX: Corrected the reference path for @react-three/fiber types. The '/patch' subpath is obsolete.
+/// <reference types="@react-three/fiber" />
 import React from 'react';
 import * as THREE from 'three';
 import { useTexture } from '@react-three/drei';
