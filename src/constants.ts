@@ -1,49 +1,112 @@
-import { CityDistrict } from './types';
-
-// Base URL for 3D models from the specified GitHub repository
-const GITHUB_MODEL_URL_BASE = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/';
+import type { CityDistrict } from './types';
 
 export const portfolioData: CityDistrict[] = [
-  // Major districts featuring specific 3D models
   {
-    id: 'arcade-zone',
-    title: 'Arcade Zone',
-    description: 'Featured Projects',
-    position: [80, 0, 40], // Moved further out
+    id: 'intro',
+    title: 'Architect\'s Core',
+    description: 'Central Data Hub',
+    position: [0, 0, 0],
     type: 'major',
-    modelUrl: `${GITHUB_MODEL_URL_BASE}arcade_machine.glb`,
-    modelScale: 0.5,
+    modelUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/arcade_machine.glb',
+    modelScale: 10,
     cameraFocus: {
-      pos: [78, 5, 45], // Adjusted to new position
-      lookAt: [80, 0.5, 40],
+      pos: [0, 15, 40],
+      lookAt: [0, 10, 0],
     },
+    subItems: [
+      {
+        id: 'proj-1',
+        title: 'Project Genesis',
+        description: 'AI-driven architectural design platform.',
+        position: [-10, 5, 10],
+        imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/project-thumb-1.jpg',
+      },
+      {
+        id: 'proj-2',
+        title: 'Project Citadel',
+        description: 'Secure, decentralized city infrastructure.',
+        position: [10, 5, 10],
+        imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/project-thumb-2.jpg',
+      },
+    ],
   },
   {
-    id: 'skills-architect',
-    title: 'The Architect',
-    description: 'Skills & Technologies',
-    position: [-80, 5, 40], // Moved further out
+    id: 'skills',
+    title: 'Skills Matrix',
+    description: 'Technical Proficiencies',
+    position: [-40, 0, -40],
     type: 'major',
     cameraFocus: {
-      pos: [-95, 20, 50], // Adjusted to new position
-      lookAt: [-80, 10, 40],
+      pos: [-40, 20, -20],
+      lookAt: [-40, 5, -40],
     },
+     subItems: [
+      {
+        id: 'skill-fe',
+        title: 'Frontend Tech',
+        description: 'React, Next.js, Three.js, WebGL',
+        position: [-50, 5, -30],
+        imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/project-thumb-3.jpg',
+      },
+      {
+        id: 'skill-be',
+        title: 'Backend Tech',
+        description: 'Node.js, Python, GraphQL, Databases',
+        position: [-30, 5, -30],
+        imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/project-thumb-4.jpg',
+      },
+    ]
   },
   {
-    id: 'contact-terminal',
+    id: 'contact',
     title: 'Contact Terminal',
-    description: 'Get in Touch',
-    position: [0, 5, -90], // Moved further back
+    description: 'Establish a connection',
+    position: [40, 0, -40],
     type: 'major',
     cameraFocus: {
-      pos: [0, 25, -75], // Adjusted to new position
-      lookAt: [0, 10, -90],
+      pos: [40, 15, -20],
+      lookAt: [40, 5, -40],
     },
   },
-
-  // Minor districts for ambient decoration, no interactions
-  { id: 'ambient-1', title: '', description: '', position: [70, 0, -40], type: 'minor', height: 40 },
-  { id: 'ambient-2', title: '', description: '', position: [-70, 0, -50], type: 'minor', height: 50 },
-  { id: 'ambient-3', title: '', description: '', position: [40, 0, 80], type: 'minor', height: 35 },
-  { id: 'ambient-4', title: '', description: '', position: [-40, 0, 90], type: 'minor', height: 45 },
+  // Add some minor districts for ambiance
+  {
+    id: 'ambient-1',
+    title: 'Data Spire',
+    description: 'Minor data node',
+    position: [20, 0, 20],
+    type: 'minor',
+    height: 30,
+  },
+  {
+    id: 'ambient-2',
+    title: 'Archive Block',
+    description: 'Minor data node',
+    position: [-20, 0, 20],
+    type: 'minor',
+    height: 25,
+  },
+  {
+    id: 'ambient-3',
+    title: 'Sub-Station 7',
+    description: 'Minor data node',
+    position: [0, 0, -60],
+    type: 'minor',
+    height: 40,
+  },
+   {
+    id: 'ambient-4',
+    title: 'Cooling Tower',
+    description: 'Minor data node',
+    position: [50, 0, 50],
+    type: 'minor',
+    height: 50,
+  },
+   {
+    id: 'ambient-5',
+    title: 'Relay Node',
+    description: 'Minor data node',
+    position: [-50, 0, 50],
+    type: 'minor',
+    height: 20,
+  },
 ];

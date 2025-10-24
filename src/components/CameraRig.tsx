@@ -8,6 +8,7 @@ import { CityDistrict } from '../types';
 interface CameraRigProps {
   selectedDistrict: CityDistrict | null;
   onAnimationFinish: () => void;
+  isAnimating: boolean;
 }
 
 // Menggunakan vektor helper di luar loop untuk optimasi performa
@@ -15,8 +16,14 @@ const targetPosition = new THREE.Vector3();
 const targetLookAt = new THREE.Vector3();
 const OVERVIEW_LOOK_AT = new THREE.Vector3(0, 5, 0);
 
-export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimationFinish }) => {
+export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimationFinish, isAnimating }) => {
   useFrame((state, delta) => {
+    // Only run the animation logic if isAnimating is true.
+    // This prevents the rig from fighting with user controls.
+    if (!isAnimating) {
+      return;
+    }
+
     if (selectedDistrict?.cameraFocus) {
       // Pindah ke sudut pandang sinematik yang unik untuk distrik yang dipilih
       targetPosition.set(...selectedDistrict.cameraFocus.pos);

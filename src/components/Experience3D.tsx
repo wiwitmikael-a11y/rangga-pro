@@ -1,121 +1,137 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
-import { OrbitControls } from '@react-three/drei';
-import { CityDistrict } from '../types';
-import { portfolioData } from '../constants';
-import { CameraRig } from '../CameraRig';
+import { OrbitControls, Environment } from '@react-three/drei';
+
 import { CityModel } from './scene/CityModel';
-import { DigitalEnergyField } from './scene/DigitalEnergyField';
-import { DistrictRenderer } from './scene/DistrictRenderer';
-import { HUD } from './ui/HUD';
 import Rain from './scene/Rain';
-import FloatingParticles from './scene/FloatingParticles';
 import { FlyingShips } from './scene/FlyingShips';
-import DataTrail from './scene/DataTrail';
+import { DistrictRenderer } from './scene/DistrictRenderer';
+import { portfolioData } from '../constants';
+import type { CityDistrict, PortfolioSubItem } from '../types';
+import { CameraRig } from './CameraRig';
+import { HUD } from './ui/HUD';
+import { DigitalEnergyField } from './scene/DigitalEnergyField';
+import { ProjectDisplay } from './scene/ProjectDisplay';
 import HolographicInfoPanel from './scene/HolographicInfoPanel';
 
 export const Experience3D: React.FC = () => {
   const [selectedDistrict, setSelectedDistrict] = useState<CityDistrict | null>(null);
-  const [infoPanelDistrict, setInfoPanelDistrict] = useState<CityDistrict | null>(null);
-  const [isAnimating, setIsAnimating] = useState(true);
-
-  const handleAnimationFinish = useCallback(() => {
-    // Only enable orbit controls when the camera has settled
-    if (isAnimating) {
-      setIsAnimating(false);
-    }
-  }, [isAnimating]);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [showProjects, setShowProjects] = useState(false);
+  const [infoPanelItem, setInfoPanelItem] = useState<CityDistrict | null>(null);
 
   const handleDistrictSelect = useCallback((district: CityDistrict) => {
+    if (district.id === selectedDistrict?.id) return;
+    
+    // For districts with sub-items, zoom in. For others, show info panel directly.
+    if (district.subItems && district.subItems.length > 0) {
+      setSelectedDistrict(district);
+    } else {
+      setSelectedDistrict(null); // Go to overview if clicking a non-interactive major district
+      setInfoPanelItem(district);
+    }
     setIsAnimating(true);
-    setSelectedDistrict(district);
-    // Open the info panel after a short delay to allow the camera to move
-    setTimeout(() => setInfoPanelDistrict(district), 1000);
-  }, []);
+    setShowProjects(false); // Hide old projects immediately
+    if (district.type === 'major' && (!district.subItems || district.subItems.length === 0)) {
+        setInfoPanelItem(district);
+    }
+  }, [selectedDistrict]);
 
   const handleGoHome = useCallback(() => {
-    setIsAnimating(true);
     setSelectedDistrict(null);
-    setInfoPanelDistrict(null);
+    setIsAnimating(true);
+    setShowProjects(false);
+    setInfoPanelItem(null);
   }, []);
 
-  const handleClosePanel = useCallback(() => {
-    setInfoPanelDistrict(null);
-    // Optionally, go home when the panel is closed for a cleaner UX
-    setIsAnimating(true);
-    setSelectedDistrict(null);
-  }, []);
+  const onAnimationFinish = useCallback(() => {
+    setIsAnimating(false);
+    if (selectedDistrict) {
+      setShowProjects(true); // Show new projects after animation
+    }
+  }, [selectedDistrict]);
+
+  const handleProjectClick = (item: PortfolioSubItem) => {
+    // In a real app, you'd show project details.
+    // Here we can just log it or show a generic panel.
+    console.log('Project clicked:', item.title);
+    if(selectedDistrict){
+       setInfoPanelItem(selectedDistrict)
+    }
+  };
+  
+  const handlePanelClose = () => {
+      setInfoPanelItem(null);
+  };
 
   return (
     <>
       <Canvas
         shadows
-        camera={{ position: [0, 40, 80], fov: 50, near: 0.1, far: 1000 }}
+        camera={{ position: [0, 60, 120], fov: 50, near: 0.1, far: 1000 }}
+        gl={{
+          powerPreference: 'high-performance',
+          antialias: true,
+        }}
+        dpr={[1, 1.5]}
       >
-        <color attach="background" args={['#201040']} />
-        <fog attach="fog" args={['#f28366', 70, 200]} />
-        <ambientLight intensity={0.2} />
-        <hemisphereLight groundColor="#605090" color="#ff7040" intensity={0.8} />
-        <directionalLight
-          color="#ffae70"
-          position={[30, 20, -30]}
-          intensity={1.2}
-          castShadow
-          shadow-mapSize-width={2048}
-          shadow-mapSize-height={2048}
-        />
+        <color attach="background" args={['#050810']} />
+        <fog attach="fog" args={['#050810', 50, 250]} />
 
-        <CameraRig
-          selectedDistrict={selectedDistrict}
-          onAnimationFinish={handleAnimationFinish}
-          isAnimating={isAnimating}
-        />
+        <Suspense fallback={null}>
+          <ambientLight intensity={0.5} />
+          <pointLight position={[0, 40, 0]} intensity={1.5} color="#00aaff" distance={150} decay={2} />
+          <directionalLight
+            position={[-20, 50, -50]}
+            intensity={2}
+            color="#ffffff"
+            castShadow
+            shadow-mapSize-width={2048}
+            shadow-mapSize-height={2048}
+            shadow-camera-far={200}
+            shadow-camera-left={-100}
+            shadow-camera-right={100}
+            shadow-camera-top={100}
+            shadow-camera-bottom={-100}
+          />
 
-        {/* User controls are enabled only when no cinematic animation is active */}
+          <CityModel />
+          <Rain count={5000} />
+          <FlyingShips />
+          <DigitalEnergyField onDeselect={handleGoHome} />
+
+          <group position={[0, 5, 0]}>
+            <DistrictRenderer
+              districts={portfolioData}
+              selectedDistrict={selectedDistrict}
+              onDistrictSelect={handleDistrictSelect}
+            />
+            {showProjects && selectedDistrict?.subItems && (
+              selectedDistrict.subItems.map((item) => (
+                <ProjectDisplay 
+                  key={item.id} 
+                  item={item} 
+                  isLocked={false} 
+                  onClick={() => handleProjectClick(item)} 
+                />
+              ))
+            )}
+            {infoPanelItem && <HolographicInfoPanel district={infoPanelItem} onClose={handlePanelClose} />}
+          </group>
+          
+          <CameraRig selectedDistrict={selectedDistrict} onAnimationFinish={onAnimationFinish} isAnimating={isAnimating} />
+
+          <Environment preset="night" />
+
+        </Suspense>
+
         <OrbitControls
-          enabled={!isAnimating}
-          enablePan={false}
-          enableZoom={true}
-          minDistance={40}
-          maxDistance={250}
-          maxPolarAngle={Math.PI / 2 - 0.05}
-          target={[0, 5, 0]}
+            enabled={!isAnimating}
+            minDistance={20}
+            maxDistance={200}
+            maxPolarAngle={Math.PI / 2.2}
+            target={[0, 5, 0]}
         />
-
-        {/* --- Ambient Effects --- */}
-        <Rain count={5000} />
-        <FloatingParticles count={200} />
-        <FlyingShips />
-        <DataTrail />
-
-        {/* --- Core Scene --- */}
-        <CityModel />
-        <DigitalEnergyField onDeselect={handleGoHome} />
-
-        <DistrictRenderer
-          districts={portfolioData}
-          selectedDistrict={selectedDistrict}
-          onDistrictSelect={handleDistrictSelect}
-        />
-
-        {infoPanelDistrict && (
-          <HolographicInfoPanel
-            district={infoPanelDistrict}
-            onClose={handleClosePanel}
-          />
-        )}
-
-        {/* --- Post-processing Effects --- */}
-        <EffectComposer>
-          <Bloom
-            luminanceThreshold={0.2}
-            luminanceSmoothing={0.9}
-            height={300}
-            intensity={0.8}
-          />
-          <Vignette eskil={false} offset={0.1} darkness={1.1} />
-        </EffectComposer>
       </Canvas>
       <HUD selectedDistrict={selectedDistrict} onGoHome={handleGoHome} />
     </>
