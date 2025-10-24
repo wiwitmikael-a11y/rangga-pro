@@ -3,6 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment } from '@react-three/drei';
 import { EffectComposer, Bloom, Noise, ChromaticAberration } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
+import { Vector2 } from 'three';
 
 import { CityModel } from './scene/CityModel';
 import Rain from './scene/Rain';
@@ -140,7 +141,7 @@ export const Experience3D: React.FC = () => {
               opacity={0.07} 
             />
             <ChromaticAberration 
-              offset={[0.001, 0.001]} 
+              offset={new Vector2(0.001, 0.001)}
             />
           </EffectComposer>
 
