@@ -1,45 +1,46 @@
-// FIX: Add import for React to resolve 'React.FC' type error.
 import React from 'react';
-// FIX: The triple-slash directive is deprecated and was causing type definition errors. It has been removed.
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { CityDistrict } from './types';
 
 interface CameraRigProps {
   selectedDistrict: CityDistrict | null;
+  onAnimationFinish: () => void;
 }
 
-// Menggunakan vektor helper di luar loop untuk optimasi performa
+// Using helper vectors outside the loop for performance optimization
 const targetPosition = new THREE.Vector3();
 const targetLookAt = new THREE.Vector3();
 const OVERVIEW_LOOK_AT = new THREE.Vector3(0, 5, 0);
 
-export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict }) => {
+export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimationFinish }) => {
   useFrame((state, delta) => {
     if (selectedDistrict?.cameraFocus) {
-      // Pindah ke sudut pandang sinematik yang unik untuk distrik yang dipilih
+      // Move to the unique cinematic viewpoint for the selected district
       targetPosition.set(...selectedDistrict.cameraFocus.pos);
       targetLookAt.set(...selectedDistrict.cameraFocus.lookAt);
     } else {
-      // Kembali ke posisi overview default, mengorbit kota secara perlahan
-      const time = state.clock.getElapsedTime();
-      const radius = 90; // Jarak kamera dari pusat
-      targetPosition.set(
-        Math.sin(time * 0.08) * radius,
-        45, // Ketinggian kamera
-        Math.cos(time * 0.08) * radius
-      );
+      // Return to the default overview position, without auto-rotate
+      targetPosition.set(0, 60, 120);
       targetLookAt.copy(OVERVIEW_LOOK_AT);
     }
 
-    // Interpolasi posisi kamera secara mulus untuk menghindari gerakan yang kaku
+    // Smoothly interpolate the camera position to avoid jerky movements
     state.camera.position.lerp(targetPosition, delta * 1.5);
 
-    // Interpolasi target pandang kamera secara mulus dengan memperbarui quaternion
+    // Smoothly interpolate the camera look-at target by updating the quaternion
     const tempCamera = state.camera.clone();
     tempCamera.lookAt(targetLookAt);
     state.camera.quaternion.slerp(tempCamera.quaternion, delta * 1.5);
+    
+    // Check if the animation has finished
+    const posReached = state.camera.position.distanceTo(targetPosition) < 0.5;
+    const rotReached = state.camera.quaternion.angleTo(tempCamera.quaternion) < 0.05;
+
+    if (posReached && rotReached) {
+        onAnimationFinish();
+    }
   });
 
-  return null; // Komponen ini tidak merender objek, hanya mengontrol kamera
+  return null; // This component doesn't render an object, it just controls the camera
 };
