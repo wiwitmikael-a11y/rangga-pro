@@ -7,8 +7,6 @@ export const portfolioData: CityDistrict[] = [
     description: 'Central Data Hub',
     position: [0, 0, 0],
     type: 'major',
-    modelUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/arcade_machine.glb',
-    modelScale: 10,
     cameraFocus: {
       pos: [0, 15, 40],
       lookAt: [0, 10, 0],

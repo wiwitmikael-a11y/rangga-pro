@@ -88,6 +88,3 @@ export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, is
     </group>
   );
 };
-
-// Preload models defined in portfolioData for faster loading
-useGLTF.preload('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/arcade_machine.glb');

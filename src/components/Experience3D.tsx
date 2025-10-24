@@ -10,7 +10,7 @@ import { portfolioData } from '../constants';
 import type { CityDistrict, PortfolioSubItem } from '../types';
 import { CameraRig } from './CameraRig';
 import { HUD } from './ui/HUD';
-import { DigitalEnergyField } from './scene/DigitalEnergyField';
+import { ProceduralTerrain } from './scene/ProceduralTerrain';
 import { ProjectDisplay } from './scene/ProjectDisplay';
 import HolographicInfoPanel from './scene/HolographicInfoPanel';
 
@@ -98,7 +98,7 @@ export const Experience3D: React.FC = () => {
           <CityModel />
           <Rain count={2500} />
           <FlyingShips />
-          <DigitalEnergyField onDeselect={handleGoHome} />
+          <ProceduralTerrain onDeselect={handleGoHome} />
 
           <group position={[0, 5, 0]}>
             <DistrictRenderer
