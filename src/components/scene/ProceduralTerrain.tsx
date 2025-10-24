@@ -5,10 +5,6 @@ import * as THREE from 'three';
 // Source: https://github.com/jwagner/simplex-noise.js
 const F2 = 0.5 * (Math.sqrt(3.0) - 1.0);
 const G2 = (3.0 - Math.sqrt(3.0)) / 6.0;
-const F3 = 1.0 / 3.0;
-const G3 = 1.0 / 6.0;
-const F4 = (Math.sqrt(5.0) - 1.0) / 4.0;
-const G4 = (5.0 - Math.sqrt(5.0)) / 20.0;
 
 const grad3 = new Float32Array([1, 1, 0,
   -1, 1, 0,
@@ -25,15 +21,6 @@ const grad3 = new Float32Array([1, 1, 0,
   0, -1, 1,
   0, 1, -1,
   0, -1, -1]);
-
-const grad4 = new Float32Array([0, 1, 1, 1, 0, 1, 1, -1, 0, 1, -1, 1, 0, 1, -1, -1,
-  0, -1, 1, 1, 0, -1, 1, -1, 0, -1, -1, 1, 0, -1, -1, -1,
-  1, 0, 1, 1, 1, 0, 1, -1, 1, 0, -1, 1, 1, 0, -1, -1,
-  -1, 0, 1, 1, -1, 0, 1, -1, -1, 0, -1, 1, -1, 0, -1, -1,
-  1, 1, 0, 1, 1, 1, 0, -1, 1, -1, 0, 1, 1, -1, 0, -1,
-  -1, 1, 0, 1, -1, 1, 0, -1, -1, -1, 0, 1, -1, -1, 0, -1,
-  1, 1, 1, 0, 1, 1, -1, 0, 1, -1, 1, 0, 1, -1, -1, 0,
-  -1, 1, 1, 0, -1, 1, -1, 0, -1, -1, 1, 0, -1, -1, -1, 0]);
 
 function createNoise2D(random: () => number = Math.random) {
     const p = new Uint8Array(256);

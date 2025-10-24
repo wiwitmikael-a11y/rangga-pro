@@ -2,7 +2,6 @@ import React, { useState, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import { OrbitControls } from '@react-three/drei';
-import * as THREE from 'three';
 import { CityDistrict } from '../types';
 import { portfolioData } from '../constants';
 import { CameraRig } from '../CameraRig';
