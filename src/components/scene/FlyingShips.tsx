@@ -11,9 +11,10 @@ interface ShipProps {
   scale: number;
   flightPath: (time: number) => { position: THREE.Vector3, lookAt: THREE.Vector3 };
   trailConfig?: { width?: number; length?: number; opacity?: number; color?: string };
+  trailOffset?: [number, number, number];
 }
 
-const Ship: React.FC<ShipProps> = ({ modelUrl, scale, flightPath, trailConfig }) => {
+const Ship: React.FC<ShipProps> = ({ modelUrl, scale, flightPath, trailConfig, trailOffset }) => {
   const groupRef = useRef<THREE.Group>(null!);
   const { scene } = useGLTF(modelUrl);
   const clonedScene = useMemo(() => scene.clone(), [scene]);
@@ -28,7 +29,7 @@ const Ship: React.FC<ShipProps> = ({ modelUrl, scale, flightPath, trailConfig })
   return (
     <group ref={groupRef} scale={scale} dispose={null}>
       <primitive object={clonedScene} />
-      <ThrustTrail {...trailConfig} />
+      <ThrustTrail {...trailConfig} position={trailOffset} />
     </group>
   );
 };
@@ -37,7 +38,7 @@ export const FlyingShips: React.FC = React.memo(() => {
   const ships = useMemo(() => [
     {
       url: `${GITHUB_MODEL_URL_BASE}ship_space.glb`,
-      scale: 0.9, // Increased scale 3x
+      scale: 0.9,
       flightPath: (time: number) => {
         const angle = time * 0.2;
         return {
@@ -45,11 +46,12 @@ export const FlyingShips: React.FC = React.memo(() => {
           lookAt: new THREE.Vector3(Math.sin(angle + 0.1) * 70, 25, Math.cos(angle + 0.1) * 70),
         };
       },
-      trailConfig: { color: '#00aaff', length: 100, opacity: 0.7 }, // Increased length 10x
+      trailConfig: { color: '#00aaff', length: 100, opacity: 0.7 },
+      trailOffset: [0, -0.2, -4] as [number, number, number],
     },
     {
       url: `${GITHUB_MODEL_URL_BASE}ship_delorean.glb`,
-      scale: 1.2, // Increased scale 3x
+      scale: 1.2,
       flightPath: (time: number) => {
         const angle = time * 0.3;
         return {
@@ -57,11 +59,12 @@ export const FlyingShips: React.FC = React.memo(() => {
           lookAt: new THREE.Vector3(Math.cos(angle + 0.1) * 50, 15, Math.sin(angle + 0.1) * 80),
         };
       },
-      trailConfig: { color: '#ffaa00', length: 120, opacity: 0.8 }, // Increased length 10x
+      trailConfig: { color: '#ffaa00', length: 120, opacity: 0.8 },
+      trailOffset: [0, 0.2, -2.5] as [number, number, number],
     },
     {
       url: `${GITHUB_MODEL_URL_BASE}ship_copter.glb`,
-      scale: 0.1, // Scale remains the same
+      scale: 0.1,
       flightPath: (time: number) => {
         const angle = -time * 0.25;
         return {
@@ -69,14 +72,15 @@ export const FlyingShips: React.FC = React.memo(() => {
           lookAt: new THREE.Vector3(Math.sin(angle - 0.1) * 60, 20, Math.cos(angle - 0.1) * 60),
         };
       },
-      trailConfig: { color: '#00ffaa', width: 0.2, length: 80, opacity: 0.6 }, // Increased length 10x
+      trailConfig: { color: '#00ffaa', width: 0.2, length: 80, opacity: 0.6 },
+      trailOffset: [0, -0.1, -1.5] as [number, number, number],
     },
   ], []);
 
   return (
     <Suspense fallback={null}>
       {ships.map((ship, index) => (
-        <Ship key={index} modelUrl={ship.url} scale={ship.scale} flightPath={ship.flightPath} trailConfig={ship.trailConfig} />
+        <Ship key={index} modelUrl={ship.url} scale={ship.scale} flightPath={ship.flightPath} trailConfig={ship.trailConfig} trailOffset={ship.trailOffset}/>
       ))}
     </Suspense>
   );

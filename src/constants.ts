@@ -9,35 +9,35 @@ export const portfolioData: CityDistrict[] = [
     id: 'arcade-zone',
     title: 'Arcade Zone',
     description: 'Featured Projects',
-    position: [50, 0, 20],
+    position: [80, 0, 40], // Moved further out
     type: 'major',
     modelUrl: `${GITHUB_MODEL_URL_BASE}arcade_machine.glb`,
-    modelScale: 0.5, // Reduced scale by 10x
+    modelScale: 0.5,
     cameraFocus: {
-      pos: [48, 5, 25], // Camera brought in closer for the smaller model
-      lookAt: [50, 0.5, 20],
+      pos: [78, 5, 45], // Adjusted to new position
+      lookAt: [80, 0.5, 40],
     },
   },
   {
     id: 'skills-architect',
     title: 'The Architect',
     description: 'Skills & Technologies',
-    position: [-50, 5, 20],
+    position: [-80, 5, 40], // Moved further out
     type: 'major',
     cameraFocus: {
-      pos: [-65, 20, 30], // Camera comes from the side-front
-      lookAt: [-50, 10, 20], // Looks directly at the district label
+      pos: [-95, 20, 50], // Adjusted to new position
+      lookAt: [-80, 10, 40],
     },
   },
   {
     id: 'contact-terminal',
     title: 'Contact Terminal',
     description: 'Get in Touch',
-    position: [0, 5, -60],
+    position: [0, 5, -90], // Moved further back
     type: 'major',
     cameraFocus: {
-      pos: [0, 25, -45], // Camera is higher up, looking down
-      lookAt: [0, 10, -60], // Looks at the terminal
+      pos: [0, 25, -75], // Adjusted to new position
+      lookAt: [0, 10, -90],
     },
   },
 
