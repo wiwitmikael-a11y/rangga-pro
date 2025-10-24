@@ -6,7 +6,7 @@ import { CityDistrict } from '../types';
 import { portfolioData } from '../constants';
 import { CameraRig } from '../CameraRig';
 import { CityModel } from './scene/CityModel';
-import { ProceduralTerrain } from './scene/ProceduralTerrain';
+import { DigitalEnergyField } from './scene/DigitalEnergyField';
 import { DistrictRenderer } from './scene/DistrictRenderer';
 import { HUD } from './ui/HUD';
 import Rain from './scene/Rain';
@@ -91,7 +91,7 @@ export const Experience3D: React.FC = () => {
 
         {/* --- Core Scene --- */}
         <CityModel />
-        <ProceduralTerrain onDeselect={handleGoHome} />
+        <DigitalEnergyField onDeselect={handleGoHome} />
 
         <DistrictRenderer
           districts={portfolioData}
