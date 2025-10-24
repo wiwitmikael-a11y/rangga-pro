@@ -142,6 +142,8 @@ export const Experience3D: React.FC = () => {
             />
             <ChromaticAberration 
               offset={new Vector2(0.001, 0.001)}
+              radialModulation={false}
+              modulationOffset={0.15}
             />
           </EffectComposer>
 
