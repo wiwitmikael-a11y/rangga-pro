@@ -52,6 +52,12 @@ const HolographicInfoPanel: React.FC<HolographicInfoPanelProps> = ({ district, o
           position={[0, 0, 0.1]}
           style={styles.htmlContainer}
         >
+          <style>{`
+            @keyframes fadeInUp {
+              from { opacity: 0; transform: translateY(15px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+          `}</style>
           <div style={styles.contentWrapper}>
             <h2 style={styles.title}>{district.title}</h2>
             <h3 style={styles.subtitle}>{district.description}</h3>
@@ -97,6 +103,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         textShadow: '0 0 5px var(--primary-color)', 
         marginTop: '0',
         textAlign: 'center',
+        animation: 'fadeInUp 0.5s 0.2s both',
     },
     subtitle: {
         color: '#e0e0e0',
@@ -106,11 +113,13 @@ const styles: { [key: string]: React.CSSProperties } = {
         borderBottom: '1px solid rgba(0, 170, 255, 0.3)',
         paddingBottom: '15px',
         marginBottom: '20px',
+        animation: 'fadeInUp 0.5s 0.4s both',
     },
     placeholder: {
         textAlign: 'center',
         fontStyle: 'italic',
         color: '#88a7a6',
+        animation: 'fadeInUp 0.5s 0.6s both',
     },
     closeButton: {
         position: 'absolute',

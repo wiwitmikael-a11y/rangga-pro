@@ -4,10 +4,12 @@ import { useProgress } from '@react-three/drei';
 import { Experience3D } from './components/Experience3D';
 import { Loader } from './components/ui/Loader';
 import { StartScreen } from './components/ui/StartScreen';
+import { ControlHints } from './components/ui/ControlHints';
 
 const MainApp: React.FC = () => {
   const { progress } = useProgress();
   const [appState, setAppState] = useState<'loading' | 'start' | 'entering' | 'experience'>('loading');
+  const [hasShownHints, setHasShownHints] = useState(false);
 
   const isLoaded = progress >= 100;
 
@@ -25,8 +27,11 @@ const MainApp: React.FC = () => {
     // This timeout should match the fade-out transition duration on the StartScreen.
     setTimeout(() => {
       setAppState('experience');
+      if (!hasShownHints) {
+        setHasShownHints(true);
+      }
     }, 1000);
-  }, []);
+  }, [hasShownHints]);
 
   const showStartScreen = appState === 'start' || appState === 'entering';
   const showExperience = appState === 'entering' || appState === 'experience';
@@ -59,6 +64,9 @@ const MainApp: React.FC = () => {
           isExiting={appState === 'entering'}
         />
       )}
+      
+      {/* Control hints are shown once the experience starts for the first time */}
+      {hasShownHints && <ControlHints />}
     </>
   );
 };

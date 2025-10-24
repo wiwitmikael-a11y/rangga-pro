@@ -1,6 +1,8 @@
 import React, { useState, useCallback, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment } from '@react-three/drei';
+import { EffectComposer, Bloom, Noise, ChromaticAberration } from '@react-three/postprocessing';
+import { BlendFunction } from 'postprocessing';
 
 import { CityModel } from './scene/CityModel';
 import Rain from './scene/Rain';
@@ -71,7 +73,9 @@ export const Experience3D: React.FC = () => {
         camera={{ position: [0, 60, 120], fov: 50, near: 0.1, far: 1000 }}
         gl={{
           powerPreference: 'high-performance',
-          antialias: true,
+          antialias: false, // Antialiasing is handled by post-processing (FXAA/SMAA) if needed
+          stencil: false,
+          depth: false,
         }}
         dpr={[1, 1.5]}
       >
@@ -122,6 +126,23 @@ export const Experience3D: React.FC = () => {
           <CameraRig selectedDistrict={selectedDistrict} onAnimationFinish={onAnimationFinish} isAnimating={isAnimating} />
 
           <Environment preset="night" />
+
+          <EffectComposer>
+            <Bloom 
+              intensity={0.6} 
+              luminanceThreshold={0.2} 
+              luminanceSmoothing={0.8} 
+              height={400} 
+            />
+            <Noise 
+              premultiply 
+              blendFunction={BlendFunction.ADD}
+              opacity={0.07} 
+            />
+            <ChromaticAberration 
+              offset={[0.001, 0.001]} 
+            />
+          </EffectComposer>
 
         </Suspense>
 

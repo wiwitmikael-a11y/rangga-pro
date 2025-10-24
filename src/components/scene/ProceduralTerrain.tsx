@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { createNoise2D } from 'simplex-noise';
+import { Grid } from '@react-three/drei';
 
 interface ProceduralTerrainProps {
     onDeselect: () => void;
@@ -35,19 +36,31 @@ export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(({
     };
 
     return (
-        <mesh
-            geometry={geometry}
-            rotation={[-Math.PI / 2, 0, 0]}
-            position={[0, -5.5, 0]}
-            onClick={handleClick}
-            receiveShadow
-        >
-            <meshStandardMaterial
-                color="#201040"
-                wireframe={true}
-                metalness={0.2}
-                roughness={0.8}
+        <group position={[0, -5.5, 0]}>
+            <mesh
+                geometry={geometry}
+                rotation={[-Math.PI / 2, 0, 0]}
+                onClick={handleClick}
+                receiveShadow
+            >
+                <meshStandardMaterial
+                    color="#201040"
+                    wireframe={true}
+                    metalness={0.2}
+                    roughness={0.8}
+                />
+            </mesh>
+            <Grid
+                args={[500, 500]}
+                cellSize={20}
+                cellColor="#00ffff"
+                sectionSize={100}
+                sectionColor="#00ffff"
+                sectionThickness={1.5}
+                fadeDistance={250}
+                fadeStrength={1}
+                infiniteGrid
             />
-        </mesh>
+        </group>
     );
 });
