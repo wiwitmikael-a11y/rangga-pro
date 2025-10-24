@@ -6,9 +6,10 @@ interface ThrustTrailProps {
     width?: number;
     length?: number;
     opacity?: number;
+    color?: string;
 }
 
-export const ThrustTrail: React.FC<ThrustTrailProps> = ({ width = 0.3, length = 3, opacity = 0.5 }) => {
+export const ThrustTrail: React.FC<ThrustTrailProps> = ({ width = 0.3, length = 3, opacity = 0.5, color = '#00ffff' }) => {
     const meshRef = useRef<THREE.Mesh>(null!);
 
     useFrame(({ clock }) => {
@@ -23,8 +24,8 @@ export const ThrustTrail: React.FC<ThrustTrailProps> = ({ width = 0.3, length = 
         <mesh ref={meshRef} position-z={-2} rotation-x={Math.PI / 2}>
             <coneGeometry args={[width, length, 8]} />
             <meshStandardMaterial
-                color="#00ffff"
-                emissive="#00ffff"
+                color={color}
+                emissive={color}
                 emissiveIntensity={4}
                 transparent
                 opacity={opacity}

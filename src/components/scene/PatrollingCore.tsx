@@ -49,7 +49,7 @@ export const PatrollingCore: React.FC = () => {
 
   return (
     <group ref={groupRef}>
-      <primitive object={clonedScene} scale={1.1} />
+      <primitive object={clonedScene} scale={0.11} />
       <spotLight
         target={lightTargetRef.current}
         position={[0, -3, 0]} // Position relative to the orbiting group, moved to the "tip"
