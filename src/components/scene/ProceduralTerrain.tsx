@@ -94,12 +94,14 @@ export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(({
 
     const geometry = useMemo(() => {
         const size = 500;
-        const segments = 150;
+        // OPTIMIZATION: Reduced segments from 150 to 80 to prevent blocking the main thread during initial load.
+        const segments = 80;
         const geo = new THREE.PlaneGeometry(size, size, segments, segments);
         const positionAttribute = geo.getAttribute('position');
 
         const amplitude = 8; // How high the mountains are
-        const frequency = 0.01; // How zoomed in the noise is
+        // Adjusted frequency slightly to maintain detail with fewer segments
+        const frequency = 0.015;
 
         for (let i = 0; i < positionAttribute.count; i++) {
             const x = positionAttribute.getX(i);
