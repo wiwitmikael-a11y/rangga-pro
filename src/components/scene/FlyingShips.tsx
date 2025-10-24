@@ -10,9 +10,10 @@ interface ShipProps {
   modelUrl: string;
   scale: number;
   flightPath: (time: number) => { position: THREE.Vector3, lookAt: THREE.Vector3 };
+  trailConfig?: { width?: number; length?: number; opacity?: number };
 }
 
-const Ship: React.FC<ShipProps> = ({ modelUrl, scale, flightPath }) => {
+const Ship: React.FC<ShipProps> = ({ modelUrl, scale, flightPath, trailConfig }) => {
   const groupRef = useRef<THREE.Group>(null!);
   const { scene } = useGLTF(modelUrl);
   const clonedScene = useMemo(() => scene.clone(), [scene]);
@@ -27,7 +28,7 @@ const Ship: React.FC<ShipProps> = ({ modelUrl, scale, flightPath }) => {
   return (
     <group ref={groupRef} scale={scale} dispose={null}>
       <primitive object={clonedScene} />
-      <ThrustTrail />
+      <ThrustTrail {...trailConfig} />
     </group>
   );
 };
@@ -58,21 +59,24 @@ export const FlyingShips: React.FC = React.memo(() => {
     },
     {
       url: `${GITHUB_MODEL_URL_BASE}ship_copter.glb`,
-      scale: 0.1, // Reduced scale
+      scale: 0.05, // Reduced scale by 50%
       flightPath: (time: number) => {
         const angle = -time * 0.25;
         return {
           position: new THREE.Vector3(Math.sin(angle) * 60, 20 + Math.sin(time) * 5, Math.cos(angle) * 60),
-          lookAt: new THREE.Vector3(Math.sin(angle + 0.1) * 60, 20, Math.cos(angle + 0.1) * 60),
+          // Corrected lookAt to make it fly forward
+          lookAt: new THREE.Vector3(Math.sin(angle - 0.1) * 60, 20, Math.cos(angle - 0.1) * 60),
         };
       },
+      // Added config for a thinner trail
+      trailConfig: { width: 0.1, length: 4, opacity: 0.4 },
     },
   ], []);
 
   return (
     <Suspense fallback={null}>
       {ships.map((ship, index) => (
-        <Ship key={index} modelUrl={ship.url} scale={ship.scale} flightPath={ship.flightPath} />
+        <Ship key={index} modelUrl={ship.url} scale={ship.scale} flightPath={ship.flightPath} trailConfig={ship.trailConfig} />
       ))}
     </Suspense>
   );
