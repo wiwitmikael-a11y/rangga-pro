@@ -3,7 +3,7 @@ import React from 'react';
 // FIX: Remove the triple-slash directive for @react-three/fiber types.
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { CityDistrict } from './types';
+import { CityDistrict } from '../types';
 
 interface CameraRigProps {
   selectedDistrict: CityDistrict | null;

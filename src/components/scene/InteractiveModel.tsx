@@ -1,5 +1,6 @@
 
-import React, { Suspense, useLayoutEffect, useMemo, useRef, useState } from 'react';
+
+import React, { Suspense, useLayoutEffect, useMemo, useRef } from 'react';
 import { useGLTF, Text } from '@react-three/drei';
 import * as THREE from 'three';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
@@ -12,12 +13,20 @@ interface InteractiveModelProps {
   onSelect: (district: CityDistrict) => void;
 }
 
-function Model({ url, scale, onPointerOver, onPointerOut, onClick }: any) {
+interface ModelProps {
+  url: string;
+  scale: number;
+  onPointerOver: (e: ThreeEvent<PointerEvent>) => void;
+  onPointerOut: (e: ThreeEvent<PointerEvent>) => void;
+  onClick: (e: ThreeEvent<MouseEvent>) => void;
+}
+
+function Model({ url, scale, onPointerOver, onPointerOut, onClick }: ModelProps) {
   const { scene } = useGLTF(url);
   const clonedScene = useMemo(() => scene.clone(), [scene]);
 
   useLayoutEffect(() => {
-    clonedScene.traverse((child) => {
+    clonedScene.traverse((child: THREE.Object3D) => {
       if (child instanceof THREE.Mesh) {
         child.castShadow = true;
         child.receiveShadow = true;
@@ -68,7 +77,7 @@ export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, is
             <Text color="cyan" anchorX="center" anchorY="middle">Loading...</Text>
         }>
             <Model 
-                url={district.modelUrl} 
+                url={district.modelUrl!} 
                 scale={district.modelScale || 1}
                 onPointerOver={handlePointerOver}
                 onPointerOut={handlePointerOut}
