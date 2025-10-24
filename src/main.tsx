@@ -12,14 +12,17 @@ const MainApp: React.FC = () => {
   const isLoaded = progress >= 100;
 
   useEffect(() => {
+    // When loading is complete, transition to the start screen.
     if (appState === 'loading' && isLoaded) {
-      setAppState('start');
+       // A small delay prevents a jarring flash if loading is very fast.
+      const timer = setTimeout(() => setAppState('start'), 500);
+      return () => clearTimeout(timer);
     }
   }, [appState, isLoaded]);
 
   const handleStart = useCallback(() => {
     setAppState('entering');
-    // Unmount StartScreen setelah transisi fade-out selesai
+    // This timeout should match the fade-out transition duration on the StartScreen.
     setTimeout(() => {
       setAppState('experience');
     }, 1000);
@@ -30,14 +33,26 @@ const MainApp: React.FC = () => {
 
   return (
     <>
-      <main style={{ width: '100vw', height: '100vh', backgroundColor: '#050810' }}>
+      {/* The 3D experience is always mounted so assets can be loaded by Suspense.
+          UI Overlays like the Loader and StartScreen will cover it initially. */}
+      <main style={{ 
+          width: '100vw', 
+          height: '100vh', 
+          backgroundColor: '#050810',
+          // Fade in the canvas for a smooth transition once the experience starts
+          opacity: showExperience ? 1 : 0,
+          transition: 'opacity 1.5s ease-in-out',
+        }}>
         <Suspense fallback={null}>
-          {showExperience && <Experience3D />}
+          <Experience3D />
         </Suspense>
       </main>
 
+      {/* --- Overlays --- */}
+      {/* Loader is visible only during the 'loading' state */}
       {appState === 'loading' && <Loader progress={progress} />}
 
+      {/* StartScreen is visible during 'start' and fades out during 'entering' */}
       {showStartScreen && (
         <StartScreen
           onStart={handleStart}
