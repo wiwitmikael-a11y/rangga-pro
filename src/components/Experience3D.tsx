@@ -22,11 +22,11 @@ export const Experience3D: React.FC = () => {
   const [isAnimating, setIsAnimating] = useState(true);
 
   const handleAnimationFinish = useCallback(() => {
-    // Only enable orbit controls when the camera has settled in the main overview
-    if (!selectedDistrict) {
+    // Only enable orbit controls when the camera has settled
+    if (isAnimating) {
       setIsAnimating(false);
     }
-  }, [selectedDistrict]);
+  }, [isAnimating]);
 
   const handleDistrictSelect = useCallback((district: CityDistrict) => {
     setIsAnimating(true);
@@ -68,6 +68,7 @@ export const Experience3D: React.FC = () => {
         <CameraRig
           selectedDistrict={selectedDistrict}
           onAnimationFinish={handleAnimationFinish}
+          isAnimating={isAnimating}
         />
 
         {/* User controls are enabled only when no cinematic animation is active */}

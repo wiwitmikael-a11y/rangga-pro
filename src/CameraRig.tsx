@@ -6,6 +6,7 @@ import { CityDistrict } from './types';
 interface CameraRigProps {
   selectedDistrict: CityDistrict | null;
   onAnimationFinish: () => void;
+  isAnimating: boolean;
 }
 
 // Using helper vectors outside the loop for performance optimization
@@ -13,8 +14,14 @@ const targetPosition = new THREE.Vector3();
 const targetLookAt = new THREE.Vector3();
 const OVERVIEW_LOOK_AT = new THREE.Vector3(0, 5, 0);
 
-export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimationFinish }) => {
+export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimationFinish, isAnimating }) => {
   useFrame((state, delta) => {
+    // Only run the animation logic if isAnimating is true.
+    // This prevents the rig from fighting with user controls.
+    if (!isAnimating) {
+      return;
+    }
+
     if (selectedDistrict?.cameraFocus) {
       // Move to the unique cinematic viewpoint for the selected district
       targetPosition.set(...selectedDistrict.cameraFocus.pos);
