@@ -37,7 +37,7 @@ export const FlyingShips: React.FC = React.memo(() => {
   const ships = useMemo(() => [
     {
       url: `${GITHUB_MODEL_URL_BASE}ship_space.glb`,
-      scale: 0.3, // Doubled scale
+      scale: 0.9, // Increased scale 3x
       flightPath: (time: number) => {
         const angle = time * 0.2;
         return {
@@ -45,11 +45,11 @@ export const FlyingShips: React.FC = React.memo(() => {
           lookAt: new THREE.Vector3(Math.sin(angle + 0.1) * 70, 25, Math.cos(angle + 0.1) * 70),
         };
       },
-      trailConfig: { color: '#00aaff', length: 10, opacity: 0.7 },
+      trailConfig: { color: '#00aaff', length: 100, opacity: 0.7 }, // Increased length 10x
     },
     {
       url: `${GITHUB_MODEL_URL_BASE}ship_delorean.glb`,
-      scale: 0.4, // Doubled scale
+      scale: 1.2, // Increased scale 3x
       flightPath: (time: number) => {
         const angle = time * 0.3;
         return {
@@ -57,11 +57,11 @@ export const FlyingShips: React.FC = React.memo(() => {
           lookAt: new THREE.Vector3(Math.cos(angle + 0.1) * 50, 15, Math.sin(angle + 0.1) * 80),
         };
       },
-      trailConfig: { color: '#ffaa00', length: 12, opacity: 0.8 },
+      trailConfig: { color: '#ffaa00', length: 120, opacity: 0.8 }, // Increased length 10x
     },
     {
       url: `${GITHUB_MODEL_URL_BASE}ship_copter.glb`,
-      scale: 0.1, // Doubled scale
+      scale: 0.1, // Scale remains the same
       flightPath: (time: number) => {
         const angle = -time * 0.25;
         return {
@@ -69,7 +69,7 @@ export const FlyingShips: React.FC = React.memo(() => {
           lookAt: new THREE.Vector3(Math.sin(angle - 0.1) * 60, 20, Math.cos(angle - 0.1) * 60),
         };
       },
-      trailConfig: { color: '#00ffaa', width: 0.2, length: 8, opacity: 0.6 },
+      trailConfig: { color: '#00ffaa', width: 0.2, length: 80, opacity: 0.6 }, // Increased length 10x
     },
   ], []);
 

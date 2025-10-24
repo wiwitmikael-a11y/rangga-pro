@@ -13,7 +13,6 @@ import Rain from './scene/Rain';
 import FloatingParticles from './scene/FloatingParticles';
 import { FlyingShips } from './scene/FlyingShips';
 import DataTrail from './scene/DataTrail';
-import { PatrollingCore } from './scene/PatrollingCore';
 import HolographicInfoPanel from './scene/HolographicInfoPanel';
 
 export const Experience3D: React.FC = () => {
@@ -87,7 +86,6 @@ export const Experience3D: React.FC = () => {
         <FloatingParticles count={200} />
         <FlyingShips />
         <DataTrail />
-        <PatrollingCore />
 
         {/* --- Core Scene --- */}
         <CityModel />
