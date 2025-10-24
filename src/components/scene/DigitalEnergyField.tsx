@@ -63,7 +63,7 @@ export const DigitalEnergyField: React.FC<DigitalEnergyFieldProps> = React.memo(
             onClick={handleClick}
             receiveShadow
         >
-            <circleGeometry args={[250, 64]} />
+            <circleGeometry args={[250, 48]} />
             <shaderMaterial
                 ref={materialRef}
                 vertexShader={vertexShader}

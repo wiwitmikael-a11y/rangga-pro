@@ -96,7 +96,7 @@ export const Experience3D: React.FC = () => {
           />
 
           <CityModel />
-          <Rain count={5000} />
+          <Rain count={2500} />
           <FlyingShips />
           <DigitalEnergyField onDeselect={handleGoHome} />
 
