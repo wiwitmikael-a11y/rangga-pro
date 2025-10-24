@@ -1,5 +1,6 @@
-/// <reference types="@react-three/fiber" />
-
+// FIX: Add import for React to resolve 'React.FC' type error.
+import React from 'react';
+// FIX: The triple-slash directive is deprecated and was causing type definition errors. It has been removed.
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { CityDistrict } from './types';

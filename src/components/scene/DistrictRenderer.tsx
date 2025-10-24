@@ -3,6 +3,7 @@ import type { CityDistrict } from '../../types';
 import DistrictBuilding from './DistrictBuilding';
 import HolographicDistrictLabel from './HolographicDistrictLabel';
 import { HolographicProjector } from './HolographicProjector';
+import { InteractiveModel } from './InteractiveModel';
 
 interface DistrictRendererProps {
   districts: CityDistrict[];
@@ -22,13 +23,25 @@ export const DistrictRenderer: React.FC<DistrictRendererProps> = ({
 
         if (district.type === 'major') {
           return (
-            <group key={district.id} position={district.position}>
-                <HolographicProjector position={[0, -5, 0]} />
-                <HolographicDistrictLabel
+            <group key={district.id}>
+              {district.modelUrl ? (
+                // If a model URL is provided, render the interactive 3D model
+                <InteractiveModel
                   district={district}
                   isSelected={isSelected}
                   onSelect={onDistrictSelect}
                 />
+              ) : (
+                // Otherwise, fall back to the holographic projector
+                <group position={district.position}>
+                  <HolographicProjector position={[0, -5, 0]} />
+                  <HolographicDistrictLabel
+                    district={district}
+                    isSelected={isSelected}
+                    onSelect={onDistrictSelect}
+                  />
+                </group>
+              )}
             </group>
           );
         }

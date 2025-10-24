@@ -23,4 +23,6 @@ export interface CityDistrict {
   height?: number; // Untuk bangunan generik
   subItems?: PortfolioSubItem[];
   cameraFocus?: CameraFocusPoint; // Posisi & target kamera unik
+  modelUrl?: string; // URL ke model GLB untuk distrik ini
+  modelScale?: number; // Skala untuk model GLB
 }

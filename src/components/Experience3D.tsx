@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
-import { CityDistrict, PortfolioSubItem } from '../types';
+import { CityDistrict } from '../types';
 import { portfolioData } from '../constants';
 import { CameraRig } from '../CameraRig';
 import { CityModel } from './scene/CityModel';
@@ -10,32 +10,23 @@ import FloatingParticles from './scene/FloatingParticles';
 import Rain from './scene/Rain';
 import { DistrictRenderer } from './scene/DistrictRenderer';
 import { HUD } from './ui/HUD';
-import { FlyingVehicles } from './scene/FlyingVehicles';
-import { ProjectDisplay } from './scene/ProjectDisplay';
+import { FlyingShips } from './scene/FlyingShips'; // Import the new ships component
 import DataTrail from './scene/DataTrail';
+import { PatrollingCore } from './scene/PatrollingCore'; // Import the new patrolling core
 
 export const Experience3D: React.FC = () => {
   const [selectedDistrict, setSelectedDistrict] = useState<CityDistrict | null>(null);
-  const [activeSubItems, setActiveSubItems] = useState<PortfolioSubItem[]>([]);
 
   const handleDistrictSelect = useCallback((district: CityDistrict) => {
     setSelectedDistrict(district);
-    setActiveSubItems(district.subItems || []);
   }, []);
 
   const handleGoHome = useCallback(() => {
     setSelectedDistrict(null);
-    setActiveSubItems([]);
   }, []);
-  
-  const handleProjectClick = (projectId: string) => {
-    // Di masa depan, ini bisa membuka detail lebih lanjut
-    console.log(`Navigating to project: ${projectId}`);
-  };
 
   // Hardcoded balanced settings for stability
   const performanceSettings = {
-    vehicles: 15,
     particles: 1000,
     rain: 3000,
     effects: true,
@@ -61,6 +52,7 @@ export const Experience3D: React.FC = () => {
         <CameraRig selectedDistrict={selectedDistrict} />
 
         <CityModel />
+        <PatrollingCore /> 
         <GroundPlane onDeselect={handleGoHome} />
         <DataTrail />
 
@@ -70,21 +62,9 @@ export const Experience3D: React.FC = () => {
           onDistrictSelect={handleDistrictSelect}
         />
         
-        {/* Render sub-items when a district is selected */}
-        {selectedDistrict && (
-            <group position={selectedDistrict.position}>
-                 {activeSubItems.map(item => (
-                    <ProjectDisplay 
-                        key={item.id} 
-                        item={item}
-                        isLocked={false} // Logika unlocking bisa ditambahkan di sini
-                        onClick={() => handleProjectClick(item.id)}
-                    />
-                 ))}
-            </group>
-        )}
+        {/* The new dynamic fleet of ships */}
+        <FlyingShips />
 
-        <FlyingVehicles count={performanceSettings.vehicles} />
         <FloatingParticles count={performanceSettings.particles} />
         <Rain count={performanceSettings.rain} />
 
