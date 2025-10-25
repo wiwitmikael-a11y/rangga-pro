@@ -60,7 +60,7 @@ const Ship: React.FC<ShipProps> = ({ modelUrl, scale, trailConfig, trailOffset, 
   const tempQuaternion = useMemo(() => new THREE.Quaternion(), []);
   const tempLookAtObject = useMemo(() => new THREE.Object3D(), []);
 
-  const getNewFlightTarget = (currentPosition: THREE.Vector3) => {
+  const getNewFlightTarget = () => {
     if (Math.random() < 0.7) {
       const angle = Math.random() * Math.PI * 2;
       const radius = Math.random() * CITY_RADIUS;
@@ -88,7 +88,7 @@ const Ship: React.FC<ShipProps> = ({ modelUrl, scale, trailConfig, trailOffset, 
           Math.sin(angle) * radius
         );
         groupRef.current.position.copy(initialPos);
-        shipState.current.targetPosition.copy(getNewFlightTarget(initialPos));
+        shipState.current.targetPosition.copy(getNewFlightTarget());
         shipState.current.isInitialized = true;
         groupRef.current.visible = true;
     }
@@ -116,7 +116,7 @@ const Ship: React.FC<ShipProps> = ({ modelUrl, scale, trailConfig, trailOffset, 
             const finalLandingTarget = targetZone.clone().add(landingOffset);
             shipState.current.targetPosition.copy(finalLandingTarget);
           } else {
-            shipState.current.targetPosition.copy(getNewFlightTarget(currentPos));
+            shipState.current.targetPosition.copy(getNewFlightTarget());
             shipState.current.timer = Math.random() * 15 + 10;
           }
         }
@@ -139,7 +139,7 @@ const Ship: React.FC<ShipProps> = ({ modelUrl, scale, trailConfig, trailOffset, 
       case 'ASCENDING':
         if (currentPos.distanceTo(targetPos) < 1) {
           shipState.current.state = 'FLYING';
-          shipState.current.targetPosition.copy(getNewFlightTarget(currentPos));
+          shipState.current.targetPosition.copy(getNewFlightTarget());
           shipState.current.timer = Math.random() * 15 + 10;
         }
         break;
