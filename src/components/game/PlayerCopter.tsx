@@ -15,7 +15,7 @@ const MOVEMENT_SPEED = 20;
 const ALTITUDE_SPEED = 15;
 const ROTATION_SPEED = 2.5;
 
-export const PlayerCopter = React.forwardRef<THREE.Group, PlayerCopterProps>(({ initialPosition }, ref) => {
+export const PlayerCopter = React.forwardRef<THREE.Group, PlayerCopterProps>(({ initialPosition }, _ref) => {
     const groupRef = useRef<THREE.Group>(null!);
     const { scene } = useGLTF(PLAYER_MODEL_URL);
     const clonedScene = useMemo(() => scene.clone(), [scene]);
