@@ -24,6 +24,8 @@ import { BuildModeController } from './scene/BuildModeController';
 import { ExportLayoutModal } from './ui/ExportLayoutModal';
 import { InstagramVisitModal } from './ui/InstagramVisitModal';
 import { ContactHubModal } from './ui/ContactHubModal';
+import { GameLobbyPanel } from './ui/GameLobbyPanel';
+import { AegisProtocolGame } from './game/AegisProtocolGame';
 
 
 // Define the sun's position for a sunset glow near the horizon
@@ -54,8 +56,13 @@ export const Experience3D: React.FC = () => {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [exportedLayoutJson, setExportedLayoutJson] = useState('');
 
+  // Game State
+  const [isGameLobbyOpen, setIsGameLobbyOpen] = useState(false);
+  const [isGameActive, setIsGameActive] = useState(false);
+  const playerSpawnPosition = useRef(new THREE.Vector3());
+
   const controlsRef = useRef<OrbitControlsImpl>(null);
-  const isPaused = isCalibrationMode;
+  const isPaused = isCalibrationMode || isGameActive;
 
   const navDistricts = useMemo(() => {
     const majorDistricts = districts.filter(d => d.type === 'major');
@@ -73,12 +80,13 @@ export const Experience3D: React.FC = () => {
     setInfoPanelItem(null);
     setIsAutoRotating(false);
     setIsContactHubOpen(false);
+    setIsGameLobbyOpen(false);
     
     setSelectedDistrict(districts.find(d => d.id === district.id) || null);
     setIsAnimating(true);
   }, [selectedDistrict, isAnimating, districts, isCalibrationMode]);
   
-  const isDetailViewActive = showProjects || !!infoPanelItem || !!selectedDistrict || isContactHubOpen;
+  const isDetailViewActive = showProjects || !!infoPanelItem || !!selectedDistrict || isContactHubOpen || isGameLobbyOpen;
 
   const resetIdleTimer = useCallback(() => {
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
@@ -123,6 +131,8 @@ export const Experience3D: React.FC = () => {
     setInfoPanelItem(null);
     setIsContactHubOpen(false);
     setShowVisitModal(false);
+    setIsGameLobbyOpen(false);
+    setIsGameActive(false);
     setTargetShipRef(null);
     resetIdleTimer();
   }, [resetIdleTimer]);
@@ -134,6 +144,8 @@ export const Experience3D: React.FC = () => {
         setShowVisitModal(true);
       } else if (selectedDistrict.id === 'contact') {
         setIsContactHubOpen(true);
+      } else if (selectedDistrict.id === 'aegis-command') {
+        setIsGameLobbyOpen(true);
       } else if (selectedDistrict.subItems && selectedDistrict.subItems.length > 0) {
         setShowProjects(true);
       } else {
@@ -143,6 +155,25 @@ export const Experience3D: React.FC = () => {
       resetIdleTimer();
     }
   }, [selectedDistrict, resetIdleTimer, pov, isCalibrationMode]);
+
+  const handleLaunchGame = useCallback(() => {
+    const aegisDistrict = districts.find(d => d.id === 'aegis-command');
+    if (aegisDistrict) {
+        playerSpawnPosition.current.set(
+            aegisDistrict.position[0],
+            aegisDistrict.position[1] + 20,
+            aegisDistrict.position[2] + 20
+        );
+    }
+    setIsGameLobbyOpen(false);
+    setIsGameActive(true);
+  }, [districts]);
+
+  const handleExitGame = useCallback(() => {
+      setIsGameActive(false);
+      handleGoHome();
+  }, [handleGoHome]);
+
 
   const handleProjectClick = (item: PortfolioSubItem) => {
     console.log('Project clicked:', item.title);
@@ -274,80 +305,88 @@ export const Experience3D: React.FC = () => {
         dpr={[1, 1.5]}
       >
         <Suspense fallback={null}>
-          {/* The <Sky> component renders the background; fog has been removed for performance. */}
-          <Sky sunPosition={sunPosition} turbidity={20} rayleigh={1} mieCoefficient={0.005} mieDirectionalG={0.8} />
-          <ambientLight intensity={1.2} />
-          <directionalLight
-            position={sunPosition}
-            intensity={6.0}
-            color={sunColor}
-            castShadow
-            shadow-mapSize-width={4096}
-            shadow-mapSize-height={4096}
-            shadow-camera-far={500}
-            shadow-camera-left={-200}
-            shadow-camera-right={200}
-            shadow-camera-top={200}
-            shadow-camera-bottom={-200}
-          />
-
-          <CityModel />
-          <Rain count={2500} />
-          <FlyingShips setShipRefs={setShipRefs} isPaused={isPaused} />
-          <PatrollingCore isPaused={isPaused} />
-          <ProceduralTerrain onDeselect={handleGoHome} />
-          
-          <group position={[0, 5, 0]}>
-            <DistrictRenderer
-              districts={districts}
-              selectedDistrict={selectedDistrict}
-              onDistrictSelect={handleDistrictSelect}
-              isCalibrationMode={isCalibrationMode}
-              heldDistrictId={heldDistrictId}
-              onSetHeldDistrict={handleSetHeldDistrict}
-            />
-            {infoPanelItem && <HolographicInfoPanel district={infoPanelItem} onClose={handlePanelClose} />}
-          </group>
-          
-          {isCalibrationMode && <CalibrationGrid size={250} />}
-          {isCalibrationMode && (
-              <BuildModeController
-                districts={districts}
-                setDistricts={setDistricts}
-                heldDistrictId={heldDistrictId}
-                onPlaceDistrict={handlePlaceDistrict}
-                gridSize={250}
-                gridDivisions={25}
+          {!isGameActive ? (
+            <>
+              {/* The <Sky> component renders the background; fog has been removed for performance. */}
+              <Sky sunPosition={sunPosition} turbidity={20} rayleigh={1} mieCoefficient={0.005} mieDirectionalG={0.8} />
+              <ambientLight intensity={1.2} />
+              <directionalLight
+                position={sunPosition}
+                intensity={6.0}
+                color={sunColor}
+                castShadow
+                shadow-mapSize-width={4096}
+                shadow-mapSize-height={4096}
+                shadow-camera-far={500}
+                shadow-camera-left={-200}
+                shadow-camera-right={200}
+                shadow-camera-top={200}
+                shadow-camera-bottom={-200}
               />
-            )}
 
-          <CameraRig 
-            selectedDistrict={selectedDistrict} 
-            onAnimationFinish={onAnimationFinish} 
-            isAnimating={isAnimating}
-            pov={pov}
-            targetShipRef={targetShipRef}
-            isCalibrationMode={isCalibrationMode}
-          />
+              <CityModel />
+              <Rain count={2500} />
+              <FlyingShips setShipRefs={setShipRefs} isPaused={isPaused} />
+              <PatrollingCore isPaused={isPaused} />
+              <ProceduralTerrain onDeselect={handleGoHome} />
+              
+              <group position={[0, 5, 0]}>
+                <DistrictRenderer
+                  districts={districts}
+                  selectedDistrict={selectedDistrict}
+                  onDistrictSelect={handleDistrictSelect}
+                  isCalibrationMode={isCalibrationMode}
+                  heldDistrictId={heldDistrictId}
+                  onSetHeldDistrict={handleSetHeldDistrict}
+                />
+                {infoPanelItem && <HolographicInfoPanel district={infoPanelItem} onClose={handlePanelClose} />}
+              </group>
+              
+              {isCalibrationMode && <CalibrationGrid size={250} />}
+              {isCalibrationMode && (
+                  <BuildModeController
+                    districts={districts}
+                    setDistricts={setDistricts}
+                    heldDistrictId={heldDistrictId}
+                    onPlaceDistrict={handlePlaceDistrict}
+                    gridSize={250}
+                    gridDivisions={25}
+                  />
+                )}
 
-          <EffectComposer>
-            <Noise 
-              premultiply 
-              blendFunction={BlendFunction.ADD}
-              opacity={0.07} 
+              <CameraRig 
+                selectedDistrict={selectedDistrict} 
+                onAnimationFinish={onAnimationFinish} 
+                isAnimating={isAnimating}
+                pov={pov}
+                targetShipRef={targetShipRef}
+                isCalibrationMode={isCalibrationMode}
+              />
+
+              <EffectComposer>
+                <Noise 
+                  premultiply 
+                  blendFunction={BlendFunction.ADD}
+                  opacity={0.07} 
+                />
+                <ChromaticAberration 
+                  offset={new THREE.Vector2(0.001, 0.001)}
+                  radialModulation={false}
+                  modulationOffset={0.15}
+                />
+              </EffectComposer>
+            </>
+          ) : (
+            <AegisProtocolGame 
+              onExit={handleExitGame} 
+              playerSpawnPosition={playerSpawnPosition.current}
             />
-            <ChromaticAberration 
-              offset={new THREE.Vector2(0.001, 0.001)}
-              radialModulation={false}
-              modulationOffset={0.15}
-            />
-          </EffectComposer>
-
+          )}
         </Suspense>
 
         <OrbitControls
             ref={controlsRef}
-            enabled={pov === 'main' && !isAnimating && !isNavMenuOpen && !showProjects && !infoPanelItem && !heldDistrictId}
+            enabled={pov === 'main' && !isAnimating && !isNavMenuOpen && !showProjects && !infoPanelItem && !heldDistrictId && !isGameActive}
             minDistance={20}
             maxDistance={300}
             maxPolarAngle={isCalibrationMode ? Math.PI / 2.05 : Math.PI / 2.2}
@@ -360,19 +399,21 @@ export const Experience3D: React.FC = () => {
         />
       </Canvas>
       
-      <HUD 
-          selectedDistrict={selectedDistrict} 
-          onGoHome={handleGoHome}
-          onToggleNavMenu={() => setIsNavMenuOpen(!isNavMenuOpen)}
-          isDetailViewActive={isDetailViewActive}
-          pov={pov}
-          onSetPov={handleSetPov}
-          isCalibrationMode={isCalibrationMode}
-          onToggleCalibrationMode={handleToggleCalibrationMode}
-          onExportLayout={handleExportLayout}
-          heldDistrictId={heldDistrictId}
-          onCancelMove={handleCancelMove}
-      />
+      {!isGameActive && (
+        <HUD 
+            selectedDistrict={selectedDistrict} 
+            onGoHome={handleGoHome}
+            onToggleNavMenu={() => setIsNavMenuOpen(!isNavMenuOpen)}
+            isDetailViewActive={isDetailViewActive}
+            pov={pov}
+            onSetPov={handleSetPov}
+            isCalibrationMode={isCalibrationMode}
+            onToggleCalibrationMode={handleToggleCalibrationMode}
+            onExportLayout={handleExportLayout}
+            heldDistrictId={heldDistrictId}
+            onCancelMove={handleCancelMove}
+        />
+      )}
 
       {isNavMenuOpen && (
           <QuickNavMenu 
@@ -407,6 +448,13 @@ export const Experience3D: React.FC = () => {
         <ContactHubModal
           isOpen={isContactHubOpen}
           onClose={() => setIsContactHubOpen(false)}
+        />
+      )}
+      {isGameLobbyOpen && (
+        <GameLobbyPanel
+          isOpen={isGameLobbyOpen}
+          onLaunch={handleLaunchGame}
+          onClose={handleGoHome}
         />
       )}
     </>

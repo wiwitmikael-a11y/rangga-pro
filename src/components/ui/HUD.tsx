@@ -64,12 +64,6 @@ const CancelIcon: React.FC = () => (
 );
 
 const styles: { [key: string]: React.CSSProperties } = {
-  topRightContainer: {
-    position: 'fixed',
-    top: '20px',
-    right: '20px',
-    zIndex: 100,
-  },
   breadcrumbContainer: {
     position: 'fixed',
     top: '20px',
@@ -98,6 +92,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     left: '20px',
     display: 'flex',
     alignItems: 'center',
+    zIndex: 100,
+  },
+  bottomCenterContainer: {
+    position: 'fixed',
+    bottom: '20px',
+    left: '50%',
+    transform: 'translateX(-50%)',
     zIndex: 100,
   },
   hudButton: {
@@ -154,6 +155,7 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
 
   const breadcrumb = useMemo(() => {
     if (heldDistrictId) return `RAGETOPIA > /ARCHITECT_MODE/MOVING...`;
+    if (selectedDistrict?.id === 'aegis-command') return 'RAGETOPIA > /AEGIS_COMMAND/ENGAGED';
     if (selectedDistrict) return `RAGETOPIA > /${selectedDistrict.id.toUpperCase()}_DISTRICT/`;
     if (isCalibrationMode) return `RAGETOPIA > /ARCHITECT_MODE/`;
     return 'RAGETOPIA';
@@ -164,7 +166,6 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
 
   return (
     <>
-      {/* FIX: Add hover styles for interactive buttons */}
       <style>{`
         .hud-button:not([disabled]):hover {
             background-color: rgba(0, 170, 255, 0.2);
@@ -176,20 +177,25 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
         }
       `}</style>
       
-      {/* FIX: Add top-right container for the navigation menu button */}
-      <div style={styles.topRightContainer}>
-          <button
-            onClick={onToggleNavMenu}
-            style={styles.hudButton}
-            className="hud-button"
-            aria-label="Open Navigation Menu"
-          >
-            <NavMenuIcon />
-          </button>
-      </div>
-
       <div style={styles.breadcrumbContainer} className="breadcrumb-container">
           <p style={styles.breadcrumbText}>{breadcrumb}</p>
+      </div>
+
+      <div style={styles.bottomCenterContainer} className="bottom-center-container">
+        <button
+          onClick={onToggleNavMenu}
+          style={{
+            ...styles.hudButton,
+            width: '64px',
+            height: '64px',
+            margin: 0,
+            borderRadius: 0, // Reset border radius for clip-path to work
+          }}
+          className="hud-button hex-btn"
+          aria-label="Open Navigation Menu"
+        >
+          <NavMenuIcon />
+        </button>
       </div>
        
       <div style={styles.bottomLeftContainer} className="bottom-left-container">
@@ -229,7 +235,6 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
             >
             <GridIcon />
           </button>
-          {/* FIX: Add conditional architect mode buttons */}
           {isCalibrationMode && (
             <button
                 onClick={onExportLayout}
