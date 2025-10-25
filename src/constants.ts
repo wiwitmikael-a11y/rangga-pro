@@ -78,7 +78,7 @@ export const portfolioData: CityDistrict[] = [
     "position": [
       30,
       15,
-      20
+      30
     ],
     "type": "major",
     "cameraFocus": {
@@ -99,9 +99,9 @@ export const portfolioData: CityDistrict[] = [
     "title": "Aegis Command",
     "description": "Launch Threat Neutralization Protocol",
     "position": [
-      -60,
+      -50,
       -11,
-      -60
+      -50
     ],
     "type": "major",
     "modelUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/aegis_hq.glb",
@@ -124,9 +124,9 @@ export const portfolioData: CityDistrict[] = [
     "title": "AI Engineer Lab",
     "description": "Engineering & Generative Projects",
     "position": [
-      80,
+      70,
       -5,
-      60
+      80
     ],
     "type": "major",
     "cameraFocus": {
@@ -240,9 +240,9 @@ export const portfolioData: CityDistrict[] = [
     "title": "DeFi Vault",
     "description": "Blockchain Analysis & Web3 Exploration",
     "position": [
-      80,
+      70,
       -5,
-      0
+      10
     ],
     "type": "major",
     "cameraFocus": {

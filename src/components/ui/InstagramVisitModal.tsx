@@ -47,7 +47,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     maxWidth: '400px',
     zIndex: 201,
     borderRadius: '15px',
-    padding: '30px',
+    padding: '40px 30px 30px 30px',
     boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
@@ -55,6 +55,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     boxShadow: '0 0 40px rgba(0, 225, 255, 0.3)',
     transition: 'opacity 0.3s ease, transform 0.3s ease',
   },
+  dangerStripes: { position: 'absolute', top: '0', left: '0', width: '100%', height: '10px', background: 'repeating-linear-gradient(45deg, #ff9900, #ff9900 20px, #000000 20px, #000000 40px)', animation: 'stripe-scroll 1s linear infinite', borderBottom: '2px solid #ff9900', borderTopLeftRadius: '15px', borderTopRightRadius: '15px' },
   content: {
     textAlign: 'center',
     display: 'flex',
@@ -127,12 +128,19 @@ export const InstagramVisitModal: React.FC<InstagramVisitModalProps> = ({ isOpen
 
     return (
         <>
+            <style>{`
+                @keyframes stripe-scroll {
+                    0% { background-position: 0 0; }
+                    100% { background-position: 56.5px 0; }
+                }
+            `}</style>
             <div style={overlayStyle} onClick={onClose} />
             <div 
                 style={containerStyle} 
                 className={`instagram-visit-modal responsive-modal ${isOpen ? 'panel-enter' : ''}`}
                 onContextMenu={(e) => e.stopPropagation()}
             >
+                <div style={styles.dangerStripes} />
                 <div style={styles.content}>
                     <InstagramIcon />
                     <h2 style={styles.username}>@rangga.p.h</h2>

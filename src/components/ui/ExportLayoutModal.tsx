@@ -31,7 +31,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     maxHeight: '80vh',
     zIndex: 101,
     borderRadius: '15px',
-    padding: '25px',
+    padding: '35px 25px 25px 25px',
     boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
@@ -39,6 +39,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     userSelect: 'auto', // Enable text selection within this panel
     transition: 'opacity 0.3s ease, transform 0.3s ease',
   },
+  dangerStripes: { position: 'absolute', top: '0', left: '0', width: '100%', height: '10px', background: 'repeating-linear-gradient(45deg, #ff9900, #ff9900 20px, #000000 20px, #000000 40px)', animation: 'stripe-scroll 1s linear infinite', borderBottom: '2px solid #ff9900', borderTopLeftRadius: '15px', borderTopRightRadius: '15px' },
   header: {
     display: 'flex',
     justifyContent: 'space-between',
@@ -55,8 +56,8 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   closeButton: {
     background: 'transparent',
-    border: '1px solid rgba(0, 170, 255, 0.7)',
-    color: '#00aaff',
+    border: '1px solid rgba(255, 153, 0, 0.7)',
+    color: '#ff9900',
     width: '30px',
     height: '30px',
     borderRadius: '50%',
@@ -141,12 +142,19 @@ export const ExportLayoutModal: React.FC<ExportLayoutModalProps> = ({ isOpen, on
     // allowing for enter and exit animations.
     return (
       <>
+        <style>{`
+          @keyframes stripe-scroll {
+            0% { background-position: 0 0; }
+            100% { background-position: 56.5px 0; }
+          }
+        `}</style>
         <div style={overlayStyle} onClick={onClose} />
         <div 
           style={containerStyle} 
           className={`export-layout-modal responsive-modal ${isOpen ? 'panel-enter' : ''}`}
           onContextMenu={(e) => e.stopPropagation()} // Allow right-click menu
         >
+          <div style={styles.dangerStripes} />
           <div style={styles.header}>
               <h2 style={styles.title}>Export New Layout</h2>
               <button onClick={onClose} style={styles.closeButton} aria-label="Close Export">&times;</button>

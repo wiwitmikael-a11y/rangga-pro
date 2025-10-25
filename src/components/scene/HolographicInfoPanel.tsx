@@ -13,8 +13,7 @@ interface HolographicInfoPanelProps {
 
 const styles: { [key: string]: React.CSSProperties } = {
     htmlContainer: {
-        width: '600px',
-        height: '450px',
+        // width and height removed for responsiveness via global CSS
         pointerEvents: 'none',
     },
     contentWrapper: {
@@ -118,6 +117,7 @@ const HolographicInfoPanel: React.FC<HolographicInfoPanelProps> = ({ district, o
           occlude="blending"
           distanceFactor={1.5}
           position={[0, 0, 0.1]}
+          className="holographic-info-panel-html"
           style={styles.htmlContainer}
         >
           <style>{`

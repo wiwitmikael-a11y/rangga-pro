@@ -54,13 +54,15 @@ const styles: { [key: string]: React.CSSProperties } = {
     header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 25px', borderBottom: '1px solid rgba(0, 170, 255, 0.2)', marginTop: '10px' },
     title: { margin: 0, color: 'var(--primary-color)', fontSize: '1.5rem', textShadow: '0 0 8px var(--primary-color)', letterSpacing: '0.1em' },
     closeButton: { background: 'transparent', border: '1px solid rgba(255, 153, 0, 0.7)', color: '#ff9900', width: '30px', height: '30px', borderRadius: '50%', cursor: 'pointer', fontSize: '1.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center', lineHeight: 1, transition: 'all 0.2s' },
-    contentGrid: { display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '1px', background: 'rgba(0, 170, 255, 0.2)' },
-    linksPanel: { padding: '25px', background: 'rgba(8, 20, 42, 1)' },
-    formPanel: { padding: '25px', background: 'rgba(8, 20, 42, 1)' },
+    contentGrid: { display: 'grid', gridTemplateColumns: '1fr 1.5fr' },
+    gridDivider: { width: '1px', background: 'linear-gradient(to bottom, transparent, rgba(0, 170, 255, 0.5), transparent)' },
+    linksPanel: { padding: '25px', background: 'rgba(8, 20, 42, 0.8)' },
+    formPanel: { padding: '25px', background: 'rgba(8, 20, 42, 0.8)' },
     panelTitle: { color: '#fff', marginTop: 0, marginBottom: '10px', fontSize: '1.2rem', textTransform: 'uppercase', letterSpacing: '0.05em' },
     panelDescription: { color: '#aaa', marginTop: 0, marginBottom: '25px', fontSize: '0.9rem', lineHeight: 1.5 },
     linkButton: { ...glassmorphism, display: 'flex', alignItems: 'center', gap: '15px', padding: '12px 15px', color: '#cceeff', textDecoration: 'none', borderRadius: '5px', marginBottom: '10px', transition: 'all 0.3s ease', borderLeft: '3px solid transparent' },
-    submitButton: { width: '100%', background: 'rgba(0, 170, 255, 0.2)', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', padding: '12px', fontSize: '1rem', fontFamily: 'inherit', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', transition: 'all 0.3s ease', textShadow: '0 0 5px var(--primary-color)', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '5px' },
+    submitButton: { width: '100%', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', padding: '12px', fontSize: '1rem', fontFamily: 'inherit', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', transition: 'all 0.3s ease', textShadow: '0 0 5px var(--primary-color)', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '5px' },
+    statusConsole: { marginTop: '15px', padding: '8px 12px', background: 'rgba(0,0,0,0.5)', borderRadius: '4px', border: '1px solid #333', color: '#888', fontFamily: 'monospace', fontSize: '0.8rem', textAlign: 'center', transition: 'all 0.3s ease' },
 };
 
 export const ContactHubModal: React.FC<ContactHubModalProps> = ({ isOpen, onClose }) => {
@@ -104,10 +106,43 @@ export const ContactHubModal: React.FC<ContactHubModalProps> = ({ isOpen, onClos
         pointerEvents: isOpen ? 'auto' : 'none',
     };
 
+    const getStatusInfo = () => {
+        switch (status) {
+            case 'sending': return { text: '[TRANSMITTING ENCRYPTED PACKET...]', color: '#ffa500' };
+            case 'success': return { text: '[TRANSMISSION SUCCESSFUL: ACKNOWLEDGED]', color: '#00ff7f' };
+            case 'error': return { text: '[ERROR: INVALID FORM DATA. CHECK FIELDS.]', color: '#ff4444' };
+            default: return { text: '[STATUS: AWAITING INPUT]', color: '#888' };
+        }
+    };
+    
+    const statusInfo = getStatusInfo();
+
+    const getSubmitButtonInfo = () => {
+        switch (status) {
+            case 'sending': return { text: 'Encrypting...', background: 'rgba(255, 165, 0, 0.2)', borderColor: '#ffa500', color: '#ffa500', animation: 'pulse-orange 1.5s infinite' };
+            case 'success': return { text: 'Transmission Complete', background: 'rgba(0, 255, 127, 0.2)', borderColor: '#00ff7f', color: '#00ff7f' };
+            case 'error': return { text: 'Transmission Error', background: 'rgba(255, 68, 68, 0.2)', borderColor: '#ff4444', color: '#ff4444' };
+            default: return { text: <><TransmitIcon /> Transmit Message</>, background: 'rgba(0, 170, 255, 0.2)', borderColor: 'var(--primary-color)', color: 'var(--primary-color)' };
+        }
+    };
+
+    const submitButtonInfo = getSubmitButtonInfo();
+
     return (
         <>
             <style>{`
                 @keyframes stripe-scroll { from { background-position: 0 0; } to { background-position: 56.5px 0; } }
+                @keyframes pulse-orange { 
+                  0% { box-shadow: 0 0 5px rgba(255, 165, 0, 0.3); } 
+                  50% { box-shadow: 0 0 15px rgba(255, 165, 0, 0.7); } 
+                  100% { box-shadow: 0 0 5px rgba(255, 165, 0, 0.3); } 
+                }
+                .link-button:hover {
+                    transform: translateY(-3px);
+                    border-left-color: var(--primary-color) !important;
+                    box-shadow: 0 5px 15px rgba(0, 225, 255, 0.2);
+                    background: rgba(0, 100, 150, 0.4);
+                }
             `}</style>
             <div style={overlayStyle} onClick={onClose} />
             <div style={containerStyle} className={`contact-hub-modal responsive-modal ${isOpen ? 'panel-enter' : ''}`} onContextMenu={(e) => e.stopPropagation()}>
@@ -118,24 +153,25 @@ export const ContactHubModal: React.FC<ContactHubModalProps> = ({ isOpen, onClos
                 </div>
                 <div style={styles.contentGrid} className="contact-grid">
                     <div style={styles.linksPanel} className="contact-links-panel">
-                        <h3 style={styles.panelTitle}>Direct Channels</h3>
-                        <p style={styles.panelDescription}>For direct networking, scheduling, or social media engagement.</p>
-                        <a href="https://www.instagram.com/rangga.p.h/" target="_blank" rel="noopener noreferrer" style={styles.linkButton}>
+                        <h3 style={styles.panelTitle}>Synchronize Link</h3>
+                        <p style={styles.panelDescription}>Establish a direct link for real-time networking, strategic scheduling, or social grid access.</p>
+                        <a href="https://www.instagram.com/rangga.p.h/" target="_blank" rel="noopener noreferrer" style={styles.linkButton} className="link-button">
                             <InstagramIcon /> <span>@rangga.p.h</span>
                         </a>
-                        <a href="https://www.linkedin.com/in/rangga-prayoga-hermawan" target="_blank" rel="noopener noreferrer" style={styles.linkButton}>
+                        <a href="https://www.linkedin.com/in/rangga-prayoga-hermawan" target="_blank" rel="noopener noreferrer" style={styles.linkButton} className="link-button">
                             <LinkedInIcon /> <span>Professional Network</span>
                         </a>
-                        <a href="https://youtube.com/@ruangranggamusicchannel5536" target="_blank" rel="noopener noreferrer" style={styles.linkButton}>
+                        <a href="https://youtube.com/@ruangranggamusicchannel5536" target="_blank" rel="noopener noreferrer" style={styles.linkButton} className="link-button">
                             <YouTubeIcon /> <span>Music Channel</span>
                         </a>
-                        <a href="https://calendly.com/" target="_blank" rel="noopener noreferrer" style={styles.linkButton}>
+                        <a href="https://calendly.com/" target="_blank" rel="noopener noreferrer" style={styles.linkButton} className="link-button">
                             <CalendarIcon /> <span>Schedule a Meeting</span>
                         </a>
                     </div>
+                    <div style={styles.gridDivider}></div>
                     <form style={styles.formPanel} className="form-panel" onSubmit={handleSubmit}>
-                        <h3 style={styles.panelTitle}>Secure Transmission</h3>
-                        <p style={styles.panelDescription}>Use this form for proposals, consultations, or general inquiries.</p>
+                        <h3 style={styles.panelTitle}>Encrypted Comms</h3>
+                        <p style={styles.panelDescription}>Utilize this secure channel to transmit encrypted proposals, technical inquiries, or general intelligence.</p>
                         
                         <div className="input-group">
                             <input type="text" id="name" value={name} onChange={(e) => setName(e.target.value)} required className="form-input" placeholder=" " />
@@ -159,12 +195,12 @@ export const ContactHubModal: React.FC<ContactHubModalProps> = ({ isOpen, onClos
                             <label htmlFor="message" className="form-label">Your message...</label>
                         </div>
 
-                        <button type="submit" style={styles.submitButton} disabled={status !== 'idle'}>
-                            {status === 'idle' && <><TransmitIcon /> Transmit Message</>}
-                            {status === 'sending' && 'Encrypting...'}
-                            {status === 'success' && 'Transmission Complete'}
-                            {status === 'error' && 'Transmission Error'}
+                        <button type="submit" style={{...styles.submitButton, ...submitButtonInfo, animation: submitButtonInfo.animation || 'none' }} disabled={status !== 'idle'}>
+                            {submitButtonInfo.text}
                         </button>
+                        <div style={{ ...styles.statusConsole, color: statusInfo.color, borderColor: statusInfo.color }}>
+                            {statusInfo.text}
+                        </div>
                     </form>
                 </div>
             </div>
