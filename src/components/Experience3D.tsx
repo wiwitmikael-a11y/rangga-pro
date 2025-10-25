@@ -25,6 +25,7 @@ import { ExportLayoutModal } from './ui/ExportLayoutModal';
 import { InstagramVisitModal } from './ui/InstagramVisitModal';
 import { ContactHubModal } from './ui/ContactHubModal';
 
+
 // Define the sun's position for a sunset glow near the horizon
 const sunPosition: [number, number, number] = [100, 2, -100]; // Lower sun for a more dramatic sunset
 const sunColor = '#ffd0b3'; // Warmer light
@@ -258,6 +259,7 @@ export const Experience3D: React.FC = () => {
       setOriginalHeldDistrictPosition(null);
   }, []);
 
+
   return (
     <>
       <Canvas
@@ -357,19 +359,21 @@ export const Experience3D: React.FC = () => {
             onChange={handleControlsChange}
         />
       </Canvas>
+      
       <HUD 
-        selectedDistrict={selectedDistrict} 
-        onGoHome={handleGoHome}
-        onToggleNavMenu={() => setIsNavMenuOpen(!isNavMenuOpen)}
-        isDetailViewActive={isDetailViewActive}
-        pov={pov}
-        onSetPov={handleSetPov}
-        isCalibrationMode={isCalibrationMode}
-        onToggleCalibrationMode={handleToggleCalibrationMode}
-        onExportLayout={handleExportLayout}
-        heldDistrictId={heldDistrictId}
-        onCancelMove={handleCancelMove}
+          selectedDistrict={selectedDistrict} 
+          onGoHome={handleGoHome}
+          onToggleNavMenu={() => setIsNavMenuOpen(!isNavMenuOpen)}
+          isDetailViewActive={isDetailViewActive}
+          pov={pov}
+          onSetPov={handleSetPov}
+          isCalibrationMode={isCalibrationMode}
+          onToggleCalibrationMode={handleToggleCalibrationMode}
+          onExportLayout={handleExportLayout}
+          heldDistrictId={heldDistrictId}
+          onCancelMove={handleCancelMove}
       />
+
       {isNavMenuOpen && (
           <QuickNavMenu 
               isOpen={isNavMenuOpen}
