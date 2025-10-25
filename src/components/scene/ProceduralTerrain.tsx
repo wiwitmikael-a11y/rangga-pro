@@ -1,78 +1,24 @@
-import React, { useMemo, useRef } from 'react';
-import { ThreeEvent, useFrame } from '@react-three/fiber';
+import React, { useMemo } from 'react';
+import { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
-import { createNoise2D } from 'simplex-noise';
+import { useTexture } from '@react-three/drei';
 
 interface ProceduralTerrainProps {
     onDeselect: () => void;
 }
 
-const noise2D = createNoise2D();
-
-const vertexShader = `
-  varying vec3 vWorldPosition;
-  void main() {
-    vWorldPosition = (modelMatrix * vec4(position, 1.0)).xyz;
-    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(position, 1.0);
-  }
-`;
-
-const fragmentShader = `
-  uniform vec3 uColor;
-  uniform float uTime;
-  varying vec3 vWorldPosition;
-
-  // 2D Noise function for texturing
-  float noise(vec2 st) {
-      // Simple pseudo-random generator
-      return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
-  }
-
-  void main() {
-    // Animated, subtle noise pattern for a shimmering texture
-    float terrainNoise = noise(vWorldPosition.xz * 0.1 + uTime * 0.03) * 0.2;
-    
-    // Just the base color and the noise shimmer
-    vec3 finalColor = uColor + vec3(terrainNoise * 0.5);
-    
-    gl_FragColor = vec4(finalColor, 1.0);
-  }
-`;
+const TEXTURE_URL = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/terrain.jpeg';
 
 export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(({ onDeselect }) => {
     
-    const materialRef = useRef<THREE.ShaderMaterial>(null!);
+    const texture = useTexture(TEXTURE_URL);
 
-    useFrame(({ clock }) => {
-        if (materialRef.current) {
-            materialRef.current.uniforms.uTime.value = clock.getElapsedTime();
-        }
-    });
-
-    const geometry = useMemo(() => {
-        const radius = 250;
-        const segments = 128;
-        // Use CircleGeometry to create a round terrain base
-        const geometry = new THREE.CircleGeometry(radius, segments);
-        const positions = geometry.attributes.position;
-        const vertex = new THREE.Vector3();
-
-        for (let i = 0; i < positions.count; i++) {
-            vertex.fromBufferAttribute(positions, i);
-            // The noise function remains the same, applying height based on x/y coordinates
-            const noise = noise2D(vertex.x * 0.01, vertex.y * 0.01);
-            // Apply noise to Z-axis (which becomes Y-axis after rotation)
-            positions.setZ(i, noise * 5);
-        }
-        
-        geometry.computeVertexNormals();
-        return geometry;
-    }, []);
-
-    const uniforms = useMemo(() => ({
-        uTime: { value: 0.0 },
-        uColor: { value: new THREE.Color('#a1662f') }, // Deep orange sand dunes
-    }), []);
+    // Konfigurasi tekstur agar berulang (tiling) di seluruh permukaan
+    useMemo(() => {
+        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(50, 50);
+        texture.anisotropy = 16;
+    }, [texture]);
 
     const handleClick = (e: ThreeEvent<MouseEvent>) => {
         e.stopPropagation();
@@ -82,18 +28,24 @@ export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(({
     return (
         <group position={[0, -5.5, 0]}>
             <mesh
-                geometry={geometry}
                 rotation={[-Math.PI / 2, 0, 0]}
                 onClick={handleClick}
                 receiveShadow
             >
-                <shaderMaterial
-                    ref={materialRef}
-                    uniforms={uniforms}
-                    vertexShader={vertexShader}
-                    fragmentShader={fragmentShader}
+                {/* Gunakan PlaneGeometry dengan banyak segmen agar displacement map berfungsi baik */}
+                <planeGeometry args={[500, 500, 128, 128]} />
+                <meshStandardMaterial
+                    map={texture}
+                    // Gunakan tekstur yang sama sebagai displacement map untuk detail ketinggian
+                    displacementMap={texture}
+                    displacementScale={2.5} // Seberapa kuat efek displacement
+                    metalness={0.1}
+                    roughness={0.8}
                 />
             </mesh>
         </group>
     );
 });
+
+// Preload tekstur untuk pengalaman memuat yang lebih lancar
+useTexture.preload(TEXTURE_URL);

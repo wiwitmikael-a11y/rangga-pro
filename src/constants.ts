@@ -79,7 +79,7 @@ export const portfolioData: CityDistrict[] = [
     "description": "Award-Winning Content Creations",
     "position": [
       -30,
-      -5,
+      0,
       60
     ],
     "type": "major",

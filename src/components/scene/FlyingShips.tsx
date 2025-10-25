@@ -154,8 +154,14 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ modelUrl, scale, initialDelay
       const direction = targetPos.clone().sub(currentPos).normalize();
       currentPos.add(direction.multiplyScalar(delta * speed));
       
+      const lookAtTarget = targetPos.clone();
+      if (shipState.current.state === 'ASCENDING' || shipState.current.state === 'DESCENDING') {
+          // Keep the ship level during vertical movement
+          lookAtTarget.y = currentPos.y;
+      }
+
       tempLookAtObject.position.copy(currentPos);
-      tempLookAtObject.lookAt(targetPos);
+      tempLookAtObject.lookAt(lookAtTarget);
       tempQuaternion.copy(tempLookAtObject.quaternion);
       groupRef.current.quaternion.slerp(tempQuaternion, delta * TURN_SPEED);
     }
