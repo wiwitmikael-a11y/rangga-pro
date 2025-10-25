@@ -76,7 +76,7 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
   
   if (!district) return null;
 
-  const isCompetencyCore = district.id === 'skills-matrix';
+  const isCoreMatrix = district.id === 'skills-matrix';
 
   return (
     <>
@@ -88,7 +88,7 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
         </div>
         <p style={styles.description}>{district.description}</p>
 
-        {isCompetencyCore ? (
+        {isCoreMatrix ? (
           <div style={styles.competencyLayout}>
             <div style={styles.chartContainer}>
               <SkillsRadarChart 

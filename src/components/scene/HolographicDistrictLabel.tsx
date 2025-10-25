@@ -14,7 +14,7 @@ interface HolographicDistrictLabelProps {
   onSetHeld: (id: string | null) => void;
 }
 
-// --- Shader code for the animated danger stripe border ---
+// --- Shader code for the animated borders ---
 
 // Vertex Shader (simple pass-through for UVs)
 const borderVertexShader = `
@@ -25,50 +25,47 @@ const borderVertexShader = `
   }
 `;
 
-// Fragment Shader (creates stripes with a transparent hole in the middle)
-const borderFragmentShader = `
+// Original cyan border Fragment Shader - NO LONGER IN USE
+// const borderFragmentShader = `...`;
+
+// Danger Zone Fragment Shader for ALL labels
+const dangerBorderFragmentShader = `
   uniform float time;
   varying vec2 vUv;
   
   void main() {
-    // These ratios define the inner "hole" of the frame, matching the RoundedBox dimensions
     float innerWidthRatio = 28.0 / 28.5;
     float innerHeightRatio = 10.0 / 10.5;
-    
-    // Normalized coordinates from center (from 0 to 1 on each axis)
     float normX = abs(vUv.x * 2.0 - 1.0);
     float normY = abs(vUv.y * 2.0 - 1.0);
     
-    // Discard the fragment if it's inside the transparent hole
     if (normX < innerWidthRatio && normY < innerHeightRatio) {
       discard;
     }
 
-    // Stripe pattern logic for the visible border
-    float pattern = (vUv.x + vUv.y); // Creates a 45-degree angle
-    pattern += time * 0.2; // Controls animation speed
+    float pattern = (vUv.x - vUv.y);
+    pattern += time * 0.05; // Very slow animation
     
-    float stripeFrequency = 15.0; // Controls the number/thickness of stripes
+    float stripeFrequency = 10.0;
     float stripes = step(0.5, fract(pattern * stripeFrequency));
     
-    vec3 cyan = vec3(0.0, 1.0, 1.0); // #00ffff
+    vec3 orange = vec3(1.0, 0.6, 0.0); // #ff9900
     vec3 black = vec3(0.0, 0.0, 0.0);
     
-    vec3 finalColor = mix(cyan, black, stripes);
+    vec3 finalColor = mix(orange, black, stripes);
     
     gl_FragColor = vec4(finalColor, 1.0);
   }
 `;
 
+
 // Define futuristic cyan color palette for high contrast
-const BASE_CYAN = '#00ffff';
-const HOVER_CYAN = '#99ffff';
-const SELECTED_CYAN = '#ffffff'; // White for max emphasis
 const DESC_CYAN = '#afeeee'; // Pale turquoise for description
 
 const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ district, onSelect, isSelected, isCalibrationMode, isHeld, onSetHeld }) => {
   const groupRef = useRef<THREE.Group>(null!);
   const [isHovered, setIsHovered] = useState(false);
+  const glowIntensityRef = useRef(1.0);
 
   // Uniforms for the shader material, memoized for performance
   const borderUniforms = useMemo(() => ({
@@ -84,6 +81,9 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
 
     // Update time uniform to animate the border shader
     borderUniforms.time.value = clock.getElapsedTime();
+
+    // Apply pulsing white glow for all labels
+    glowIntensityRef.current = 1.5 + Math.sin(clock.getElapsedTime() * 0.8) * 1.0; // Slow, strong pulse
   });
   
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
@@ -108,9 +108,6 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
     }
   };
   
-  const titleTextColor = isHeld ? SELECTED_CYAN : isSelected ? SELECTED_CYAN : isHovered ? HOVER_CYAN : BASE_CYAN;
-  const emissiveIntensity = isHeld ? 2.5 : isHovered || isSelected ? 2 : 1;
-
   return (
     <Billboard position={[0, 15, 0]}>
       <group
@@ -119,12 +116,12 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
         onPointerOut={handlePointerOut}
         onPointerDown={handlePointerDown}
       >
-        {/* Animated Danger Stripe Border - placed slightly in front of the main panel */}
+        {/* Animated Border - uses danger zone shader for all labels */}
         <mesh position-z={-0.09}>
           <planeGeometry args={[28.5, 10.5]} />
           <shaderMaterial
             vertexShader={borderVertexShader}
-            fragmentShader={borderFragmentShader}
+            fragmentShader={dangerBorderFragmentShader}
             uniforms={borderUniforms}
             transparent={true}
             side={THREE.DoubleSide}
@@ -146,7 +143,7 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
         {/* District Title */}
         <Text
           fontSize={3.0}
-          color={titleTextColor}
+          color={'#000000'}
           anchorX="center"
           anchorY="middle"
           position-y={2.0} // Position text inside the box
@@ -155,8 +152,8 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
         >
           {district.title.toUpperCase()}
           <meshStandardMaterial
-            emissive={titleTextColor}
-            emissiveIntensity={emissiveIntensity}
+            emissive={'#ffffff'}
+            emissiveIntensity={glowIntensityRef.current}
             toneMapped={false}
           />
         </Text>

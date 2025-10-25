@@ -259,7 +259,7 @@ export const portfolioData: CityDistrict[] = [
   },
   {
     "id": "skills-matrix",
-    "title": "Competency Core",
+    "title": "Core Matrix",
     "description": "Core Technical & Creative Proficiencies",
     "position": [
       -20,
