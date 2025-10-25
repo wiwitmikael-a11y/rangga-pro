@@ -140,18 +140,26 @@ interface LaserBeamProps {
 }
 
 export const LaserBeam: React.FC<LaserBeamProps> = ({ start, end }) => {
-    const ref = useRef<THREE.Mesh>(null!);
-    
-    const { position, quaternion, height } = useMemo(() => {
+    const laserProps = useMemo(() => {
         const direction = end.clone().sub(start);
         const height = direction.length();
+        
+        // Safeguard against zero-length direction vector to prevent renderer crash
+        if (direction.lengthSq() < 0.0001) {
+            return { valid: false, position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), height: 0 };
+        }
+
         const position = start.clone().add(direction.clone().multiplyScalar(0.5));
-        const quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.clone().normalize());
-        return { position, quaternion, height };
+        const quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
+        return { valid: true, position, quaternion, height };
     }, [start, end]);
 
+    if (!laserProps.valid) {
+        return null; // Don't render anything if start and end points are the same
+    }
+
     return (
-        <Cylinder ref={ref} args={[0.3, 0.3, height, 8]} position={position} quaternion={quaternion}>
+        <Cylinder args={[0.3, 0.3, laserProps.height, 8]} position={laserProps.position} quaternion={laserProps.quaternion}>
             <meshStandardMaterial color="red" emissive="red" emissiveIntensity={10} toneMapped={false} />
         </Cylinder>
     );

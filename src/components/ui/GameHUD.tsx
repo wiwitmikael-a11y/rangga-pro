@@ -10,9 +10,10 @@ interface GameHUDProps {
     highScore: number;
     gameState: 'playing' | 'victory' | 'gameOver';
     isShieldActive: boolean;
+    isVisible: boolean;
 }
 
-export const GameHUD: React.FC<GameHUDProps> = ({ onExit, onRestart, cityIntegrity, onFireMissile, missileCooldown, score, highScore, gameState, isShieldActive }) => {
+export const GameHUD: React.FC<GameHUDProps> = ({ onExit, onRestart, cityIntegrity, onFireMissile, missileCooldown, score, highScore, gameState, isShieldActive, isVisible }) => {
     const isMissileReady = missileCooldown <= 0;
     const missileButtonText = isMissileReady ? "MISSILE" : `${Math.ceil(missileCooldown)}s`;
 
@@ -36,9 +37,15 @@ export const GameHUD: React.FC<GameHUDProps> = ({ onExit, onRestart, cityIntegri
             </div>
         );
     };
+    
+    const containerStyle: React.CSSProperties = {
+        ...styles.container,
+        opacity: isVisible ? 1 : 0,
+        transition: 'opacity 0.5s ease-in-out',
+    };
 
     return (
-        <div style={styles.container}>
+        <div style={containerStyle}>
             {gameState !== 'playing' && <GameOverOverlay />}
             
             <div style={styles.topBar}>

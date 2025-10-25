@@ -18,10 +18,11 @@ interface PlayerCopterProps {
     initialPosition: THREE.Vector3;
     isShieldActive: boolean;
     muzzleFlash: { active: boolean, key: number };
+    isControllable: boolean;
 }
 
 // We forward the ref to allow the parent game component to access the group
-export const PlayerCopter = forwardRef<THREE.Group, PlayerCopterProps>(({ onFireAutoGun, initialPosition, isShieldActive, muzzleFlash }, ref) => {
+export const PlayerCopter = forwardRef<THREE.Group, PlayerCopterProps>(({ onFireAutoGun, initialPosition, isShieldActive, muzzleFlash, isControllable }, ref) => {
   const keyboardControls = usePlayerControls();
   const touchControls = useTouchControls();
   const player = ref as React.RefObject<THREE.Group>;
@@ -45,35 +46,60 @@ export const PlayerCopter = forwardRef<THREE.Group, PlayerCopterProps>(({ onFire
   useFrame((state, delta) => {
     if (!player.current) return;
 
-    // --- Combine Keyboard and Touch Controls ---
-    const controls = {
-        forward: keyboardControls.forward || touchControls.joystick.y > 0.5,
-        backward: keyboardControls.backward || touchControls.joystick.y < -0.5,
-        left: keyboardControls.left || touchControls.joystick.x < -0.5,
-        right: keyboardControls.right || touchControls.joystick.x > 0.5,
-        up: keyboardControls.up || touchControls.altitude === 'up',
-        down: keyboardControls.down || touchControls.altitude === 'down',
-    };
+    // Only process controls and firing if the player has control
+    if (isControllable) {
+        // --- Combine Keyboard and Touch Controls ---
+        const controls = {
+            forward: keyboardControls.forward || touchControls.joystick.y > 0.5,
+            backward: keyboardControls.backward || touchControls.joystick.y < -0.5,
+            left: keyboardControls.left || touchControls.joystick.x < -0.5,
+            right: keyboardControls.right || touchControls.joystick.x > 0.5,
+            up: keyboardControls.up || touchControls.altitude === 'up',
+            down: keyboardControls.down || touchControls.altitude === 'down',
+        };
 
-    // --- Calculate forces from controls ---
-    const force = new THREE.Vector3();
-    if (controls.forward) force.z -= 1;
-    if (controls.backward) force.z += 1;
-    if (controls.right) force.x += 1;
-    if (controls.left) force.x -= 1;
-    
-    // Apply movement relative to the copter's current direction
-    const worldForce = force.clone().applyQuaternion(player.current.quaternion);
-    
-    // Handle vertical movement separately
-    const verticalForce = new THREE.Vector3(0, 0, 0);
-    if (controls.up) verticalForce.y += 1;
-    if (controls.down) verticalForce.y -= 1;
+        // --- Calculate forces from controls ---
+        const force = new THREE.Vector3();
+        if (controls.forward) force.z -= 1;
+        if (controls.backward) force.z += 1;
+        if (controls.right) force.x += 1;
+        if (controls.left) force.x -= 1;
+        
+        // Apply movement relative to the copter's current direction
+        const worldForce = force.clone().applyQuaternion(player.current.quaternion);
+        
+        // Handle vertical movement separately
+        const verticalForce = new THREE.Vector3(0, 0, 0);
+        if (controls.up) verticalForce.y += 1;
+        if (controls.down) verticalForce.y -= 1;
 
-    worldForce.add(verticalForce);
-    if(worldForce.lengthSq() > 0) worldForce.normalize().multiplyScalar(ACCELERATION * delta);
+        worldForce.add(verticalForce);
+        if(worldForce.lengthSq() > 0) worldForce.normalize().multiplyScalar(ACCELERATION * delta);
+        
+        physics.velocity.add(worldForce);
+        
+        // --- Automatic Burst Firing Logic ---
+        fireState.current.cooldown -= delta;
+        if (fireState.current.cooldown <= 0) {
+            if (fireState.current.isReloading) {
+                fireState.current.isReloading = false;
+                fireState.current.burstCount = BURST_SIZE;
+            }
+
+            if (fireState.current.burstCount > 0) {
+                onFireAutoGun(player.current.position, player.current.quaternion);
+                fireState.current.burstCount--;
+                fireState.current.cooldown = FIRE_RATE;
+
+                if (fireState.current.burstCount === 0) {
+                    fireState.current.cooldown = RELOAD_TIME;
+                    fireState.current.isReloading = true;
+                }
+            }
+        }
+    }
     
-    physics.velocity.add(worldForce);
+    // Physics and rotation happen regardless of control state for cinematic movement
     physics.velocity.multiplyScalar(1 - DAMPING * delta);
 
     if (physics.velocity.length() > MAX_SPEED) {
@@ -98,32 +124,12 @@ export const PlayerCopter = forwardRef<THREE.Group, PlayerCopterProps>(({ onFire
         
         player.current.quaternion.slerp(tempObject.quaternion, delta * 4);
     }
-
-    // --- Automatic Burst Firing Logic ---
-    fireState.current.cooldown -= delta;
-    if (fireState.current.cooldown <= 0) {
-        if (fireState.current.isReloading) {
-            fireState.current.isReloading = false;
-            fireState.current.burstCount = BURST_SIZE;
-        }
-
-        if (fireState.current.burstCount > 0) {
-            onFireAutoGun(player.current.position, player.current.quaternion);
-            fireState.current.burstCount--;
-            fireState.current.cooldown = FIRE_RATE;
-
-            if (fireState.current.burstCount === 0) {
-                fireState.current.cooldown = RELOAD_TIME;
-                fireState.current.isReloading = true;
-            }
-        }
-    }
   });
 
   return (
     <group ref={player} scale={0.05} position={initialPosition}>
         <primitive object={clonedScene} />
-        {muzzleFlash.active && <MuzzleFlash key={muzzleFlash.key} />}
+        {isControllable && muzzleFlash.active && <MuzzleFlash key={muzzleFlash.key} />}
         {isShieldActive && <ShieldEffect />}
     </group>
   );

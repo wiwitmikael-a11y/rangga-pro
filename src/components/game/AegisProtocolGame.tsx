@@ -38,13 +38,15 @@ const MISSILE_COLLISION_RADIUS = 2;
 const HOMING_MISSILE_COOLDOWN = 30;
 const SHIELD_DURATION = 10;
 const POWERUP_DROP_CHANCE = 0.2; // 20% chance
+const SPAWN_ALTITUDE = 50; // How high above the start position the player spawns
 
 // --- Game Camera ---
-const GameCameraRig: React.FC<{ playerCopterRef: React.RefObject<THREE.Group> }> = ({ playerCopterRef }) => {
+const GameCameraRig: React.FC<{ playerCopterRef: React.RefObject<THREE.Group>, gamePhase: 'spawning' | 'playing' }> = ({ playerCopterRef, gamePhase }) => {
     const { camera } = useThree();
     const cameraState = useMemo(() => ({
-        idealOffset: new THREE.Vector3(0, 5, 14),
-        idealLookAt: new THREE.Vector3(0, 2, -15),
+        spawnOffset: new THREE.Vector3(0, 15, 25), // Cinematic spawn view
+        playOffset: new THREE.Vector3(0, 5, 14), // Standard gameplay view
+        lookAtOffset: new THREE.Vector3(0, 2, -15),
         currentPosition: new THREE.Vector3(),
         currentLookAt: new THREE.Vector3(),
     }), []);
@@ -52,9 +54,12 @@ const GameCameraRig: React.FC<{ playerCopterRef: React.RefObject<THREE.Group> }>
     useFrame((_, delta) => {
         if (!playerCopterRef.current) return;
         const player = playerCopterRef.current;
-        const lerpFactor = delta * 5;
-        const idealPos = cameraState.idealOffset.clone().applyQuaternion(player.quaternion).add(player.position);
-        const idealLook = cameraState.idealLookAt.clone().applyQuaternion(player.quaternion).add(player.position);
+        const lerpFactor = delta * (gamePhase === 'spawning' ? 1.5 : 5);
+        
+        const targetOffset = gamePhase === 'spawning' ? cameraState.spawnOffset : cameraState.playOffset;
+
+        const idealPos = targetOffset.clone().applyQuaternion(player.quaternion).add(player.position);
+        const idealLook = cameraState.lookAtOffset.clone().applyQuaternion(player.quaternion).add(player.position);
         cameraState.currentPosition.lerp(idealPos, lerpFactor);
         cameraState.currentLookAt.lerp(idealLook, lerpFactor);
         camera.position.copy(cameraState.currentPosition);
@@ -68,6 +73,7 @@ export const AegisProtocolGame: React.FC<AegisProtocolGameProps> = ({ onExit, pl
   const battleshipRef = useRef<THREE.Group>(null!);
 
   const [gameState, setGameState] = useState<'playing' | 'victory' | 'gameOver'>('playing');
+  const [gamePhase, setGamePhase] = useState<'spawning' | 'playing'>('spawning');
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
   const [cityIntegrity, setCityIntegrity] = useState(100);
@@ -98,6 +104,7 @@ export const AegisProtocolGame: React.FC<AegisProtocolGameProps> = ({ onExit, pl
     pools.laserBeams = [];
     
     setGameState('playing');
+    setGamePhase('spawning');
     setScore(0);
     setCityIntegrity(100);
     setMissileCooldown(0);
@@ -112,8 +119,10 @@ export const AegisProtocolGame: React.FC<AegisProtocolGameProps> = ({ onExit, pl
     battleshipState.current.isDestroyed = false;
 
     if (playerCopterRef.current) {
-        playerCopterRef.current.position.copy(playerSpawnPosition);
+        // Set initial spawn position high above the starting point
+        playerCopterRef.current.position.copy(playerSpawnPosition).add(new THREE.Vector3(0, SPAWN_ALTITUDE, 0));
         playerCopterRef.current.quaternion.identity();
+        playerCopterRef.current.visible = true;
     }
   }, [pools, playerSpawnPosition]);
   
@@ -178,6 +187,18 @@ export const AegisProtocolGame: React.FC<AegisProtocolGameProps> = ({ onExit, pl
 
   useFrame((_, delta) => {
     if (gameState !== 'playing') return;
+
+    // --- Spawning Sequence ---
+    if (gamePhase === 'spawning') {
+        if (playerCopterRef.current) {
+            playerCopterRef.current.position.lerp(playerSpawnPosition, delta * 1.5);
+            if (playerCopterRef.current.position.distanceTo(playerSpawnPosition) < 0.5) {
+                playerCopterRef.current.position.copy(playerSpawnPosition);
+                setGamePhase('playing');
+            }
+        }
+        return; // Don't run the rest of the game logic during spawn
+    }
 
     // --- Timers ---
     if (missileCooldown > 0) setMissileCooldown(prev => Math.max(0, prev - delta));
@@ -347,10 +368,17 @@ export const AegisProtocolGame: React.FC<AegisProtocolGameProps> = ({ onExit, pl
   return (
     <>
       <Suspense fallback={null}>
-        <PlayerCopter ref={playerCopterRef} onFireAutoGun={fireAutoBullet} initialPosition={playerSpawnPosition} isShieldActive={isShieldActive} muzzleFlash={muzzleFlash} />
-        <GameCameraRig playerCopterRef={playerCopterRef} />
+        <PlayerCopter 
+            ref={playerCopterRef} 
+            onFireAutoGun={fireAutoBullet} 
+            initialPosition={playerSpawnPosition.clone().add(new THREE.Vector3(0, SPAWN_ALTITUDE, 0))} 
+            isShieldActive={isShieldActive} 
+            muzzleFlash={muzzleFlash} 
+            isControllable={gamePhase === 'playing'}
+        />
+        <GameCameraRig playerCopterRef={playerCopterRef} gamePhase={gamePhase} />
         
-        {!battleshipState.current.isDestroyed && <EnemyBattleshipModel ref={battleshipRef} />}
+        {gamePhase === 'playing' && !battleshipState.current.isDestroyed && <EnemyBattleshipModel ref={battleshipRef} />}
 
         {pools.enemyFighters.map(f => f.active && <EnemyFighterModel key={f.id} position={f.position} quaternion={f.quaternion} isHit={f.hitTimer > 0} />)}
         {pools.autoBullets.map(m => m.active && <PlayerMissileModel key={m.id} position={m.position} quaternion={m.quaternion} scale={0.3} />)}
@@ -372,6 +400,7 @@ export const AegisProtocolGame: React.FC<AegisProtocolGameProps> = ({ onExit, pl
         highScore={highScore}
         gameState={gameState}
         isShieldActive={isShieldActive}
+        isVisible={gamePhase === 'playing'}
       />
     </>
   );

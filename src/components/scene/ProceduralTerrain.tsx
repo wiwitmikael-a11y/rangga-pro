@@ -8,44 +8,67 @@ interface ProceduralTerrainProps {
     onDeselect: () => void;
 }
 
-// The original PBR atlas texture the user wanted.
 const TERRAIN_TEXTURE_URL = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/terrain.jpeg';
 
 export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(({ onDeselect }) => {
     
-    // Load the rock texture
     const terrainTexture = useTexture(TERRAIN_TEXTURE_URL);
 
-    // Configure texture tiling
     useMemo(() => {
         terrainTexture.wrapS = terrainTexture.wrapT = THREE.RepeatWrapping;
-        terrainTexture.repeat.set(25, 25); // Increased tiling to better showcase the detailed texture
+        terrainTexture.repeat.set(25, 25);
         terrainTexture.anisotropy = 16;
     }, [terrainTexture]);
 
-    // Create the procedural geometry using simplex noise for vertex displacement
     const geometry = useMemo(() => {
         const planeGeo = new THREE.PlaneGeometry(500, 500, 200, 200);
         const noise = createNoise2D();
         const positions = planeGeo.attributes.position;
-        const curvatureFactor = 0.0003; // Controls how much the terrain curves down at the edges
+
+        // Define zones for the terrain shape
+        const cityRadius = 90; // The completely flat central area
+        const moatStartRadius = 100; // Where the concave dip begins
+        const moatEndRadius = 120;   // Where the dip reaches its lowest point
+        const noisyTerrainStartRadius = 140; // Where the bumpy terrain begins to rise
+        const moatDepth = 4;    // How deep the concave moat is
+        const noiseFactor = 0.015;
+        const noiseHeightMultiplier = 8;
+        const globalCurvatureFactor = 0.0002;
 
         for (let i = 0; i < positions.count; i++) {
             const x = positions.getX(i);
-            const y = positions.getY(i); // This corresponds to the Z-axis in world space after rotation
+            const z = positions.getY(i); // In a plane, Y corresponds to the world Z-axis after rotation
+            const distanceFromCenter = Math.sqrt(x * x + z * z);
             
-            // Apply noise to the vertex's Z-axis (which becomes height)
-            const noiseFactor = 0.015;
-            const height = noise(x * noiseFactor, y * noiseFactor) * 5; // Adjust multiplier for ruggedness
+            let height = 0;
+            const rawNoiseHeight = noise(x * noiseFactor, z * noiseFactor) * noiseHeightMultiplier;
 
-            // Apply a downward curve based on distance from the center to create a rounded effect
-            const distanceFromCenterSq = x * x + y * y;
-            const curveOffset = distanceFromCenterSq * curvatureFactor;
+            if (distanceFromCenter <= cityRadius) {
+                // Flat city center
+                height = 0;
+            } else if (distanceFromCenter <= moatStartRadius) {
+                // Smoothstep from flat to start of moat dip
+                const t = (distanceFromCenter - cityRadius) / (moatStartRadius - cityRadius);
+                height = THREE.MathUtils.lerp(0, -moatDepth * 0.2, THREE.MathUtils.smoothstep(t, 0, 1));
+            } else if (distanceFromCenter <= moatEndRadius) {
+                // The main concave "moat"
+                const t = (distanceFromCenter - moatStartRadius) / (moatEndRadius - moatStartRadius);
+                height = THREE.MathUtils.lerp(-moatDepth * 0.2, -moatDepth, t * t); // Ease-in curve
+            } else if (distanceFromCenter <= noisyTerrainStartRadius) {
+                // Transition from moat bottom to the start of the noisy terrain
+                const t = (distanceFromCenter - moatEndRadius) / (noisyTerrainStartRadius - moatEndRadius);
+                height = THREE.MathUtils.lerp(-moatDepth, rawNoiseHeight, 1 - (1-t)*(1-t)); // Ease-out curve
+            } else {
+                // Fully noisy outer terrain
+                height = rawNoiseHeight;
+            }
+            
+            const curveOffset = distanceFromCenter * distanceFromCenter * globalCurvatureFactor;
             
             positions.setZ(i, height - curveOffset);
         }
         
-        planeGeo.computeVertexNormals(); // Recalculate normals for correct lighting on the uneven surface
+        planeGeo.computeVertexNormals();
         return planeGeo;
     }, []);
 
@@ -60,24 +83,22 @@ export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(({
                 rotation={[-Math.PI / 2, 0, 0]}
                 onClick={handleClick}
                 receiveShadow
-                geometry={geometry} // Use the custom procedural geometry
+                geometry={geometry}
             >
                 <meshStandardMaterial
                     map={terrainTexture}
-                    // Use the detailed texture for multiple PBR channels to enhance realism
                     normalMap={terrainTexture} 
-                    normalScale={new THREE.Vector2(1.0, 1.0)} // Increased intensity for more pronounced bumps
+                    normalScale={new THREE.Vector2(1.0, 1.0)}
                     displacementMap={terrainTexture}
-                    displacementScale={0.4} // Increased displacement for more physical depth
-                    aoMap={terrainTexture} // Add ambient occlusion for more realistic self-shadowing
+                    displacementScale={0.4}
+                    aoMap={terrainTexture}
                     aoMapIntensity={0.5}
-                    metalness={0.2} // Less metallic for a rock surface
-                    roughness={0.8} // More rough for a rock surface
+                    metalness={0.2}
+                    roughness={0.8}
                 />
             </mesh>
         </group>
     );
 });
 
-// Preload the texture for a smoother loading experience
 useTexture.preload(TERRAIN_TEXTURE_URL);
