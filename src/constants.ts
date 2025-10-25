@@ -1,18 +1,19 @@
 import type { CityDistrict } from './types';
 
 // Data portofolio telah diisi dengan konten mock yang relevan dan gambar dari CDN.
-// POSISI CORE TELAH DIPADATKAN UNTUK MENGHILANGKAN RUANG KOSONG
+// POSISI TELAH DIREVISI UNTUK MENCIPTAKAN TATA LETAK SETENGAH LINGKARAN DI SEKITAR KOTA
+// FOKUS KAMERA TELAH DIPERBARUI UNTUK MELIHAT KE ARAH KOTA SEBAGAI LATAR BELAKANG
 export const portfolioData: CityDistrict[] = [
   // 1. Central "About Me" Hub
   {
     id: 'nexus-core',
     title: '@rangga.p.h',
     description: 'Digital Artisan & Tech Explorer',
-    position: [-10, 0, 10], // Pindah ke area yang lebih bersih
+    position: [-45, 0, 70], // Depan-kiri
     type: 'major',
     cameraFocus: {
-      pos: [-10, 15, 35], // Disesuaikan untuk posisi baru
-      lookAt: [-10, 5, 10], // Disesuaikan untuk posisi baru
+      pos: [-55, 25, 90], // Lebih jauh ke luar dan lebih tinggi
+      lookAt: [-25, 10, 30], // Melihat ke arah sudut kota
     },
     subItems: [
       {
@@ -31,16 +32,16 @@ export const portfolioData: CityDistrict[] = [
       },
     ],
   },
-  // 2. AI & Web Development
+  // 2. AI & Web Development - Ganti nama menjadi Nova Forge agar konsisten dengan gambar
   {
-    id: 'ai-forge',
-    title: 'Innovation Forge',
-    description: 'AI Engineering & Web Development Projects',
-    position: [35, 0, 35], // Pindah ke kanan-depan (bottom-right di view)
+    id: 'nova-forge', // Ganti nama dari 'ai-forge'
+    title: 'Nova Forge',
+    description: 'Engineering & Generative Projects',
+    position: [45, 0, 70], // Depan-kanan
     type: 'major',
     cameraFocus: {
-      pos: [35, 15, 50], // Disesuaikan
-      lookAt: [35, 5, 35],
+      pos: [55, 25, 90], // Lebih jauh ke luar dan lebih tinggi
+      lookAt: [25, 10, 30], // Melihat ke arah sudut kota
     },
      subItems: [
       {
@@ -71,11 +72,11 @@ export const portfolioData: CityDistrict[] = [
     id: 'visual-arts',
     title: 'Visual Arts Archive',
     description: 'Award-Winning Photography & Videography',
-    position: [-35, 0, 35], // Pindah ke kiri-depan (bottom-left di view)
+    position: [-80, 0, 20], // Jauh-kiri
     type: 'major',
     cameraFocus: {
-      pos: [-35, 15, 50], // Disesuaikan
-      lookAt: [-35, 5, 35],
+      pos: [-95, 25, 35], // Lebih jauh ke luar dan lebih tinggi
+      lookAt: [-45, 10, 10], // Melihat ke arah sisi kota
     },
     subItems: [
       {
@@ -103,14 +104,14 @@ export const portfolioData: CityDistrict[] = [
   },
     // 4. Blockchain
   {
-    id: 'blockchain-vault',
+    id: 'defi-data-vault', // Ganti nama dari 'blockchain-vault' agar konsisten
     title: 'DeFi Data-Vault',
     description: 'Blockchain Analysis & Web3 Exploration',
-    position: [40, 0, 0], // Pindah ke kanan-tengah
+    position: [80, 0, 20], // Jauh-kanan
     type: 'major',
     cameraFocus: {
-      pos: [40, 15, 15], // Disesuaikan
-      lookAt: [40, 5, 0],
+      pos: [95, 25, 35], // Lebih jauh ke luar dan lebih tinggi
+      lookAt: [45, 10, 10], // Melihat ke arah sisi kota
     },
     subItems: [
       {
@@ -134,11 +135,11 @@ export const portfolioData: CityDistrict[] = [
     id: 'skills-matrix',
     title: 'Skills Matrix',
     description: 'Core Technical & Creative Proficiencies',
-    position: [0, 0, -40], // Pindah ke tengah-belakang (top-center di view)
+    position: [-65, 0, -55], // Belakang-kiri
     type: 'major',
     cameraFocus: {
-      pos: [0, 15, -25], // Disesuaikan
-      lookAt: [0, 5, -40],
+      pos: [-80, 25, -70], // Lebih jauh ke luar dan lebih tinggi
+      lookAt: [-35, 10, -25], // Melihat ke arah sudut belakang kota
     },
      subItems: [
       {
@@ -176,11 +177,11 @@ export const portfolioData: CityDistrict[] = [
     id: 'contact',
     title: 'Contact Terminal',
     description: 'Establish a connection',
-    position: [0, 0, 50], // Pindah ke tengah-depan (bottom-center di view)
+    position: [0, 0, 85], // Depan-tengah
     type: 'major',
     cameraFocus: {
-      pos: [0, 15, 65], // Disesuaikan
-      lookAt: [0, 5, 50],
+      pos: [0, 25, 105], // Lebih tinggi dan lebih jauh ke belakang
+      lookAt: [0, 15, 40], // Melihat ke arah gerbang depan kota
     },
     subItems: [
       {

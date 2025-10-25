@@ -27,9 +27,9 @@ export const PatrollingCore: React.FC = React.memo(() => {
     const elapsedTime = clock.getElapsedTime();
     
     // 1. Orbiting animation
-    const orbitRadius = 40;
+    const orbitRadius = 65; // Increased radius to orbit outside the city
     const orbitSpeed = 0.3;
-    const patrolHeight = 35;
+    const patrolHeight = 45; // Increased height to fly above buildings
     const x = Math.sin(elapsedTime * orbitSpeed) * orbitRadius;
     const z = Math.cos(elapsedTime * orbitSpeed) * orbitRadius;
     groupRef.current.position.set(x, patrolHeight, z);
@@ -48,7 +48,7 @@ export const PatrollingCore: React.FC = React.memo(() => {
       {/* The 3D model, scaled down as requested */}
       <primitive 
         object={clonedScene} 
-        scale={1.5}
+        scale={0.4} // Significantly reduced scale
         position-y={-2} // Adjust vertical position relative to the group center
       />
 
