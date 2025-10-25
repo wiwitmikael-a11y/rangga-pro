@@ -33,7 +33,7 @@ export const PatrollingCore: React.FC<PatrollingCoreProps> = React.memo(({ godRa
     if (!groupRef.current || !spotLightRef.current || !volumetricLightRef.current) return;
 
     const elapsedTime = clock.getElapsedTime();
-    const movementSpeed = 0.1;
+    const movementSpeed = 0.04; // Gerakan diperlambat secara signifikan
 
     const time = elapsedTime * movementSpeed;
     const horizontalRange = 80;
@@ -58,13 +58,23 @@ export const PatrollingCore: React.FC<PatrollingCoreProps> = React.memo(({ godRa
        groupRef.current.quaternion.slerp(tempObject.quaternion, 0.05);
     }
 
-    const groundTargetPos = new THREE.Vector3(groupRef.current.position.x, 0, groupRef.current.position.z);
+    // Gerakan memindai melingkar di tanah
+    const scanRadius = 45; // Radius diperluas
+    const scanSpeed = 0.3;
+    const scanX = Math.sin(elapsedTime * scanSpeed) * scanRadius;
+    const scanZ = Math.cos(elapsedTime * scanSpeed) * scanRadius;
+
+    const groundTargetPos = new THREE.Vector3(
+        groupRef.current.position.x + scanX,
+        0, 
+        groupRef.current.position.z + scanZ
+    );
+
     spotLightTarget.position.copy(groundTargetPos);
     spotLightRef.current.target = spotLightTarget;
     
     // Sinkronkan sinar volumetrik dengan sorotan
     volumetricLightRef.current.lookAt(groundTargetPos);
-    // Skalakan panjang sinar volumetrik berdasarkan jarak ke tanah
     const distanceToGround = groupRef.current.position.distanceTo(groundTargetPos);
     volumetricLightRef.current.scale.z = distanceToGround;
   });
@@ -73,36 +83,36 @@ export const PatrollingCore: React.FC<PatrollingCoreProps> = React.memo(({ godRa
     <group ref={groupRef}>
       <primitive 
         object={clonedScene} 
-        scale={4.5} 
-        position-y={-2} 
+        scale={4} // Ukuran diperkecil 3x lipat
+        position-y={0} 
       />
       
-       <mesh ref={godRaysSourceRef} position={[0, 5, 0]}>
+       {/* Posisi GodRays sekarang di bawah, di sumber cahaya */}
+       <mesh ref={godRaysSourceRef} position={[0, -2, 0]}>
         <sphereGeometry args={[2, 16, 16]} />
         <meshBasicMaterial color="white" visible={false} />
       </mesh>
 
       <spotLight
         ref={spotLightRef}
-        position={[0, 5, 0]} 
-        angle={Math.PI / 3.5}
+        position={[0, -2, 0]} // Sumber cahaya disesuaikan dengan skala baru
+        angle={Math.PI / 1.8} // Sudut diperlebar secara dramatis
         penumbra={0.4}
-        intensity={200} // Intensitas ditingkatkan secara drastis
-        distance={200} // Jangkauan ditingkatkan
+        intensity={400} // Intensitas ditingkatkan
+        distance={200}
         castShadow
-        color="#FF4500" // Warna oranye menyala yang lebih kontras
+        color="#FF4500"
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
       />
       
-      {/* Sinar Volumetrik Palsu untuk membuat sorotan terlihat */}
-      <mesh ref={volumetricLightRef} position={[0, 2.5, 0]}>
-        {/* Geometri kerucutnya dibuat panjang 1 unit, lalu di-skalakan secara dinamis */}
-        <coneGeometry args={[undefined, 1, 32, 1, true]} />
+      {/* Sinar Volumetrik Palsu diposisikan di sumber cahaya */}
+      <mesh ref={volumetricLightRef} position={[0, -2, 0]}>
+        <coneGeometry args={[25, 1, 32, 1, true]} />
         <meshBasicMaterial
           color="#FF4500"
           transparent
-          opacity={0.1}
+          opacity={0.08}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
           side={THREE.DoubleSide}

@@ -60,9 +60,7 @@ const Ship: React.FC<ShipProps> = ({ modelUrl, scale, trailConfig, trailOffset, 
   const tempQuaternion = useMemo(() => new THREE.Quaternion(), []);
   const tempLookAtObject = useMemo(() => new THREE.Object3D(), []);
 
-  // Fungsi untuk mendapatkan target terbang baru yang lebih bervariasi
   const getNewFlightTarget = (currentPosition: THREE.Vector3) => {
-    // 70% kemungkinan untuk patroli/eksplorasi ke titik acak
     if (Math.random() < 0.7) {
       const angle = Math.random() * Math.PI * 2;
       const radius = Math.random() * CITY_RADIUS;
@@ -72,10 +70,8 @@ const Ship: React.FC<ShipProps> = ({ modelUrl, scale, trailConfig, trailOffset, 
         Math.sin(angle) * radius
       );
     } else {
-      // 30% kemungkinan terbang menuju (di atas) landing spot lain
       const allSpots = [...BUILDING_LANDING_SPOTS, ...TERRAIN_LANDING_SPOTS];
-      const sortedSpots = allSpots.sort((a, b) => a.distanceTo(currentPosition) - b.distanceTo(currentPosition));
-      const targetSpot = sortedSpots[Math.floor(Math.random() * (sortedSpots.length - 1)) + 1]; // Hindari spot terdekat
+      const targetSpot = allSpots[Math.floor(Math.random() * allSpots.length)];
       return new THREE.Vector3(targetSpot.x, FLIGHT_ALTITUDE_MIN + Math.random() * (FLIGHT_ALTITUDE_MAX - FLIGHT_ALTITUDE_MIN), targetSpot.z);
     }
   };
@@ -103,16 +99,22 @@ const Ship: React.FC<ShipProps> = ({ modelUrl, scale, trailConfig, trailOffset, 
     const currentPos = groupRef.current.position;
     const targetPos = shipState.current.targetPosition;
 
-    // --- State Machine Logic ---
     switch (shipState.current.state) {
       case 'FLYING':
         if (currentPos.distanceTo(targetPos) < 5 || shipState.current.timer <= 0) {
           if (shipState.current.timer <= 0 && Math.random() < 0.3) {
             shipState.current.state = 'DESCENDING';
-            // Pilih antara landing di gedung atau di terrain
             const landingZones = Math.random() < 0.5 ? BUILDING_LANDING_SPOTS : TERRAIN_LANDING_SPOTS;
-            const closestSpot = [...landingZones].sort((a, b) => a.distanceTo(currentPos) - b.distanceTo(currentPos))[0];
-            shipState.current.targetPosition.copy(closestSpot);
+            const targetZone = landingZones[Math.floor(Math.random() * landingZones.length)];
+            
+            // Tambahkan offset acak untuk pendaratan yang lebih natural
+            const landingOffset = new THREE.Vector3(
+                (Math.random() - 0.5) * 15,
+                0,
+                (Math.random() - 0.5) * 15
+            );
+            const finalLandingTarget = targetZone.clone().add(landingOffset);
+            shipState.current.targetPosition.copy(finalLandingTarget);
           } else {
             shipState.current.targetPosition.copy(getNewFlightTarget(currentPos));
             shipState.current.timer = Math.random() * 15 + 10;
@@ -143,7 +145,6 @@ const Ship: React.FC<ShipProps> = ({ modelUrl, scale, trailConfig, trailOffset, 
         break;
     }
 
-    // --- Movement and Rotation Logic ---
     if (shipState.current.state !== 'LANDED') {
       const speed = shipState.current.state === 'DESCENDING' ? FLIGHT_SPEED * 0.7 : FLIGHT_SPEED;
       const direction = targetPos.clone().sub(currentPos).normalize();
