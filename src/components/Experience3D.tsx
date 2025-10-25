@@ -1,6 +1,6 @@
 import React, { useState, useCallback, Suspense, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Sky, PositionalAudio } from '@react-three/drei';
+import { OrbitControls, Sky } from '@react-three/drei';
 import { EffectComposer, Noise, ChromaticAberration, GodRays } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
@@ -29,7 +29,6 @@ export const Experience3D: React.FC = () => {
   const [showProjects, setShowProjects] = useState(false);
   const [infoPanelItem, setInfoPanelItem] = useState<CityDistrict | null>(null);
   const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
-  const [hasStarted, setHasStarted] = useState(false); // Track if experience has started to play audio
   
   const godRaysSourceRef = useRef<THREE.Mesh>(null!);
 
@@ -71,11 +70,7 @@ export const Experience3D: React.FC = () => {
     if (selectedDistrict && selectedDistrict.id !== 'nexus-core') {
       setShowProjects(true);
     }
-     // Trigger audio to play on the first animation finish (entry)
-    if (!hasStarted) {
-      setHasStarted(true);
-    }
-  }, [selectedDistrict, hasStarted]);
+  }, [selectedDistrict]);
 
   const handleProjectClick = (item: PortfolioSubItem) => {
     console.log('Project clicked:', item.title);
@@ -92,14 +87,6 @@ export const Experience3D: React.FC = () => {
   
   const isDetailViewActive = showProjects || !!infoPanelItem || selectedDistrict?.id === 'nexus-core';
 
-  const handleAmbientSound1 = useCallback((soundNode: THREE.PositionalAudio) => {
-    if (soundNode) soundNode.setVolume(0.15);
-  }, []);
-
-  const handleAmbientSound2 = useCallback((soundNode: THREE.PositionalAudio) => {
-    if (soundNode) soundNode.setVolume(0.25);
-  }, []);
-
   return (
     <>
       <Canvas
@@ -114,14 +101,6 @@ export const Experience3D: React.FC = () => {
         dpr={[1, 1.5]}
       >
         <Suspense fallback={null}>
-          {/* Ambient Audio that plays once the experience starts */}
-          {hasStarted && (
-            <>
-              <PositionalAudio ref={handleAmbientSound1} url="https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/sounds/cyberpunk-city-ambient.mp3" autoplay loop distance={10000} />
-              <PositionalAudio ref={handleAmbientSound2} url="https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/sounds/rain-sound.mp3" autoplay loop distance={10000} />
-            </>
-          )}
-
           <Sky sunPosition={sunPosition} />
           <ambientLight intensity={0.3} />
           <directionalLight

@@ -1,23 +1,6 @@
 import React from 'react';
 import type { CityDistrict, PortfolioSubItem } from '../../types';
 
-// --- Audio Utilities ---
-// Pre-load audio files to avoid delay on first interaction.
-const clickSound = new Audio('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/sounds/ui-click.mp3');
-const hoverSound = new Audio('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/sounds/ui-hover.mp3');
-hoverSound.volume = 0.3;
-
-// Re-usable functions to play sounds, preventing them from overlapping.
-const playClick = () => {
-    clickSound.currentTime = 0;
-    clickSound.play().catch(e => console.error("Audio play failed:", e));
-};
-const playHover = () => {
-    hoverSound.currentTime = 0;
-    hoverSound.play().catch(e => console.error("Audio play failed:", e));
-};
-// -----------------------
-
 interface ProjectSelectionPanelProps {
   isOpen: boolean;
   district: CityDistrict | null;
@@ -41,12 +24,10 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
   };
   
   const handleClose = () => {
-      playClick();
       onClose();
   };
   
   const handleProjectSelect = (item: PortfolioSubItem) => {
-      playClick();
       onProjectSelect(item);
   };
 
@@ -58,7 +39,7 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
       <div style={containerStyle} className={isOpen ? 'panel-enter' : ''}>
         <div style={styles.header}>
           <h2 style={styles.title}>{district.title}</h2>
-          <button onClick={handleClose} onMouseEnter={playHover} style={styles.closeButton} aria-label="Back to Overview">&times;</button>
+          <button onClick={handleClose} style={styles.closeButton} aria-label="Back to Overview">&times;</button>
         </div>
         <p style={styles.description}>{district.description}</p>
         <div style={styles.grid}>
@@ -68,7 +49,6 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
               className="project-card" 
               style={{ ...styles.card, animation: isOpen ? `card-fade-in 0.5s ease ${index * 0.1 + 0.3}s both` : 'none' }}
               onClick={() => handleProjectSelect(item)}
-              onMouseEnter={playHover}
             >
               <img src={item.imageUrl} alt={item.title} style={styles.cardImage} />
               <div style={styles.cardContent}>

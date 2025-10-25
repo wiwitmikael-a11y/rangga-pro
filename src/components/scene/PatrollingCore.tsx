@@ -1,9 +1,13 @@
 import React, { useRef, useMemo } from 'react';
-import { useGLTF, PositionalAudio } from '@react-three/drei';
+import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { createNoise3D } from 'simplex-noise';
 
 const MODEL_URL = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/PatrollingCore.glb';
+
+// Inisialisasi fungsi noise di luar komponen untuk performa
+const noise3D = createNoise3D();
 
 interface PatrollingCoreProps {
   godRaysSourceRef: React.RefObject<THREE.Mesh>;
@@ -14,81 +18,89 @@ export const PatrollingCore: React.FC<PatrollingCoreProps> = React.memo(({ godRa
   const spotLightRef = useRef<THREE.SpotLight>(null!);
   const { scene } = useGLTF(MODEL_URL);
   
-  // Clone the scene to avoid issues with multiple instances
   const clonedScene = useMemo(() => scene.clone(), [scene]);
 
-  // Set up a target for the spotlight to look at.
-  // This object will be positioned on the ground, directly below the core.
   const spotLightTarget = useMemo(() => {
     const target = new THREE.Object3D();
-    target.position.set(0, 0, 0); // Start at origin, will be updated in useFrame
+    target.position.set(0, 0, 0);
     return target;
   }, []);
 
+  // Simpan posisi sebelumnya untuk menghitung arah pergerakan
+  const previousPosition = useMemo(() => new THREE.Vector3(), []);
+  
   useFrame(({ clock }) => {
     if (!groupRef.current || !spotLightRef.current) return;
 
     const elapsedTime = clock.getElapsedTime();
+    const movementSpeed = 0.1; // Mengontrol kecepatan patroli keseluruhan
+
+    // 1. Buat jalur 3D menggunakan Simplex noise untuk pergerakan yang lebih alami dan eksploratif
+    const time = elapsedTime * movementSpeed;
+    const horizontalRange = 80; // Seberapa jauh ia bisa bergerak secara horizontal
+    const verticalRange = 25;   // Rentang pergerakan vertikalnya
+    const baseHeight = 35;      // Ketinggian minimum
+
+    // Gunakan noise untuk koordinat x dan z
+    const x = noise3D(time, 0, 0) * horizontalRange;
+    const z = noise3D(0, time, 0) * horizontalRange;
     
-    // 1. Orbiting animation
-    const orbitRadius = 65; // Increased radius to orbit outside the city
-    const orbitSpeed = 0.3;
-    const patrolHeight = 45; // Increased height to fly above buildings
-    const x = Math.sin(elapsedTime * orbitSpeed) * orbitRadius;
-    const z = Math.cos(elapsedTime * orbitSpeed) * orbitRadius;
-    groupRef.current.position.set(x, patrolHeight, z);
+    // Gunakan dimensi noise ketiga untuk variasi ketinggian yang mulus
+    const heightNoise = (noise3D(0, 0, time) + 1) / 2; // Map noise dari [-1, 1] ke [0, 1]
+    const y = baseHeight + heightNoise * verticalRange;
 
-    // 2. Self-rotation
-    groupRef.current.rotation.y += 0.01;
+    // Simpan posisi saat ini sebelum diperbarui
+    previousPosition.copy(groupRef.current.position);
 
-    // 3. Update spotlight target position to be directly below the orbiting core
-    // This ensures the light always points straight down towards the city.
-    spotLightTarget.position.set(x, 0, z);
+    // Interpolasi ke posisi baru secara mulus untuk menghindari gerakan patah-patah
+    groupRef.current.position.lerp(new THREE.Vector3(x, y, z), 0.05);
+
+    // 2. Buat core melihat ke arah tujuannya, kecuali jika sedang diam
+    if (previousPosition.distanceTo(groupRef.current.position) > 0.01) {
+       const lookAtTarget = new THREE.Vector3().copy(groupRef.current.position).add(
+         new THREE.Vector3().subVectors(groupRef.current.position, previousPosition).normalize()
+       );
+       const tempObject = new THREE.Object3D();
+       tempObject.position.copy(groupRef.current.position);
+       tempObject.lookAt(lookAtTarget);
+       groupRef.current.quaternion.slerp(tempObject.quaternion, 0.05);
+    }
+
+    // 3. Perbarui target sorotan agar berada tepat di bawah core
+    spotLightTarget.position.set(groupRef.current.position.x, 0, groupRef.current.position.z);
     spotLightRef.current.target = spotLightTarget;
   });
 
   return (
     <group ref={groupRef}>
-      {/* The 3D model, scaled up significantly */}
       <primitive 
         object={clonedScene} 
-        scale={4.5} // Increased scale for dominance
-        position-y={-2} // Adjust vertical position relative to the group center
+        scale={4.5} 
+        position-y={-2} 
       />
-
-      {/* A mesh to act as the source for the GodRays effect. It's invisible. */}
-      {/* The GodRays effect in the main component will use this mesh's position. */}
+      
        <mesh ref={godRaysSourceRef} position={[0, 5, 0]}>
         <sphereGeometry args={[2, 16, 16]} />
         <meshBasicMaterial color="white" visible={false} />
       </mesh>
 
-      {/* The spotlight attached to the patrolling core, now more powerful */}
+      {/* Sorotan diperbarui menjadi sinar pemindai oranye yang lebar */}
       <spotLight
         ref={spotLightRef}
-        position={[0, 5, 0]} // Positioned above the model, pointing down
-        angle={Math.PI / 4.5} // Wider cone angle
-        penumbra={0.3} // Softens the edge of the spotlight
-        intensity={35} // Increased brightness
-        distance={120} // Increased range
+        position={[0, 5, 0]} 
+        angle={Math.PI / 3} // Kerucut cahaya dibuat jauh lebih lebar
+        penumbra={0.4} // Melembutkan tepi untuk efek pemindaian
+        intensity={50} // Kecerahan ditingkatkan untuk kerucut yang lebih lebar
+        distance={150} // Jangkauan ditingkatkan untuk memastikan cahaya mencapai tanah dari ketinggian maks
         castShadow
-        color="#00ffff"
+        color="#FF9900" // Diubah menjadi oranye
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
       />
       
-       <PositionalAudio
-        url="https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/sounds/ship-engine.mp3"
-        autoplay
-        loop
-        distance={40}
-        />
-
-      {/* Add the spotlight target to the scene so the spotlight can reference it */}
       <primitive object={spotLightTarget} />
     </group>
   );
 });
 
-// Preload the model for faster loading
 useGLTF.preload(MODEL_URL);
