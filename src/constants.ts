@@ -65,6 +65,29 @@ export const portfolioData: CityDistrict[] = [
       pos: [40, 15, -20],
       lookAt: [40, 5, -40],
     },
+    subItems: [
+      {
+        id: 'contact-email',
+        title: 'Secure Comms',
+        description: 'Send a direct message via encrypted email.',
+        position: [35, 5, -35],
+        imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/project-thumb-5.jpg',
+      },
+      {
+        id: 'contact-linkedin',
+        title: 'Professional Network',
+        description: 'View professional profile and network connections.',
+        position: [45, 5, -35],
+        imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/project-thumb-6.jpg',
+      },
+      {
+        id: 'contact-calendar',
+        title: 'Schedule Meeting',
+        description: 'Book a time slot for a virtual meeting.',
+        position: [40, 5, -45],
+        imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/project-thumb-7.jpg',
+      }
+    ]
   },
   // Add some minor districts for ambiance
   {
