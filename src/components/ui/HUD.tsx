@@ -93,23 +93,23 @@ const styles: { [key: string]: React.CSSProperties } = {
   hudButton: {
     ...glassmorphism,
     color: '#00aaff',
-    width: '45px',
-    height: '45px',
+    width: '38px',
+    height: '38px',
     border: '1px solid rgba(0, 170, 255, 0.5)',
     borderRadius: '50%',
     padding: '0',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    fontSize: '1.5rem',
+    fontSize: '1.2rem',
     lineHeight: 1,
     cursor: 'pointer',
     transition: 'all 0.5s ease',
     pointerEvents: 'all',
   },
   hexButton: {
-    width: '50px',
-    height: '55px',
+    width: '40px',
+    height: '44px',
     borderRadius: '0', // remove border radius for clip-path
   },
   visible: {

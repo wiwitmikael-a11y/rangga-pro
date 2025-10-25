@@ -33,12 +33,13 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
     }
 
     // Smoothly interpolate the camera position to avoid jerky movements
-    state.camera.position.lerp(targetPosition, delta * 1.5);
+    const lerpFactor = delta * 2.5; // Ditingkatkan untuk konsistensi
+    state.camera.position.lerp(targetPosition, lerpFactor);
 
     // Smoothly interpolate the camera look-at target by updating the quaternion
     const tempCamera = state.camera.clone();
     tempCamera.lookAt(targetLookAt);
-    state.camera.quaternion.slerp(tempCamera.quaternion, delta * 1.5);
+    state.camera.quaternion.slerp(tempCamera.quaternion, lerpFactor);
     
     // Check if the animation has finished
     const posReached = state.camera.position.distanceTo(targetPosition) < 0.5;

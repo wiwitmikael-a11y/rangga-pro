@@ -1,6 +1,7 @@
 import type { CityDistrict } from './types';
 
 // Data portofolio telah diisi dengan konten mock yang relevan dan gambar dari CDN.
+// POSISI CORE TELAH DIPADATKAN UNTUK MENGHILANGKAN RUANG KOSONG
 export const portfolioData: CityDistrict[] = [
   // 1. Central "About Me" Hub
   {
@@ -10,8 +11,8 @@ export const portfolioData: CityDistrict[] = [
     position: [0, 0, 0],
     type: 'major',
     cameraFocus: {
-      pos: [0, 15, 40],
-      lookAt: [0, 10, 0],
+      pos: [0, 15, 25], // Didekatkan
+      lookAt: [0, 5, 0],
     },
     subItems: [
       {
@@ -35,11 +36,11 @@ export const portfolioData: CityDistrict[] = [
     id: 'ai-forge',
     title: 'Innovation Forge',
     description: 'AI Engineering & Web Development Projects',
-    position: [-50, 0, -50],
+    position: [-35, 0, -30], // Didekatkan
     type: 'major',
     cameraFocus: {
-      pos: [-50, 20, -30],
-      lookAt: [-50, 5, -50],
+      pos: [-35, 15, -15], // Disesuaikan
+      lookAt: [-35, 5, -30],
     },
      subItems: [
       {
@@ -70,11 +71,11 @@ export const portfolioData: CityDistrict[] = [
     id: 'visual-arts',
     title: 'Visual Arts Archive',
     description: 'Award-Winning Photography & Videography',
-    position: [50, 0, -50],
+    position: [35, 0, -30], // Didekatkan
     type: 'major',
     cameraFocus: {
-      pos: [50, 20, -30],
-      lookAt: [50, 5, -50],
+      pos: [35, 15, -15], // Disesuaikan
+      lookAt: [35, 5, -30],
     },
     subItems: [
       {
@@ -105,11 +106,11 @@ export const portfolioData: CityDistrict[] = [
     id: 'blockchain-vault',
     title: 'DeFi Data-Vault',
     description: 'Blockchain Analysis & Web3 Exploration',
-    position: [-50, 0, 50],
+    position: [-35, 0, 30], // Didekatkan
     type: 'major',
     cameraFocus: {
-      pos: [-50, 20, 70],
-      lookAt: [-50, 5, 50],
+      pos: [-35, 15, 45], // Disesuaikan
+      lookAt: [-35, 5, 30],
     },
     subItems: [
       {
@@ -133,11 +134,11 @@ export const portfolioData: CityDistrict[] = [
     id: 'skills-matrix',
     title: 'Skills Matrix',
     description: 'Core Technical & Creative Proficiencies',
-    position: [50, 0, 50],
+    position: [35, 0, 30], // Didekatkan
     type: 'major',
     cameraFocus: {
-      pos: [50, 20, 70],
-      lookAt: [50, 5, 50],
+      pos: [35, 15, 45], // Disesuaikan
+      lookAt: [35, 5, 30],
     },
      subItems: [
       {
@@ -175,11 +176,11 @@ export const portfolioData: CityDistrict[] = [
     id: 'contact',
     title: 'Contact Terminal',
     description: 'Establish a connection',
-    position: [0, 0, -80],
+    position: [0, 0, -45], // Didekatkan secara signifikan
     type: 'major',
     cameraFocus: {
-      pos: [0, 15, -60],
-      lookAt: [0, 5, -80],
+      pos: [0, 15, -30], // Disesuaikan
+      lookAt: [0, 5, -45],
     },
     subItems: [
       {
@@ -205,12 +206,12 @@ export const portfolioData: CityDistrict[] = [
       }
     ]
   },
-  // Ambient districts for visual flair
+  // Ambient districts for visual flair - Disesuaikan posisinya
   {
     id: 'ambient-1',
     title: 'Data Spire',
     description: 'Minor data node',
-    position: [25, 0, 25],
+    position: [20, 0, 15],
     type: 'minor',
     height: 30,
   },
@@ -218,7 +219,7 @@ export const portfolioData: CityDistrict[] = [
     id: 'ambient-2',
     title: 'Archive Block',
     description: 'Minor data node',
-    position: [-25, 0, 25],
+    position: [-20, 0, 15],
     type: 'minor',
     height: 25,
   },
@@ -226,7 +227,7 @@ export const portfolioData: CityDistrict[] = [
     id: 'ambient-3',
     title: 'Sub-Station 7',
     description: 'Minor data node',
-    position: [25, 0, -25],
+    position: [20, 0, -15],
     type: 'minor',
     height: 40,
   },
@@ -234,7 +235,7 @@ export const portfolioData: CityDistrict[] = [
     id: 'ambient-4',
     title: 'Cooling Tower',
     description: 'Minor data node',
-    position: [-25, 0, -25],
+    position: [-20, 0, -15],
     type: 'minor',
     height: 50,
   },

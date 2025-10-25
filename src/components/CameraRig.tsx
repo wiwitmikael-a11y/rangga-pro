@@ -36,7 +36,7 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
     }
 
     // Interpolasi posisi kamera secara mulus untuk menghindari gerakan yang kaku
-    const lerpFactor = delta * 1.8; // Sedikit lebih cepat untuk feel yang responsif
+    const lerpFactor = delta * 2.5; // Ditingkatkan untuk transisi yang lebih cepat namun tetap mulus
     state.camera.position.lerp(targetPosition, lerpFactor);
 
     // Interpolasi target pandang kamera secara mulus dengan memperbarui quaternion
