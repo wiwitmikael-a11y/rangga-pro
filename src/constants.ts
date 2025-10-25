@@ -9,11 +9,23 @@ export const portfolioData: CityDistrict[] = [
     "title": "@rangga.p.h",
     "description": "Digital Artisan & Tech Explorer",
     "position": [
-      30,
+      0,
       15,
-      20
+      0
     ],
-    "type": "major"
+    "type": "major",
+    "cameraFocus": {
+      "pos": [
+        0,
+        25,
+        40
+      ],
+      "lookAt": [
+        0,
+        15,
+        0
+      ]
+    }
   },
   {
     "id": "nova-forge",

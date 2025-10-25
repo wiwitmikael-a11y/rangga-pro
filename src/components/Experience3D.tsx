@@ -21,11 +21,12 @@ import { PatrollingCore } from './scene/PatrollingCore';
 import { CalibrationGrid } from './scene/CalibrationGrid';
 import { BuildModeController } from './scene/BuildModeController';
 import { ExportLayoutModal } from './ui/ExportLayoutModal';
+import { InstagramVisitModal } from './ui/InstagramVisitModal';
 
-// Define the sun's position to be used by the light, sky, and mesh
-const sunPosition: [number, number, number] = [100, 2, -200]; // Lower sun for sunset effect
-const sunColor = '#FFFFF0'; // A warm, sun-like white
-const backgroundColor = '#2c1912'; // Dark, desaturated orange to match the sky's bottom gradient
+// Define the sun's position for a warmer, Mars/Venus-like daylight
+const sunPosition: [number, number, number] = [100, 70, -80]; // Lower sun for more dramatic lighting
+const sunColor = '#ffae78'; // Warm orange light
+const backgroundColor = '#4a2a1e'; // A Mars-like dark red-brown for the background
 const INITIAL_CAMERA_POSITION: [number, number, number] = [0, 100, 250];
 
 export const Experience3D: React.FC = () => {
@@ -35,6 +36,7 @@ export const Experience3D: React.FC = () => {
   const [showProjects, setShowProjects] = useState(false);
   const [infoPanelItem, setInfoPanelItem] = useState<CityDistrict | null>(null);
   const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
+  const [showVisitModal, setShowVisitModal] = useState(false);
   
   const [pov, setPov] = useState<'main' | 'ship'>('main');
   const [shipRefs, setShipRefs] = useState<React.RefObject<THREE.Group>[]>([]);
@@ -55,28 +57,20 @@ export const Experience3D: React.FC = () => {
     const majorDistricts = districts.filter(d => d.type === 'major');
     const nexusCore = majorDistricts.find(d => d.id === 'nexus-core');
     return nexusCore
-      ? [...majorDistricts.filter(d => d.id !== 'nexus-core'), nexusCore]
+      ? [nexusCore, ...majorDistricts.filter(d => d.id !== 'nexus-core')]
       : majorDistricts;
   }, [districts]);
   
   const handleDistrictSelect = useCallback((district: CityDistrict) => {
     if (isCalibrationMode) return;
-    if (district.id === 'nexus-core') {
-      window.open('https://www.instagram.com/rangga.p.h/', '_blank');
-      setSelectedDistrict(district); 
-      setShowProjects(false);
-      setInfoPanelItem(null);
-      setTimeout(() => setSelectedDistrict(null), 1000);
-      return;
-    }
-
     if (district.id === selectedDistrict?.id && !isAnimating) return;
     
     if (district.subItems && district.subItems.length > 0) {
       setSelectedDistrict(districts.find(d => d.id === district.id) || null);
     } else {
-      setSelectedDistrict(null); 
-      setInfoPanelItem(districts.find(d => d.id === district.id) || null);
+      // This path is now taken by nexus-core as well, which is intended.
+      setSelectedDistrict(districts.find(d => d.id === district.id) || null);
+      setInfoPanelItem(null);
     }
     setIsAnimating(true);
     setShowProjects(false);
@@ -121,9 +115,15 @@ export const Experience3D: React.FC = () => {
 
   const onAnimationFinish = useCallback(() => {
     setIsAnimating(false);
-    if (selectedDistrict && selectedDistrict.id !== 'nexus-core') {
-      setShowProjects(true);
-    } else if (!selectedDistrict && pov === 'main' && !isCalibrationMode) {
+    if (selectedDistrict) {
+      if (selectedDistrict.id === 'nexus-core') {
+        setShowVisitModal(true); // Show the visit modal after zooming in to the core
+      } else if (selectedDistrict.subItems && selectedDistrict.subItems.length > 0) {
+        setShowProjects(true); // Show projects for other districts
+      } else {
+        setInfoPanelItem(selectedDistrict); // For districts with no subItems
+      }
+    } else if (pov === 'main' && !isCalibrationMode) {
       resetIdleTimer();
     }
   }, [selectedDistrict, resetIdleTimer, pov, isCalibrationMode]);
@@ -247,6 +247,11 @@ export const Experience3D: React.FC = () => {
       setOriginalHeldDistrictPosition(null);
   }, []);
 
+  const handleCloseVisitModal = () => {
+    setShowVisitModal(false);
+    handleGoHome();
+  };
+
   return (
     <>
       <Canvas
@@ -263,11 +268,11 @@ export const Experience3D: React.FC = () => {
         <Suspense fallback={null}>
           <color attach="background" args={[backgroundColor]} />
           
-          <Sky sunPosition={sunPosition} turbidity={10} rayleigh={0.5} mieCoefficient={0.005} mieDirectionalG={0.8} />
-          <ambientLight intensity={0.2} />
+          <Sky sunPosition={sunPosition} turbidity={8} rayleigh={1.5} mieCoefficient={0.01} mieDirectionalG={0.8} />
+          <ambientLight intensity={1.5} />
           <directionalLight
             position={sunPosition}
-            intensity={3}
+            intensity={6.0}
             color={sunColor}
             castShadow
             shadow-mapSize-width={4096}
@@ -375,6 +380,10 @@ export const Experience3D: React.FC = () => {
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
         jsonData={exportedLayoutJson}
+      />
+      <InstagramVisitModal
+        isOpen={showVisitModal}
+        onClose={handleCloseVisitModal}
       />
     </>
   );

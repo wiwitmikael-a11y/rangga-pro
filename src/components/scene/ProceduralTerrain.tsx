@@ -28,6 +28,7 @@ export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(({
         const planeGeo = new THREE.PlaneGeometry(500, 500, 200, 200);
         const noise = createNoise2D();
         const positions = planeGeo.attributes.position;
+        const curvatureFactor = 0.0003; // Controls how much the terrain curves down at the edges
 
         for (let i = 0; i < positions.count; i++) {
             const x = positions.getX(i);
@@ -36,7 +37,12 @@ export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(({
             // Apply noise to the vertex's Z-axis (which becomes height)
             const noiseFactor = 0.015;
             const height = noise(x * noiseFactor, y * noiseFactor) * 5; // Adjust multiplier for ruggedness
-            positions.setZ(i, height);
+
+            // Apply a downward curve based on distance from the center to create a rounded effect
+            const distanceFromCenterSq = x * x + y * y;
+            const curveOffset = distanceFromCenterSq * curvatureFactor;
+            
+            positions.setZ(i, height - curveOffset);
         }
         
         planeGeo.computeVertexNormals(); // Recalculate normals for correct lighting on the uneven surface
