@@ -1,6 +1,7 @@
 import React, { useState, useCallback, Suspense, useMemo, useRef, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Sky, useGLTF } from '@react-three/drei';
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { EffectComposer, Noise, ChromaticAberration } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
@@ -23,13 +24,13 @@ import { BuildModeController } from './scene/BuildModeController';
 import { ExportLayoutModal } from './ui/ExportLayoutModal';
 import { InstagramVisitModal } from './ui/InstagramVisitModal';
 import { ContactHubModal } from './ui/ContactHubModal';
+// FIX: Implement AegisProtocolGame component to resolve module not found error.
 import { AegisProtocolGame } from './game/AegisProtocolGame';
 import { GameLobbyPanel } from './ui/GameLobbyPanel';
 
-// Define the sun's position for a warmer, Mars/Venus-like daylight
-const sunPosition: [number, number, number] = [100, 70, -80]; // Lower sun for more dramatic lighting
-const sunColor = '#ffae78'; // Warm orange light
-const backgroundColor = '#4a2a1e'; // A Mars-like dark red-brown for the background
+// Define the sun's position for a sunset glow near the horizon
+const sunPosition: [number, number, number] = [100, 2, -100]; // Lower sun for a more dramatic sunset
+const sunColor = '#ffd0b3'; // Warmer light
 const INITIAL_CAMERA_POSITION: [number, number, number] = [0, 100, 250];
 
 export const Experience3D: React.FC = () => {
@@ -58,6 +59,7 @@ export const Experience3D: React.FC = () => {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [exportedLayoutJson, setExportedLayoutJson] = useState('');
 
+  const controlsRef = useRef<OrbitControlsImpl>(null);
   const isPaused = isCalibrationMode || gameMode === 'active';
 
   const navDistricts = useMemo(() => {
@@ -109,6 +111,16 @@ export const Experience3D: React.FC = () => {
   const handleInteractionEnd = useCallback(() => {
       resetIdleTimer();
   }, [resetIdleTimer]);
+
+  const handleControlsChange = useCallback(() => {
+    if (controlsRef.current) {
+      const target = controlsRef.current.target;
+      const boundary = 150;
+      target.x = THREE.MathUtils.clamp(target.x, -boundary, boundary);
+      target.z = THREE.MathUtils.clamp(target.z, -boundary, boundary);
+      target.y = THREE.MathUtils.clamp(target.y, 0, 50); // Prevent looking underground or too high
+    }
+  }, []);
 
   useEffect(() => {
     resetIdleTimer();
@@ -284,10 +296,9 @@ export const Experience3D: React.FC = () => {
         dpr={[1, 1.5]}
       >
         <Suspense fallback={null}>
-          <color attach="background" args={[backgroundColor]} />
-          
-          <Sky sunPosition={sunPosition} turbidity={8} rayleigh={1.5} mieCoefficient={0.01} mieDirectionalG={0.8} />
-          <ambientLight intensity={1.5} />
+          {/* The <Sky> component renders the background; fog has been removed for performance. */}
+          <Sky sunPosition={sunPosition} turbidity={20} rayleigh={1} mieCoefficient={0.005} mieDirectionalG={0.8} />
+          <ambientLight intensity={1.2} />
           <directionalLight
             position={sunPosition}
             intensity={6.0}
@@ -369,21 +380,22 @@ export const Experience3D: React.FC = () => {
 
         {gameMode !== 'active' && (
           <OrbitControls
+              ref={controlsRef}
               enabled={pov === 'main' && !isAnimating && !isNavMenuOpen && !showProjects && !infoPanelItem && !heldDistrictId && gameMode !== 'lobby'}
               minDistance={20}
-              maxDistance={400}
+              maxDistance={300}
               maxPolarAngle={isCalibrationMode ? Math.PI / 2.05 : Math.PI / 2.2}
               target={[0, 5, 0]}
               autoRotate={isAutoRotating && !isCalibrationMode}
               autoRotateSpeed={0.5}
               onStart={handleInteractionStart}
               onEnd={handleInteractionEnd}
+              onChange={handleControlsChange}
           />
         )}
       </Canvas>
       <HUD 
         selectedDistrict={selectedDistrict} 
-        // FIX: Corrected a typo. The function is named 'handleGoHome', not 'onGoHome'.
         onGoHome={handleGoHome}
         onToggleNavMenu={() => setIsNavMenuOpen(!isNavMenuOpen)}
         isDetailViewActive={isDetailViewActive}
@@ -396,39 +408,48 @@ export const Experience3D: React.FC = () => {
         onCancelMove={handleCancelMove}
         gameMode={gameMode}
       />
-      <QuickNavMenu 
-        isOpen={isNavMenuOpen}
-        onClose={() => setIsNavMenuOpen(false)}
-        onSelectDistrict={handleQuickNavSelect}
-        districts={navDistricts}
-      />
-      <ProjectSelectionPanel 
-        isOpen={showProjects && !!selectedDistrict}
-        district={selectedDistrict}
-        onClose={handleGoHome}
-        onProjectSelect={handleProjectClick}
-      />
-      <ExportLayoutModal
-        isOpen={isExportModalOpen}
-        onClose={() => setIsExportModalOpen(false)}
-        jsonData={exportedLayoutJson}
-      />
-      <InstagramVisitModal
-        isOpen={showVisitModal}
-        onClose={handleGoHome}
-      />
-      <ContactHubModal
-        isOpen={isContactHubOpen}
-        onClose={handleGoHome}
-      />
-      <GameLobbyPanel
-        isOpen={gameMode === 'lobby'}
-        onLaunch={handleLaunchGame}
-        onClose={handleGoHome}
-      />
+      {isNavMenuOpen && (
+          <QuickNavMenu 
+              isOpen={isNavMenuOpen}
+              onClose={() => setIsNavMenuOpen(false)}
+              onSelectDistrict={handleQuickNavSelect}
+              districts={navDistricts}
+          />
+      )}
+       {showProjects && (
+          <ProjectSelectionPanel
+              isOpen={showProjects}
+              district={selectedDistrict}
+              onClose={handleGoHome}
+              onProjectSelect={handleProjectClick}
+          />
+      )}
+      {gameMode === 'lobby' && (
+        <GameLobbyPanel 
+          isOpen={gameMode === 'lobby'}
+          onLaunch={handleLaunchGame}
+          onClose={handleGoHome}
+        />
+      )}
+      {isExportModalOpen && (
+        <ExportLayoutModal
+          isOpen={isExportModalOpen}
+          onClose={() => setIsExportModalOpen(false)}
+          jsonData={exportedLayoutJson}
+        />
+      )}
+      {showVisitModal && (
+        <InstagramVisitModal
+          isOpen={showVisitModal}
+          onClose={() => setShowVisitModal(false)}
+        />
+      )}
+       {isContactHubOpen && (
+        <ContactHubModal
+          isOpen={isContactHubOpen}
+          onClose={() => setIsContactHubOpen(false)}
+        />
+      )}
     </>
   );
 };
-
-// Preload the Aegis Command model so it's ready when needed
-useGLTF.preload('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/aegis_hq.glb');

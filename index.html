@@ -119,6 +119,63 @@
         from { background-position: 0 -3px; }
         to { background-position: 0 100%; }
       }
+      
+      /* --- Contact Hub Floating Labels --- */
+      .contact-hub-modal .input-group {
+        position: relative;
+        margin-bottom: 25px;
+      }
+      .contact-hub-modal .form-input {
+        width: 100%;
+        background: rgba(0,0,0,0.3);
+        border: 1px solid rgba(0, 170, 255, 0.3);
+        color: #fff;
+        padding: 12px;
+        border-radius: 4px;
+        font-size: 1rem;
+        box-sizing: border-box;
+        transition: border-color 0.2s ease;
+        -webkit-appearance: none; /* Remove default appearance for selects on Safari */
+        -moz-appearance: none; /* Remove default appearance for selects on Firefox */
+        appearance: none; /* Standard property */
+      }
+      .contact-hub-modal .form-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 8px rgba(0, 225, 255, 0.3);
+      }
+      .contact-hub-modal .form-label {
+        position: absolute;
+        left: 12px;
+        top: 12px;
+        color: #88a7a6;
+        pointer-events: none;
+        transition: all 0.2s ease;
+        background: rgb(8, 20, 42); /* Match form panel background for clean overlap */
+        padding: 0 4px;
+      }
+      .contact-hub-modal .form-input:focus + .form-label,
+      .contact-hub-modal .form-input:not(:placeholder-shown) + .form-label {
+        top: -10px;
+        left: 8px;
+        font-size: 0.8rem;
+        color: var(--primary-color);
+      }
+      /* Special handling for select as it doesn't use placeholder */
+      .contact-hub-modal .input-group select.form-input + .form-label {
+        top: -10px;
+        left: 8px;
+        font-size: 0.8rem;
+        color: var(--primary-color);
+      }
+      .contact-hub-modal .input-group select.form-input {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2300aaff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 1em;
+      }
+      /* End Contact Hub Styles */
+
 
       /* --- Tablet Breakpoint --- */
       @media (max-width: 1024px) {

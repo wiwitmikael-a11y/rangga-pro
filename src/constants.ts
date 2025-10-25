@@ -100,7 +100,7 @@ export const portfolioData: CityDistrict[] = [
     "description": "Launch Threat Neutralization Protocol",
     "position": [
       -60,
-      -7,
+      -13,
       -60
     ],
     "type": "major",

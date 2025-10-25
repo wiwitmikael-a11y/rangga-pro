@@ -109,27 +109,29 @@ export const ContactHubModal: React.FC<ContactHubModalProps> = ({ isOpen, onClos
                     <form style={styles.formPanel} className="form-panel" onSubmit={handleSubmit}>
                         <h3 style={styles.panelTitle}>Secure Transmission</h3>
                         <p style={styles.panelDescription}>Use this form for proposals, consultations, or general inquiries.</p>
-                        <div style={styles.inputGroup}>
-                            <input type="text" id="name" value={name} onChange={(e) => setName(e.target.value)} required style={styles.input} />
-                            <label htmlFor="name" style={styles.label}>Name</label>
+                        
+                        <div className="input-group">
+                            <input type="text" id="name" value={name} onChange={(e) => setName(e.target.value)} required className="form-input" placeholder=" " />
+                            <label htmlFor="name" className="form-label">Name / Organization</label>
                         </div>
-                        <div style={styles.inputGroup}>
-                            <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} required style={styles.input} />
-                            <label htmlFor="email" style={styles.label}>Email Address</label>
+                        <div className="input-group">
+                            <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="form-input" placeholder=" " />
+                            <label htmlFor="email" className="form-label">Email Address</label>
                         </div>
-                        <div style={styles.inputGroup}>
-                            <select id="inquiry" value={inquiry} onChange={(e) => setInquiry(e.target.value)} required style={styles.select}>
+                        <div className="input-group">
+                             <select id="inquiry" value={inquiry} onChange={(e) => setInquiry(e.target.value)} required className="form-input">
                                 <option>Project Proposal / Collaboration</option>
                                 <option>Technical Consultation</option>
                                 <option>Career Opportunity / Recruitment</option>
                                 <option>General Inquiry / Feedback</option>
                             </select>
-                            <label htmlFor="inquiry" style={styles.label}>Inquiry Type</label>
+                            <label htmlFor="inquiry" className="form-label">Inquiry Type</label>
                         </div>
-                        <div style={styles.inputGroup}>
-                            <textarea id="message" value={message} onChange={(e) => setMessage(e.target.value)} required style={styles.textarea} rows={4}></textarea>
-                            <label htmlFor="message" style={styles.label}>Message</label>
+                        <div className="input-group">
+                            <textarea id="message" value={message} onChange={(e) => setMessage(e.target.value)} required className="form-input" rows={4} placeholder=" "></textarea>
+                            <label htmlFor="message" className="form-label">Your message...</label>
                         </div>
+
                         <button type="submit" style={styles.submitButton} disabled={status !== 'idle'}>
                             {status === 'idle' && <><TransmitIcon /> Transmit Message</>}
                             {status === 'sending' && 'Encrypting...'}
@@ -157,15 +159,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     title: { margin: 0, color: 'var(--primary-color)', fontSize: '1.5rem', textShadow: '0 0 8px var(--primary-color)', letterSpacing: '0.1em' },
     closeButton: { background: 'transparent', border: '1px solid rgba(255, 153, 0, 0.7)', color: '#ff9900', width: '30px', height: '30px', borderRadius: '50%', cursor: 'pointer', fontSize: '1.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center', lineHeight: 1, transition: 'all 0.2s' },
     contentGrid: { display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '1px', background: 'rgba(0, 170, 255, 0.2)' },
-    linksPanel: { padding: '25px', background: 'rgba(5, 15, 30, 0.8)' },
-    formPanel: { padding: '25px', background: 'rgba(5, 15, 30, 0.8)' },
+    linksPanel: { padding: '25px', background: 'rgba(8, 20, 42, 1)' },
+    formPanel: { padding: '25px', background: 'rgba(8, 20, 42, 1)' },
     panelTitle: { color: '#fff', marginTop: 0, marginBottom: '10px', fontSize: '1.2rem', textTransform: 'uppercase', letterSpacing: '0.05em' },
     panelDescription: { color: '#aaa', marginTop: 0, marginBottom: '25px', fontSize: '0.9rem', lineHeight: 1.5 },
     linkButton: { ...glassmorphism, display: 'flex', alignItems: 'center', gap: '15px', padding: '12px 15px', color: '#cceeff', textDecoration: 'none', borderRadius: '5px', marginBottom: '10px', transition: 'all 0.3s ease', borderLeft: '3px solid transparent' },
-    inputGroup: { position: 'relative', marginBottom: '20px' },
-    input: { width: '100%', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(0, 170, 255, 0.3)', color: '#fff', padding: '12px', borderRadius: '4px', fontSize: '1rem', boxSizing: 'border-box' },
-    textarea: { width: '100%', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(0, 170, 255, 0.3)', color: '#fff', padding: '12px', borderRadius: '4px', fontSize: '1rem', boxSizing: 'border-box', resize: 'vertical' },
-    select: { width: '100%', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(0, 170, 255, 0.3)', color: '#fff', padding: '12px', borderRadius: '4px', fontSize: '1rem', boxSizing: 'border-box', appearance: 'none' },
-    label: { position: 'absolute', left: '12px', top: '12px', color: '#88a7a6', pointerEvents: 'none', transition: 'all 0.2s ease' },
-    submitButton: { width: '100%', background: 'rgba(0, 170, 255, 0.2)', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', padding: '12px', fontSize: '1rem', fontFamily: 'inherit', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', transition: 'all 0.3s ease', textShadow: '0 0 5px var(--primary-color)', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+    submitButton: { width: '100%', background: 'rgba(0, 170, 255, 0.2)', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', padding: '12px', fontSize: '1rem', fontFamily: 'inherit', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', transition: 'all 0.3s ease', textShadow: '0 0 5px var(--primary-color)', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '5px' },
 };

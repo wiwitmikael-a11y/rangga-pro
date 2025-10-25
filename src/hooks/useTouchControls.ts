@@ -106,6 +106,8 @@ export const useTouchControls = () => {
         } else if (touch.identifier === aimState.identifier) {
             aimState.active = false;
             aimState.identifier = -1;
+            // Reset aim vector when touch is released to stop aiming
+            controls.current.aim = { x: 0, y: 0 };
         }
       }
       setLastUpdateTime(Date.now());
