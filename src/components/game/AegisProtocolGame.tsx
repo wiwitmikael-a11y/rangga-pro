@@ -1,46 +1,44 @@
-import React, { Suspense, useMemo, useRef, useState, useCallback } from 'react';
+import React, { Suspense, useMemo, useRef, useState, useCallback, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { PlayerCopter } from './PlayerCopter';
 import { GameHUD } from '../ui/GameHUD';
-import { EnemyBattleshipModel, EnemyFighterModel, PlayerMissileModel, LaserBeam, TargetReticule } from './GameModels';
+import { EnemyBattleshipModel, EnemyFighterModel, PlayerMissileModel, LaserBeam, TargetReticule, Explosion, MuzzleFlash, ShieldEffect, PowerUpModel } from './GameModels';
 
 // --- Types ---
-interface Entity {
+interface BaseEntity {
   id: number;
+  active: boolean;
   position: THREE.Vector3;
   quaternion: THREE.Quaternion;
 }
-interface AutoBullet extends Entity {
-  velocity: THREE.Vector3;
-}
-interface HomingMissile extends Entity {
-    targetId: number | null;
-}
-interface Fighter extends Entity {
-  health: number;
-  fireCooldown: number;
-}
-interface Laser extends Entity {
-    start: THREE.Vector3;
-    end: THREE.Vector3;
-    life: number;
-}
+interface AutoBullet extends BaseEntity { velocity: THREE.Vector3; }
+interface HomingMissile extends BaseEntity { targetId: number | null; }
+interface Fighter extends BaseEntity { health: number; fireCooldown: number; hitTimer: number; }
+interface Laser extends BaseEntity { start: THREE.Vector3; end: THREE.Vector3; life: number; }
+interface ExplosionEntity extends BaseEntity { scale: number; life: number; }
+type PowerUpType = 'shield';
+interface PowerUp extends BaseEntity { type: PowerUpType; }
 
 interface AegisProtocolGameProps {
   onExit: () => void;
   playerSpawnPosition: THREE.Vector3;
 }
 
-
 // --- Constants ---
+const POOL_SIZES = { fighters: 30, bullets: 50, missiles: 5, explosions: 20, powerUps: 10 };
 const CITY_BREACH_Z = 80;
-const FIGHTER_SPAWN_INTERVAL = 4; // seconds
-const BATTLESHIP_LASER_INTERVAL = 6; // seconds
+const BATTLESHIP_DESTRUCTION_Z = 70;
+const FIGHTER_SPAWN_INTERVAL = 3;
+const BATTLESHIP_LASER_INTERVAL = 5;
 const FIGHTER_COLLISION_RADIUS = 3;
+const POWERUP_COLLISION_RADIUS = 3;
+const PLAYER_COLLISION_RADIUS = 2;
 const BULLET_COLLISION_RADIUS = 1;
 const MISSILE_COLLISION_RADIUS = 2;
 const HOMING_MISSILE_COOLDOWN = 30;
+const SHIELD_DURATION = 10;
+const POWERUP_DROP_CHANCE = 0.2; // 20% chance
 
 // --- Game Camera ---
 const GameCameraRig: React.FC<{ playerCopterRef: React.RefObject<THREE.Group> }> = ({ playerCopterRef }) => {
@@ -70,188 +68,302 @@ export const AegisProtocolGame: React.FC<AegisProtocolGameProps> = ({ onExit, pl
   const playerCopterRef = useRef<THREE.Group>(null!);
   const battleshipRef = useRef<THREE.Group>(null!);
 
+  const [gameState, setGameState] = useState<'playing' | 'victory' | 'gameOver'>('playing');
+  const [score, setScore] = useState(0);
+  const [highScore, setHighScore] = useState(0);
   const [cityIntegrity, setCityIntegrity] = useState(100);
-  const [gameOver, setGameOver] = useState(false);
   const [currentTargetId, setCurrentTargetId] = useState<number | null>(null);
   const [missileCooldown, setMissileCooldown] = useState(0);
+  const [isShieldActive, setShieldActive] = useState(false);
+  const [muzzleFlash, setMuzzleFlash] = useState({ active: false, key: 0 });
 
-  // --- Entity States ---
-  const [autoBullets, setAutoBullets] = useState<AutoBullet[]>([]);
-  const [homingMissiles, setHomingMissiles] = useState<HomingMissile[]>([]);
-  const [enemyFighters, setEnemyFighters] = useState<Fighter[]>([]);
-  const [laserBeams, setLaserBeams] = useState<Laser[]>([]);
-  
+  // --- Entity Object Pools ---
+  const pools = useRef({
+      autoBullets: Array.from({ length: POOL_SIZES.bullets }, (_, i) => ({ id: i, active: false, position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), velocity: new THREE.Vector3() })),
+      homingMissiles: Array.from({ length: POOL_SIZES.missiles }, (_, i) => ({ id: i, active: false, position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), targetId: null })),
+      enemyFighters: Array.from({ length: POOL_SIZES.fighters }, (_, i) => ({ id: i, active: false, position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), health: 0, fireCooldown: 0, hitTimer: 0 })),
+      laserBeams: [] as Laser[], // Lasers are transient, no need to pool
+      explosions: Array.from({ length: POOL_SIZES.explosions }, (_, i) => ({ id: i, active: false, position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), scale: 1, life: 0 })),
+      powerUps: Array.from({ length: POOL_SIZES.powerUps }, (_, i) => ({ id: i, active: false, position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), type: 'shield' as PowerUpType })),
+  }).current;
+
   // --- Refs for mutable game state ---
-  const idCounters = useRef({ bullet: 0, missile: 0, fighter: 0, laser: 0 });
-  const timers = useRef({ fighterSpawn: FIGHTER_SPAWN_INTERVAL, battleshipLaser: BATTLESHIP_LASER_INTERVAL });
-  const battleshipPosition = useRef(new THREE.Vector3(0, 30, -250));
+  const timers = useRef({ fighterSpawn: FIGHTER_SPAWN_INTERVAL, battleshipLaser: BATTLESHIP_LASER_INTERVAL, shield: 0 });
+  const battleshipState = useRef({
+      position: new THREE.Vector3(0, 30, -250),
+      isDestroyed: false,
+  });
 
-  // Initialize battleship at a random corner
-  useMemo(() => {
+  const resetGame = useCallback(() => {
+    Object.values(pools).forEach(pool => Array.isArray(pool) && pool.forEach(p => p.active = false));
+    pools.laserBeams = [];
+    
+    setGameState('playing');
+    setScore(0);
+    setCityIntegrity(100);
+    setMissileCooldown(0);
+    setShieldActive(false);
+
+    timers.current = { fighterSpawn: FIGHTER_SPAWN_INTERVAL, battleshipLaser: BATTLESHIP_LASER_INTERVAL, shield: 0 };
+    
     const corner = Math.floor(Math.random() * 4);
     const x = corner === 0 || corner === 1 ? -100 : 100;
     const z = corner === 0 || corner === 2 ? -250 : -150;
-    battleshipPosition.current.set(x, 30, z);
+    battleshipState.current.position.set(x, 30, z);
+    battleshipState.current.isDestroyed = false;
+
+    if (playerCopterRef.current) {
+        playerCopterRef.current.position.copy(playerSpawnPosition);
+        playerCopterRef.current.quaternion.identity();
+    }
+  }, [pools, playerSpawnPosition]);
+  
+  useEffect(() => {
+    const storedHighScore = localStorage.getItem('aegisHighScore');
+    if (storedHighScore) setHighScore(parseInt(storedHighScore, 10));
+    resetGame();
+  }, [resetGame]);
+  
+  const handleExit = () => {
+    resetGame();
+    onExit();
+  };
+  
+  const spawnFromPool = useCallback(<T extends BaseEntity>(pool: T[], setup: (item: T) => void) => {
+    const item = pool.find(i => !i.active);
+    if (item) {
+        setup(item);
+        item.active = true;
+    }
   }, []);
 
-  const spawnAutoBullet = useCallback((position: THREE.Vector3, quaternion: THREE.Quaternion) => {
-    setAutoBullets(prev => [...prev, {
-      id: idCounters.current.bullet++,
-      position: position.clone(),
-      quaternion: quaternion.clone(),
-      velocity: new THREE.Vector3(0, 0, -100).applyQuaternion(quaternion),
-    }]);
-  }, []);
+  const spawnExplosion = useCallback((position: THREE.Vector3, scale: number) => {
+    spawnFromPool(pools.explosions, e => {
+        e.position.copy(position);
+        e.scale = scale;
+        e.life = 0.5;
+    });
+  }, [pools.explosions, spawnFromPool]);
+  
+  const destroyFighter = useCallback((fighter: Fighter) => {
+    spawnExplosion(fighter.position, 1.5);
+    setScore(s => s + 100);
+    if (Math.random() < POWERUP_DROP_CHANCE) {
+        spawnFromPool(pools.powerUps, p => {
+            p.position.copy(fighter.position);
+            p.type = 'shield';
+        });
+    }
+    fighter.active = false;
+  }, [spawnExplosion, pools.powerUps, spawnFromPool]);
+
+  const fireAutoBullet = useCallback((position: THREE.Vector3, quaternion: THREE.Quaternion) => {
+    spawnFromPool(pools.autoBullets, b => {
+        b.position.copy(position);
+        b.quaternion.copy(quaternion);
+        b.velocity.set(0, 0, -100).applyQuaternion(quaternion);
+    });
+    setMuzzleFlash({ active: true, key: Date.now() });
+  }, [pools.autoBullets, spawnFromPool]);
 
   const fireHomingMissile = useCallback(() => {
     if (missileCooldown <= 0 && currentTargetId !== null && playerCopterRef.current) {
-        setHomingMissiles(prev => [...prev, {
-            id: idCounters.current.missile++,
-            position: playerCopterRef.current!.position.clone(),
-            quaternion: playerCopterRef.current!.quaternion.clone(),
-            targetId: currentTargetId,
-        }]);
+        spawnFromPool(pools.homingMissiles, m => {
+            m.position.copy(playerCopterRef.current!.position);
+            m.quaternion.copy(playerCopterRef.current!.quaternion);
+            m.targetId = currentTargetId;
+        });
         setMissileCooldown(HOMING_MISSILE_COOLDOWN);
     }
-  }, [missileCooldown, currentTargetId]);
-
+  }, [missileCooldown, currentTargetId, pools.homingMissiles, spawnFromPool]);
 
   useFrame((state, delta) => {
-    if (gameOver || !playerCopterRef.current) return;
+    if (gameState !== 'playing') return;
 
     // --- Timers ---
     if (missileCooldown > 0) setMissileCooldown(prev => Math.max(0, prev - delta));
+    if (timers.current.shield > 0) {
+        timers.current.shield -= delta;
+        if (timers.current.shield <= 0) setShieldActive(false);
+    }
     timers.current.fighterSpawn -= delta;
     timers.current.battleshipLaser -= delta;
 
     // --- Update Battleship ---
-    battleshipPosition.current.z += delta * 1.5;
-    if (battleshipRef.current) battleshipRef.current.position.copy(battleshipPosition.current);
+    if (!battleshipState.current.isDestroyed) {
+      battleshipState.current.position.z += delta * 1.5;
+      if (battleshipRef.current) battleshipRef.current.position.copy(battleshipState.current.position);
+    }
 
     // --- Battleship Attacks ---
-    if (timers.current.fighterSpawn <= 0) {
-        timers.current.fighterSpawn = FIGHTER_SPAWN_INTERVAL;
-        const spawnX = battleshipPosition.current.x + (Math.random() - 0.5) * 40;
-        const spawnZ = battleshipPosition.current.z + 20;
-        setEnemyFighters(prev => [...prev, {
-            id: idCounters.current.fighter++,
-            position: new THREE.Vector3(spawnX, 30, spawnZ),
-            quaternion: new THREE.Quaternion(),
-            health: 10,
-            fireCooldown: Math.random() * 2 + 1,
-        }]);
-    }
-    if (timers.current.battleshipLaser <= 0) {
-        timers.current.battleshipLaser = BATTLESHIP_LASER_INTERVAL;
-        setLaserBeams(prev => [...prev, {
-            id: idCounters.current.laser++,
-            start: battleshipPosition.current.clone().add(new THREE.Vector3(0, -5, 0)),
-            end: playerCopterRef.current!.position.clone(),
-            life: 0.5, // Laser beam lasts for 0.5 seconds
-            position: new THREE.Vector3(), // Dummy values, not used
-            quaternion: new THREE.Quaternion(),
-        }]);
+    if (!battleshipState.current.isDestroyed) {
+      if (timers.current.fighterSpawn <= 0) {
+          timers.current.fighterSpawn = FIGHTER_SPAWN_INTERVAL;
+          spawnFromPool(pools.enemyFighters, f => {
+              const spawnX = battleshipState.current.position.x + (Math.random() - 0.5) * 40;
+              const spawnZ = battleshipState.current.position.z + 20;
+              f.position.set(spawnX, 30, spawnZ);
+              f.quaternion.identity();
+              f.health = 10;
+              f.fireCooldown = Math.random() * 2 + 1;
+              f.hitTimer = 0;
+          });
+      }
+      if (timers.current.battleshipLaser <= 0 && playerCopterRef.current) {
+          timers.current.battleshipLaser = BATTLESHIP_LASER_INTERVAL;
+          pools.laserBeams.push({ id: Date.now(), active: true, start: battleshipState.current.position.clone().add(new THREE.Vector3(0, -5, 0)), end: playerCopterRef.current.position.clone(), life: 0.5, position: new THREE.Vector3(), quaternion: new THREE.Quaternion() });
+      }
     }
 
     // --- Targeting Logic ---
-    let closestFighter: Fighter | null = null;
+    let closestFighterId: number | null = null;
     let minDistance = Infinity;
-    enemyFighters.forEach(fighter => {
+    if (playerCopterRef.current) {
+      pools.enemyFighters.forEach(fighter => {
+        if (!fighter.active) return;
         const distance = playerCopterRef.current.position.distanceTo(fighter.position);
         if (distance < minDistance) {
-            minDistance = distance;
-            closestFighter = fighter;
+          minDistance = distance;
+          closestFighterId = fighter.id;
+        }
+      });
+    }
+    setCurrentTargetId(closestFighterId);
+
+    // --- Entity Updates & Collision Detection ---
+    
+    // Update Fighters & Lasers
+    pools.enemyFighters.forEach(f => {
+      if (!f.active) return;
+      if (f.hitTimer > 0) f.hitTimer -= delta;
+      if (playerCopterRef.current) {
+        const direction = playerCopterRef.current.position.clone().sub(f.position).normalize();
+        f.position.add(direction.multiplyScalar(delta * 15));
+        f.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1), direction), delta * 2);
+      }
+    });
+    pools.laserBeams = pools.laserBeams.filter(l => (l.life -= delta) > 0);
+
+    // Update Auto Bullets
+    pools.autoBullets.forEach(bullet => {
+        if (!bullet.active) return;
+        bullet.position.add(bullet.velocity.clone().multiplyScalar(delta));
+        if (bullet.position.z < -300 || bullet.position.z > 100 || Math.abs(bullet.position.x) > 150) bullet.active = false;
+    });
+
+    // Update Homing Missiles
+    pools.homingMissiles.forEach(missile => {
+      if (!missile.active) return;
+      const target = pools.enemyFighters.find(f => f.id === missile.targetId && f.active);
+      if (target) {
+        const direction = target.position.clone().sub(missile.position).normalize();
+        missile.position.add(direction.multiplyScalar(delta * 50));
+        missile.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,-1), direction), delta * 10);
+      } else {
+        missile.position.add(new THREE.Vector3(0, 0, -100).applyQuaternion(missile.quaternion).multiplyScalar(delta));
+        if (missile.position.z < -300) missile.active = false;
+      }
+    });
+
+    // Update PowerUps
+    pools.powerUps.forEach(p => {
+        if (!p.active) return;
+        p.position.y -= delta * 3; // Gently fall
+        if (p.position.y < -5) p.active = false;
+        if (playerCopterRef.current && p.position.distanceTo(playerCopterRef.current.position) < PLAYER_COLLISION_RADIUS + POWERUP_COLLISION_RADIUS) {
+            setShieldActive(true);
+            timers.current.shield = SHIELD_DURATION;
+            p.active = false;
         }
     });
-    setCurrentTargetId(closestFighter ? closestFighter.id : null);
-    
-    // --- Entity Updates & Collision Detection ---
-    let newBullets = [...autoBullets];
-    let newFighters = [...enemyFighters];
-    let newHomingMissiles = [...homingMissiles];
 
-    // Update Fighters
-    for (let i = newFighters.length - 1; i >= 0; i--) {
-        const fighter = newFighters[i];
-        const direction = playerCopterRef.current.position.clone().sub(fighter.position).normalize();
-        fighter.position.add(direction.multiplyScalar(delta * 15));
-        fighter.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1), direction), delta * 2);
-    }
+    // Update Explosions
+    pools.explosions.forEach(e => {
+        if (!e.active) return;
+        e.life -= delta;
+        if (e.life <= 0) e.active = false;
+    });
 
-    // Update Auto Bullets & Check Collisions
-    for (let i = newBullets.length - 1; i >= 0; i--) {
-        const bullet = newBullets[i];
-        bullet.position.add(bullet.velocity.clone().multiplyScalar(delta));
-        if (bullet.position.z < -300 || bullet.position.z > 100 || Math.abs(bullet.position.x) > 150) {
-            newBullets.splice(i, 1);
-            continue;
+    // --- Collision Checks ---
+    pools.autoBullets.forEach(bullet => {
+      if (!bullet.active) return;
+      pools.enemyFighters.forEach(fighter => {
+        if (!fighter.active) return;
+        if (bullet.position.distanceTo(fighter.position) < FIGHTER_COLLISION_RADIUS + BULLET_COLLISION_RADIUS) {
+          bullet.active = false;
+          fighter.health -= 5;
+          fighter.hitTimer = 0.15;
+          if (fighter.health <= 0) destroyFighter(fighter);
         }
-        for (let j = newFighters.length - 1; j >= 0; j--) {
-            if (bullet.position.distanceTo(newFighters[j].position) < FIGHTER_COLLISION_RADIUS + BULLET_COLLISION_RADIUS) {
-                newFighters.splice(j, 1);
-                newBullets.splice(i, 1);
-                break;
-            }
-        }
-    }
+      });
+      if (!battleshipState.current.isDestroyed && bullet.position.distanceTo(battleshipState.current.position) < 20) {
+          bullet.active = false;
+          battleshipState.current.isDestroyed = true;
+          spawnExplosion(battleshipState.current.position, 5);
+          setScore(s => s + 5000);
+      }
+    });
     
-    // Update Homing Missiles & Check Collisions
-    for (let i = newHomingMissiles.length - 1; i >= 0; i--) {
-        const missile = newHomingMissiles[i];
-        const target = newFighters.find(f => f.id === missile.targetId);
+    pools.homingMissiles.forEach(missile => {
+      if (!missile.active) return;
+      const target = pools.enemyFighters.find(f => f.id === missile.targetId && f.active);
+      if (target && missile.position.distanceTo(target.position) < FIGHTER_COLLISION_RADIUS + MISSILE_COLLISION_RADIUS) {
+          missile.active = false;
+          destroyFighter(target);
+      }
+    });
 
-        if (target) {
-            const direction = target.position.clone().sub(missile.position).normalize();
-            missile.position.add(direction.multiplyScalar(delta * 50)); // Faster than bullets
-            const lookAtQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,-1), direction);
-            missile.quaternion.slerp(lookAtQuaternion, delta * 10);
-
-            if (missile.position.distanceTo(target.position) < FIGHTER_COLLISION_RADIUS + MISSILE_COLLISION_RADIUS) {
-                newFighters = newFighters.filter(f => f.id !== target.id);
-                newHomingMissiles.splice(i, 1);
-            }
-        } else {
-            // Target lost, fly straight
-            missile.position.add(new THREE.Vector3(0, 0, -100).applyQuaternion(missile.quaternion).multiplyScalar(delta));
-            if (missile.position.z < -300) newHomingMissiles.splice(i, 1);
+    // --- Game Over Checks ---
+    const end = (result: 'victory' | 'gameOver') => {
+        const finalScore = score + (result === 'victory' ? cityIntegrity * 10 : 0);
+        setScore(finalScore);
+        if (finalScore > highScore) {
+            setHighScore(finalScore);
+            localStorage.setItem('aegisHighScore', finalScore.toString());
         }
+        setGameState(result);
+    };
+
+    if (battleshipState.current.isDestroyed && pools.enemyFighters.every(f => !f.active)) {
+        end('victory');
     }
-    
-    // Update Lasers
-    setLaserBeams(prev => prev.map(beam => ({...beam, life: beam.life - delta })).filter(beam => beam.life > 0));
-
-
-    // Update states once after all logic
-    setAutoBullets(newBullets);
-    setHomingMissiles(newHomingMissiles);
-    setEnemyFighters(newFighters);
-
-    // --- Check Game Over ---
-    if (battleshipPosition.current.z > CITY_BREACH_Z) {
+    if (!battleshipState.current.isDestroyed && battleshipState.current.position.z > CITY_BREACH_Z) {
         setCityIntegrity(0);
-        setGameOver(true);
+        end('gameOver');
     }
   });
 
-  const targetFighter = enemyFighters.find(f => f.id === currentTargetId);
-
+  const activeTarget = pools.enemyFighters.find(f => f.id === currentTargetId && f.active);
+  
   return (
     <>
       <Suspense fallback={null}>
-        <PlayerCopter ref={playerCopterRef} onFireAutoGun={spawnAutoBullet} initialPosition={playerSpawnPosition} />
+        <PlayerCopter ref={playerCopterRef} onFireAutoGun={fireAutoBullet} initialPosition={playerSpawnPosition} isShieldActive={isShieldActive} muzzleFlash={muzzleFlash} />
         <GameCameraRig playerCopterRef={playerCopterRef} />
         
-        <EnemyBattleshipModel ref={battleshipRef} />
+        {!battleshipState.current.isDestroyed && <EnemyBattleshipModel ref={battleshipRef} />}
 
-        {enemyFighters.map(f => <EnemyFighterModel key={f.id} position={f.position} quaternion={f.quaternion} />)}
-        {autoBullets.map(m => <PlayerMissileModel key={m.id} position={m.position} quaternion={m.quaternion} scale={0.3} />)}
-        {homingMissiles.map(m => <PlayerMissileModel key={m.id} position={m.position} quaternion={m.quaternion} scale={0.8} />)}
-        {laserBeams.map(l => <LaserBeam key={l.id} start={l.start} end={l.end} />)}
+        {pools.enemyFighters.map(f => f.active && <EnemyFighterModel key={f.id} position={f.position} quaternion={f.quaternion} isHit={f.hitTimer > 0} />)}
+        {pools.autoBullets.map(m => m.active && <PlayerMissileModel key={m.id} position={m.position} quaternion={m.quaternion} scale={0.3} />)}
+        {pools.homingMissiles.map(m => m.active && <PlayerMissileModel key={m.id} position={m.position} quaternion={m.quaternion} scale={0.8} />)}
+        {pools.laserBeams.map(l => <LaserBeam key={l.id} start={l.start} end={l.end} />)}
+        {pools.explosions.map(e => e.active && <Explosion key={e.id} position={e.position} scale={e.scale} life={e.life} />)}
+        {pools.powerUps.map(p => p.active && <PowerUpModel key={p.id} position={p.position} />)}
 
-        {targetFighter && <TargetReticule position={targetFighter.position} />}
+        {activeTarget && <TargetReticule position={activeTarget.position} />}
 
       </Suspense>
-      <GameHUD onExit={onExit} cityIntegrity={cityIntegrity} onFireMissile={fireHomingMissile} missileCooldown={missileCooldown} />
+      <GameHUD 
+        onExit={handleExit} 
+        onRestart={resetGame}
+        cityIntegrity={cityIntegrity} 
+        onFireMissile={fireHomingMissile} 
+        missileCooldown={missileCooldown} 
+        score={score}
+        highScore={highScore}
+        gameState={gameState}
+        isShieldActive={isShieldActive}
+      />
     </>
   );
 };

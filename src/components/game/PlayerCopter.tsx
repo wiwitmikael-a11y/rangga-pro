@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { usePlayerControls } from '../../hooks/usePlayerControls';
 import { useGLTF } from '@react-three/drei';
 import { useTouchControls } from '../../hooks/useTouchControls';
+import { MuzzleFlash, ShieldEffect } from './GameModels';
 
 const MAX_SPEED = 20;
 const ACCELERATION = 80;
@@ -15,10 +16,12 @@ const BURST_SIZE = 5;
 interface PlayerCopterProps {
     onFireAutoGun: (position: THREE.Vector3, quaternion: THREE.Quaternion) => void;
     initialPosition: THREE.Vector3;
+    isShieldActive: boolean;
+    muzzleFlash: { active: boolean, key: number };
 }
 
 // We forward the ref to allow the parent game component to access the group
-export const PlayerCopter = forwardRef<THREE.Group, PlayerCopterProps>(({ onFireAutoGun, initialPosition }, ref) => {
+export const PlayerCopter = forwardRef<THREE.Group, PlayerCopterProps>(({ onFireAutoGun, initialPosition, isShieldActive, muzzleFlash }, ref) => {
   const keyboardControls = usePlayerControls();
   const touchControls = useTouchControls();
   const player = ref as React.RefObject<THREE.Group>;
@@ -68,7 +71,7 @@ export const PlayerCopter = forwardRef<THREE.Group, PlayerCopterProps>(({ onFire
     if (controls.down) verticalForce.y -= 1;
 
     worldForce.add(verticalForce);
-    worldForce.normalize().multiplyScalar(ACCELERATION * delta);
+    if(worldForce.lengthSq() > 0) worldForce.normalize().multiplyScalar(ACCELERATION * delta);
     
     physics.velocity.add(worldForce);
     physics.velocity.multiplyScalar(1 - DAMPING * delta);
@@ -80,7 +83,7 @@ export const PlayerCopter = forwardRef<THREE.Group, PlayerCopterProps>(({ onFire
     player.current.position.add(physics.velocity.clone().multiplyScalar(delta));
 
     // --- Handle Rotation (Aiming) ---
-    const aimTarget = new THREE.Vector3(touchControls.aim.x, touchControls.aim.y, -1).unproject(state.camera);
+    const aimTarget = new THREE.Vector3(state.mouse.x, state.mouse.y, -1).unproject(state.camera);
     const finalTarget = player.current.position.clone().add(aimTarget.sub(player.current.position).normalize().multiplyScalar(50));
     finalTarget.y = player.current.position.y;
 
@@ -114,6 +117,8 @@ export const PlayerCopter = forwardRef<THREE.Group, PlayerCopterProps>(({ onFire
   return (
     <group ref={player} scale={0.05} position={initialPosition}>
         <primitive object={clonedScene} />
+        {muzzleFlash.active && <MuzzleFlash key={muzzleFlash.key} />}
+        {isShieldActive && <ShieldEffect />}
     </group>
   );
 });
