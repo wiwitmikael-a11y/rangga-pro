@@ -1,6 +1,9 @@
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { createNoise2D } from 'simplex-noise';
+
+const noise2D = createNoise2D();
 
 interface ThrustTrailProps {
     width?: number;
@@ -19,9 +22,21 @@ export const ThrustTrail: React.FC<ThrustTrailProps> = ({ width = 0.3, length = 
 
     useFrame(({ clock }) => {
         if (meshRef.current) {
-            // Create a flickering effect for the engine thrust
-            const scale = 1 + Math.sin(clock.getElapsedTime() * 50) * 0.2;
-            meshRef.current.scale.set(1, scale, 1);
+            const time = clock.getElapsedTime();
+            const material = meshRef.current.material as THREE.MeshStandardMaterial;
+
+            // Use noise to create a more chaotic, fiery flicker effect
+            const baseFrequency = 15;
+            
+            // Flicker both length and width slightly differently and chaotically
+            const lengthFlicker = 1.0 + (noise2D(time * baseFrequency, 0) + 1) / 2 * 0.3; // Range [1.0, 1.3]
+            const widthFlicker = 1.0 + (noise2D(0, time * (baseFrequency + 2)) + 1) / 2 * 0.2; // Range [1.0, 1.2]
+            
+            // Y-axis on the mesh corresponds to the cone's height/length
+            meshRef.current.scale.set(widthFlicker, lengthFlicker, widthFlicker);
+
+            // Flicker opacity for a more dynamic feel
+            material.opacity = opacity * (0.7 + (noise2D(time * 5, time * 5) + 1) / 2 * 0.3); // Range [0.7, 1.0] * base opacity
         }
     });
 

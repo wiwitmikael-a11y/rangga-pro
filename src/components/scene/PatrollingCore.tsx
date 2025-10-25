@@ -1,11 +1,11 @@
-import React, { useRef, useMemo, useState, useLayoutEffect } from 'react';
+import React, { useRef, useMemo, useLayoutEffect } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { createNoise3D } from 'simplex-noise';
 
 const MODEL_URL = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/PatrollingCore.glb';
-const SCALE = 4; // Skala model didefinisikan sebagai konstanta
+const SCALE = 4; 
 
 // Inisialisasi fungsi noise di luar komponen untuk performa
 const noise3D = createNoise3D();
@@ -17,30 +17,28 @@ interface PatrollingCoreProps {
 export const PatrollingCore: React.FC<PatrollingCoreProps> = React.memo(({ godRaysSourceRef }) => {
   const groupRef = useRef<THREE.Group>(null!);
   const spotLightRef = useRef<THREE.SpotLight>(null!);
-  const volumetricLightRef = useRef<THREE.Mesh>(null!); // Ref untuk sinar volumetrik
+  const volumetricLightRef = useRef<THREE.Mesh>(null!);
   const { scene } = useGLTF(MODEL_URL);
   
   const clonedScene = useMemo(() => scene.clone(), [scene]);
-  const [lightSourcePosition, setLightSourcePosition] = useState<[number, number, number]>([0, -2, 0]); // Default sementara kalkulasi
 
   useLayoutEffect(() => {
     // Hitung titik tengah-bawah model secara dinamis untuk dijadikan titik asal cahaya.
-    // Ini memastikan cahaya selalu berasal dari struktur model, terlepas dari titik pivotnya.
     const box = new THREE.Box3().setFromObject(clonedScene);
     const center = box.getCenter(new THREE.Vector3());
+    const anchorPoint = new THREE.Vector3(center.x, box.min.y, center.z);
     
-    const anchorPoint = new THREE.Vector3(
-      center.x, 
-      box.min.y, // Titik terendah dari model
-      center.z
-    );
-
-    // Terapkan skala yang sama pada titik anchor seperti yang diterapkan pada model itu sendiri.
+    // Terapkan skala yang sama pada titik anchor
     anchorPoint.multiplyScalar(SCALE);
 
-    setLightSourcePosition(anchorPoint.toArray());
+    // Langsung atur posisi pada ref untuk menghindari masalah sinkronisasi state
+    if (spotLightRef.current && volumetricLightRef.current && godRaysSourceRef.current) {
+        spotLightRef.current.position.copy(anchorPoint);
+        volumetricLightRef.current.position.copy(anchorPoint);
+        godRaysSourceRef.current.position.copy(anchorPoint);
+    }
 
-  }, [clonedScene]);
+  }, [clonedScene, godRaysSourceRef]);
 
 
   const spotLightTarget = useMemo(() => {
@@ -55,7 +53,7 @@ export const PatrollingCore: React.FC<PatrollingCoreProps> = React.memo(({ godRa
     if (!groupRef.current || !spotLightRef.current || !volumetricLightRef.current) return;
 
     const elapsedTime = clock.getElapsedTime();
-    const movementSpeed = 0.04; // Gerakan diperlambat secara signifikan
+    const movementSpeed = 0.04;
 
     const time = elapsedTime * movementSpeed;
     const horizontalRange = 80;
@@ -80,8 +78,8 @@ export const PatrollingCore: React.FC<PatrollingCoreProps> = React.memo(({ godRa
        groupRef.current.quaternion.slerp(tempObject.quaternion, 0.05);
     }
 
-    // Gerakan memindai melingkar di tanah
-    const scanRadius = 45; // Radius diperluas
+    // Gerakan memindai melingkar di tanah, dengan radius diperkecil
+    const scanRadius = 22.5; 
     const scanSpeed = 0.3;
     const scanX = Math.sin(elapsedTime * scanSpeed) * scanRadius;
     const scanZ = Math.cos(elapsedTime * scanSpeed) * scanRadius;
@@ -109,16 +107,14 @@ export const PatrollingCore: React.FC<PatrollingCoreProps> = React.memo(({ godRa
         position-y={0} 
       />
       
-       {/* Posisi GodRays dan sumber cahaya lainnya menggunakan posisi yang telah dihitung */}
-       <mesh ref={godRaysSourceRef} position={lightSourcePosition}>
+       <mesh ref={godRaysSourceRef}>
         <sphereGeometry args={[2, 16, 16]} />
         <meshBasicMaterial color="white" visible={false} />
       </mesh>
 
       <spotLight
         ref={spotLightRef}
-        position={lightSourcePosition}
-        angle={Math.PI / 1.8}
+        angle={Math.PI / 3.6} // Sudut diperkecil setengahnya
         penumbra={0.4}
         intensity={400}
         distance={200}
@@ -128,8 +124,8 @@ export const PatrollingCore: React.FC<PatrollingCoreProps> = React.memo(({ godRa
         shadow-mapSize-height={1024}
       />
       
-      <mesh ref={volumetricLightRef} position={lightSourcePosition}>
-        <coneGeometry args={[25, 1, 32, 1, true]} />
+      <mesh ref={volumetricLightRef}>
+        <coneGeometry args={[12.5, 1, 32, 1, true]} /> {/* Radius diperkecil setengahnya */}
         <meshBasicMaterial
           color="#FF4500"
           transparent
