@@ -1,5 +1,5 @@
 // FIX: Remove the triple-slash directive for @react-three/fiber types.
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
 import { Text, Billboard } from '@react-three/drei';
 import * as THREE from 'three';
@@ -18,12 +18,19 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
   const groupRef = useRef<THREE.Group>(null!);
   const [isHovered, setIsHovered] = useState(false);
 
-  useFrame((_, delta) => {
+  // Create a memoized color object that we can mutate for the animated outline
+  const animatedOutlineColor = useMemo(() => new THREE.Color(), []);
+
+  useFrame(({ clock }, delta) => {
     if (!groupRef.current) return;
 
-    // Animasi hover
+    // Hover animation
     const targetScale = isHovered || isSelected ? 1.2 : 1;
     groupRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), delta * 5);
+
+    // Animate the outline color using HSL for a smooth rainbow effect
+    const hue = (clock.getElapsedTime() * 0.2) % 1;
+    animatedOutlineColor.setHSL(hue, 1, 0.6); // High saturation and lightness for a neon glow
   });
   
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
@@ -64,8 +71,9 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
           color={textColor}
           anchorX="center"
           anchorY="middle"
-          outlineColor="#000000"
-          outlineWidth={0.1}
+          outlineColor={animatedOutlineColor}
+          outlineWidth={0.15}
+          outlineOpacity={1}
         >
           {district.title.toUpperCase()}
           <meshStandardMaterial

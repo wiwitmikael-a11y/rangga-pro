@@ -21,7 +21,7 @@ export const portfolioData: CityDistrict[] = [
     "description": "Engineering & Generative Projects",
     "position": [
       80,
-      0,
+      -5,
       60
     ],
     "type": "major",
@@ -79,7 +79,7 @@ export const portfolioData: CityDistrict[] = [
     "description": "Award-Winning Content Creations",
     "position": [
       -30,
-      0,
+      -5,
       60
     ],
     "type": "major",
@@ -137,7 +137,7 @@ export const portfolioData: CityDistrict[] = [
     "description": "Blockchain Analysis & Web3 Exploration",
     "position": [
       60,
-      0,
+      -5,
       0
     ],
     "type": "major",
@@ -184,7 +184,7 @@ export const portfolioData: CityDistrict[] = [
     "description": "Core Technical & Creative Proficiencies",
     "position": [
       -10,
-      0,
+      -5,
       -10
     ],
     "type": "major",
@@ -253,7 +253,7 @@ export const portfolioData: CityDistrict[] = [
     "description": "Establish a connection",
     "position": [
       20,
-      0,
+      -5,
       80
     ],
     "type": "major",
