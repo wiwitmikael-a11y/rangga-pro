@@ -32,8 +32,8 @@ const borderFragmentShader = `
   
   void main() {
     // These ratios define the inner "hole" of the frame, matching the RoundedBox dimensions
-    float innerWidthRatio = 24.0 / 24.5;
-    float innerHeightRatio = 9.0 / 9.5;
+    float innerWidthRatio = 28.0 / 28.5;
+    float innerHeightRatio = 10.0 / 10.5;
     
     // Normalized coordinates from center (from 0 to 1 on each axis)
     float normX = abs(vUv.x * 2.0 - 1.0);
@@ -51,20 +51,20 @@ const borderFragmentShader = `
     float stripeFrequency = 15.0; // Controls the number/thickness of stripes
     float stripes = step(0.5, fract(pattern * stripeFrequency));
     
-    vec3 orange = vec3(1.0, 0.6, 0.0); // #ff9900
+    vec3 cyan = vec3(0.0, 1.0, 1.0); // #00ffff
     vec3 black = vec3(0.0, 0.0, 0.0);
     
-    vec3 finalColor = mix(orange, black, stripes);
+    vec3 finalColor = mix(cyan, black, stripes);
     
     gl_FragColor = vec4(finalColor, 1.0);
   }
 `;
 
-// Define futuristic orange color palette
-const BASE_ORANGE = '#ff9900';
-const HOVER_ORANGE = '#ffb84d';
-const SELECTED_ORANGE = '#ffdd4d';
-const DESC_ORANGE = '#ffbe66';
+// Define futuristic cyan color palette for high contrast
+const BASE_CYAN = '#00ffff';
+const HOVER_CYAN = '#99ffff';
+const SELECTED_CYAN = '#ffffff'; // White for max emphasis
+const DESC_CYAN = '#afeeee'; // Pale turquoise for description
 
 const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ district, onSelect, isSelected, isCalibrationMode, isHeld, onSetHeld }) => {
   const groupRef = useRef<THREE.Group>(null!);
@@ -108,7 +108,7 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
     }
   };
   
-  const titleTextColor = isHeld ? SELECTED_ORANGE : isSelected ? SELECTED_ORANGE : isHovered ? HOVER_ORANGE : BASE_ORANGE;
+  const titleTextColor = isHeld ? SELECTED_CYAN : isSelected ? SELECTED_CYAN : isHovered ? HOVER_CYAN : BASE_CYAN;
   const emissiveIntensity = isHeld ? 2.5 : isHovered || isSelected ? 2 : 1;
 
   return (
@@ -121,7 +121,7 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
       >
         {/* Animated Danger Stripe Border - placed slightly in front of the main panel */}
         <mesh position-z={-0.09}>
-          <planeGeometry args={[24.5, 9.5]} />
+          <planeGeometry args={[28.5, 10.5]} />
           <shaderMaterial
             vertexShader={borderVertexShader}
             fragmentShader={borderFragmentShader}
@@ -132,7 +132,7 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
         </mesh>
         
         {/* Rounded rectangle background */}
-        <RoundedBox args={[24, 9, 0.2]} radius={0.5} position-z={-0.2}>
+        <RoundedBox args={[28, 10, 0.2]} radius={0.5} position-z={-0.2}>
           <meshStandardMaterial
             color="white"
             transparent
@@ -145,12 +145,12 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
 
         {/* District Title */}
         <Text
-          fontSize={3.5}
+          fontSize={3.0}
           color={titleTextColor}
           anchorX="center"
           anchorY="middle"
-          position-y={1.5} // Position text inside the box
-          maxWidth={22}
+          position-y={2.0} // Position text inside the box
+          maxWidth={26}
           textAlign="center"
         >
           {district.title.toUpperCase()}
@@ -163,12 +163,12 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
 
         {/* District Description */}
         <Text
-          position={[0, -1.5, 0]} // Position text inside the box
-          fontSize={1.5}
-          color={DESC_ORANGE}
+          position={[0, -2.0, 0]} // Position text inside the box
+          fontSize={1.2}
+          color={DESC_CYAN}
           anchorX="center"
           anchorY="middle"
-          maxWidth={22}
+          maxWidth={26}
           textAlign="center"
         >
           {district.description}

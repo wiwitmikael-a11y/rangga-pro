@@ -1,29 +1,29 @@
+
 import type { CityDistrict } from './types';
 
 // Data portofolio telah diisi dengan konten mock yang relevan dan gambar dari CDN.
-// POSISI TELAH DIREVISI UNTUK MENCIPTAKAN TATA LETAK SETENGAH LINGKARAN DI SEKITAR KOTA
-// FOKUS KAMERA TELAH DIPERBARUI UNTUK MELIHAT KE ARAH KOTA SEBAGAI LATAR BELAKANG
+// FOKUS KAMERA TELAH DIKALIBRASI ULANG UNTUK PEMBINGKAIAN YANG AKURAT DAN SINEMATIK
 export const portfolioData: CityDistrict[] = [
   {
     "id": "nexus-core",
     "title": "@rangga.p.h",
     "description": "Digital Artisan & Tech Explorer",
     "position": [
-      0,
+      30,
       15,
-      0
+      20
     ],
     "type": "major",
     "cameraFocus": {
       "pos": [
-        0,
-        25,
-        40
+        30,
+        30,
+        60
       ],
       "lookAt": [
-        0,
-        15,
-        0
+        30,
+        25,
+        20
       ]
     }
   },
@@ -39,14 +39,14 @@ export const portfolioData: CityDistrict[] = [
     "type": "major",
     "cameraFocus": {
       "pos": [
-        100,
-        30,
-        50
+        80,
+        20,
+        100
       ],
       "lookAt": [
-        40,
+        80,
         10,
-        15
+        60
       ]
     },
     "subItems": [
@@ -97,14 +97,14 @@ export const portfolioData: CityDistrict[] = [
     "type": "major",
     "cameraFocus": {
       "pos": [
-        -100,
-        30,
-        50
+        -30,
+        25,
+        100
       ],
       "lookAt": [
-        -40,
-        10,
-        15
+        -30,
+        15,
+        60
       ]
     },
     "subItems": [
@@ -155,14 +155,14 @@ export const portfolioData: CityDistrict[] = [
     "type": "major",
     "cameraFocus": {
       "pos": [
-        70,
-        30,
-        -95
+        60,
+        20,
+        -40
       ],
       "lookAt": [
-        25,
+        60,
         10,
-        -35
+        0
       ]
     },
     "subItems": [
@@ -202,14 +202,14 @@ export const portfolioData: CityDistrict[] = [
     "type": "major",
     "cameraFocus": {
       "pos": [
-        -70,
-        30,
-        -95
+        -10,
+        20,
+        -50
       ],
       "lookAt": [
-        -25,
+        -10,
         10,
-        -35
+        -10
       ]
     },
     "subItems": [
@@ -271,14 +271,14 @@ export const portfolioData: CityDistrict[] = [
     "type": "major",
     "cameraFocus": {
       "pos": [
-        0,
-        30,
-        115
+        20,
+        20,
+        120
       ],
       "lookAt": [
-        0,
-        15,
-        40
+        20,
+        10,
+        80
       ]
     },
     "subItems": [

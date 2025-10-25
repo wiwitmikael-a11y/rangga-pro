@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -14,13 +15,14 @@ interface CameraRigProps {
 
 const targetPosition = new THREE.Vector3();
 const targetLookAt = new THREE.Vector3();
-const OVERVIEW_POSITION = new THREE.Vector3(0, 100, 250);
-const OVERVIEW_LOOK_AT = new THREE.Vector3(0, 5, 0);
-const CALIBRATION_POSITION = new THREE.Vector3(0, 200, 1); // High top-down view
+// Posisi tinjauan umum yang diperbarui untuk transisi yang lebih pendek dan tidak terlalu drastis
+const OVERVIEW_POSITION = new THREE.Vector3(0, 80, 200);
+// Melihat ke tengah ground plane untuk bidikan tinjauan umum yang lebih baik
+const OVERVIEW_LOOK_AT = new THREE.Vector3(0, 0, 0);
+const CALIBRATION_POSITION = new THREE.Vector3(0, 200, 1); // Tampilan top-down yang tinggi
 
 export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimationFinish, isAnimating, pov, targetShipRef, isCalibrationMode }) => {
   const shipCam = useMemo(() => ({
-    // Higher, more cinematic "over-the-shoulder" offset looking down
     offset: new THREE.Vector3(0, 12, -18),
     idealPosition: new THREE.Vector3(),
     idealLookAt: new THREE.Vector3(),
@@ -32,36 +34,36 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
 
   useFrame((state, delta) => {
     let hasTarget = false;
-    let lerpSpeed = 2.5;
+    // Kecepatan lerp yang disesuaikan untuk transisi yang lebih mulus
+    let lerpSpeed = 2.8;
 
-    // --- State-driven Target Determination ---
+    // --- Penentuan Target Berbasis State ---
     if (isAnimating) {
-        // We are in a defined transition animation
-        lerpSpeed = 3.5; // Use a faster speed for transitions
+        // Kita berada dalam animasi transisi yang ditentukan
 
-        if (isCalibrationMode) { // Priority for calibration view
+        if (isCalibrationMode) { // Prioritas untuk tampilan kalibrasi
             targetPosition.copy(CALIBRATION_POSITION);
             targetLookAt.copy(OVERVIEW_LOOK_AT);
             hasTarget = true;
-        } else if (selectedDistrict?.cameraFocus) { // To District
+        } else if (selectedDistrict?.cameraFocus) { // Ke Distrik
             targetPosition.set(...selectedDistrict.cameraFocus.pos);
             targetLookAt.set(...selectedDistrict.cameraFocus.lookAt);
             hasTarget = true;
-        } else if (pov === 'ship' && targetShipRef?.current) { // To Ship
+        } else if (pov === 'ship' && targetShipRef?.current) { // Ke Kapal
             const ship = targetShipRef.current;
             shipCam.idealPosition.copy(shipCam.offset).applyQuaternion(ship.quaternion).add(ship.position);
             shipCam.idealLookAt.copy(shipCam.forwardVector).applyQuaternion(ship.quaternion).add(ship.position);
             targetPosition.copy(shipCam.idealPosition);
             targetLookAt.copy(shipCam.idealLookAt);
             hasTarget = true;
-        } else { // To Overview
+        } else { // Ke Tinjauan Umum
             targetPosition.copy(OVERVIEW_POSITION);
             targetLookAt.copy(OVERVIEW_LOOK_AT);
             hasTarget = true;
         }
     } else if (pov === 'ship' && targetShipRef?.current) {
-        // We are in continuous follow mode (not a one-off animation)
-        lerpSpeed = 5.0; // Responsive follow speed
+        // Kita dalam mode mengikuti terus-menerus (bukan animasi sekali jalan)
+        lerpSpeed = 4.0; // Kecepatan mengikuti yang responsif
         const ship = targetShipRef.current;
         shipCam.idealPosition.copy(shipCam.offset).applyQuaternion(ship.quaternion).add(ship.position);
         shipCam.idealLookAt.copy(shipCam.forwardVector).applyQuaternion(ship.quaternion).add(ship.position);
@@ -69,29 +71,27 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
         targetLookAt.copy(shipCam.idealLookAt);
         hasTarget = true;
     }
-    // If no target, OrbitControls takes over
+    // Jika tidak ada target, OrbitControls mengambil alih
 
-    // --- Animation Logic ---
+    // --- Logika Animasi ---
     if (hasTarget) {
-      const lerpFactor = Math.min(delta * lerpSpeed, 1); // Clamp to prevent overshooting on slow frames
+      const lerpFactor = Math.min(delta * lerpSpeed, 1); // Batasi untuk mencegah overshoot pada frame yang lambat
       state.camera.position.lerp(targetPosition, lerpFactor);
 
       const tempCamera = state.camera.clone();
       tempCamera.lookAt(targetLookAt);
       state.camera.quaternion.slerp(tempCamera.quaternion, lerpFactor);
       
-      // Check if a one-time animation is finished.
+      // Periksa apakah animasi sekali jalan telah selesai.
       if (isAnimatingRef.current) {
-        // Looser tolerance to prevent getting stuck
-        const posReached = state.camera.position.distanceTo(targetPosition) < 0.5;
-        const rotReached = state.camera.quaternion.angleTo(tempCamera.quaternion) < 0.05;
+        // Toleransi yang lebih ketat untuk memastikan akurasi sebelum snap
+        const posReached = state.camera.position.distanceTo(targetPosition) < 0.2;
+        const rotReached = state.camera.quaternion.angleTo(tempCamera.quaternion) < 0.02;
 
         if (posReached && rotReached) {
-            // Snap to final position ONLY if not going to ship mode, to avoid a jump before continuous follow starts
-            if (pov !== 'ship') {
-              state.camera.position.copy(targetPosition);
-              state.camera.quaternion.copy(tempCamera.quaternion);
-            }
+            // Snap ke posisi akhir untuk pembingkaian yang sempurna dan untuk menghentikan state animasi.
+            state.camera.position.copy(targetPosition);
+            state.camera.quaternion.copy(tempCamera.quaternion);
             onAnimationFinish();
         }
       }
