@@ -98,6 +98,7 @@ export const AegisProtocolGame: React.FC<AegisProtocolGameProps> = ({ onExit, pl
       position: new THREE.Vector3(0, 30, -250),
       isDestroyed: false,
   });
+  const tempObject = useMemo(() => new THREE.Object3D(), []);
 
   const resetGame = useCallback(() => {
     Object.values(pools).forEach(pool => Array.isArray(pool) && pool.forEach(p => p.active = false));
@@ -258,12 +259,15 @@ export const AegisProtocolGame: React.FC<AegisProtocolGameProps> = ({ onExit, pl
       if (f.hitTimer > 0) f.hitTimer -= delta;
       if (playerCopterRef.current) {
         const direction = playerCopterRef.current.position.clone().sub(f.position);
-        // BUG FIX: Safeguard to prevent normalizing a zero vector, which would cause NaNs and crash the renderer.
         if (direction.lengthSq() > 0.0001) {
             direction.normalize();
             f.position.add(direction.multiplyScalar(delta * 15));
-            const targetQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1), direction);
-            f.quaternion.slerp(targetQuaternion, delta * 2);
+            
+            // ROOT CAUSE FIX: Use a robust `lookAt` method for rotation to avoid mathematical instability.
+            const lookAtTarget = f.position.clone().add(direction);
+            tempObject.position.copy(f.position);
+            tempObject.lookAt(lookAtTarget);
+            f.quaternion.slerp(tempObject.quaternion, delta * 2);
         }
       }
     });
@@ -282,12 +286,13 @@ export const AegisProtocolGame: React.FC<AegisProtocolGameProps> = ({ onExit, pl
       const target = pools.enemyFighters.find(f => f.id === missile.targetId && f.active);
       if (target) {
         const direction = target.position.clone().sub(missile.position);
-        // BUG FIX: Safeguard against normalizing a zero vector.
         if (direction.lengthSq() > 0.0001) {
             direction.normalize();
             missile.position.add(direction.multiplyScalar(delta * 50));
-            const targetQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,-1), direction);
-            missile.quaternion.slerp(targetQuaternion, delta * 10);
+            const lookAtTarget = missile.position.clone().add(direction);
+            tempObject.position.copy(missile.position);
+            tempObject.lookAt(lookAtTarget);
+            missile.quaternion.slerp(tempObject.quaternion, delta * 10);
         }
       } else {
         missile.position.add(new THREE.Vector3(0, 0, -100).applyQuaternion(missile.quaternion).multiplyScalar(delta));
