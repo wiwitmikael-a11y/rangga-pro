@@ -6,55 +6,6 @@ interface ExportLayoutModalProps {
   jsonData: string;
 }
 
-export const ExportLayoutModal: React.FC<ExportLayoutModalProps> = ({ isOpen, onClose, jsonData }) => {
-    const [copyButtonText, setCopyButtonText] = useState('Copy to Clipboard');
-
-    useEffect(() => {
-        if (isOpen) {
-            setCopyButtonText('Copy to Clipboard'); // Reset button text when modal opens
-        }
-    }, [isOpen]);
-
-    const handleCopy = () => {
-        navigator.clipboard.writeText(jsonData).then(() => {
-            setCopyButtonText('Copied!');
-            setTimeout(() => setCopyButtonText('Copy to Clipboard'), 2000);
-        }, (err) => {
-            console.error('Could not copy text: ', err);
-            setCopyButtonText('Failed to Copy');
-        });
-    };
-    
-    if (!isOpen) return null;
-
-  return (
-    <>
-      <div style={styles.overlay} onClick={onClose} />
-      <div 
-        style={styles.container} 
-        className={`export-layout-modal responsive-modal ${isOpen ? 'panel-enter' : ''}`}
-        onContextMenu={(e) => e.stopPropagation()} // Allow right-click menu
-      >
-        <div style={styles.header}>
-            <h2 style={styles.title}>Export New Layout</h2>
-            <button onClick={onClose} style={styles.closeButton} aria-label="Close Export">&times;</button>
-        </div>
-        <p style={styles.instructions}>
-          The layout has been updated. Copy the code below and replace the content of the `portfolioData` array in <strong>src/constants.ts</strong> to make your changes permanent.
-        </p>
-        <textarea
-            readOnly
-            value={jsonData}
-            style={styles.textArea}
-        />
-        <button onClick={handleCopy} style={styles.copyButton}>
-            {copyButtonText}
-        </button>
-      </div>
-    </>
-  );
-};
-
 const glassmorphism: React.CSSProperties = {
   background: 'rgba(5, 15, 30, 0.9)',
   backdropFilter: 'blur(15px)',
@@ -152,4 +103,53 @@ const styles: { [key: string]: React.CSSProperties } = {
     textShadow: '0 0 5px var(--primary-color)',
     alignSelf: 'flex-end',
   },
+};
+
+export const ExportLayoutModal: React.FC<ExportLayoutModalProps> = ({ isOpen, onClose, jsonData }) => {
+    const [copyButtonText, setCopyButtonText] = useState('Copy to Clipboard');
+
+    useEffect(() => {
+        if (isOpen) {
+            setCopyButtonText('Copy to Clipboard'); // Reset button text when modal opens
+        }
+    }, [isOpen]);
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(jsonData).then(() => {
+            setCopyButtonText('Copied!');
+            setTimeout(() => setCopyButtonText('Copy to Clipboard'), 2000);
+        }, (err) => {
+            console.error('Could not copy text: ', err);
+            setCopyButtonText('Failed to Copy');
+        });
+    };
+    
+    if (!isOpen) return null;
+
+  return (
+    <>
+      <div style={styles.overlay} onClick={onClose} />
+      <div 
+        style={styles.container} 
+        className={`export-layout-modal responsive-modal ${isOpen ? 'panel-enter' : ''}`}
+        onContextMenu={(e) => e.stopPropagation()} // Allow right-click menu
+      >
+        <div style={styles.header}>
+            <h2 style={styles.title}>Export New Layout</h2>
+            <button onClick={onClose} style={styles.closeButton} aria-label="Close Export">&times;</button>
+        </div>
+        <p style={styles.instructions}>
+          The layout has been updated. Copy the code below and replace the content of the `portfolioData` array in <strong>src/constants.ts</strong> to make your changes permanent.
+        </p>
+        <textarea
+            readOnly
+            value={jsonData}
+            style={styles.textArea}
+        />
+        <button onClick={handleCopy} style={styles.copyButton}>
+            {copyButtonText}
+        </button>
+      </div>
+    </>
+  );
 };

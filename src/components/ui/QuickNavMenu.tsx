@@ -8,59 +8,6 @@ interface QuickNavMenuProps {
   districts: CityDistrict[];
 }
 
-export const QuickNavMenu: React.FC<QuickNavMenuProps> = ({ isOpen, onClose, onSelectDistrict, districts }) => {
-  const containerStyle: React.CSSProperties = {
-    ...styles.container,
-    opacity: isOpen ? 1 : 0,
-    transform: isOpen ? 'translate(-50%, 0)' : 'translate(-50%, 100%)',
-    transition: 'opacity 0.4s ease, transform 0.5s cubic-bezier(0.2, 1, 0.2, 1)',
-    pointerEvents: isOpen ? 'auto' : 'none',
-  };
-
-  const overlayStyle: React.CSSProperties = {
-    ...styles.overlay,
-    opacity: isOpen ? 1 : 0,
-    pointerEvents: isOpen ? 'auto' : 'none',
-  };
-  
-  const handleClose = () => {
-    onClose();
-  };
-
-  const handleSelect = (district: CityDistrict) => {
-    onSelectDistrict(district);
-  };
-
-  return (
-    <>
-      <style>{`
-        @keyframes stripe-scroll {
-          0% { background-position: 0 0; }
-          100% { background-position: 56.5px 0; }
-        }
-      `}</style>
-      <div style={overlayStyle} onClick={handleClose} />
-      <div style={containerStyle} className={`quick-nav-container ${isOpen ? 'panel-enter' : ''}`}>
-        <div style={styles.dangerStripes} />
-        <button onClick={handleClose} style={styles.closeButton} aria-label="Close Navigation">&times;</button>
-        <div style={styles.grid} className="quick-nav-grid">
-          {districts.map(district => (
-            <button
-              key={district.id}
-              style={styles.navButton}
-              className="nav-button"
-              onClick={() => handleSelect(district)}
-            >
-              <span style={styles.buttonTitle}>{district.title}</span>
-              <span style={styles.buttonDesc}>{district.description}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-    </>
-  );
-};
-
 const glassmorphism: React.CSSProperties = {
   background: 'rgba(5, 15, 30, 0.8)',
   backdropFilter: 'blur(15px)',
@@ -145,4 +92,57 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#aaa',
     lineHeight: '1.3',
   },
+};
+
+export const QuickNavMenu: React.FC<QuickNavMenuProps> = ({ isOpen, onClose, onSelectDistrict, districts }) => {
+  const containerStyle: React.CSSProperties = {
+    ...styles.container,
+    opacity: isOpen ? 1 : 0,
+    transform: isOpen ? 'translate(-50%, 0)' : 'translate(-50%, 100%)',
+    transition: 'opacity 0.4s ease, transform 0.5s cubic-bezier(0.2, 1, 0.2, 1)',
+    pointerEvents: isOpen ? 'auto' : 'none',
+  };
+
+  const overlayStyle: React.CSSProperties = {
+    ...styles.overlay,
+    opacity: isOpen ? 1 : 0,
+    pointerEvents: isOpen ? 'auto' : 'none',
+  };
+  
+  const handleClose = () => {
+    onClose();
+  };
+
+  const handleSelect = (district: CityDistrict) => {
+    onSelectDistrict(district);
+  };
+
+  return (
+    <>
+      <style>{`
+        @keyframes stripe-scroll {
+          0% { background-position: 0 0; }
+          100% { background-position: 56.5px 0; }
+        }
+      `}</style>
+      <div style={overlayStyle} onClick={handleClose} />
+      <div style={containerStyle} className={`quick-nav-container ${isOpen ? 'panel-enter' : ''}`}>
+        <div style={styles.dangerStripes} />
+        <button onClick={handleClose} style={styles.closeButton} aria-label="Close Navigation">&times;</button>
+        <div style={styles.grid} className="quick-nav-grid">
+          {districts.map(district => (
+            <button
+              key={district.id}
+              style={styles.navButton}
+              className="nav-button"
+              onClick={() => handleSelect(district)}
+            >
+              <span style={styles.buttonTitle}>{district.title}</span>
+              <span style={styles.buttonDesc}>{district.description}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </>
+  );
 };

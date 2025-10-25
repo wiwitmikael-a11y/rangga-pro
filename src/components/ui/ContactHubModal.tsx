@@ -41,6 +41,28 @@ interface ContactHubModalProps {
   onClose: () => void;
 }
 
+const glassmorphism: React.CSSProperties = {
+  background: 'rgba(5, 15, 30, 0.85)',
+  backdropFilter: 'blur(15px)',
+  border: '1px solid rgba(0, 170, 255, 0.5)',
+};
+
+const styles: { [key: string]: React.CSSProperties } = {
+    overlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(5px)', zIndex: 100, transition: 'opacity 0.3s ease-out' },
+    container: { ...glassmorphism, position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '90%', maxWidth: '900px', zIndex: 101, borderRadius: '15px', padding: '0', boxSizing: 'border-box', boxShadow: '0 0 40px rgba(0, 170, 255, 0.3)', overflow: 'hidden' },
+    dangerStripes: { position: 'absolute', top: '0', left: '0', width: '100%', height: '10px', background: 'repeating-linear-gradient(45deg, #ff9900, #ff9900 20px, #000000 20px, #000000 40px)', animation: 'stripe-scroll 1s linear infinite', borderBottom: '2px solid #ff9900' },
+    header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 25px', borderBottom: '1px solid rgba(0, 170, 255, 0.2)', marginTop: '10px' },
+    title: { margin: 0, color: 'var(--primary-color)', fontSize: '1.5rem', textShadow: '0 0 8px var(--primary-color)', letterSpacing: '0.1em' },
+    closeButton: { background: 'transparent', border: '1px solid rgba(255, 153, 0, 0.7)', color: '#ff9900', width: '30px', height: '30px', borderRadius: '50%', cursor: 'pointer', fontSize: '1.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center', lineHeight: 1, transition: 'all 0.2s' },
+    contentGrid: { display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '1px', background: 'rgba(0, 170, 255, 0.2)' },
+    linksPanel: { padding: '25px', background: 'rgba(8, 20, 42, 1)' },
+    formPanel: { padding: '25px', background: 'rgba(8, 20, 42, 1)' },
+    panelTitle: { color: '#fff', marginTop: 0, marginBottom: '10px', fontSize: '1.2rem', textTransform: 'uppercase', letterSpacing: '0.05em' },
+    panelDescription: { color: '#aaa', marginTop: 0, marginBottom: '25px', fontSize: '0.9rem', lineHeight: 1.5 },
+    linkButton: { ...glassmorphism, display: 'flex', alignItems: 'center', gap: '15px', padding: '12px 15px', color: '#cceeff', textDecoration: 'none', borderRadius: '5px', marginBottom: '10px', transition: 'all 0.3s ease', borderLeft: '3px solid transparent' },
+    submitButton: { width: '100%', background: 'rgba(0, 170, 255, 0.2)', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', padding: '12px', fontSize: '1rem', fontFamily: 'inherit', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', transition: 'all 0.3s ease', textShadow: '0 0 5px var(--primary-color)', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '5px' },
+};
+
 export const ContactHubModal: React.FC<ContactHubModalProps> = ({ isOpen, onClose }) => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -143,26 +165,4 @@ export const ContactHubModal: React.FC<ContactHubModalProps> = ({ isOpen, onClos
             </div>
         </>
     );
-};
-
-const glassmorphism: React.CSSProperties = {
-  background: 'rgba(5, 15, 30, 0.85)',
-  backdropFilter: 'blur(15px)',
-  border: '1px solid rgba(0, 170, 255, 0.5)',
-};
-
-const styles: { [key: string]: React.CSSProperties } = {
-    overlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(5px)', zIndex: 100, transition: 'opacity 0.3s ease-out' },
-    container: { ...glassmorphism, position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '90%', maxWidth: '900px', zIndex: 101, borderRadius: '15px', padding: '0', boxSizing: 'border-box', boxShadow: '0 0 40px rgba(0, 170, 255, 0.3)', overflow: 'hidden' },
-    dangerStripes: { position: 'absolute', top: '0', left: '0', width: '100%', height: '10px', background: 'repeating-linear-gradient(45deg, #ff9900, #ff9900 20px, #000000 20px, #000000 40px)', animation: 'stripe-scroll 1s linear infinite', borderBottom: '2px solid #ff9900' },
-    header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 25px', borderBottom: '1px solid rgba(0, 170, 255, 0.2)', marginTop: '10px' },
-    title: { margin: 0, color: 'var(--primary-color)', fontSize: '1.5rem', textShadow: '0 0 8px var(--primary-color)', letterSpacing: '0.1em' },
-    closeButton: { background: 'transparent', border: '1px solid rgba(255, 153, 0, 0.7)', color: '#ff9900', width: '30px', height: '30px', borderRadius: '50%', cursor: 'pointer', fontSize: '1.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center', lineHeight: 1, transition: 'all 0.2s' },
-    contentGrid: { display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '1px', background: 'rgba(0, 170, 255, 0.2)' },
-    linksPanel: { padding: '25px', background: 'rgba(8, 20, 42, 1)' },
-    formPanel: { padding: '25px', background: 'rgba(8, 20, 42, 1)' },
-    panelTitle: { color: '#fff', marginTop: 0, marginBottom: '10px', fontSize: '1.2rem', textTransform: 'uppercase', letterSpacing: '0.05em' },
-    panelDescription: { color: '#aaa', marginTop: 0, marginBottom: '25px', fontSize: '0.9rem', lineHeight: 1.5 },
-    linkButton: { ...glassmorphism, display: 'flex', alignItems: 'center', gap: '15px', padding: '12px 15px', color: '#cceeff', textDecoration: 'none', borderRadius: '5px', marginBottom: '10px', transition: 'all 0.3s ease', borderLeft: '3px solid transparent' },
-    submitButton: { width: '100%', background: 'rgba(0, 170, 255, 0.2)', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', padding: '12px', fontSize: '1rem', fontFamily: 'inherit', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', transition: 'all 0.3s ease', textShadow: '0 0 5px var(--primary-color)', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '5px' },
 };

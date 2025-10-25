@@ -5,42 +5,6 @@ interface StartScreenProps {
   isExiting: boolean;
 }
 
-export const StartScreen: React.FC<StartScreenProps> = React.memo(({ onStart, isExiting }) => {
-  const containerStyle: React.CSSProperties = {
-    ...styles.container,
-    opacity: isExiting ? 0 : 1,
-    pointerEvents: isExiting ? 'none' : 'auto',
-    transition: 'opacity 1s ease-out',
-  };
-
-  return (
-    <div style={containerStyle}>
-      <div style={styles.scanlineEffect} />
-      <div style={styles.content}>
-        <h1 style={styles.title}>RAGETOPIA</h1>
-        <p style={styles.subtitle}>Rangga Digital Portfolio</p>
-        <button
-            style={styles.startButton}
-            onClick={onStart}
-            onMouseOver={e => (e.currentTarget.style.backgroundColor = 'rgba(0, 170, 255, 0.2)')}
-            onMouseOut={e => (e.currentTarget.style.backgroundColor = 'transparent')}
-        >
-          Enter 3D World
-        </button>
-        <p style={styles.disclaimer}>Best experienced on a desktop browser with a dedicated GPU.</p>
-      </div>
-       <style>{`
-          @keyframes fadeInStart { from { opacity: 0; } to { opacity: 1; } }
-          @keyframes pulse {
-            0% { text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
-            50% { text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color); }
-            100% { text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
-          }
-      `}</style>
-    </div>
-  );
-});
-
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
     position: 'fixed',
@@ -108,3 +72,39 @@ const styles: { [key: string]: React.CSSProperties } = {
       width: '100%',
   }
 };
+
+export const StartScreen: React.FC<StartScreenProps> = React.memo(({ onStart, isExiting }) => {
+  const containerStyle: React.CSSProperties = {
+    ...styles.container,
+    opacity: isExiting ? 0 : 1,
+    pointerEvents: isExiting ? 'none' : 'auto',
+    transition: 'opacity 1s ease-out',
+  };
+
+  return (
+    <div style={containerStyle}>
+      <div style={styles.scanlineEffect} />
+      <div style={styles.content}>
+        <h1 style={styles.title}>RAGETOPIA</h1>
+        <p style={styles.subtitle}>Rangga Digital Portfolio</p>
+        <button
+            style={styles.startButton}
+            onClick={onStart}
+            onMouseOver={e => (e.currentTarget.style.backgroundColor = 'rgba(0, 170, 255, 0.2)')}
+            onMouseOut={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+        >
+          Enter 3D World
+        </button>
+        <p style={styles.disclaimer}>Best experienced on a desktop browser with a dedicated GPU.</p>
+      </div>
+       <style>{`
+          @keyframes fadeInStart { from { opacity: 0; } to { opacity: 1; } }
+          @keyframes pulse {
+            0% { text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
+            50% { text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color); }
+            100% { text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
+          }
+      `}</style>
+    </div>
+  );
+});

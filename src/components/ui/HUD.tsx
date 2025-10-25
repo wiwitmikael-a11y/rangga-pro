@@ -63,6 +63,93 @@ const CancelIcon: React.FC = () => (
     </svg>
 );
 
+const styles: { [key: string]: React.CSSProperties } = {
+  topRightContainer: {
+    position: 'fixed',
+    top: '20px',
+    right: '20px',
+    zIndex: 100,
+  },
+  breadcrumbContainer: {
+    position: 'fixed',
+    top: '20px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    padding: '8px 16px',
+    background: 'rgba(0, 20, 40, 0.7)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(0, 170, 255, 0.5)',
+    borderRadius: '5px',
+    color: 'var(--primary-color)',
+    zIndex: 100,
+    pointerEvents: 'none',
+    transition: 'opacity 0.3s ease',
+  },
+  breadcrumbText: {
+    margin: 0,
+    fontFamily: 'var(--font-family)',
+    fontSize: 'clamp(0.8rem, 1.5vw, 0.9rem)',
+    letterSpacing: '0.1em',
+    textShadow: '0 0 5px var(--primary-color)',
+  },
+  bottomLeftContainer: {
+    position: 'fixed',
+    bottom: '20px',
+    left: '20px',
+    display: 'flex',
+    alignItems: 'center',
+    zIndex: 100,
+  },
+  hudButton: {
+    background: 'rgba(0, 20, 40, 0.7)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(0, 170, 255, 0.5)',
+    color: 'var(--primary-color)',
+    width: '44px',
+    height: '44px',
+    borderRadius: '50%',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease-in-out',
+    margin: '0 5px',
+    fontSize: '1.5rem',
+  },
+  povSelector: {
+    display: 'flex',
+    background: 'rgba(0, 20, 40, 0.7)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(0, 170, 255, 0.5)',
+    borderRadius: '22px',
+    marginRight: '10px',
+    transition: 'opacity 0.3s ease',
+    overflow: 'hidden',
+  },
+  disabled: {
+    opacity: 0.4,
+    pointerEvents: 'none',
+  },
+  activePov: {
+    background: 'rgba(0, 170, 255, 0.2)',
+    color: '#fff',
+    textShadow: '0 0 8px #fff',
+  },
+  visible: {
+    opacity: 1,
+    transform: 'translateY(0)',
+  },
+  hiddenBottom: {
+    opacity: 0,
+    transform: 'translateY(20px)',
+    pointerEvents: 'none',
+  },
+  dangerButton: {
+    borderColor: '#ff6347',
+    color: '#ff6347',
+  }
+};
+
 export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, onToggleNavMenu, isDetailViewActive, pov, onSetPov, isCalibrationMode, onToggleCalibrationMode, onExportLayout, heldDistrictId, onCancelMove }) => {
 
   const breadcrumb = useMemo(() => {
@@ -167,91 +254,3 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
     </>
   );
 });
-
-// FIX: Added missing styles object to resolve multiple 'Cannot find name' errors.
-const styles: { [key: string]: React.CSSProperties } = {
-  topRightContainer: {
-    position: 'fixed',
-    top: '20px',
-    right: '20px',
-    zIndex: 100,
-  },
-  breadcrumbContainer: {
-    position: 'fixed',
-    top: '20px',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    padding: '8px 16px',
-    background: 'rgba(0, 20, 40, 0.7)',
-    backdropFilter: 'blur(10px)',
-    border: '1px solid rgba(0, 170, 255, 0.5)',
-    borderRadius: '5px',
-    color: 'var(--primary-color)',
-    zIndex: 100,
-    pointerEvents: 'none',
-    transition: 'opacity 0.3s ease',
-  },
-  breadcrumbText: {
-    margin: 0,
-    fontFamily: 'var(--font-family)',
-    fontSize: 'clamp(0.8rem, 1.5vw, 0.9rem)',
-    letterSpacing: '0.1em',
-    textShadow: '0 0 5px var(--primary-color)',
-  },
-  bottomLeftContainer: {
-    position: 'fixed',
-    bottom: '20px',
-    left: '20px',
-    display: 'flex',
-    alignItems: 'center',
-    zIndex: 100,
-  },
-  hudButton: {
-    background: 'rgba(0, 20, 40, 0.7)',
-    backdropFilter: 'blur(10px)',
-    border: '1px solid rgba(0, 170, 255, 0.5)',
-    color: 'var(--primary-color)',
-    width: '44px',
-    height: '44px',
-    borderRadius: '50%',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease-in-out',
-    margin: '0 5px',
-    fontSize: '1.5rem',
-  },
-  povSelector: {
-    display: 'flex',
-    background: 'rgba(0, 20, 40, 0.7)',
-    backdropFilter: 'blur(10px)',
-    border: '1px solid rgba(0, 170, 255, 0.5)',
-    borderRadius: '22px',
-    marginRight: '10px',
-    transition: 'opacity 0.3s ease',
-    overflow: 'hidden',
-  },
-  disabled: {
-    opacity: 0.4,
-    pointerEvents: 'none',
-  },
-  activePov: {
-    background: 'rgba(0, 170, 255, 0.2)',
-    color: '#fff',
-    textShadow: '0 0 8px #fff',
-  },
-  visible: {
-    opacity: 1,
-    transform: 'translateY(0)',
-  },
-  hiddenBottom: {
-    opacity: 0,
-    transform: 'translateY(20px)',
-    pointerEvents: 'none',
-  },
-  dangerButton: {
-    borderColor: '#ff6347',
-    color: '#ff6347',
-  }
-};

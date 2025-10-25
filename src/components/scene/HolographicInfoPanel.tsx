@@ -11,72 +11,6 @@ interface HolographicInfoPanelProps {
   onClose: () => void;
 }
 
-const HolographicInfoPanel: React.FC<HolographicInfoPanelProps> = ({ district, onClose }) => {
-  const groupRef = useRef<THREE.Group>(null!);
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    setIsVisible(true);
-  }, [district]);
-
-  useFrame((_, delta) => {
-    if (!groupRef.current) return;
-    const targetScale = isVisible ? 1 : 0;
-    groupRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), delta * 8);
-  });
-
-  const panelPosition = useMemo(() => {
-    const pos = new THREE.Vector3(...district.position);
-    pos.y += 10; // Position it above the district's root
-    return pos;
-  }, [district.position]);
-
-  return (
-    <group ref={groupRef} position={panelPosition} scale={0}>
-      <Billboard>
-        <mesh>
-          <planeGeometry args={[12, 9]} />
-          <meshStandardMaterial
-            color="#00aaff"
-            emissive="#00aaff"
-            emissiveIntensity={0.3}
-            transparent
-            opacity={0.15}
-            side={THREE.DoubleSide}
-          />
-        </mesh>
-        <Html
-          transform
-          occlude="blending"
-          distanceFactor={1.5}
-          position={[0, 0, 0.1]}
-          style={styles.htmlContainer}
-        >
-          <style>{`
-            @keyframes fadeInUp {
-              from { opacity: 0; transform: translateY(15px); }
-              to { opacity: 1; transform: translateY(0); }
-            }
-          `}</style>
-          <div 
-            style={styles.contentWrapper}
-            onContextMenu={(e) => e.stopPropagation()} // Allow right-click menu
-          >
-            <h2 style={styles.title}>{district.title}</h2>
-            <h3 style={styles.subtitle}>{district.description}</h3>
-            <p style={styles.placeholder}>
-                [Placeholder for professional portfolio content. Gallery, detailed text, or interactive elements will be displayed here.]
-            </p>
-            <button onClick={onClose} style={styles.closeButton} aria-label="Close Panel">
-                &times;
-            </button>
-          </div>
-        </Html>
-      </Billboard>
-    </group>
-  );
-};
-
 const styles: { [key: string]: React.CSSProperties } = {
     htmlContainer: {
         width: '600px',
@@ -143,6 +77,72 @@ const styles: { [key: string]: React.CSSProperties } = {
         lineHeight: 1,
         transition: 'background-color 0.2s, color 0.2s',
     },
+};
+
+const HolographicInfoPanel: React.FC<HolographicInfoPanelProps> = ({ district, onClose }) => {
+  const groupRef = useRef<THREE.Group>(null!);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, [district]);
+
+  useFrame((_, delta) => {
+    if (!groupRef.current) return;
+    const targetScale = isVisible ? 1 : 0;
+    groupRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), delta * 8);
+  });
+
+  const panelPosition = useMemo(() => {
+    const pos = new THREE.Vector3(...district.position);
+    pos.y += 10; // Position it above the district's root
+    return pos;
+  }, [district.position]);
+
+  return (
+    <group ref={groupRef} position={panelPosition} scale={0}>
+      <Billboard>
+        <mesh>
+          <planeGeometry args={[12, 9]} />
+          <meshStandardMaterial
+            color="#00aaff"
+            emissive="#00aaff"
+            emissiveIntensity={0.3}
+            transparent
+            opacity={0.15}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+        <Html
+          transform
+          occlude="blending"
+          distanceFactor={1.5}
+          position={[0, 0, 0.1]}
+          style={styles.htmlContainer}
+        >
+          <style>{`
+            @keyframes fadeInUp {
+              from { opacity: 0; transform: translateY(15px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+          `}</style>
+          <div 
+            style={styles.contentWrapper}
+            onContextMenu={(e) => e.stopPropagation()} // Allow right-click menu
+          >
+            <h2 style={styles.title}>{district.title}</h2>
+            <h3 style={styles.subtitle}>{district.description}</h3>
+            <p style={styles.placeholder}>
+                [Placeholder for professional portfolio content. Gallery, detailed text, or interactive elements will be displayed here.]
+            </p>
+            <button onClick={onClose} style={styles.closeButton} aria-label="Close Panel">
+                &times;
+            </button>
+          </div>
+        </Html>
+      </Billboard>
+    </group>
+  );
 };
 
 export default HolographicInfoPanel;

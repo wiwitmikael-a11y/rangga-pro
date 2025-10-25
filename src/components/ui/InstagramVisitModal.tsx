@@ -23,38 +23,6 @@ interface InstagramVisitModalProps {
   onClose: () => void;
 }
 
-export const InstagramVisitModal: React.FC<InstagramVisitModalProps> = ({ isOpen, onClose }) => {
-    if (!isOpen) return null;
-
-    const handleVisit = () => {
-        window.open('https://www.instagram.com/rangga.p.h/', '_blank');
-        onClose();
-    };
-
-    return (
-        <>
-            <div style={styles.overlay} onClick={onClose} />
-            <div 
-                style={styles.container} 
-                className={`instagram-visit-modal responsive-modal ${isOpen ? 'panel-enter' : ''}`}
-                onContextMenu={(e) => e.stopPropagation()}
-            >
-                <div style={styles.content}>
-                    <InstagramIcon />
-                    <h2 style={styles.username}>@rangga.p.h</h2>
-                    <p style={styles.promptText}>Visit External Profile?</p>
-                    <button onClick={handleVisit} style={styles.visitButton}>
-                        Proceed
-                    </button>
-                    <button onClick={onClose} style={styles.closeButton}>
-                        Cancel
-                    </button>
-                </div>
-            </div>
-        </>
-    );
-};
-
 const glassmorphism = {
   background: 'rgba(10, 20, 35, 0.9)',
   backdropFilter: 'blur(15px)',
@@ -135,4 +103,36 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: 'all 0.3s ease',
     borderRadius: '5px',
   },
+};
+
+export const InstagramVisitModal: React.FC<InstagramVisitModalProps> = ({ isOpen, onClose }) => {
+    if (!isOpen) return null;
+
+    const handleVisit = () => {
+        window.open('https://www.instagram.com/rangga.p.h/', '_blank');
+        onClose();
+    };
+
+    return (
+        <>
+            <div style={styles.overlay} onClick={onClose} />
+            <div 
+                style={styles.container} 
+                className={`instagram-visit-modal responsive-modal ${isOpen ? 'panel-enter' : ''}`}
+                onContextMenu={(e) => e.stopPropagation()}
+            >
+                <div style={styles.content}>
+                    <InstagramIcon />
+                    <h2 style={styles.username}>@rangga.p.h</h2>
+                    <p style={styles.promptText}>Visit External Profile?</p>
+                    <button onClick={handleVisit} style={styles.visitButton}>
+                        Proceed
+                    </button>
+                    <button onClick={onClose} style={styles.closeButton}>
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </>
+    );
 };

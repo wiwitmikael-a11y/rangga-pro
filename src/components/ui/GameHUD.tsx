@@ -5,29 +5,6 @@ interface GameHUDProps {
   onExit: () => void;
 }
 
-export const GameHUD: React.FC<GameHUDProps> = ({ onExit }) => {
-  const hudContent = (
-    <div style={styles.container}>
-      <div style={styles.leftInfo}>
-        <p style={styles.label}>OBJECTIVE</p>
-        <p style={styles.value}>NEUTRALIZE HOSTILE CORES</p>
-      </div>
-      <button onClick={onExit} style={styles.exitButton}>
-        EXIT PROTOCOL
-      </button>
-      <div style={styles.rightInfo}>
-        <p style={styles.label}>SYSTEM STATUS</p>
-        <p style={{...styles.value, color: '#4CAF50'}}>NOMINAL</p>
-      </div>
-    </div>
-  );
-
-  // The HUD is an HTML overlay, so we render it into the main document body using a portal
-  // to ensure it stacks correctly above the 3D canvas.
-  return ReactDOM.createPortal(hudContent, document.body);
-};
-
-
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
     position: 'fixed',
@@ -80,4 +57,26 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: 'all 0.2s ease',
     textTransform: 'uppercase',
   }
+};
+
+export const GameHUD: React.FC<GameHUDProps> = ({ onExit }) => {
+  const hudContent = (
+    <div style={styles.container}>
+      <div style={styles.leftInfo}>
+        <p style={styles.label}>OBJECTIVE</p>
+        <p style={styles.value}>NEUTRALIZE HOSTILE CORES</p>
+      </div>
+      <button onClick={onExit} style={styles.exitButton}>
+        EXIT PROTOCOL
+      </button>
+      <div style={styles.rightInfo}>
+        <p style={styles.label}>SYSTEM STATUS</p>
+        <p style={{...styles.value, color: '#4CAF50'}}>NOMINAL</p>
+      </div>
+    </div>
+  );
+
+  // The HUD is an HTML overlay, so we render it into the main document body using a portal
+  // to ensure it stacks correctly above the 3D canvas.
+  return ReactDOM.createPortal(hudContent, document.body);
 };

@@ -10,6 +10,47 @@ interface ProjectSelectionPanelProps {
   onProjectSelect: (item: PortfolioSubItem) => void;
 }
 
+const glassmorphism: React.CSSProperties = {
+  background: 'rgba(5, 15, 30, 0.85)',
+  backdropFilter: 'blur(15px)',
+  border: '1px solid rgba(0, 170, 255, 0.5)',
+};
+
+const styles: { [key: string]: React.CSSProperties } = {
+  overlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0, 0, 0, 0.4)', backdropFilter: 'blur(5px)', zIndex: 49, transition: 'opacity 0.4s ease' },
+  container: { ...glassmorphism, position: 'fixed', bottom: 0, left: 0, right: 0, height: '85vh', maxHeight: '800px', zIndex: 50, borderTopLeftRadius: '20px', borderTopRightRadius: '20px', borderBottom: 'none', padding: '20px 40px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', transition: 'opacity 0.4s ease, transform 0.5s cubic-bezier(0.2, 1, 0.2, 1)', overflowY: 'auto' },
+  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(0, 170, 255, 0.3)', paddingBottom: '15px', flexShrink: 0 },
+  title: { margin: 0, color: 'var(--primary-color)', fontSize: '1.8rem', textShadow: '0 0 8px var(--primary-color)' },
+  description: { margin: '10px 0 20px 0', color: '#ccc', fontSize: '1rem', flexShrink: 0, textAlign: 'center' },
+  closeButton: { background: 'transparent', border: '1px solid rgba(0, 170, 255, 0.7)', color: '#00aaff', width: '35px', height: '35px', borderRadius: '50%', cursor: 'pointer', fontSize: '1.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center', lineHeight: 1, transition: 'all 0.2s' },
+  
+  competencyLayout: { display: 'flex', flexDirection: 'row', flexGrow: 1, gap: '20px', minHeight: 0, overflow: 'hidden' },
+  chartContainer: { display: 'flex', justifyContent: 'center', alignItems: 'center', flexShrink: 0, flexBasis: '400px' },
+  
+  analysisPanel: { flexGrow: 1, minHeight: 0, padding: '20px', background: 'rgba(0, 0, 0, 0.2)', borderRadius: '10px', border: '1px solid rgba(0, 170, 255, 0.2)', animation: 'fadeInDetails 0.5s ease', overflowY: 'auto' },
+  analysisTitle: { color: '#ffffff', margin: '0 0 10px 0', fontSize: '1.2rem', textTransform: 'uppercase', letterSpacing: '0.1em' },
+  analysisDescription: { color: '#ccc', margin: '0 0 20px 0', lineHeight: 1.6, fontSize: '0.9rem' },
+  
+  sectionHeader: { color: 'var(--primary-color)', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em', margin: '20px 0 10px 0', borderTop: '1px solid rgba(0, 170, 255, 0.2)', paddingTop: '15px' },
+  
+  metricsContainer: { display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' },
+  metricTag: { background: 'rgba(0, 170, 255, 0.1)', border: '1px solid rgba(0, 170, 255, 0.3)', color: '#cceeff', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem' },
+  
+  skillsList: { listStyle: 'none', margin: 0, padding: 0 },
+  skillItem: { color: '#eee', fontSize: '0.9rem', marginBottom: '12px' },
+  skillLabel: { display: 'flex', justifyContent: 'space-between', marginBottom: '4px' },
+  skillPercent: { color: '#aaa', fontSize: '0.8rem' },
+  skillBar: { height: '6px', background: 'rgba(0, 170, 255, 0.1)', borderRadius: '3px', width: '100%' },
+  skillBarFill: { height: '100%', background: 'var(--primary-color)', borderRadius: '3px', boxShadow: '0 0 8px var(--primary-color)' },
+
+  grid: { flexGrow: 1, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px', overflowY: 'auto', paddingRight: '10px' },
+  card: { ...glassmorphism, borderRadius: '10px', overflow: 'hidden', cursor: 'pointer', display: 'flex', flexDirection: 'column' },
+  cardImage: { width: '100%', height: '150px', objectFit: 'cover', opacity: 0.8 },
+  cardContent: { padding: '15px', flexGrow: 1, display: 'flex', flexDirection: 'column' },
+  cardTitle: { margin: '0 0 10px 0', color: '#fff', fontSize: '1.1rem' },
+  cardDescription: { margin: 0, color: '#aaa', fontSize: '0.9rem', lineHeight: 1.4, flexGrow: 1 },
+};
+
 // A new component for the interactive details panel
 const StrategicAnalysisPanel: React.FC<{ activeCategory: SkillCategory | null }> = ({ activeCategory }) => {
   const data = activeCategory || {
@@ -115,45 +156,4 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
       </div>
     </>
   );
-};
-
-const glassmorphism: React.CSSProperties = {
-  background: 'rgba(5, 15, 30, 0.85)',
-  backdropFilter: 'blur(15px)',
-  border: '1px solid rgba(0, 170, 255, 0.5)',
-};
-
-const styles: { [key: string]: React.CSSProperties } = {
-  overlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0, 0, 0, 0.4)', backdropFilter: 'blur(5px)', zIndex: 49, transition: 'opacity 0.4s ease' },
-  container: { ...glassmorphism, position: 'fixed', bottom: 0, left: 0, right: 0, height: '85vh', maxHeight: '800px', zIndex: 50, borderTopLeftRadius: '20px', borderTopRightRadius: '20px', borderBottom: 'none', padding: '20px 40px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', transition: 'opacity 0.4s ease, transform 0.5s cubic-bezier(0.2, 1, 0.2, 1)', overflowY: 'auto' },
-  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(0, 170, 255, 0.3)', paddingBottom: '15px', flexShrink: 0 },
-  title: { margin: 0, color: 'var(--primary-color)', fontSize: '1.8rem', textShadow: '0 0 8px var(--primary-color)' },
-  description: { margin: '10px 0 20px 0', color: '#ccc', fontSize: '1rem', flexShrink: 0, textAlign: 'center' },
-  closeButton: { background: 'transparent', border: '1px solid rgba(0, 170, 255, 0.7)', color: '#00aaff', width: '35px', height: '35px', borderRadius: '50%', cursor: 'pointer', fontSize: '1.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center', lineHeight: 1, transition: 'all 0.2s' },
-  
-  competencyLayout: { display: 'flex', flexDirection: 'row', flexGrow: 1, gap: '20px', minHeight: 0, overflow: 'hidden' },
-  chartContainer: { display: 'flex', justifyContent: 'center', alignItems: 'center', flexShrink: 0, flexBasis: '400px' },
-  
-  analysisPanel: { flexGrow: 1, minHeight: 0, padding: '20px', background: 'rgba(0, 0, 0, 0.2)', borderRadius: '10px', border: '1px solid rgba(0, 170, 255, 0.2)', animation: 'fadeInDetails 0.5s ease', overflowY: 'auto' },
-  analysisTitle: { color: '#ffffff', margin: '0 0 10px 0', fontSize: '1.2rem', textTransform: 'uppercase', letterSpacing: '0.1em' },
-  analysisDescription: { color: '#ccc', margin: '0 0 20px 0', lineHeight: 1.6, fontSize: '0.9rem' },
-  
-  sectionHeader: { color: 'var(--primary-color)', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em', margin: '20px 0 10px 0', borderTop: '1px solid rgba(0, 170, 255, 0.2)', paddingTop: '15px' },
-  
-  metricsContainer: { display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' },
-  metricTag: { background: 'rgba(0, 170, 255, 0.1)', border: '1px solid rgba(0, 170, 255, 0.3)', color: '#cceeff', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem' },
-  
-  skillsList: { listStyle: 'none', margin: 0, padding: 0 },
-  skillItem: { color: '#eee', fontSize: '0.9rem', marginBottom: '12px' },
-  skillLabel: { display: 'flex', justifyContent: 'space-between', marginBottom: '4px' },
-  skillPercent: { color: '#aaa', fontSize: '0.8rem' },
-  skillBar: { height: '6px', background: 'rgba(0, 170, 255, 0.1)', borderRadius: '3px', width: '100%' },
-  skillBarFill: { height: '100%', background: 'var(--primary-color)', borderRadius: '3px', boxShadow: '0 0 8px var(--primary-color)' },
-
-  grid: { flexGrow: 1, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px', overflowY: 'auto', paddingRight: '10px' },
-  card: { ...glassmorphism, borderRadius: '10px', overflow: 'hidden', cursor: 'pointer', display: 'flex', flexDirection: 'column' },
-  cardImage: { width: '100%', height: '150px', objectFit: 'cover', opacity: 0.8 },
-  cardContent: { padding: '15px', flexGrow: 1, display: 'flex', flexDirection: 'column' },
-  cardTitle: { margin: '0 0 10px 0', color: '#fff', fontSize: '1.1rem' },
-  cardDescription: { margin: 0, color: '#aaa', fontSize: '0.9rem', lineHeight: 1.4, flexGrow: 1 },
 };

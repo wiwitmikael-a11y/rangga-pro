@@ -1,26 +1,5 @@
 import React from 'react';
 
-export const ControlHints: React.FC = () => {
-    return (
-        <>
-            <style>{`
-                @keyframes hint-fade-in-out {
-                    0% { opacity: 0; transform: translate(-50%, 20px); }
-                    10% { opacity: 1; transform: translate(-50%, 0); }
-                    90% { opacity: 1; transform: translate(-50%, 0); }
-                    100% { opacity: 0; transform: translate(-50%, 20px); pointer-events: none; }
-                }
-                .hint-container {
-                    animation: hint-fade-in-out 6s ease-in-out forwards;
-                }
-            `}</style>
-            <div className="hint-container" style={styles.container}>
-                <p style={styles.text}>[DRAG TO ROTATE] &nbsp;&nbsp; [SCROLL TO ZOOM]</p>
-            </div>
-        </>
-    );
-};
-
 const styles: { [key: string]: React.CSSProperties } = {
     container: {
         position: 'fixed',
@@ -44,4 +23,25 @@ const styles: { [key: string]: React.CSSProperties } = {
         letterSpacing: '0.1em',
         textShadow: '0 0 5px var(--primary-color)',
     }
+};
+
+export const ControlHints: React.FC = () => {
+    return (
+        <>
+            <style>{`
+                @keyframes hint-fade-in-out {
+                    0% { opacity: 0; transform: translate(-50%, 20px); }
+                    10% { opacity: 1; transform: translate(-50%, 0); }
+                    90% { opacity: 1; transform: translate(-50%, 0); }
+                    100% { opacity: 0; transform: translate(-50%, 20px); pointer-events: none; }
+                }
+                .hint-container {
+                    animation: hint-fade-in-out 6s ease-in-out forwards;
+                }
+            `}</style>
+            <div className="hint-container" style={styles.container}>
+                <p style={styles.text}>[DRAG TO ROTATE] &nbsp;&nbsp; [SCROLL TO ZOOM]</p>
+            </div>
+        </>
+    );
 };

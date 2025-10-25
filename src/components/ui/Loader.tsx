@@ -4,34 +4,6 @@ interface LoaderProps {
   progress: number;
 }
 
-export const Loader: React.FC<LoaderProps> = React.memo(({ progress }) => {
-
-    const progressBar = useMemo(() => {
-        const barWidth = 40;
-        const filledWidth = Math.floor((progress / 100) * barWidth);
-        const bar = `[${'█'.repeat(filledWidth)}${'-'.repeat(barWidth - filledWidth)}]`;
-        return `${bar} ${Math.round(progress)}%`;
-    }, [progress]);
-
-    return (
-        <div style={styles.container}>
-            <div style={styles.scanlineEffect} />
-            <div style={styles.content}>
-                <h2 style={styles.title}>ACCESSING RAGETOPIA</h2>
-                <p style={styles.text}>DECRYPTING DATA STREAMS...</p>
-                <div style={styles.progressBarContainer}>
-                  <pre style={styles.text}>{progressBar}</pre>
-                </div>
-                <span style={styles.cursor}>_</span>
-            </div>
-            <style>{`
-                @keyframes blink { 50% { opacity: 0; } }
-                @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-            `}</style>
-        </div>
-    );
-});
-
 const styles: { [key: string]: React.CSSProperties } = {
     container: {
         position: 'fixed',
@@ -82,3 +54,31 @@ const styles: { [key: string]: React.CSSProperties } = {
         fontSize: '1.2em',
     }
 };
+
+export const Loader: React.FC<LoaderProps> = React.memo(({ progress }) => {
+
+    const progressBar = useMemo(() => {
+        const barWidth = 40;
+        const filledWidth = Math.floor((progress / 100) * barWidth);
+        const bar = `[${'█'.repeat(filledWidth)}${'-'.repeat(barWidth - filledWidth)}]`;
+        return `${bar} ${Math.round(progress)}%`;
+    }, [progress]);
+
+    return (
+        <div style={styles.container}>
+            <div style={styles.scanlineEffect} />
+            <div style={styles.content}>
+                <h2 style={styles.title}>ACCESSING RAGETOPIA</h2>
+                <p style={styles.text}>DECRYPTING DATA STREAMS...</p>
+                <div style={styles.progressBarContainer}>
+                  <pre style={styles.text}>{progressBar}</pre>
+                </div>
+                <span style={styles.cursor}>_</span>
+            </div>
+            <style>{`
+                @keyframes blink { 50% { opacity: 0; } }
+                @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+            `}</style>
+        </div>
+    );
+});
