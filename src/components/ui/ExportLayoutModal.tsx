@@ -26,7 +26,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     position: 'fixed',
     top: '50%',
     left: '50%',
-    transform: 'translate(-50%, -50%)',
     width: '90%',
     maxWidth: '700px',
     maxHeight: '80vh',
@@ -38,6 +37,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     flexDirection: 'column',
     boxShadow: '0 0 40px rgba(0, 170, 255, 0.3)',
     userSelect: 'auto', // Enable text selection within this panel
+    transition: 'opacity 0.3s ease, transform 0.3s ease',
   },
   header: {
     display: 'flex',
@@ -124,32 +124,45 @@ export const ExportLayoutModal: React.FC<ExportLayoutModalProps> = ({ isOpen, on
         });
     };
     
-    if (!isOpen) return null;
+    const containerStyle: React.CSSProperties = {
+      ...styles.container,
+      opacity: isOpen ? 1 : 0,
+      transform: isOpen ? 'translate(-50%, -50%) scale(1)' : 'translate(-50%, -50%) scale(0.95)',
+      pointerEvents: isOpen ? 'auto' : 'none',
+    };
 
-  return (
-    <>
-      <div style={styles.overlay} onClick={onClose} />
-      <div 
-        style={styles.container} 
-        className={`export-layout-modal responsive-modal ${isOpen ? 'panel-enter' : ''}`}
-        onContextMenu={(e) => e.stopPropagation()} // Allow right-click menu
-      >
-        <div style={styles.header}>
-            <h2 style={styles.title}>Export New Layout</h2>
-            <button onClick={onClose} style={styles.closeButton} aria-label="Close Export">&times;</button>
+    const overlayStyle: React.CSSProperties = {
+      ...styles.overlay,
+      opacity: isOpen ? 1 : 0,
+      pointerEvents: isOpen ? 'auto' : 'none',
+    };
+
+    // The component is always rendered, but its visibility is controlled by styles,
+    // allowing for enter and exit animations.
+    return (
+      <>
+        <div style={overlayStyle} onClick={onClose} />
+        <div 
+          style={containerStyle} 
+          className={`export-layout-modal responsive-modal ${isOpen ? 'panel-enter' : ''}`}
+          onContextMenu={(e) => e.stopPropagation()} // Allow right-click menu
+        >
+          <div style={styles.header}>
+              <h2 style={styles.title}>Export New Layout</h2>
+              <button onClick={onClose} style={styles.closeButton} aria-label="Close Export">&times;</button>
+          </div>
+          <p style={styles.instructions}>
+            The layout has been updated. Copy the code below and replace the content of the `portfolioData` array in <strong>src/constants.ts</strong> to make your changes permanent.
+          </p>
+          <textarea
+              readOnly
+              value={jsonData}
+              style={styles.textArea}
+          />
+          <button onClick={handleCopy} style={styles.copyButton}>
+              {copyButtonText}
+          </button>
         </div>
-        <p style={styles.instructions}>
-          The layout has been updated. Copy the code below and replace the content of the `portfolioData` array in <strong>src/constants.ts</strong> to make your changes permanent.
-        </p>
-        <textarea
-            readOnly
-            value={jsonData}
-            style={styles.textArea}
-        />
-        <button onClick={handleCopy} style={styles.copyButton}>
-            {copyButtonText}
-        </button>
-      </div>
-    </>
-  );
+      </>
+    );
 };

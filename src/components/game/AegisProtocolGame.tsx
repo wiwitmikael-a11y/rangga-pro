@@ -14,6 +14,8 @@ const enemyPositions: [number, number, number][] = [
     [-40, 20, -90],
     [0, 25, -70],
     [50, 10, -85],
+    [70, 18, -60],
+    [-90, 22, -50],
 ];
 
 export const AegisProtocolGame: React.FC<AegisProtocolGameProps> = ({ onExit, playerSpawnPosition }) => {

@@ -7,7 +7,13 @@ interface GameLobbyPanelProps {
 }
 
 export const GameLobbyPanel: React.FC<GameLobbyPanelProps> = ({ isOpen, onLaunch, onClose }) => {
-  if (!isOpen) return null;
+
+  const containerStyle: React.CSSProperties = {
+    ...styles.container,
+    opacity: isOpen ? 1 : 0,
+    transform: isOpen ? 'translate(-50%, -50%) scale(1)' : 'translate(-50%, -50%) scale(0.95)',
+    pointerEvents: isOpen ? 'auto' : 'none',
+  };
 
   const overlayStyle: React.CSSProperties = {
     ...styles.overlay,
@@ -19,7 +25,7 @@ export const GameLobbyPanel: React.FC<GameLobbyPanelProps> = ({ isOpen, onLaunch
     <>
       <div style={overlayStyle} onClick={onClose} />
       <div 
-        style={styles.container} 
+        style={containerStyle} 
         className={`game-lobby-modal responsive-modal ${isOpen ? 'panel-enter' : ''}`}
         onContextMenu={(e) => e.stopPropagation()}
       >
@@ -69,7 +75,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     position: 'fixed',
     top: '50%',
     left: '50%',
-    transform: 'translate(-50%, -50%)',
     width: '90%',
     maxWidth: '500px',
     zIndex: 101,
@@ -79,6 +84,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     flexDirection: 'column',
     boxShadow: '0 0 40px rgba(0, 170, 255, 0.3)',
+    transition: 'opacity 0.3s ease, transform 0.3s ease',
   },
   header: {
     display: 'flex',

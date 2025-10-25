@@ -49,7 +49,7 @@ const glassmorphism: React.CSSProperties = {
 
 const styles: { [key: string]: React.CSSProperties } = {
     overlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(5px)', zIndex: 100, transition: 'opacity 0.3s ease-out' },
-    container: { ...glassmorphism, position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '90%', maxWidth: '900px', zIndex: 101, borderRadius: '15px', padding: '0', boxSizing: 'border-box', boxShadow: '0 0 40px rgba(0, 170, 255, 0.3)', overflow: 'hidden' },
+    container: { ...glassmorphism, position: 'fixed', top: '50%', left: '50%', width: '90%', maxWidth: '900px', zIndex: 101, borderRadius: '15px', padding: '0', boxSizing: 'border-box', boxShadow: '0 0 40px rgba(0, 170, 255, 0.3)', overflow: 'hidden', transition: 'opacity 0.3s ease, transform 0.3s ease' },
     dangerStripes: { position: 'absolute', top: '0', left: '0', width: '100%', height: '10px', background: 'repeating-linear-gradient(45deg, #ff9900, #ff9900 20px, #000000 20px, #000000 40px)', animation: 'stripe-scroll 1s linear infinite', borderBottom: '2px solid #ff9900' },
     header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 25px', borderBottom: '1px solid rgba(0, 170, 255, 0.2)', marginTop: '10px' },
     title: { margin: 0, color: 'var(--primary-color)', fontSize: '1.5rem', textShadow: '0 0 8px var(--primary-color)', letterSpacing: '0.1em' },
@@ -91,13 +91,18 @@ export const ContactHubModal: React.FC<ContactHubModalProps> = ({ isOpen, onClos
         }, 1500);
     };
 
+    const containerStyle: React.CSSProperties = {
+      ...styles.container,
+      opacity: isOpen ? 1 : 0,
+      transform: isOpen ? 'translate(-50%, -50%) scale(1)' : 'translate(-50%, -50%) scale(0.95)',
+      pointerEvents: isOpen ? 'auto' : 'none',
+    };
+
     const overlayStyle: React.CSSProperties = {
         ...styles.overlay,
         opacity: isOpen ? 1 : 0,
         pointerEvents: isOpen ? 'auto' : 'none',
     };
-    
-    if (!isOpen) return null;
 
     return (
         <>
@@ -105,7 +110,7 @@ export const ContactHubModal: React.FC<ContactHubModalProps> = ({ isOpen, onClos
                 @keyframes stripe-scroll { from { background-position: 0 0; } to { background-position: 56.5px 0; } }
             `}</style>
             <div style={overlayStyle} onClick={onClose} />
-            <div style={styles.container} className={`contact-hub-modal responsive-modal ${isOpen ? 'panel-enter' : ''}`} onContextMenu={(e) => e.stopPropagation()}>
+            <div style={containerStyle} className={`contact-hub-modal responsive-modal ${isOpen ? 'panel-enter' : ''}`} onContextMenu={(e) => e.stopPropagation()}>
                 <div style={styles.dangerStripes} />
                 <div style={styles.header}>
                     <h2 style={styles.title}>CONTACT HUB</h2>

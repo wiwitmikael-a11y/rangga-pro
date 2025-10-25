@@ -43,7 +43,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     position: 'fixed',
     top: '50%',
     left: '50%',
-    transform: 'translate(-50%, -50%)',
     width: '90%',
     maxWidth: '400px',
     zIndex: 201,
@@ -54,6 +53,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     flexDirection: 'column',
     alignItems: 'center',
     boxShadow: '0 0 40px rgba(0, 225, 255, 0.3)',
+    transition: 'opacity 0.3s ease, transform 0.3s ease',
   },
   content: {
     textAlign: 'center',
@@ -106,18 +106,30 @@ const styles: { [key: string]: React.CSSProperties } = {
 };
 
 export const InstagramVisitModal: React.FC<InstagramVisitModalProps> = ({ isOpen, onClose }) => {
-    if (!isOpen) return null;
 
     const handleVisit = () => {
         window.open('https://www.instagram.com/rangga.p.h/', '_blank');
         onClose();
     };
 
+    const containerStyle: React.CSSProperties = {
+      ...styles.container,
+      opacity: isOpen ? 1 : 0,
+      transform: isOpen ? 'translate(-50%, -50%) scale(1)' : 'translate(-50%, -50%) scale(0.95)',
+      pointerEvents: isOpen ? 'auto' : 'none',
+    };
+
+    const overlayStyle: React.CSSProperties = {
+      ...styles.overlay,
+      opacity: isOpen ? 1 : 0,
+      pointerEvents: isOpen ? 'auto' : 'none',
+    };
+
     return (
         <>
-            <div style={styles.overlay} onClick={onClose} />
+            <div style={overlayStyle} onClick={onClose} />
             <div 
-                style={styles.container} 
+                style={containerStyle} 
                 className={`instagram-visit-modal responsive-modal ${isOpen ? 'panel-enter' : ''}`}
                 onContextMenu={(e) => e.stopPropagation()}
             >

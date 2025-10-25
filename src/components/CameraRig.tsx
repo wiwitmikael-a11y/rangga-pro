@@ -1,5 +1,6 @@
 
 
+
 import React, { useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -36,7 +37,7 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
   useFrame((state, delta) => {
     let hasTarget = false;
     // Kecepatan lerp yang disesuaikan untuk transisi yang lebih mulus
-    let lerpSpeed = 2.8;
+    let lerpSpeed = 3.0;
 
     // --- Penentuan Target Berbasis State ---
     if (isAnimating) {

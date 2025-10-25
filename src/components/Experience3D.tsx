@@ -377,10 +377,12 @@ export const Experience3D: React.FC = () => {
               </EffectComposer>
             </>
           ) : (
-            <AegisProtocolGame 
-              onExit={handleExitGame} 
-              playerSpawnPosition={playerSpawnPosition.current}
-            />
+            <>
+              <AegisProtocolGame 
+                onExit={handleExitGame} 
+                playerSpawnPosition={playerSpawnPosition.current}
+              />
+            </>
           )}
         </Suspense>
 
@@ -431,32 +433,24 @@ export const Experience3D: React.FC = () => {
               onProjectSelect={handleProjectClick}
           />
       )}
-      {isExportModalOpen && (
-        <ExportLayoutModal
-          isOpen={isExportModalOpen}
-          onClose={() => setIsExportModalOpen(false)}
-          jsonData={exportedLayoutJson}
-        />
-      )}
-      {showVisitModal && (
-        <InstagramVisitModal
-          isOpen={showVisitModal}
-          onClose={() => setShowVisitModal(false)}
-        />
-      )}
-       {isContactHubOpen && (
-        <ContactHubModal
-          isOpen={isContactHubOpen}
-          onClose={() => setIsContactHubOpen(false)}
-        />
-      )}
-      {isGameLobbyOpen && (
-        <GameLobbyPanel
-          isOpen={isGameLobbyOpen}
-          onLaunch={handleLaunchGame}
-          onClose={handleGoHome}
-        />
-      )}
+      <ExportLayoutModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        jsonData={exportedLayoutJson}
+      />
+      <InstagramVisitModal
+        isOpen={showVisitModal}
+        onClose={() => setShowVisitModal(false)}
+      />
+      <ContactHubModal
+        isOpen={isContactHubOpen}
+        onClose={() => setIsContactHubOpen(false)}
+      />
+      <GameLobbyPanel
+        isOpen={isGameLobbyOpen}
+        onLaunch={handleLaunchGame}
+        onClose={handleGoHome}
+      />
     </>
   );
 };
