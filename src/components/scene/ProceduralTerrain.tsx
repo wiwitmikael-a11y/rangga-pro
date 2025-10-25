@@ -80,7 +80,7 @@ export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(({
     };
 
     return (
-        <group position={[0, -4.5, 0]}>
+        <group position={[0, -5.5, 0]}>
             <mesh
                 geometry={geometry}
                 rotation={[-Math.PI / 2, 0, 0]}

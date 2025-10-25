@@ -30,53 +30,66 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
 
   useFrame((state, delta) => {
     let hasTarget = false;
+    let lerpSpeed = 2.5;
 
     // --- State-driven Target Determination ---
-    // This block only SETS the target, the animation happens consistently below.
+    if (isAnimating) {
+        // We are in a defined transition animation
+        lerpSpeed = 3.5; // Use a faster speed for transitions
 
-    if (pov === 'ship' && targetShipRef?.current && !selectedDistrict) {
-      // PRIORITY 1: Ship follow view. This is a continuous update.
-      const ship = targetShipRef.current;
-      shipCam.idealPosition.copy(shipCam.offset).applyQuaternion(ship.quaternion).add(ship.position);
-      shipCam.idealLookAt.copy(shipCam.forwardVector).applyQuaternion(ship.quaternion).add(ship.position);
-      targetPosition.copy(shipCam.idealPosition);
-      targetLookAt.copy(shipCam.idealLookAt);
-      hasTarget = true;
-    } else if (isAnimating && selectedDistrict?.cameraFocus) {
-      // PRIORITY 2: Animate to a selected district.
-      targetPosition.set(...selectedDistrict.cameraFocus.pos);
-      targetLookAt.set(...selectedDistrict.cameraFocus.lookAt);
-      hasTarget = true;
-    } else if (isAnimating && !selectedDistrict) {
-      // PRIORITY 3: Animate "home" to the main city overview.
-      targetPosition.copy(OVERVIEW_POSITION);
-      targetLookAt.copy(OVERVIEW_LOOK_AT);
-      hasTarget = true;
+        if (selectedDistrict?.cameraFocus) { // To District
+            targetPosition.set(...selectedDistrict.cameraFocus.pos);
+            targetLookAt.set(...selectedDistrict.cameraFocus.lookAt);
+            hasTarget = true;
+        } else if (pov === 'ship' && targetShipRef?.current) { // To Ship
+            const ship = targetShipRef.current;
+            shipCam.idealPosition.copy(shipCam.offset).applyQuaternion(ship.quaternion).add(ship.position);
+            shipCam.idealLookAt.copy(shipCam.forwardVector).applyQuaternion(ship.quaternion).add(ship.position);
+            targetPosition.copy(shipCam.idealPosition);
+            targetLookAt.copy(shipCam.idealLookAt);
+            hasTarget = true;
+        } else { // To Overview
+            targetPosition.copy(OVERVIEW_POSITION);
+            targetLookAt.copy(OVERVIEW_LOOK_AT);
+            hasTarget = true;
+        }
+    } else if (pov === 'ship' && targetShipRef?.current) {
+        // We are in continuous follow mode (not a one-off animation)
+        lerpSpeed = 5.0; // Responsive follow speed
+        const ship = targetShipRef.current;
+        shipCam.idealPosition.copy(shipCam.offset).applyQuaternion(ship.quaternion).add(ship.position);
+        shipCam.idealLookAt.copy(shipCam.forwardVector).applyQuaternion(ship.quaternion).add(ship.position);
+        targetPosition.copy(shipCam.idealPosition);
+        targetLookAt.copy(shipCam.idealLookAt);
+        hasTarget = true;
     }
+    // If no target, OrbitControls takes over
 
     // --- Animation Logic ---
-    // If a target was set by any of the priority states above, animate towards it.
     if (hasTarget) {
-      const lerpFactor = delta * 2.5;
+      const lerpFactor = Math.min(delta * lerpSpeed, 1); // Clamp to prevent overshooting on slow frames
       state.camera.position.lerp(targetPosition, lerpFactor);
 
       const tempCamera = state.camera.clone();
       tempCamera.lookAt(targetLookAt);
       state.camera.quaternion.slerp(tempCamera.quaternion, lerpFactor);
       
-      // Check if a one-time animation (not continuous ship follow) is finished.
+      // Check if a one-time animation is finished.
       if (isAnimatingRef.current) {
-        const posReached = state.camera.position.distanceTo(targetPosition) < 0.1;
-        const rotReached = state.camera.quaternion.angleTo(tempCamera.quaternion) < 0.01;
+        // Looser tolerance to prevent getting stuck
+        const posReached = state.camera.position.distanceTo(targetPosition) < 0.5;
+        const rotReached = state.camera.quaternion.angleTo(tempCamera.quaternion) < 0.05;
 
         if (posReached && rotReached) {
-            state.camera.position.copy(targetPosition);
-            state.camera.quaternion.copy(tempCamera.quaternion);
+            // Snap to final position ONLY if not going to ship mode, to avoid a jump before continuous follow starts
+            if (pov !== 'ship') {
+              state.camera.position.copy(targetPosition);
+              state.camera.quaternion.copy(tempCamera.quaternion);
+            }
             onAnimationFinish();
         }
       }
     }
-    // If no target is set, control is yielded to OrbitControls for manual interaction.
   });
 
   return null;

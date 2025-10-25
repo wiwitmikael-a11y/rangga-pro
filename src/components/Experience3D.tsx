@@ -100,24 +100,22 @@ export const Experience3D: React.FC = () => {
   }, [resetIdleTimer]);
 
   const handleGoHome = useCallback(() => {
-    if (pov === 'ship') {
-      setPov('main');
-    }
+    setPov('main');
     setSelectedDistrict(null);
     setIsAnimating(true);
     setShowProjects(false);
     setInfoPanelItem(null);
     resetIdleTimer();
-  }, [pov, resetIdleTimer]);
+  }, [resetIdleTimer]);
 
   const onAnimationFinish = useCallback(() => {
     setIsAnimating(false);
     if (selectedDistrict && selectedDistrict.id !== 'nexus-core') {
       setShowProjects(true);
-    } else if (!selectedDistrict) {
+    } else if (!selectedDistrict && pov === 'main') {
       resetIdleTimer();
     }
-  }, [selectedDistrict, resetIdleTimer]);
+  }, [selectedDistrict, resetIdleTimer, pov]);
 
   const handleProjectClick = (item: PortfolioSubItem) => {
     console.log('Project clicked:', item.title);
@@ -134,27 +132,37 @@ export const Experience3D: React.FC = () => {
   };
   
   const handleSetPov = (newPov: 'main' | 'ship') => {
-    if (newPov === 'ship') {
-        if (shipRefs.length > 0) {
-            let newTargetRef = targetShipRef;
-            if (shipRefs.length > 1) {
-                // Ensure a new ship is selected if possible
-                while (newTargetRef === targetShipRef) {
-                    const randomIndex = Math.floor(Math.random() * shipRefs.length);
-                    newTargetRef = shipRefs[randomIndex];
-                }
-            } else {
-                newTargetRef = shipRefs[0];
-            }
-            setTargetShipRef(newTargetRef);
-        }
+    if (newPov === pov) return;
+
+    if (newPov === 'main') {
+      handleGoHome();
+    } else { // Transitioning to ship view
       setIsAutoRotating(false);
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-    } else {
-      resetIdleTimer();
+      
+      if(selectedDistrict) {
+        setSelectedDistrict(null);
+        setShowProjects(false);
+        setInfoPanelItem(null);
+      }
+      
+      if (shipRefs.length > 0) {
+        let newTargetRef = targetShipRef;
+        if (shipRefs.length > 1) {
+          while (newTargetRef === targetShipRef) {
+            const randomIndex = Math.floor(Math.random() * shipRefs.length);
+            newTargetRef = shipRefs[randomIndex];
+          }
+        } else {
+          newTargetRef = shipRefs[0];
+        }
+        setTargetShipRef(newTargetRef);
+      }
+      setPov('ship');
+      setIsAnimating(true); // Animate INTO ship view
     }
-    setPov(newPov);
   };
+
 
   return (
     <>
