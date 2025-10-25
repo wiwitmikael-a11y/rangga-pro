@@ -18,6 +18,7 @@ import HolographicInfoPanel from './scene/HolographicInfoPanel';
 import { QuickNavMenu } from './ui/QuickNavMenu';
 import { ProjectSelectionPanel } from './ui/ProjectSelectionPanel';
 import { PatrollingCore } from './scene/PatrollingCore';
+import { CalibrationGrid } from './scene/CalibrationGrid';
 
 // Define the sun's position to be used by the light, sky, and mesh
 const sunPosition: [number, number, number] = [100, 2, -200]; // Lower sun for sunset effect
@@ -32,11 +33,11 @@ export const Experience3D: React.FC = () => {
   const [infoPanelItem, setInfoPanelItem] = useState<CityDistrict | null>(null);
   const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
   
-  // New state for POV and auto-rotation
   const [pov, setPov] = useState<'main' | 'ship'>('main');
   const [shipRefs, setShipRefs] = useState<React.RefObject<THREE.Group>[]>([]);
   const [targetShipRef, setTargetShipRef] = useState<React.RefObject<THREE.Group> | null>(null);
   const [isAutoRotating, setIsAutoRotating] = useState(true);
+  const [isCalibrationMode, setIsCalibrationMode] = useState(false);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const navDistricts = useMemo(() => {
@@ -50,11 +51,9 @@ export const Experience3D: React.FC = () => {
   const handleDistrictSelect = useCallback((district: CityDistrict) => {
     if (district.id === 'nexus-core') {
       window.open('https://www.instagram.com/rangga.p.h/', '_blank');
-      // Even for external links, briefly show selection animation
       setSelectedDistrict(district); 
       setShowProjects(false);
       setInfoPanelItem(null);
-      // After a short delay, clear selection to allow re-clicking
       setTimeout(() => setSelectedDistrict(null), 1000);
       return;
     }
@@ -69,7 +68,7 @@ export const Experience3D: React.FC = () => {
     }
     setIsAnimating(true);
     setShowProjects(false);
-    setIsAutoRotating(false); // Stop autorotate when focusing
+    setIsAutoRotating(false);
   }, [selectedDistrict, isAnimating]);
 
   const isDetailViewActive = showProjects || !!infoPanelItem || !!selectedDistrict;
@@ -77,11 +76,11 @@ export const Experience3D: React.FC = () => {
   const resetIdleTimer = useCallback(() => {
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     idleTimerRef.current = setTimeout(() => {
-        if (pov === 'main' && !selectedDistrict && !isDetailViewActive) {
+        if (pov === 'main' && !selectedDistrict && !isDetailViewActive && !isCalibrationMode) {
             setIsAutoRotating(true);
         }
-    }, 5000); // 5 seconds of inactivity
-  }, [pov, selectedDistrict, isDetailViewActive]);
+    }, 5000);
+  }, [pov, selectedDistrict, isDetailViewActive, isCalibrationMode]);
 
   const handleInteractionStart = useCallback(() => {
       setIsAutoRotating(false);
@@ -136,7 +135,7 @@ export const Experience3D: React.FC = () => {
 
     if (newPov === 'main') {
       handleGoHome();
-    } else { // Transitioning to ship view
+    } else {
       setIsAutoRotating(false);
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
       
@@ -159,9 +158,22 @@ export const Experience3D: React.FC = () => {
         setTargetShipRef(newTargetRef);
       }
       setPov('ship');
-      setIsAnimating(true); // Animate INTO ship view
+      setIsAnimating(true);
     }
   };
+
+  const handleToggleCalibrationMode = useCallback(() => {
+    setIsCalibrationMode(prev => {
+      const newMode = !prev;
+      if (newMode) {
+        setIsAutoRotating(false);
+        if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      } else {
+        resetIdleTimer();
+      }
+      return newMode;
+    });
+  }, [resetIdleTimer]);
 
 
   return (
@@ -211,6 +223,8 @@ export const Experience3D: React.FC = () => {
             {infoPanelItem && <HolographicInfoPanel district={infoPanelItem} onClose={handlePanelClose} />}
           </group>
           
+          {isCalibrationMode && <CalibrationGrid size={200} divisions={20} />}
+
           <CameraRig 
             selectedDistrict={selectedDistrict} 
             onAnimationFinish={onAnimationFinish} 
@@ -237,10 +251,10 @@ export const Experience3D: React.FC = () => {
         <OrbitControls
             enabled={pov === 'main' && !isAnimating && !isNavMenuOpen && !showProjects && !infoPanelItem}
             minDistance={20}
-            maxDistance={400} // Increased max distance to accommodate new overview
-            maxPolarAngle={Math.PI / 2.2}
+            maxDistance={400}
+            maxPolarAngle={isCalibrationMode ? Math.PI / 2.05 : Math.PI / 2.2}
             target={[0, 5, 0]}
-            autoRotate={isAutoRotating}
+            autoRotate={isAutoRotating && !isCalibrationMode}
             autoRotateSpeed={0.5}
             onStart={handleInteractionStart}
             onEnd={handleInteractionEnd}
@@ -253,6 +267,8 @@ export const Experience3D: React.FC = () => {
         isDetailViewActive={isDetailViewActive}
         pov={pov}
         onSetPov={handleSetPov}
+        isCalibrationMode={isCalibrationMode}
+        onToggleCalibrationMode={handleToggleCalibrationMode}
       />
       <QuickNavMenu 
         isOpen={isNavMenuOpen}

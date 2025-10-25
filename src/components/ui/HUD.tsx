@@ -8,6 +8,8 @@ interface HUDProps {
   isDetailViewActive: boolean;
   pov: 'main' | 'ship';
   onSetPov: (pov: 'main' | 'ship') => void;
+  isCalibrationMode: boolean;
+  onToggleCalibrationMode: () => void;
 }
 
 // --- SVG Icons ---
@@ -33,16 +35,27 @@ const ShipIcon: React.FC = () => (
   </svg>
 );
 
+const GridIcon: React.FC = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 3h18v18H3z"></path>
+        <path d="M3 9h18"></path>
+        <path d="M3 15h18"></path>
+        <path d="M9 3v18"></path>
+        <path d="M15 3v18"></path>
+    </svg>
+);
 
-export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, onToggleNavMenu, isDetailViewActive, pov, onSetPov }) => {
+
+export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, onToggleNavMenu, isDetailViewActive, pov, onSetPov, isCalibrationMode, onToggleCalibrationMode }) => {
 
   const breadcrumb = useMemo(() => {
     if (selectedDistrict) return `METROPOLIS.CORE > /${selectedDistrict.id.toUpperCase()}_DISTRICT/`;
+    if (isCalibrationMode) return `METROPOLIS.CORE > /CALIBRATION_MODE/`;
     return 'METROPOLIS.CORE';
-  }, [selectedDistrict]);
+  }, [selectedDistrict, isCalibrationMode]);
   
   const showHomeButton = isDetailViewActive;
-  const homeButtonIcon = '⌂'; // Home icon
+  const homeButtonIcon = '⌂';
 
   return (
     <>
@@ -73,6 +86,13 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
             aria-label="Back to City Overview"
           >
             {homeButtonIcon}
+          </button>
+          <button
+            onClick={onToggleCalibrationMode}
+            style={{...styles.hudButton, ...(isCalibrationMode ? styles.activePov : {}), ...styles.visible}}
+            aria-label="Toggle Calibration Grid"
+            >
+            <GridIcon />
           </button>
       </div>
 
