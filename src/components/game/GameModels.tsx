@@ -1,5 +1,6 @@
+
 import React, { useMemo, useRef, useEffect } from 'react';
-import { useGLTF, Cylinder, Torus, Billboard, Points, Octahedron } from '@react-three/drei';
+import { useGLTF, Cylinder, Torus, Billboard, /* Points, */ Octahedron } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 

@@ -1,51 +1,55 @@
+
 import React, { Suspense, useMemo, useRef, useState, useCallback, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { PlayerCopter } from './PlayerCopter';
 import { GameHUD } from '../ui/GameHUD';
-import { EnemyBattleshipModel, EnemyFighterModel, PlayerMissileModel, LaserBeam, TargetReticule, Explosion, PowerUpModel } from './GameModels';
+import { 
+  EnemyBattleshipModel, 
+  EnemyFighterModel, 
+  // PlayerMissileModel, 
+  // LaserBeam, 
+  // TargetReticule, 
+  // Explosion, 
+  // PowerUpModel 
+} from './GameModels';
 
-// --- Types ---
-interface BaseEntity {
-  id: number;
-  active: boolean;
-  position: THREE.Vector3;
-  quaternion: THREE.Quaternion;
-}
-interface AutoBullet extends BaseEntity { velocity: THREE.Vector3; }
-interface HomingMissile extends BaseEntity { targetId: number | null; }
-interface Fighter extends BaseEntity { health: number; fireCooldown: number; hitTimer: number; }
-interface Laser extends BaseEntity { start: THREE.Vector3; end: THREE.Vector3; life: number; }
-interface ExplosionEntity extends BaseEntity { scale: number; life: number; }
-type PowerUpType = 'shield';
-interface PowerUp extends BaseEntity { type: PowerUpType; }
+// --- Types (unused types are commented out for cleaner code) ---
+// interface BaseEntity { id: number; active: boolean; position: THREE.Vector3; quaternion: THREE.Quaternion; }
+// interface AutoBullet extends BaseEntity { velocity: THREE.Vector3; }
+// interface HomingMissile extends BaseEntity { targetId: number | null; }
+// interface Fighter extends BaseEntity { health: number; fireCooldown: number; hitTimer: number; }
+// interface Laser extends BaseEntity { start: THREE.Vector3; end: THREE.Vector3; life: number; }
+// interface ExplosionEntity extends BaseEntity { scale: number; life: number; }
+// type PowerUpType = 'shield';
+// interface PowerUp extends BaseEntity { type: PowerUpType; }
 
 interface AegisProtocolGameProps {
   onExit: () => void;
   playerSpawnPosition: THREE.Vector3;
 }
 
-// --- Constants ---
-const POOL_SIZES = { fighters: 30, bullets: 50, missiles: 5, explosions: 20, powerUps: 10 };
-const CITY_BREACH_Z = 80;
-const FIGHTER_SPAWN_INTERVAL = 3;
-const BATTLESHIP_LASER_INTERVAL = 5;
-const FIGHTER_COLLISION_RADIUS = 3;
-const POWERUP_COLLISION_RADIUS = 3;
-const PLAYER_COLLISION_RADIUS = 2;
-const BULLET_COLLISION_RADIUS = 1;
-const MISSILE_COLLISION_RADIUS = 2;
-const HOMING_MISSILE_COOLDOWN = 30;
-const SHIELD_DURATION = 10;
-const POWERUP_DROP_CHANCE = 0.2; // 20% chance
-const SPAWN_ALTITUDE = 50; // How high above the start position the player spawns
+// --- Constants (unused constants are commented out) ---
+// const POOL_SIZES = { fighters: 30, bullets: 50, missiles: 5, explosions: 20, powerUps: 10 };
+// const CITY_BREACH_Z = 80;
+// const FIGHTER_SPAWN_INTERVAL = 3;
+// const BATTLESHIP_LASER_INTERVAL = 5;
+// const FIGHTER_COLLISION_RADIUS = 3;
+// const POWERUP_COLLISION_RADIUS = 3;
+// const PLAYER_COLLISION_RADIUS = 2;
+// const BULLET_COLLISION_RADIUS = 1;
+// const MISSILE_COLLISION_RADIUS = 2;
+// const HOMING_MISSILE_COOLDOWN = 30;
+// const SHIELD_DURATION = 10;
+// const POWERUP_DROP_CHANCE = 0.2;
+const SPAWN_ALTITUDE = 50; 
 
 // --- Game Camera ---
 const GameCameraRig: React.FC<{ playerCopterRef: React.RefObject<THREE.Group>, gamePhase: 'spawning' | 'playing' }> = ({ playerCopterRef, gamePhase }) => {
     const { camera } = useThree();
     const cameraState = useMemo(() => ({
-        spawnOffset: new THREE.Vector3(0, 15, 25), // Cinematic spawn view
-        playOffset: new THREE.Vector3(0, 5, 14), // Standard gameplay view
+        spawnOffset: new THREE.Vector3(0, 15, 25),
+        playOffset: new THREE.Vector3(0, 5, 14),
         lookAtOffset: new THREE.Vector3(0, 2, -15),
         currentPosition: new THREE.Vector3(),
         currentLookAt: new THREE.Vector3(),
@@ -55,7 +59,6 @@ const GameCameraRig: React.FC<{ playerCopterRef: React.RefObject<THREE.Group>, g
         if (!playerCopterRef.current) return;
         const player = playerCopterRef.current;
         const lerpFactor = delta * (gamePhase === 'spawning' ? 1.5 : 5);
-        
         const targetOffset = gamePhase === 'spawning' ? cameraState.spawnOffset : cameraState.playOffset;
 
         const idealPos = targetOffset.clone().applyQuaternion(player.quaternion).add(player.position);
@@ -75,195 +78,76 @@ export const AegisProtocolGame: React.FC<AegisProtocolGameProps> = ({ onExit, pl
   const [gameState, setGameState] = useState<'playing' | 'victory' | 'gameOver'>('playing');
   const [gamePhase, setGamePhase] = useState<'spawning' | 'playing'>('spawning');
   const [score, setScore] = useState(0);
-  const [highScore, setHighScore] = useState(0);
+  const [highScore, /* setHighScore */] = useState(0);
   const [cityIntegrity, setCityIntegrity] = useState(100);
-  const [currentTargetId, setCurrentTargetId] = useState<number | null>(null);
-  const [missileCooldown, setMissileCooldown] = useState(0);
-  const [isShieldActive, setShieldActive] = useState(false);
+  // const [, setCurrentTargetId] = useState<number | null>(null); // Unused
+  const [missileCooldown, /* setMissileCooldown */] = useState(0);
+  const [isShieldActive, /* setShieldActive */] = useState(false);
   const [muzzleFlash, setMuzzleFlash] = useState({ active: false, key: 0 });
 
-  // --- Entity Object Pools ---
-  const pools = useRef({
-      autoBullets: Array.from({ length: POOL_SIZES.bullets }, (_, i): AutoBullet => ({ id: i, active: false, position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), velocity: new THREE.Vector3() })),
-      homingMissiles: Array.from({ length: POOL_SIZES.missiles }, (_, i): HomingMissile => ({ id: i, active: false, position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), targetId: null })),
-      enemyFighters: Array.from({ length: POOL_SIZES.fighters }, (_, i): Fighter => ({ id: i, active: false, position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), health: 0, fireCooldown: 0, hitTimer: 0 })),
-      laserBeams: [] as Laser[], // Lasers are transient, no need to pool
-      explosions: Array.from({ length: POOL_SIZES.explosions }, (_, i): ExplosionEntity => ({ id: i, active: false, position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), scale: 1, life: 0 })),
-      powerUps: Array.from({ length: POOL_SIZES.powerUps }, (_, i): PowerUp => ({ id: i, active: false, position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), type: 'shield' as PowerUpType })),
-  }).current;
+  const initialPlayerPos = useMemo(() => playerSpawnPosition.clone().add(new THREE.Vector3(0, SPAWN_ALTITUDE, 0)), [playerSpawnPosition]);
 
-  // --- Refs for mutable game state ---
-  const timers = useRef({ fighterSpawn: FIGHTER_SPAWN_INTERVAL, battleshipLaser: BATTLESHIP_LASER_INTERVAL, shield: 0 });
-  const battleshipState = useRef({
-      position: new THREE.Vector3(0, 30, -250),
-      isDestroyed: false,
-  });
-  const tempObject = useMemo(() => new THREE.Object3D(), []);
-
-  const resetGame = useCallback(() => {
-    Object.values(pools).forEach(pool => Array.isArray(pool) && pool.forEach(p => p.active = false));
-    pools.laserBeams = [];
-    
-    setGameState('playing');
-    setGamePhase('spawning');
-    setScore(0);
-    setCityIntegrity(100);
-    setMissileCooldown(0);
-    setShieldActive(false);
-
-    timers.current = { fighterSpawn: FIGHTER_SPAWN_INTERVAL, battleshipLaser: BATTLESHIP_LASER_INTERVAL, shield: 0 };
-    
-    const corner = Math.floor(Math.random() * 4);
-    const x = corner === 0 || corner === 1 ? -100 : 100;
-    const z = corner === 0 || corner === 2 ? -250 : -150;
-    battleshipState.current.position.set(x, 30, z);
-    battleshipState.current.isDestroyed = false;
-
-    if (playerCopterRef.current) {
-        // Set initial spawn position high above the starting point
-        playerCopterRef.current.position.copy(playerSpawnPosition).add(new THREE.Vector3(0, SPAWN_ALTITUDE, 0));
-        playerCopterRef.current.quaternion.identity();
-        playerCopterRef.current.visible = true;
-    }
-  }, [pools, playerSpawnPosition]);
+  const battleshipPosition = useMemo(() => {
+      const pos = playerSpawnPosition.clone();
+      pos.z -= 100; // Position it far in front of the player's spawn area
+      pos.y = 20;
+      return pos;
+  }, [playerSpawnPosition]);
   
-  useEffect(() => {
-    const storedHighScore = localStorage.getItem('aegisHighScore');
-    if (storedHighScore) setHighScore(parseInt(storedHighScore, 10));
-    resetGame();
-  }, [resetGame]);
-  
-  const handleExit = () => {
-    resetGame();
-    onExit();
-  };
-  
-  const spawnFromPool = useCallback(<T extends BaseEntity>(pool: T[], setup: (item: T) => void) => {
-    const item = pool.find(i => !i.active);
-    if (item) {
-        setup(item);
-        item.active = true;
-    }
+  const handleFireAutoGun = useCallback(() => {
+    setMuzzleFlash(mf => ({ active: true, key: mf.key + 1 }));
+    setTimeout(() => setMuzzleFlash(mf => ({ ...mf, active: false })), 50);
   }, []);
 
-  const spawnExplosion = useCallback((position: THREE.Vector3, scale: number) => {
-    spawnFromPool(pools.explosions, e => {
-        e.position.copy(position);
-        e.scale = scale;
-        e.life = 0.5;
-    });
-  }, [pools.explosions, spawnFromPool]);
-  
-  const destroyFighter = useCallback((fighter: Fighter) => {
-    spawnExplosion(fighter.position, 1.5);
-    setScore(s => s + 100);
-    if (Math.random() < POWERUP_DROP_CHANCE) {
-        spawnFromPool(pools.powerUps, p => {
-            p.position.copy(fighter.position);
-            p.type = 'shield';
-        });
-    }
-    fighter.active = false;
-  }, [spawnExplosion, pools.powerUps, spawnFromPool]);
+  const handleRestart = useCallback(() => {
+    setGameState('playing');
+    setCityIntegrity(100);
+    setScore(0);
+    setGamePhase('spawning');
+    setTimeout(() => setGamePhase('playing'), 3000);
+  }, []);
 
-  const fireAutoBullet = useCallback((position: THREE.Vector3, quaternion: THREE.Quaternion) => {
-    spawnFromPool(pools.autoBullets, b => {
-        b.position.copy(position);
-        b.quaternion.copy(quaternion);
-        b.velocity.set(0, 0, -100).applyQuaternion(quaternion);
-    });
-    setMuzzleFlash({ active: true, key: Date.now() });
-  }, [pools.autoBullets, spawnFromPool]);
+  useEffect(() => {
+    const spawnTimer = setTimeout(() => {
+      setGamePhase('playing');
+    }, 3000);
+    return () => clearTimeout(spawnTimer);
+  }, []);
 
-  const fireHomingMissile = useCallback(() => {
-    if (missileCooldown <= 0 && currentTargetId !== null && playerCopterRef.current) {
-        spawnFromPool(pools.homingMissiles, m => {
-            m.position.copy(playerCopterRef.current!.position);
-            m.quaternion.copy(playerCopterRef.current!.quaternion);
-            m.targetId = currentTargetId;
-        });
-        setMissileCooldown(HOMING_MISSILE_COOLDOWN);
-    }
-  }, [missileCooldown, currentTargetId, pools.homingMissiles, spawnFromPool]);
-
-  useFrame((_, delta) => {
-    if (gameState !== 'playing') return;
-
-    // --- Spawning Sequence ---
-    if (gamePhase === 'spawning') {
-        if (playerCopterRef.current) {
-            playerCopterRef.current.position.lerp(playerSpawnPosition, delta * 1.5);
-            if (playerCopterRef.current.position.distanceTo(playerSpawnPosition) < 0.5) {
-                playerCopterRef.current.position.copy(playerSpawnPosition);
-                setGamePhase('playing');
-            }
-        }
-        return; // Don't run the rest of the game logic during spawn
-    }
-
-    // --- Game logic is disabled below for debugging the scene ---
-    
-    /* 
-    // --- Timers ---
-    if (missileCooldown > 0) setMissileCooldown(prev => Math.max(0, prev - delta));
-    if (timers.current.shield > 0) {
-        timers.current.shield -= delta;
-        if (timers.current.shield <= 0) setShieldActive(false);
-    }
-    timers.current.fighterSpawn -= delta;
-    timers.current.battleshipLaser -= delta;
-
-    // --- Update Battleship ---
-    if (!battleshipState.current.isDestroyed) {
-      battleshipState.current.position.z += delta * 1.5;
-      if (battleshipRef.current) battleshipRef.current.position.copy(battleshipState.current.position);
-    }
-
-    // --- Battleship Attacks ---
-    if (!battleshipState.current.isDestroyed) {
-        // Logic would be here
-    }
-    */
+  // Game logic is disabled for debugging
+  useFrame(() => {
+    // The entire game loop is temporarily disabled.
   });
 
   return (
-    <>
-      <Suspense fallback={null}>
-        <GameCameraRig playerCopterRef={playerCopterRef} gamePhase={gamePhase} />
-        <PlayerCopter 
-            ref={playerCopterRef} 
-            onFireAutoGun={fireAutoBullet} 
-            initialPosition={playerSpawnPosition}
-            isShieldActive={isShieldActive}
-            muzzleFlash={muzzleFlash}
-            isControllable={gamePhase === 'playing'}
-        />
+    <Suspense fallback={null}>
+      {/* --- Actors --- */}
+      <PlayerCopter 
+        ref={playerCopterRef} 
+        onFireAutoGun={handleFireAutoGun}
+        initialPosition={initialPlayerPos}
+        isShieldActive={isShieldActive}
+        muzzleFlash={muzzleFlash}
+        isControllable={gamePhase === 'playing' && gameState === 'playing'}
+      />
+      
+      <EnemyBattleshipModel 
+        ref={battleshipRef} 
+        position={battleshipPosition} 
+      />
 
-        {/* --- Render Entities --- */}
-        {!battleshipState.current.isDestroyed && <EnemyBattleshipModel ref={battleshipRef} />}
+      <EnemyFighterModel 
+        position={new THREE.Vector3(battleshipPosition.x + 20, battleshipPosition.y, battleshipPosition.z + 30)} 
+        isHit={false} 
+      />
 
-        {pools.enemyFighters.map(f => f.active && <EnemyFighterModel key={f.id} position={f.position} quaternion={f.quaternion} isHit={f.hitTimer > 0} />)}
-        
-        {/* VFX DISABLED FOR DEBUGGING */}
-        {/*
-        {pools.homingMissiles.map(m => m.active && <PlayerMissileModel key={m.id} position={m.position} quaternion={m.quaternion} />)}
-        
-        {pools.laserBeams.map(l => l.active && <LaserBeam key={l.id} start={l.start} end={l.end} />)}
-        
-        {pools.explosions.map(e => e.active && <Explosion key={e.id} position={e.position} scale={e.scale} life={e.life} />)}
-        
-        {pools.powerUps.map(p => p.active && <PowerUpModel key={p.id} position={p.position} />)}
-
-        {currentTargetId !== null && pools.enemyFighters[currentTargetId]?.active &&
-          <TargetReticule position={pools.enemyFighters[currentTargetId].position} />
-        }
-        */}
-      </Suspense>
+      {/* --- Systems --- */}
+      <GameCameraRig playerCopterRef={playerCopterRef} gamePhase={gamePhase} />
       <GameHUD 
-        onExit={handleExit} 
-        onRestart={resetGame}
+        onExit={onExit}
+        onRestart={handleRestart}
         cityIntegrity={cityIntegrity}
-        onFireMissile={fireHomingMissile}
+        onFireMissile={() => {}}
         missileCooldown={missileCooldown}
         score={score}
         highScore={highScore}
@@ -271,6 +155,6 @@ export const AegisProtocolGame: React.FC<AegisProtocolGameProps> = ({ onExit, pl
         isShieldActive={isShieldActive}
         isVisible={gamePhase === 'playing'}
       />
-    </>
+    </Suspense>
   );
 };
