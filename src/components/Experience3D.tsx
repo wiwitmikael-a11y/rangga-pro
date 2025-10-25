@@ -20,8 +20,9 @@ import { ProjectSelectionPanel } from './ui/ProjectSelectionPanel';
 import { PatrollingCore } from './scene/PatrollingCore';
 
 // Define the sun's position to be used by the light, sky, and mesh
-const sunPosition: [number, number, number] = [-100, 70, -100];
+const sunPosition: [number, number, number] = [100, 15, -150];
 const sunColor = '#FFFFF0'; // A warm, sun-like white
+const fogColor = '#a38c6d'; // Dusty sand color for fog
 
 export const Experience3D: React.FC = () => {
   const [selectedDistrict, setSelectedDistrict] = useState<CityDistrict | null>(null);
@@ -107,7 +108,10 @@ export const Experience3D: React.FC = () => {
         dpr={[1, 1.5]}
       >
         <Suspense fallback={null}>
-          <Sky sunPosition={sunPosition} />
+          <color attach="background" args={[fogColor]} />
+          <fog attach="fog" args={[fogColor, 150, 400]} />
+          
+          <Sky sunPosition={sunPosition} turbidity={10} rayleigh={3} mieCoefficient={0.005} mieDirectionalG={0.8} />
           <ambientLight intensity={0.3} />
           <directionalLight
             position={sunPosition}

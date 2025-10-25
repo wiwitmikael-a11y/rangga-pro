@@ -69,7 +69,7 @@ export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(({
 
     const uniforms = useMemo(() => ({
         uTime: { value: 0.0 },
-        uColor: { value: new THREE.Color('#081022') }, // A dark blue base
+        uColor: { value: new THREE.Color('#c2b280') }, // A sandy desert base color
     }), []);
 
     const handleClick = (e: ThreeEvent<MouseEvent>) => {
