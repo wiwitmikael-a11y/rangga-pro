@@ -28,3 +28,16 @@ export interface CityDistrict {
   modelScale?: number; // Skala untuk model GLB
   isDirty?: boolean; // Flag to track if the district has been moved by the user
 }
+
+// --- New Types for Skills Radar Chart ---
+export interface Skill {
+  name: string;
+  level: number; // A value from 0 to 100
+}
+
+export interface SkillCategory {
+  category: string;
+  description: string; // Narrative description for the category
+  skills: Skill[];
+  keyMetrics: string[]; // Concrete achievements for the category
+}

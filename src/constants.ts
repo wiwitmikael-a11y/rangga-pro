@@ -1,5 +1,72 @@
+import type { CityDistrict, SkillCategory } from './types';
 
-import type { CityDistrict } from './types';
+// A high-level professional synopsis for the default view in the Competency Core.
+export const professionalSummary = `A rare hybrid professional with 15+ years of parallel experience in strategic leadership and deep technology. Proven ability to architect complex digital solutions, lead high-performance teams in the financial sector, and direct award-winning creative projects. A unique blend of an executive, an engineer, and a creative visionary.`;
+
+// Data structure for the Skills Radar Chart, updated to reflect a 15+ year career.
+export const skillsData: SkillCategory[] = [
+  {
+    category: 'Leadership & Finance',
+    description: '15 years building and leading high-performance teams in the competitive financial sector. Proven expertise in strategic planning, P&L management, and driving market growth as a former Head of Unit.',
+    skills: [
+      { name: 'Executive Leadership', level: 95 },
+      { name: 'Financial Services & Risk', level: 95 },
+      { name: 'Marketing & Growth Strategy', level: 90 },
+    ],
+    keyMetrics: ['15+ Years Experience', 'Former Head of Unit (BRI)', 'P&L Management'],
+  },
+  {
+    category: 'Web & Architecture',
+    description: 'A 15-year veteran in digital craftsmanship. Specializing in building scalable full-stack applications, immersive WebGL experiences, and intuitive user interfaces from concept to deployment.',
+    skills: [
+      { name: 'Full-Stack Architecture', level: 98 },
+      { name: 'UI/UX Engineering', level: 98 },
+      { name: 'Interactive 3D/WebGL', level: 95 },
+    ],
+    keyMetrics: ['15+ Years Full-Stack Dev', 'Lead UI/UX Designer', 'WebGL Specialist'],
+  },
+  {
+    category: 'AI & ML',
+    description: 'Actively engineering the future with 3+ years in Generative AI. Focused on leveraging large language models like the Gemini API to create intelligent, data-driven solutions and autonomous agents.',
+    skills: [
+      { name: 'Gemini API Integration', level: 85 },
+      { name: 'Generative AI Engineering', level: 85 },
+      { name: 'Autonomous Agent Design', level: 80 },
+    ],
+    keyMetrics: ['Gemini API Expert', 'Autonomous Agent Dev', 'Continuous R&D'],
+  },
+  {
+    category: 'Blockchain',
+    description: '5 years of deep engagement in the Web3 ecosystem. Expertise in on-chain data intelligence, DeFi protocol analysis, and secure smart contract development.',
+    skills: [
+      { name: 'On-Chain Intelligence', level: 90 },
+      { name: 'Smart Contracts (Solidity)', level: 85 },
+      { name: 'Decentralized Applications', level: 88 },
+    ],
+    keyMetrics: ['5+ Years in Web3', 'DeFi Protocol Analyst', 'On-Chain Intelligence'],
+  },
+  {
+    category: 'Creative Tech',
+    description: 'Two decades of experience in visual technology. A master of the full creative pipeline, from award-winning videography and advanced 3D modeling to compelling brand-focused graphic design.',
+    skills: [
+      { name: 'Graphic Design & Branding', level: 98 },
+      { name: 'Videography & VFX', level: 95 },
+      { name: '3D Modeling & Rendering', level: 85 },
+    ],
+    keyMetrics: ['20 Years Design Exp.', 'Advanced 3D Modeling', 'VFX & Post-Production'],
+  },
+  {
+    category: 'Arts & Media',
+    description: 'A fusion of technical skill and pure creativity. An accomplished, nationally-awarded photographer and songwriter with a proven eye for powerful, narrative-driven visual and auditory storytelling.',
+    skills: [
+      { name: 'Photography (National Champion)', level: 95 },
+      { name: 'Creative/Art Direction', level: 90 },
+      { name: 'Music Composition', level: 85 },
+    ],
+    keyMetrics: ['National Photo Champion', 'Published Songwriter', 'Art Direction'],
+  },
+];
+
 
 // Data portofolio telah diisi dengan konten mock yang relevan dan gambar dari CDN.
 // FOKUS KAMERA TELAH DIKALIBRASI ULANG UNTUK PEMBINGKAIAN YANG AKURAT DAN SINEMATIK
@@ -29,7 +96,7 @@ export const portfolioData: CityDistrict[] = [
   },
   {
     "id": "nova-forge",
-    "title": "Nova Forge",
+    "title": "AI Engineer Lab",
     "description": "Engineering & Generative Projects",
     "position": [
       80,
@@ -87,7 +154,7 @@ export const portfolioData: CityDistrict[] = [
   },
   {
     "id": "visual-arts",
-    "title": "Visual Arts Archive",
+    "title": "Visual Archiver",
     "description": "Award-Winning Content Creations",
     "position": [
       -30,
@@ -145,10 +212,10 @@ export const portfolioData: CityDistrict[] = [
   },
   {
     "id": "defi-data-vault",
-    "title": "DeFi Data-Vault",
+    "title": "DeFi Vault",
     "description": "Blockchain Analysis & Web3 Exploration",
     "position": [
-      60,
+      80,
       -5,
       0
     ],
@@ -192,12 +259,12 @@ export const portfolioData: CityDistrict[] = [
   },
   {
     "id": "skills-matrix",
-    "title": "Skills Matrix",
+    "title": "Competency Core",
     "description": "Core Technical & Creative Proficiencies",
     "position": [
-      -10,
+      -20,
       -5,
-      -10
+      0
     ],
     "type": "major",
     "cameraFocus": {
@@ -261,7 +328,7 @@ export const portfolioData: CityDistrict[] = [
   },
   {
     "id": "contact",
-    "title": "Contact Terminal",
+    "title": "Contact Hub",
     "description": "Establish a connection",
     "position": [
       20,
