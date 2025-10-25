@@ -1,6 +1,8 @@
 
 
 
+
+
 import React, { useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -17,8 +19,8 @@ interface CameraRigProps {
 
 const targetPosition = new THREE.Vector3();
 const targetLookAt = new THREE.Vector3();
-// Posisi tinjauan umum yang diperbarui untuk transisi yang lebih pendek dan tidak terlalu drastis
-const OVERVIEW_POSITION = new THREE.Vector3(0, 80, 200);
+// Posisi tinjauan umum yang diperbarui agar sesuai dengan posisi awal untuk zoom out maksimal
+const OVERVIEW_POSITION = new THREE.Vector3(0, 100, 250);
 // Melihat ke tengah ground plane untuk bidikan tinjauan umum yang lebih baik
 const OVERVIEW_LOOK_AT = new THREE.Vector3(0, 0, 0);
 const CALIBRATION_POSITION = new THREE.Vector3(0, 200, 1); // Tampilan top-down yang tinggi
