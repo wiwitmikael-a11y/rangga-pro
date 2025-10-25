@@ -6,8 +6,8 @@ export const portfolioData: CityDistrict[] = [
   // 1. Central "About Me" Hub
   {
     id: 'nexus-core',
-    title: 'The Nexus Core',
-    description: 'Convergence of Finance, Art & Technology',
+    title: '@rangga.p.h',
+    description: 'Digital Artisan & Tech Explorer',
     position: [0, 0, 0],
     type: 'major',
     cameraFocus: {
