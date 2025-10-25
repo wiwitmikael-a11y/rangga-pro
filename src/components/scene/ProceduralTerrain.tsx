@@ -32,8 +32,8 @@ export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(({
                 onClick={handleClick}
                 receiveShadow
             >
-                {/* Gunakan PlaneGeometry dengan banyak segmen agar displacement map berfungsi baik */}
-                <planeGeometry args={[500, 500, 128, 128]} />
+                {/* Menggunakan CircleGeometry untuk cakrawala yang mulus dan membulat */}
+                <circleGeometry args={[250, 128]} />
                 <meshStandardMaterial
                     map={texture}
                     // Gunakan tekstur yang sama sebagai displacement map untuk detail ketinggian
