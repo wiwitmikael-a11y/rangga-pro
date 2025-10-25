@@ -43,10 +43,17 @@ const ALL_LANDING_SPOTS = [...ROOFTOP_LANDING_SPOTS, ...TERRAIN_LANDING_SPOTS, .
 
 type ShipState = 'FLYING' | 'DESCENDING' | 'LANDED' | 'ASCENDING';
 
-interface ShipProps {
-  modelUrl: string;
-  scale: number;
-  initialDelay: number;
+export type ShipType = 'transport' | 'fighter' | 'copter';
+
+export interface ShipData {
+    id: string;
+    url: string;
+    scale: number;
+    initialDelay: number;
+    shipType: ShipType;
+}
+
+interface ShipProps extends ShipData {
   isPaused?: boolean;
 }
 
@@ -175,24 +182,25 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ modelUrl, scale, initialDelay
 });
 
 
+export const shipsData: ShipData[] = [
+    { id: 'space_1', url: `${GITHUB_MODEL_URL_BASE}ship_space.glb`, scale: 0.45, initialDelay: 0, shipType: 'fighter' },
+    { id: 'space_2', url: `${GITHUB_MODEL_URL_BASE}ship_space.glb`, scale: 0.47, initialDelay: 5, shipType: 'fighter' },
+    { id: 'delorean_1', url: `${GITHUB_MODEL_URL_BASE}ship_delorean.glb`, scale: 0.6, initialDelay: 2, shipType: 'transport' },
+    { id: 'delorean_2', url: `${GITHUB_MODEL_URL_BASE}ship_delorean.glb`, scale: 0.55, initialDelay: 7, shipType: 'transport' },
+    { id: 'copter_1', url: `${GITHUB_MODEL_URL_BASE}ship_copter.glb`, scale: 0.05, initialDelay: 4, shipType: 'copter' },
+    { id: 'copter_2', url: `${GITHUB_MODEL_URL_BASE}ship_copter.glb`, scale: 0.055, initialDelay: 9, shipType: 'copter' },
+];
+
 interface FlyingShipsProps {
   setShipRefs: (refs: React.RefObject<THREE.Group>[]) => void;
   isPaused?: boolean;
 }
 
 export const FlyingShips: React.FC<FlyingShipsProps> = React.memo(({ setShipRefs, isPaused }) => {
-  const ships = useMemo(() => [
-    { id: 'space_1', url: `${GITHUB_MODEL_URL_BASE}ship_space.glb`, scale: 0.45, initialDelay: 0 },
-    { id: 'space_2', url: `${GITHUB_MODEL_URL_BASE}ship_space.glb`, scale: 0.47, initialDelay: 5 },
-    { id: 'delorean_1', url: `${GITHUB_MODEL_URL_BASE}ship_delorean.glb`, scale: 0.6, initialDelay: 2 },
-    { id: 'delorean_2', url: `${GITHUB_MODEL_URL_BASE}ship_delorean.glb`, scale: 0.55, initialDelay: 7 },
-    { id: 'copter_1', url: `${GITHUB_MODEL_URL_BASE}ship_copter.glb`, scale: 0.05, initialDelay: 4 },
-    { id: 'copter_2', url: `${GITHUB_MODEL_URL_BASE}ship_copter.glb`, scale: 0.055, initialDelay: 9 },
-  ], []);
-
+  
   const shipRefs = useMemo(() => 
-    Array.from({ length: ships.length }, () => React.createRef<THREE.Group>()), 
-    [ships.length]
+    Array.from({ length: shipsData.length }, () => React.createRef<THREE.Group>()), 
+    []
   );
   
   useEffect(() => {
@@ -203,8 +211,8 @@ export const FlyingShips: React.FC<FlyingShipsProps> = React.memo(({ setShipRefs
 
   return (
     <Suspense fallback={null}>
-      {ships.map((ship, i) => (
-        <Ship ref={shipRefs[i]} key={ship.id} modelUrl={ship.url} scale={ship.scale} initialDelay={ship.initialDelay} isPaused={isPaused} />
+      {shipsData.map((ship, i) => (
+        <Ship ref={shipRefs[i]} key={ship.id} {...ship} isPaused={isPaused} />
       ))}
     </Suspense>
   );

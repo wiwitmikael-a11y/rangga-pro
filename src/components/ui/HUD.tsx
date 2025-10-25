@@ -13,6 +13,7 @@ interface HUDProps {
   onExportLayout: () => void;
   heldDistrictId: string | null;
   onCancelMove: () => void;
+  gameMode: 'inactive' | 'lobby' | 'active';
 }
 
 // --- SVG Icons ---
@@ -63,17 +64,18 @@ const CancelIcon: React.FC = () => (
     </svg>
 );
 
-
-export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, onToggleNavMenu, isDetailViewActive, pov, onSetPov, isCalibrationMode, onToggleCalibrationMode, onExportLayout, heldDistrictId, onCancelMove }) => {
+export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, onToggleNavMenu, isDetailViewActive, pov, onSetPov, isCalibrationMode, onToggleCalibrationMode, onExportLayout, heldDistrictId, onCancelMove, gameMode }) => {
 
   const breadcrumb = useMemo(() => {
+    if (gameMode === 'active') return `RAGETOPIA > /AEGIS_PROTOCOL/ACTIVE/`;
+    if (gameMode === 'lobby') return `RAGETOPIA > /AEGIS_COMMAND/STANDBY/`;
     if (heldDistrictId) return `RAGETOPIA > /ARCHITECT_MODE/MOVING...`;
     if (selectedDistrict) return `RAGETOPIA > /${selectedDistrict.id.toUpperCase()}_DISTRICT/`;
     if (isCalibrationMode) return `RAGETOPIA > /ARCHITECT_MODE/`;
     return 'RAGETOPIA';
-  }, [selectedDistrict, isCalibrationMode, heldDistrictId]);
+  }, [selectedDistrict, isCalibrationMode, heldDistrictId, gameMode]);
   
-  const showHomeButton = isDetailViewActive;
+  const showHomeButton = isDetailViewActive || gameMode === 'active' || pov === 'ship';
   const homeButtonIcon = '⌂';
 
   return (
@@ -83,13 +85,13 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
       </div>
        
       <div style={styles.bottomLeftContainer} className="bottom-left-container">
-          <div style={{...styles.povSelector, ...(isCalibrationMode ? styles.disabled : {})}}>
+          <div style={{...styles.povSelector, ...(isCalibrationMode || gameMode === 'active' ? styles.disabled : {})}}>
               <button 
                 onClick={() => onSetPov('main')} 
                 style={{...styles.hudButton, ...(pov === 'main' ? styles.activePov : {})}}
                 className="hud-button"
                 aria-label="Overview Camera"
-                disabled={isCalibrationMode}
+                disabled={isCalibrationMode || gameMode === 'active'}
               >
                   <CameraIcon />
               </button>
@@ -98,7 +100,7 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
                 style={{...styles.hudButton, ...(pov === 'ship' ? styles.activePov : {})}}
                 className="hud-button"
                 aria-label="Ship Follow Camera"
-                disabled={isCalibrationMode}
+                disabled={isCalibrationMode || gameMode === 'active'}
               >
                   <ShipIcon />
               </button>
@@ -113,9 +115,10 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
           </button>
           <button
             onClick={onToggleCalibrationMode}
-            style={{...styles.hudButton, ...(isCalibrationMode ? styles.activePov : {}), ...styles.visible}}
+            style={{...styles.hudButton, ...(isCalibrationMode ? styles.activePov : {}), ...(!isCalibrationMode && gameMode === 'active' ? styles.hiddenBottom : styles.visible)}}
             className="hud-button"
             aria-label="Toggle Architect Mode"
+            disabled={gameMode === 'active'}
             >
             <GridIcon />
           </button>
@@ -137,7 +140,7 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
           </button>
       </div>
 
-      <div style={styles.bottomCenterContainer} className="bottom-center-container">
+      <div style={{...styles.bottomCenterContainer, ...(gameMode === 'active' || isCalibrationMode ? styles.hiddenBottom : {})}} className="bottom-center-container">
         <button
           onClick={onToggleNavMenu}
           style={styles.navMenuButton}
@@ -205,6 +208,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     left: '50%',
     transform: 'translateX(-50%)',
     zIndex: 10,
+    transition: 'all 0.5s ease',
   },
   hudButton: {
     ...glassmorphism,
@@ -232,6 +236,11 @@ const styles: { [key: string]: React.CSSProperties } = {
       background: 'rgba(255, 0, 50, 0.3)',
       borderColor: 'rgba(255, 80, 100, 0.8)',
       color: '#ff8c8c',
+  },
+  aegisButton: {
+    background: 'rgba(255, 153, 0, 0.15)',
+    borderColor: 'rgba(255, 153, 0, 0.6)',
+    color: '#ff9900',
   },
   navMenuButton: {
     ...glassmorphism,

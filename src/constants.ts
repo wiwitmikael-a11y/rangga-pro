@@ -95,6 +95,31 @@ export const portfolioData: CityDistrict[] = [
     }
   },
   {
+    "id": "aegis-command",
+    "title": "Aegis Command",
+    "description": "Launch Threat Neutralization Protocol",
+    "position": [
+      -60,
+      -5,
+      -60
+    ],
+    "type": "major",
+    "modelUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/AegisCommand.glb",
+    "modelScale": 8,
+    "cameraFocus": {
+      "pos": [
+        -60,
+        30,
+        -20
+      ],
+      "lookAt": [
+        -60,
+        5,
+        -60
+      ]
+    }
+  },
+  {
     "id": "nova-forge",
     "title": "AI Engineer Lab",
     "description": "Engineering & Generative Projects",

@@ -1,4 +1,5 @@
 
+
 import React, { useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -11,6 +12,7 @@ interface CameraRigProps {
   pov: 'main' | 'ship';
   targetShipRef: React.RefObject<THREE.Group> | null;
   isCalibrationMode: boolean;
+  isGameModeActive: boolean;
 }
 
 const targetPosition = new THREE.Vector3();
@@ -21,7 +23,7 @@ const OVERVIEW_POSITION = new THREE.Vector3(0, 80, 200);
 const OVERVIEW_LOOK_AT = new THREE.Vector3(0, 0, 0);
 const CALIBRATION_POSITION = new THREE.Vector3(0, 200, 1); // Tampilan top-down yang tinggi
 
-export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimationFinish, isAnimating, pov, targetShipRef, isCalibrationMode }) => {
+export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimationFinish, isAnimating, pov, targetShipRef, isCalibrationMode, isGameModeActive }) => {
   const shipCam = useMemo(() => ({
     offset: new THREE.Vector3(0, 12, -18),
     idealPosition: new THREE.Vector3(),
@@ -33,6 +35,11 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
   isAnimatingRef.current = isAnimating;
 
   useFrame((state, delta) => {
+    // If game mode is active, this camera rig should do nothing.
+    if (isGameModeActive) {
+      return;
+    }
+
     let hasTarget = false;
     // Kecepatan lerp yang disesuaikan untuk transisi yang lebih mulus
     let lerpSpeed = 2.8;
