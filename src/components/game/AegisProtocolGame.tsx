@@ -237,7 +237,7 @@ export const AegisProtocolGame: React.FC<AegisProtocolGameProps> = ({ onExit, pl
       if (f.hitTimer > 0) f.hitTimer -= delta;
       if (playerCopterRef.current) {
         const direction = playerCopterRef.current.position.clone().sub(f.position);
-        // Safeguard to prevent normalizing a zero vector
+        // BUG FIX: Safeguard to prevent normalizing a zero vector, which would cause NaNs and crash the renderer.
         if (direction.lengthSq() > 0.0001) {
             direction.normalize();
             f.position.add(direction.multiplyScalar(delta * 15));
@@ -261,7 +261,7 @@ export const AegisProtocolGame: React.FC<AegisProtocolGameProps> = ({ onExit, pl
       const target = pools.enemyFighters.find(f => f.id === missile.targetId && f.active);
       if (target) {
         const direction = target.position.clone().sub(missile.position);
-        // Safeguard to prevent normalizing a zero vector
+        // BUG FIX: Safeguard against normalizing a zero vector.
         if (direction.lengthSq() > 0.0001) {
             direction.normalize();
             missile.position.add(direction.multiplyScalar(delta * 50));

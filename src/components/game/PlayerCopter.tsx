@@ -86,7 +86,7 @@ export const PlayerCopter = forwardRef<THREE.Group, PlayerCopterProps>(({ onFire
     const aimTarget = new THREE.Vector3(state.mouse.x, state.mouse.y, -1).unproject(state.camera);
     const aimDirection = aimTarget.sub(player.current.position);
 
-    // Safeguard to prevent normalizing a zero vector, which results in NaN values and crashes the renderer.
+    // BUG FIX: Safeguard to prevent normalizing a zero vector, which results in NaN values and crashes the renderer.
     if (aimDirection.lengthSq() > 0.0001) {
         aimDirection.normalize();
         const finalTarget = player.current.position.clone().add(aimDirection.multiplyScalar(50));
