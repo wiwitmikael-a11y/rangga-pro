@@ -104,17 +104,17 @@ export const portfolioData: CityDistrict[] = [
       -60
     ],
     "type": "major",
-    "modelUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/AegisCommand.glb",
-    "modelScale": 8,
+    "modelUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/aegis_hq.glb",
+    "modelScale": 0.5,
     "cameraFocus": {
       "pos": [
-        -60,
-        30,
-        -20
+        -80,
+        40,
+        -40
       ],
       "lookAt": [
         -60,
-        5,
+        10,
         -60
       ]
     }

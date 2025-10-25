@@ -2,12 +2,18 @@ import React from 'react';
 
 interface GameHUDProps {
     onExit: () => void;
+    cityIntegrity: number; // Value from 0 to 100
+    onFireMissile: () => void;
+    missileCooldown: number;
 }
 
-export const GameHUD: React.FC<GameHUDProps> = ({ onExit }) => {
+export const GameHUD: React.FC<GameHUDProps> = ({ onExit, cityIntegrity, onFireMissile, missileCooldown }) => {
     // This component is for display and touch event handling only.
     // The logic is in the `useTouchControls` hook.
     
+    const isMissileReady = missileCooldown <= 0;
+    const missileButtonText = isMissileReady ? "MISSILE" : `${Math.ceil(missileCooldown)}s`;
+
     return (
         <div style={styles.container}>
             {/* Top Bar for Status */}
@@ -15,21 +21,26 @@ export const GameHUD: React.FC<GameHUDProps> = ({ onExit }) => {
                 <div style={styles.healthBarContainer}>
                     <span style={styles.healthLabel}>CITY INTEGRITY</span>
                     <div style={styles.healthBar}>
-                        <div style={{...styles.healthBarFill, width: '100%'}}></div>
+                        <div style={{...styles.healthBarFill, width: `${cityIntegrity}%`}}></div>
                     </div>
                 </div>
                 <button onClick={onExit} style={styles.exitButton}>EXIT</button>
             </div>
             
             {/* Bottom Controls for Mobile */}
-            <div style={styles.bottomControls}>
+            <div style={styles.bottomControls} className="game-hud-bottom-controls">
                 <div style={styles.joystickBase} id="joystick-base">
                     <div style={styles.joystickHandle} id="joystick-handle" />
                 </div>
 
                 <div style={styles.rightControls}>
-                    <button style={styles.ionCannonButton} id="ion-cannon">
-                        ION
+                    <button 
+                        style={{...styles.missileButton, ...(!isMissileReady ? styles.disabledButton : {})}} 
+                        id="missile-fire"
+                        onClick={onFireMissile}
+                        disabled={!isMissileReady}
+                    >
+                        {missileButtonText}
                     </button>
                     <div style={styles.altitudeControls}>
                         <button style={styles.altitudeButton} id="altitude-up">▲</button>
@@ -82,6 +93,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         background: 'var(--primary-color)',
         borderRadius: '5px',
         boxShadow: '0 0 8px var(--primary-color)',
+        transition: 'width 0.5s ease',
     },
     exitButton: {
         pointerEvents: 'all',
@@ -136,7 +148,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         color: 'white',
         fontSize: '1.5rem',
     },
-    ionCannonButton: {
+    missileButton: {
         pointerEvents: 'all',
         width: '80px',
         height: '80px',
@@ -146,6 +158,13 @@ const styles: { [key: string]: React.CSSProperties } = {
         color: 'white',
         fontSize: '1.2rem',
         fontWeight: 'bold',
+        transition: 'background-color 0.2s, border-color 0.2s',
+    },
+    disabledButton: {
+        background: 'rgba(100, 100, 100, 0.5)',
+        border: '2px solid #666',
+        color: '#aaa',
+        cursor: 'not-allowed',
     },
     // Media query to only show touch controls on mobile devices
     '@media (max-width: 768px)': {

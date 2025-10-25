@@ -14,7 +14,7 @@ import type { CityDistrict, PortfolioSubItem } from '../types';
 import { CameraRig } from './CameraRig';
 import { HUD } from './ui/HUD';
 import { ProceduralTerrain } from './scene/ProceduralTerrain';
-import HolographicInfoPanel from './scene/HolographicInfoPanel';
+import HolographicInfoPanel from './scene/H holographicInfoPanel';
 import { QuickNavMenu } from './ui/QuickNavMenu';
 import { ProjectSelectionPanel } from './ui/ProjectSelectionPanel';
 import { PatrollingCore } from './scene/PatrollingCore';
@@ -67,6 +67,14 @@ export const Experience3D: React.FC = () => {
       ? [nexusCore, ...majorDistricts.filter(d => d.id !== 'nexus-core')]
       : majorDistricts;
   }, [districts]);
+
+  const aegisDistrict = useMemo(() => districts.find(d => d.id === 'aegis-command'), [districts]);
+  const playerSpawnPosition = useMemo(() => 
+    aegisDistrict 
+      ? new THREE.Vector3(aegisDistrict.position[0], 10, aegisDistrict.position[2] + 10) 
+      : new THREE.Vector3(-60, 10, -50), // Fallback position
+    [aegisDistrict]
+  );
   
   const handleDistrictSelect = useCallback((district: CityDistrict) => {
     if (isCalibrationMode || gameMode === 'active') return;
@@ -301,7 +309,7 @@ export const Experience3D: React.FC = () => {
           <ProceduralTerrain onDeselect={handleGoHome} />
           
           {gameMode === 'active' ? (
-            <AegisProtocolGame onExit={handleGoHome} />
+            <AegisProtocolGame onExit={handleGoHome} playerSpawnPosition={playerSpawnPosition} />
           ) : (
             <>
               <group position={[0, 5, 0]}>
@@ -419,4 +427,4 @@ export const Experience3D: React.FC = () => {
 };
 
 // Preload the Aegis Command model so it's ready when needed
-useGLTF.preload('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/AegisCommand.glb');
+useGLTF.preload('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/aegis_hq.glb');

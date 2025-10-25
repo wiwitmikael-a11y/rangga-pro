@@ -8,9 +8,17 @@ import { useTouchControls } from '../../hooks/useTouchControls';
 const MAX_SPEED = 20;
 const ACCELERATION = 80;
 const DAMPING = 5;
+const FIRE_RATE = 0.1; // Time between shots in a burst
+const RELOAD_TIME = 1.5; // Time after a burst
+const BURST_SIZE = 5;
+
+interface PlayerCopterProps {
+    onFireAutoGun: (position: THREE.Vector3, quaternion: THREE.Quaternion) => void;
+    initialPosition: THREE.Vector3;
+}
 
 // We forward the ref to allow the parent game component to access the group
-export const PlayerCopter = forwardRef<THREE.Group>((props, ref) => {
+export const PlayerCopter = forwardRef<THREE.Group, PlayerCopterProps>(({ onFireAutoGun, initialPosition }, ref) => {
   const keyboardControls = usePlayerControls();
   const touchControls = useTouchControls();
   const player = ref as React.RefObject<THREE.Group>;
@@ -24,8 +32,12 @@ export const PlayerCopter = forwardRef<THREE.Group>((props, ref) => {
     rotation: new THREE.Quaternion(),
   }), []);
 
-  // Auto-fire state
-  const fireCooldown = useRef(0);
+  // Auto-gun state
+  const fireState = useRef({
+    cooldown: 0,
+    burstCount: BURST_SIZE,
+    isReloading: false,
+  });
 
   useFrame((state, delta) => {
     if (!player.current) return;
@@ -78,17 +90,29 @@ export const PlayerCopter = forwardRef<THREE.Group>((props, ref) => {
     
     player.current.quaternion.slerp(tempObject.quaternion, delta * 4);
 
-    // --- Automatic Firing ---
-    if (fireCooldown.current > 0) {
-        fireCooldown.current -= delta;
-    } else if (touchControls.joystick.x === 0 && touchControls.joystick.y === 0) { // Fire when joystick is released
-        console.log("FIRE!"); // Placeholder for projectile logic
-        fireCooldown.current = 0.2; // 5 shots per second
+    // --- Automatic Burst Firing Logic ---
+    fireState.current.cooldown -= delta;
+    if (fireState.current.cooldown <= 0) {
+        if (fireState.current.isReloading) {
+            fireState.current.isReloading = false;
+            fireState.current.burstCount = BURST_SIZE;
+        }
+
+        if (fireState.current.burstCount > 0) {
+            onFireAutoGun(player.current.position, player.current.quaternion);
+            fireState.current.burstCount--;
+            fireState.current.cooldown = FIRE_RATE;
+
+            if (fireState.current.burstCount === 0) {
+                fireState.current.cooldown = RELOAD_TIME;
+                fireState.current.isReloading = true;
+            }
+        }
     }
   });
 
   return (
-    <group ref={player} scale={0.05} position={[0, 10, 0]}>
+    <group ref={player} scale={0.05} position={initialPosition}>
         <primitive object={clonedScene} />
     </group>
   );
