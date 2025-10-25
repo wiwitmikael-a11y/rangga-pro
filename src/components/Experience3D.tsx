@@ -1,9 +1,9 @@
 import React, { useState, useCallback, Suspense, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Sky, Audio } from '@react-three/drei';
+import { OrbitControls, Sky, PositionalAudio } from '@react-three/drei';
 import { EffectComposer, Noise, ChromaticAberration, GodRays } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
-import { Vector2, Mesh } from 'three';
+import * as THREE from 'three';
 
 import { CityModel } from './scene/CityModel';
 import Rain from './scene/Rain';
@@ -31,7 +31,7 @@ export const Experience3D: React.FC = () => {
   const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
   const [hasStarted, setHasStarted] = useState(false); // Track if experience has started to play audio
   
-  const godRaysSourceRef = useRef<Mesh>(null!);
+  const godRaysSourceRef = useRef<THREE.Mesh>(null!);
 
   const handleDistrictSelect = useCallback((district: CityDistrict) => {
     // Special handling for the central @rangga.p.h core
@@ -92,6 +92,14 @@ export const Experience3D: React.FC = () => {
   
   const isDetailViewActive = showProjects || !!infoPanelItem || selectedDistrict?.id === 'nexus-core';
 
+  const handleAmbientSound1 = useCallback((soundNode: THREE.PositionalAudio) => {
+    if (soundNode) soundNode.setVolume(0.15);
+  }, []);
+
+  const handleAmbientSound2 = useCallback((soundNode: THREE.PositionalAudio) => {
+    if (soundNode) soundNode.setVolume(0.25);
+  }, []);
+
   return (
     <>
       <Canvas
@@ -109,8 +117,8 @@ export const Experience3D: React.FC = () => {
           {/* Ambient Audio that plays once the experience starts */}
           {hasStarted && (
             <>
-              <Audio url="https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/sounds/cyberpunk-city-ambient.mp3" autoplay loop volume={0.15} />
-              <Audio url="https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/sounds/rain-sound.mp3" autoplay loop volume={0.25} />
+              <PositionalAudio ref={handleAmbientSound1} url="https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/sounds/cyberpunk-city-ambient.mp3" autoplay loop distance={10000} />
+              <PositionalAudio ref={handleAmbientSound2} url="https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/sounds/rain-sound.mp3" autoplay loop distance={10000} />
             </>
           )}
 
@@ -154,7 +162,7 @@ export const Experience3D: React.FC = () => {
               opacity={0.07} 
             />
             <ChromaticAberration 
-              offset={new Vector2(0.001, 0.001)}
+              offset={new THREE.Vector2(0.001, 0.001)}
               radialModulation={false}
               modulationOffset={0.15}
             />
