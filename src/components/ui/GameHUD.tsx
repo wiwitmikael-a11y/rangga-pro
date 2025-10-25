@@ -1,9 +1,25 @@
 import React from 'react';
 
-// This HUD provides on-screen touch controls for mobile devices.
-export const GameHUD: React.FC = () => {
+interface GameHUDProps {
+  isOpen: boolean;
+}
+
+export const GameHUD: React.FC<GameHUDProps> = ({ isOpen }) => {
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+    if (!isTouchDevice) {
+        return null; // Do not render touch controls on desktop devices
+    }
+
+    const containerStyle: React.CSSProperties = {
+        ...styles.container,
+        opacity: isOpen ? 1 : 0,
+        transition: 'opacity 0.5s ease-in-out 0.5s', // Delay to match game fade-in
+        pointerEvents: isOpen ? 'auto' : 'none',
+    };
+
     return (
-        <div style={styles.container}>
+        <div style={containerStyle}>
             {/* Movement Joystick */}
             <div id="joystick-base" style={styles.joystickBase}>
                 <div id="joystick-handle" style={styles.joystickHandle}></div>
@@ -22,7 +38,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     container: {
         position: 'fixed',
         inset: 0,
-        pointerEvents: 'none', // The container itself shouldn't block interactions
         zIndex: 500,
     },
     joystickBase: {

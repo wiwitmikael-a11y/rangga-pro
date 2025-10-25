@@ -1,11 +1,7 @@
-import React, { useRef, useEffect, useMemo } from 'react';
+import React, { useRef, useEffect, useMemo, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { PlayerCopter } from './PlayerCopter';
-// Note: GameHUD is a DOM element and should be rendered outside the Canvas in a real app.
-// It is not rendered here to avoid breaking the R3F render tree.
-// import { GameHUD } from '../ui/GameHUD'; 
-import { EnemyDrone } from './GameModels';
 
 interface AegisProtocolGameProps {
   onExit: () => void;
@@ -56,6 +52,8 @@ const GameCamera: React.FC<{ playerRef: React.RefObject<THREE.Group> }> = ({ pla
 
 export const AegisProtocolGame: React.FC<AegisProtocolGameProps> = ({ onExit, playerSpawnPosition }) => {
     const playerRef = useRef<THREE.Group>(null);
+    const fogRef = useRef<THREE.Fog>(null);
+    const [isEntering, setIsEntering] = useState(true);
 
     // Add an effect to listen for the Escape key to exit the game.
     useEffect(() => {
@@ -65,29 +63,30 @@ export const AegisProtocolGame: React.FC<AegisProtocolGameProps> = ({ onExit, pl
             }
         };
         document.addEventListener('keydown', handleKeyDown);
+
+        const timer = setTimeout(() => setIsEntering(false), 500); // Start fade-in
+
         return () => {
             document.removeEventListener('keydown', handleKeyDown);
+            clearTimeout(timer);
         };
     }, [onExit]);
     
-    // Simple array of enemy positions for the demo
-    const enemyPositions: [number, number, number][] = [
-        [-50, 15, -40],
-        [40, 20, -60],
-        [0, 25, -80],
-        [60, 10, -20],
-    ];
+    useFrame((_, delta) => {
+        // Smooth fade-in transition by adjusting fog
+        if (fogRef.current) {
+            const targetNear = isEntering ? 0 : 50;
+            const targetFar = isEntering ? 50 : 250;
+            fogRef.current.near = THREE.MathUtils.lerp(fogRef.current.near, targetNear, delta * 2);
+            fogRef.current.far = THREE.MathUtils.lerp(fogRef.current.far, targetFar, delta * 2);
+        }
+    });
 
     return (
         <>
-            <fog attach="fog" args={['#050810', 50, 250]} />
+            <fog ref={fogRef} attach="fog" args={['#050810', 0, 50]} />
             <PlayerCopter ref={playerRef} initialPosition={playerSpawnPosition} />
             <GameCamera playerRef={playerRef} />
-            
-            {/* Render a few static enemies for the test flight */}
-            {enemyPositions.map((pos, i) => (
-                <EnemyDrone key={i} position={pos} />
-            ))}
         </>
     );
 };

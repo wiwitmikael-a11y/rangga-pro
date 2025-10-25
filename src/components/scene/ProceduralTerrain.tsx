@@ -78,7 +78,7 @@ export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(({
     };
 
     return (
-        <group position={[0, -2.5, 0]}>
+        <group position={[0, -4.0, 0]}>
             <mesh
                 rotation={[-Math.PI / 2, 0, 0]}
                 onClick={handleClick}

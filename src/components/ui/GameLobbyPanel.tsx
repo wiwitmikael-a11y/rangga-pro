@@ -18,18 +18,17 @@ export const GameLobbyPanel: React.FC<GameLobbyPanelProps> = ({ isOpen, onLaunch
         onContextMenu={(e) => e.stopPropagation()}
       >
         <div style={styles.header}>
-            <h2 style={styles.title}>AEGIS PROTOCOL</h2>
+            <h2 style={styles.title}>SIMULATOR PENERBANGAN</h2>
             <button onClick={onClose} style={styles.closeButton} aria-label="Abort Mission">&times;</button>
         </div>
         <div style={styles.content}>
-            <h3 style={styles.sectionTitle}>WEAPONS TEST</h3>
+            <h3 style={styles.sectionTitle}>PENERBANGAN BEBAS</h3>
             <p style={styles.briefingText}>
-                Ini adalah sesi uji coba tempur untuk prototipe helikopter Aegis.
-                Auto-cannon telah diaktifkan. Uji coba manuver sambil menembak.
-                Sistem misil pamungkas juga online, gunakan dengan bijak.
+                Mulai sesi uji terbang bebas. Semua sistem senjata nonaktif.
+                Fokus pada manuver dan kontrol di wilayah udara yang ditentukan.
             </p>
             <button onClick={onLaunch} style={styles.launchButton}>
-                LAUNCH MISSION
+                MULAI SIMULASI
             </button>
         </div>
       </div>

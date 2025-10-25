@@ -27,6 +27,7 @@ import { ContactHubModal } from './ui/ContactHubModal';
 // FIX: Implement AegisProtocolGame component to resolve module not found error.
 import { AegisProtocolGame } from './game/AegisProtocolGame';
 import { GameLobbyPanel } from './ui/GameLobbyPanel';
+import { GameHUD } from './ui/GameHUD';
 
 // Define the sun's position for a sunset glow near the horizon
 const sunPosition: [number, number, number] = [100, 2, -100]; // Lower sun for a more dramatic sunset
@@ -431,6 +432,7 @@ export const Experience3D: React.FC = () => {
           onClose={handleGoHome}
         />
       )}
+      {gameMode === 'active' && <GameHUD isOpen={gameMode === 'active'} />}
       {isExportModalOpen && (
         <ExportLayoutModal
           isOpen={isExportModalOpen}

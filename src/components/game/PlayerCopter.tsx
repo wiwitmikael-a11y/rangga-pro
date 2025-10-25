@@ -4,8 +4,6 @@ import * as THREE from 'three';
 import { usePlayerControls } from '../../hooks/usePlayerControls';
 import { useGLTF } from '@react-three/drei';
 import { useTouchControls } from '../../hooks/useTouchControls';
-// FIX: Implement GameModels component to resolve module not found error.
-import { MuzzleFlash } from './GameModels';
 
 const MAX_SPEED = 20;
 const ACCELERATION = 80;
@@ -97,8 +95,6 @@ export const PlayerCopter = forwardRef<THREE.Group, PlayerCopterProps>(({ initia
   return (
     <group ref={player} scale={0.05} position={initialPosition}>
         <primitive object={clonedScene} />
-        {/* Auto-cannon muzzle flash effect */}
-        <MuzzleFlash />
     </group>
   );
 });
