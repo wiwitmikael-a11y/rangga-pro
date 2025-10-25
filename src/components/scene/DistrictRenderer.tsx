@@ -4,6 +4,7 @@ import DistrictBuilding from './DistrictBuilding';
 import HolographicDistrictLabel from './HolographicDistrictLabel';
 import { HolographicProjector } from './HolographicProjector';
 import { InteractiveModel } from './InteractiveModel';
+import { DataBridge } from './DataBridge';
 
 interface DistrictRendererProps {
   districts: CityDistrict[];
@@ -21,6 +22,7 @@ export const DistrictRenderer: React.FC<DistrictRendererProps> = ({
       {districts.map((district) => {
         const isSelected = selectedDistrict?.id === district.id;
 
+        // Render the main interactive portfolio districts
         if (district.type === 'major') {
           return (
             <group key={district.id}>
@@ -41,6 +43,10 @@ export const DistrictRenderer: React.FC<DistrictRendererProps> = ({
                     onSelect={onDistrictSelect}
                   />
                 </group>
+              )}
+              {/* Add a data bridge connecting this district to the city core */}
+              {district.id !== 'nexus-core' && (
+                <DataBridge start={district.position} end={[0, 5, 0]} />
               )}
             </group>
           );

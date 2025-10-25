@@ -1,11 +1,15 @@
 import React, { useRef, useMemo } from 'react';
-import { useGLTF } from '@react-three/drei';
+import { useGLTF, PositionalAudio } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
 const MODEL_URL = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/PatrollingCore.glb';
 
-export const PatrollingCore: React.FC = React.memo(() => {
+interface PatrollingCoreProps {
+  godRaysSourceRef: React.RefObject<THREE.Mesh>;
+}
+
+export const PatrollingCore: React.FC<PatrollingCoreProps> = React.memo(({ godRaysSourceRef }) => {
   const groupRef = useRef<THREE.Group>(null!);
   const spotLightRef = useRef<THREE.SpotLight>(null!);
   const { scene } = useGLTF(MODEL_URL);
@@ -45,26 +49,40 @@ export const PatrollingCore: React.FC = React.memo(() => {
 
   return (
     <group ref={groupRef}>
-      {/* The 3D model, scaled down as requested */}
+      {/* The 3D model, scaled up significantly */}
       <primitive 
         object={clonedScene} 
-        scale={1.5} // Adjusted scale for the new model
+        scale={4.5} // Increased scale for dominance
         position-y={-2} // Adjust vertical position relative to the group center
       />
 
-      {/* The spotlight attached to the patrolling core */}
+      {/* A mesh to act as the source for the GodRays effect. It's invisible. */}
+      {/* The GodRays effect in the main component will use this mesh's position. */}
+       <mesh ref={godRaysSourceRef} position={[0, 5, 0]}>
+        <sphereGeometry args={[2, 16, 16]} />
+        <meshBasicMaterial color="white" visible={false} />
+      </mesh>
+
+      {/* The spotlight attached to the patrolling core, now more powerful */}
       <spotLight
         ref={spotLightRef}
         position={[0, 5, 0]} // Positioned above the model, pointing down
-        angle={Math.PI / 6} // The cone angle of the light
+        angle={Math.PI / 4.5} // Wider cone angle
         penumbra={0.3} // Softens the edge of the spotlight
-        intensity={15} // Brightness
-        distance={100} // How far the light reaches
+        intensity={35} // Increased brightness
+        distance={120} // Increased range
         castShadow
         color="#00ffff"
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
       />
+      
+       <PositionalAudio
+        url="https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/sounds/ship-engine.mp3"
+        autoplay
+        loop
+        distance={40}
+        />
 
       {/* Add the spotlight target to the scene so the spotlight can reference it */}
       <primitive object={spotLightTarget} />

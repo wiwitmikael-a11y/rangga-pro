@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, Suspense } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { useGLTF } from '@react-three/drei';
+import { useGLTF, PositionalAudio } from '@react-three/drei';
 import * as THREE from 'three';
 import { ThrustTrail } from './ThrustTrail';
 
@@ -30,9 +30,18 @@ const Ship: React.FC<ShipProps> = ({ modelUrl, scale, flightPath, trailConfig, t
     <group ref={groupRef} scale={scale} dispose={null}>
       <primitive object={clonedScene} />
       <ThrustTrail {...trailConfig} position={trailOffset} />
+       <PositionalAudio
+        url={`${GHC_AUDIO_URL_BASE}ship-engine.mp3`}
+        autoplay
+        loop
+        distance={25}
+      />
     </group>
   );
 };
+
+const GHC_AUDIO_URL_BASE = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/sounds/';
+
 
 export const FlyingShips: React.FC = React.memo(() => {
   const ships = useMemo(() => [
@@ -41,9 +50,10 @@ export const FlyingShips: React.FC = React.memo(() => {
       scale: 0.9,
       flightPath: (time: number) => {
         const angle = time * 0.2;
+        const height = 25 + Math.sin(time * 0.7) * 5; // Dynamic height
         return {
-          position: new THREE.Vector3(Math.sin(angle) * 70, 25, Math.cos(angle) * 70),
-          lookAt: new THREE.Vector3(Math.sin(angle + 0.1) * 70, 25, Math.cos(angle + 0.1) * 70),
+          position: new THREE.Vector3(Math.sin(angle) * 70, height, Math.cos(angle) * 70),
+          lookAt: new THREE.Vector3(Math.sin(angle + 0.1) * 70, height, Math.cos(angle + 0.1) * 70),
         };
       },
       trailConfig: { color: '#00aaff', width: 0.5, length: 8, opacity: 0.7 },
@@ -54,9 +64,10 @@ export const FlyingShips: React.FC = React.memo(() => {
       scale: 1.2,
       flightPath: (time: number) => {
         const angle = time * 0.3;
+        const height = 15 + Math.cos(time * 0.5) * 4; // Dynamic height
         return {
-          position: new THREE.Vector3(Math.cos(angle) * 50, 15, Math.sin(angle) * 80),
-          lookAt: new THREE.Vector3(Math.cos(angle + 0.1) * 50, 15, Math.sin(angle + 0.1) * 80),
+          position: new THREE.Vector3(Math.cos(angle) * 50, height, Math.sin(angle) * 80),
+          lookAt: new THREE.Vector3(Math.cos(angle + 0.1) * 50, height, Math.sin(angle + 0.1) * 80),
         };
       },
       trailConfig: { color: '#ffaa00', width: 0.4, length: 7, opacity: 0.8 },
@@ -67,9 +78,10 @@ export const FlyingShips: React.FC = React.memo(() => {
       scale: 0.1,
       flightPath: (time: number) => {
         const angle = -time * 0.25;
+        const height = 20 + Math.sin(time * 1.5) * 5; // More agile height changes
         return {
-          position: new THREE.Vector3(Math.sin(angle) * 60, 20 + Math.sin(time) * 5, Math.cos(angle) * 60),
-          lookAt: new THREE.Vector3(Math.sin(angle - 0.1) * 60, 20, Math.cos(angle - 0.1) * 60),
+          position: new THREE.Vector3(Math.sin(angle) * 60, height, Math.cos(angle) * 60),
+          lookAt: new THREE.Vector3(Math.sin(angle - 0.1) * 60, height, Math.cos(angle - 0.1) * 60),
         };
       },
       trailConfig: { color: '#00ffaa', width: 0.15, length: 5, opacity: 0.6 },

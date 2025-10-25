@@ -1,5 +1,3 @@
-
-
 import React, { Suspense, useLayoutEffect, useMemo, useRef } from 'react';
 import { useGLTF, Text } from '@react-three/drei';
 import * as THREE from 'three';
@@ -24,22 +22,46 @@ interface ModelProps {
 function Model({ url, scale, onPointerOver, onPointerOut, onClick }: ModelProps) {
   const { scene } = useGLTF(url);
   const clonedScene = useMemo(() => scene.clone(), [scene]);
+  const originalEmissives = useRef<{ [uuid: string]: THREE.Color }>({});
 
   useLayoutEffect(() => {
-    clonedScene.traverse((child: THREE.Object3D) => {
-      if (child instanceof THREE.Mesh) {
-        child.castShadow = true;
-        child.receiveShadow = true;
+    const emissives: { [uuid: string]: THREE.Color } = {};
+    clonedScene.traverse((child: any) => {
+      child.castShadow = true;
+      child.receiveShadow = true;
+      if (child.isMesh && child.material.isMeshStandardMaterial) {
+        emissives[child.uuid] = child.material.emissive.clone();
       }
     });
+    originalEmissives.current = emissives;
   }, [clonedScene]);
+
+  const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
+    onPointerOver(e);
+    clonedScene.traverse((child: any) => {
+        if (child.isMesh && child.material.isMeshStandardMaterial) {
+            child.material.emissive.set('cyan');
+            child.material.emissiveIntensity = 0.5;
+        }
+    });
+  };
+  
+  const handlePointerOut = (e: ThreeEvent<PointerEvent>) => {
+    onPointerOut(e);
+     clonedScene.traverse((child: any) => {
+        if (child.isMesh && child.material.isMeshStandardMaterial && originalEmissives.current[child.uuid]) {
+            child.material.emissive.copy(originalEmissives.current[child.uuid]);
+            child.material.emissiveIntensity = 1; 
+        }
+    });
+  };
 
   return (
     <primitive
       object={clonedScene}
       scale={scale}
-      onPointerOver={onPointerOver}
-      onPointerOut={onPointerOut}
+      onPointerOver={handlePointerOver}
+      onPointerOut={handlePointerOut}
       onClick={onClick}
     />
   );

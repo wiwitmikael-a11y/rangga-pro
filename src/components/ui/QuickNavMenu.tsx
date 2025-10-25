@@ -1,6 +1,21 @@
 import React from 'react';
 import type { CityDistrict } from '../../types';
 
+// --- Audio Utilities ---
+const clickSound = new Audio('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/sounds/ui-click.mp3');
+const hoverSound = new Audio('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/sounds/ui-hover.mp3');
+hoverSound.volume = 0.3;
+
+const playClick = () => {
+    clickSound.currentTime = 0;
+    clickSound.play().catch(e => console.error("Audio play failed:", e));
+};
+const playHover = () => {
+    hoverSound.currentTime = 0;
+    hoverSound.play().catch(e => console.error("Audio play failed:", e));
+};
+// -----------------------
+
 interface QuickNavMenuProps {
   isOpen: boolean;
   onClose: () => void;
@@ -13,7 +28,7 @@ export const QuickNavMenu: React.FC<QuickNavMenuProps> = ({ isOpen, onClose, onS
     ...styles.container,
     opacity: isOpen ? 1 : 0,
     transform: isOpen ? 'translate(-50%, 0)' : 'translate(-50%, 100%)',
-    transition: 'opacity 0.3s ease, transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)',
+    transition: 'opacity 0.4s ease, transform 0.5s cubic-bezier(0.2, 1, 0.2, 1)',
     pointerEvents: isOpen ? 'auto' : 'none',
   };
 
@@ -22,34 +37,37 @@ export const QuickNavMenu: React.FC<QuickNavMenuProps> = ({ isOpen, onClose, onS
     opacity: isOpen ? 1 : 0,
     pointerEvents: isOpen ? 'auto' : 'none',
   };
+  
+  const handleClose = () => {
+    playClick();
+    onClose();
+  };
+
+  const handleSelect = (district: CityDistrict) => {
+    playClick();
+    onSelectDistrict(district);
+  };
 
   return (
     <>
       <style>{`
-        @keyframes slide-in-up {
-          from { transform: translate(-50%, 100%); opacity: 0; }
-          to { transform: translate(-50%, 0); opacity: 1; }
-        }
-        @keyframes fade-in {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
         @keyframes stripe-scroll {
           0% { background-position: 0 0; }
           100% { background-position: 56.5px 0; }
         }
       `}</style>
-      <div style={overlayStyle} onClick={onClose} />
-      <div style={containerStyle} className="quick-nav-container">
+      <div style={overlayStyle} onClick={handleClose} />
+      <div style={containerStyle} className={`quick-nav-container ${isOpen ? 'panel-enter' : ''}`}>
         <div style={styles.dangerStripes} />
-        <button onClick={onClose} style={styles.closeButton} aria-label="Close Navigation">&times;</button>
+        <button onClick={handleClose} onMouseEnter={playHover} style={styles.closeButton} aria-label="Close Navigation">&times;</button>
         <div style={styles.grid} className="quick-nav-grid">
           {districts.map(district => (
             <button
               key={district.id}
               style={styles.navButton}
               className="nav-button"
-              onClick={() => onSelectDistrict(district)}
+              onClick={() => handleSelect(district)}
+              onMouseEnter={playHover}
             >
               <span style={styles.buttonTitle}>{district.title}</span>
               <span style={styles.buttonDesc}>{district.description}</span>

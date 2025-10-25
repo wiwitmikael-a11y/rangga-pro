@@ -1,9 +1,9 @@
-import React, { useState, useCallback, Suspense } from 'react';
+import React, { useState, useCallback, Suspense, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Sky } from '@react-three/drei';
-import { EffectComposer, Noise, ChromaticAberration } from '@react-three/postprocessing';
+import { OrbitControls, Sky, Audio } from '@react-three/drei';
+import { EffectComposer, Noise, ChromaticAberration, GodRays } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
-import { Vector2 } from 'three';
+import { Vector2, Mesh } from 'three';
 
 import { CityModel } from './scene/CityModel';
 import Rain from './scene/Rain';
@@ -29,6 +29,9 @@ export const Experience3D: React.FC = () => {
   const [showProjects, setShowProjects] = useState(false);
   const [infoPanelItem, setInfoPanelItem] = useState<CityDistrict | null>(null);
   const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false); // Track if experience has started to play audio
+  
+  const godRaysSourceRef = useRef<Mesh>(null!);
 
   const handleDistrictSelect = useCallback((district: CityDistrict) => {
     // Special handling for the central @rangga.p.h core
@@ -68,7 +71,11 @@ export const Experience3D: React.FC = () => {
     if (selectedDistrict && selectedDistrict.id !== 'nexus-core') {
       setShowProjects(true);
     }
-  }, [selectedDistrict]);
+     // Trigger audio to play on the first animation finish (entry)
+    if (!hasStarted) {
+      setHasStarted(true);
+    }
+  }, [selectedDistrict, hasStarted]);
 
   const handleProjectClick = (item: PortfolioSubItem) => {
     console.log('Project clicked:', item.title);
@@ -99,6 +106,14 @@ export const Experience3D: React.FC = () => {
         dpr={[1, 1.5]}
       >
         <Suspense fallback={null}>
+          {/* Ambient Audio that plays once the experience starts */}
+          {hasStarted && (
+            <>
+              <Audio url="https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/sounds/cyberpunk-city-ambient.mp3" autoplay loop volume={0.15} />
+              <Audio url="https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/sounds/rain-sound.mp3" autoplay loop volume={0.25} />
+            </>
+          )}
+
           <Sky sunPosition={sunPosition} />
           <ambientLight intensity={0.3} />
           <directionalLight
@@ -127,7 +142,7 @@ export const Experience3D: React.FC = () => {
           <CityModel />
           <Rain count={2500} />
           <FlyingShips />
-          <PatrollingCore />
+          <PatrollingCore godRaysSourceRef={godRaysSourceRef} />
           <ProceduralTerrain onDeselect={handleGoHome} />
 
           <group position={[0, 5, 0]}>
@@ -152,6 +167,18 @@ export const Experience3D: React.FC = () => {
               radialModulation={false}
               modulationOffset={0.15}
             />
+            {godRaysSourceRef.current && (
+              <GodRays
+                sun={godRaysSourceRef}
+                blendFunction={BlendFunction.SCREEN}
+                samples={40}
+                density={0.97}
+                decay={0.96}
+                weight={0.8}
+                exposure={0.5}
+                clampMax={1}
+              />
+            )}
           </EffectComposer>
 
         </Suspense>
