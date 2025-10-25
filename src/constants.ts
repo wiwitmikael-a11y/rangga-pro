@@ -1,5 +1,6 @@
 import type { CityDistrict } from './types';
 
+// Data portofolio telah diisi dengan konten mock yang relevan dan gambar dari CDN.
 export const portfolioData: CityDistrict[] = [
   // 1. Central "About Me" Hub
   {
@@ -15,17 +16,17 @@ export const portfolioData: CityDistrict[] = [
     subItems: [
       {
         id: 'philosophy',
-        title: 'Professional Philosophy',
-        description: 'Exploring the synergy between structured financial systems, creative visual storytelling, and decentralized technological innovation.',
+        title: 'My Professional Philosophy',
+        description: 'Fusing analytical financial rigor with creative visual expression and pioneering technological solutions to solve complex problems.',
         position: [-10, 5, 10],
-        imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/project-thumb-1.jpg',
+        imageUrl: 'https://images.unsplash.com/photo-1534723328310-e82dad3ee43f?auto=format&fit=crop&w=800&q=80',
       },
       {
         id: 'journey',
-        title: 'Career Trajectory',
-        description: 'From micro-banking leadership to pioneering AI-driven solutions and analyzing blockchain ecosystems. A multi-disciplinary journey.',
+        title: 'A Multidisciplinary Trajectory',
+        description: 'From leading micro-banking initiatives to capturing award-winning visuals and now engineering the future with AI and blockchain.',
         position: [10, 5, 10],
-        imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/project-thumb-2.jpg',
+        imageUrl: 'https://images.unsplash.com/photo-1574680096145-c05b16f03211?auto=format&fit=crop&w=800&q=80',
       },
     ],
   },
@@ -43,24 +44,24 @@ export const portfolioData: CityDistrict[] = [
      subItems: [
       {
         id: 'project-ai-agent',
-        title: 'AI Financial Advisor',
-        description: 'A custom-trained AI agent to provide insights on micro-banking loan portfolios. Built with Gemini API.',
+        title: 'AI Financial Risk Agent',
+        description: 'A generative AI agent trained on market data to identify and flag potential risks in micro-loan portfolios. (Gemini API)',
         position: [-55, 5, -45],
-        imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/project-thumb-3.jpg',
+        imageUrl: 'https://images.unsplash.com/photo-1620712943543-2858200f7426?auto=format&fit=crop&w=800&q=80',
       },
       {
         id: 'project-data-viz',
-        title: 'Interactive Data Viz App',
-        description: 'A web application using React and Three.js to visualize complex market data in 3D space.',
+        title: 'WebGL Market Visualizer',
+        description: 'An interactive 3D web application for visualizing real-time market data streams using React and Three.js.',
         position: [-45, 5, -45],
-        imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/project-thumb-4.jpg',
+        imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80',
       },
       {
         id: 'project-portfolio',
         title: 'This Digital Metropolis',
-        description: 'A meta-project showcasing the creation of this very portfolio experience using cutting-edge web technologies.',
+        description: 'A meta-project about this portfolio. A deep-dive into the technologies and design philosophy behind its creation.',
         position: [-50, 5, -55],
-        imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/project-thumb-1.jpg',
+        imageUrl: 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?auto=format&fit=crop&w=800&q=80',
       },
     ]
   },
@@ -78,24 +79,24 @@ export const portfolioData: CityDistrict[] = [
     subItems: [
       {
         id: 'photo-gallery',
-        title: 'Photography Gallery',
-        description: 'A curated collection of award-winning photographs capturing human stories and breathtaking landscapes.',
+        title: 'Landscape Photography',
+        description: 'A curated gallery of award-winning photographs capturing the raw, dramatic beauty of remote natural landscapes.',
         position: [45, 5, -45],
-        imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/project-thumb-5.jpg',
+        imageUrl: 'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=800&q=80',
       },
       {
         id: 'video-reel',
-        title: 'Cinematic Reel',
-        description: 'A dynamic showcase of videography projects, from corporate narratives to short films, highlighting visual storytelling.',
+        title: 'Cinematic Storytelling',
+        description: 'A reel showcasing short films and narrative projects that explore human stories through powerful visual language.',
         position: [55, 5, -45],
-        imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/project-thumb-6.jpg',
+        imageUrl: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&q=80',
       },
       {
         id: 'drone-showcase',
-        title: 'Aerial Drone Showcase',
-        description: 'Exploring unique perspectives and grand scales through professional drone cinematography.',
+        title: 'Aerial Cinematography',
+        description: 'Discovering unique perspectives and breathtaking scales through professional drone cinematography and photography.',
         position: [50, 5, -55],
-        imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/project-thumb-7.jpg',
+        imageUrl: 'https://images.unsplash.com/photo-1504938634393-39d2c52b0488?auto=format&fit=crop&w=800&q=80',
       },
     ]
   },
@@ -113,17 +114,17 @@ export const portfolioData: CityDistrict[] = [
     subItems: [
       {
         id: 'onchain-reports',
-        title: 'On-Chain Analysis',
-        description: 'In-depth reports and insights on DeFi protocols, whale tracking, and market sentiment derived from blockchain data.',
+        title: 'On-Chain Intelligence',
+        description: 'In-depth reports on DeFi protocols, whale transaction tracking, and market sentiment analysis from raw blockchain data.',
         position: [-55, 5, 55],
-        imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/project-thumb-2.jpg',
+        imageUrl: 'https://images.unsplash.com/photo-1640340434855-6084b1f4901c?auto=format&fit=crop&w=800&q=80',
       },
       {
         id: 'smart-contracts',
-        title: 'Smart Contract Audits',
-        description: 'Case studies on fundamental security analysis and logic reviews of Solidity-based smart contracts.',
+        title: 'Smart Contract Studies',
+        description: 'Case studies on security vulnerabilities and logic exploits in public Solidity-based smart contracts.',
         position: [-45, 5, 55],
-        imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/project-thumb-4.jpg',
+        imageUrl: 'https://images.unsplash.com/photo-1639755291242-df73356c39d6?auto=format&fit=crop&w=800&q=80',
       },
     ]
   },
@@ -144,28 +145,28 @@ export const portfolioData: CityDistrict[] = [
         title: 'AI & Machine Learning',
         description: 'Python, TensorFlow, PyTorch, LangChain, Gemini API',
         position: [45, 5, 55],
-        imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/project-thumb-3.jpg',
+        imageUrl: 'https://images.unsplash.com/photo-1678483789004-6f16f39e3170?auto=format&fit=crop&w=800&q=80',
       },
       {
         id: 'skill-web',
         title: 'Web Technologies',
-        description: 'React, Next.js, Three.js, Node.js, GraphQL',
+        description: 'React, Next.js, Three.js/R3F, Node.js, GraphQL',
         position: [55, 5, 55],
-        imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/project-thumb-1.jpg',
+        imageUrl: 'https://images.unsplash.com/photo-1596003906917-202d08f44038?auto=format&fit=crop&w=800&q=80',
       },
        {
         id: 'skill-blockchain',
         title: 'Blockchain & Web3',
         description: 'Solidity, Ethers.js, Hardhat, The Graph Protocol',
         position: [50, 5, 45],
-        imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/project-thumb-4.jpg',
+        imageUrl: 'https://images.unsplash.com/photo-1642104704074-907126202167?auto=format&fit=crop&w=800&q=80',
       },
        {
         id: 'skill-creative',
-        title: 'Creative Suite',
+        title: 'Creative Suite & Tools',
         description: 'Adobe Photoshop, Premiere Pro, After Effects, DaVinci Resolve',
         position: [50, 5, 65],
-        imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/project-thumb-6.jpg',
+        imageUrl: 'https://images.unsplash.com/photo-1502472584811-0a7e28494df4?auto=format&fit=crop&w=800&q=80',
       },
     ]
   },
@@ -184,23 +185,23 @@ export const portfolioData: CityDistrict[] = [
       {
         id: 'contact-email',
         title: 'Secure Comms',
-        description: 'Send a direct message via encrypted email.',
+        description: 'Send a direct inquiry or proposal via email.',
         position: [-5, 5, -75],
-        imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/project-thumb-5.jpg',
+        imageUrl: 'https://images.unsplash.com/photo-1586769852836-bc069f19e1b6?auto=format&fit=crop&w=800&q=80',
       },
       {
         id: 'contact-linkedin',
         title: 'Professional Network',
-        description: 'View professional profile and network connections.',
+        description: 'Connect on LinkedIn for professional history and networking.',
         position: [5, 5, -75],
-        imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/project-thumb-6.jpg',
+        imageUrl: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=800&q=80',
       },
       {
         id: 'contact-calendar',
         title: 'Schedule Meeting',
-        description: 'Book a time slot for a virtual meeting.',
+        description: 'Book a virtual meeting to discuss a project or opportunity.',
         position: [0, 5, -85],
-        imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/project-thumb-7.jpg',
+        imageUrl: 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&w=800&q=80',
       }
     ]
   },
