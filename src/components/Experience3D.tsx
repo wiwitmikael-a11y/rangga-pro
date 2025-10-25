@@ -1,7 +1,7 @@
 import React, { useState, useCallback, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment } from '@react-three/drei';
-import { EffectComposer, Bloom, Noise, ChromaticAberration } from '@react-three/postprocessing';
+import { OrbitControls, Sky } from '@react-three/drei';
+import { EffectComposer, Noise, ChromaticAberration } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import { Vector2 } from 'three';
 
@@ -16,6 +16,10 @@ import { HUD } from './ui/HUD';
 import { ProceduralTerrain } from './scene/ProceduralTerrain';
 import { ProjectDisplay } from './scene/ProjectDisplay';
 import HolographicInfoPanel from './scene/HolographicInfoPanel';
+
+// Define the sun's position to be used by the light, sky, and mesh
+const sunPosition: [number, number, number] = [-100, 70, -100];
+const sunColor = '#FFFFF0'; // A warm, sun-like white
 
 export const Experience3D: React.FC = () => {
   const [selectedDistrict, setSelectedDistrict] = useState<CityDistrict | null>(null);
@@ -80,26 +84,38 @@ export const Experience3D: React.FC = () => {
         }}
         dpr={[1, 1.5]}
       >
-        <color attach="background" args={['#081426']} />
-        <fog attach="fog" args={['#102844', 120, 350]} />
-
         <Suspense fallback={null}>
-          <ambientLight intensity={2.5} />
-          <pointLight position={[0, 40, 0]} intensity={1.5} color="#00aaff" distance={150} decay={2} />
+          {/* --- NEW NATURAL LIGHTING SETUP --- */}
+          {/* A procedural sky that creates a natural background */}
+          <Sky sunPosition={sunPosition} />
+          {/* A low-intensity ambient light to soften shadows */}
+          <ambientLight intensity={0.3} />
+          {/* The main directional light source (our "sun") */}
           <directionalLight
-            position={[-20, 50, -50]}
-            intensity={3}
-            color="#ffffff"
+            position={sunPosition}
+            intensity={5}
+            color={sunColor}
             castShadow
-            shadow-mapSize-width={2048}
-            shadow-mapSize-height={2048}
-            shadow-camera-far={200}
-            shadow-camera-left={-100}
-            shadow-camera-right={100}
-            shadow-camera-top={100}
-            shadow-camera-bottom={-100}
+            shadow-mapSize-width={4096}
+            shadow-mapSize-height={4096}
+            shadow-camera-far={500}
+            shadow-camera-left={-200}
+            shadow-camera-right={200}
+            shadow-camera-top={200}
+            shadow-camera-bottom={-200}
           />
+          {/* A visible mesh for the sun object */}
+          <mesh position={sunPosition}>
+            <sphereGeometry args={[15, 32, 32]} />
+            <meshStandardMaterial
+                color={sunColor}
+                emissive={sunColor}
+                emissiveIntensity={5}
+                toneMapped={false} // Ensures the sun glows brightly
+            />
+          </mesh>
 
+          {/* --- SCENE OBJECTS --- */}
           <CityModel />
           <Rain count={2500} />
           <FlyingShips />
@@ -126,15 +142,7 @@ export const Experience3D: React.FC = () => {
           
           <CameraRig selectedDistrict={selectedDistrict} onAnimationFinish={onAnimationFinish} isAnimating={isAnimating} />
 
-          <Environment preset="city" />
-
           <EffectComposer>
-            <Bloom 
-              intensity={0.7} 
-              luminanceThreshold={0.2} 
-              luminanceSmoothing={0.8} 
-              height={400} 
-            />
             <Noise 
               premultiply 
               blendFunction={BlendFunction.ADD}

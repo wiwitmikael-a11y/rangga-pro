@@ -23,21 +23,10 @@ const fragmentShader = `
   uniform float uTime;
   varying vec3 vWorldPosition;
 
-  // 2D Random function
-  float random (vec2 st) {
-      return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
-  }
-
-  // 2D Noise function
-  float noise (vec2 st) {
-      vec2 i = floor(st);
-      vec2 f = fract(st);
-      float a = random(i);
-      float b = random(i + vec2(1.0, 0.0));
-      float c = random(i + vec2(0.0, 1.0));
-      float d = random(i + vec2(1.0, 1.0));
-      vec2 u = f*f*(3.0-2.0*f);
-      return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.y * u.x;
+  // 2D Noise function for texturing
+  float noise(vec2 st) {
+      // Simple pseudo-random generator
+      return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
   }
   
   float line(float val, float width) {
@@ -49,14 +38,14 @@ const fragmentShader = `
     float majorGrid = max(line(vWorldPosition.x * 0.05, 0.015), line(vWorldPosition.z * 0.05, 0.015));
     float minorGrid = max(line(vWorldPosition.x * 0.2 - uTime * 0.05, 0.005), line(vWorldPosition.z * 0.2 - uTime * 0.05, 0.005));
     
-    // Add a subtle noise pattern for texture
-    float terrainNoise = noise(vWorldPosition.xz * 0.1) * 0.2;
+    // Animated, subtle noise pattern for a shimmering texture
+    float terrainNoise = noise(vWorldPosition.xz * 0.1 + uTime * 0.03) * 0.2;
 
     // Combine grids and noise for a glowing, textured effect
-    float glow = majorGrid * 1.0 + minorGrid * 0.4 + terrainNoise;
+    float glow = majorGrid * 1.0 + minorGrid * 0.4;
     
-    // Mix base color with grid color. Clamp the glow to avoid overly bright spots.
-    vec3 finalColor = mix(uColor, uGridColor, clamp(glow, 0.0, 1.0));
+    // Additive color mixing: start with a base color, add noise shimmer, then add grid glow
+    vec3 finalColor = uColor + vec3(terrainNoise * 0.5) + uGridColor * glow;
     
     gl_FragColor = vec4(finalColor, 1.0);
   }
@@ -92,7 +81,7 @@ export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(({
 
     const uniforms = useMemo(() => ({
         uTime: { value: 0.0 },
-        uColor: { value: new THREE.Color('#03010f') }, // A very dark, deep blue/purple base
+        uColor: { value: new THREE.Color('#081022') }, // A dark blue base, brighter than before
         uGridColor: { value: new THREE.Color('#00ffff') }, // Bright cyan grid
     }), []);
 
