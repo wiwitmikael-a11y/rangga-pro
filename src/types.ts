@@ -1,4 +1,4 @@
-import { Vector3 } from 'three';
+// import { Vector3 } from 'three'; // Unused import
 
 export type PerformanceTier = 'PERFORMANCE' | 'BALANCED' | 'QUALITY';
 

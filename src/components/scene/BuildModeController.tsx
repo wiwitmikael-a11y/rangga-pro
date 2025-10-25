@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback } from 'react';
-import { useThree, useFrame } from '@react-three-fiber';
+import { useThree, useFrame, ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { CityDistrict } from '../../types';
 
@@ -62,7 +62,7 @@ export const BuildModeController: React.FC<BuildModeControllerProps> = ({
         }
     });
 
-    const handlePlace = (e: THREE.Event) => {
+    const handlePlace = (e: ThreeEvent<PointerEvent>) => {
         e.stopPropagation();
         if (heldDistrictId) {
             onPlaceDistrict();
