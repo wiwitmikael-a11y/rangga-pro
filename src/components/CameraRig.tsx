@@ -26,13 +26,12 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
   }), []);
 
   useFrame((state, delta) => {
-    const isAnimatingToDistrict = isAnimating && !!selectedDistrict?.cameraFocus;
     const isAnimatingHome = isAnimating && !selectedDistrict;
 
     // --- State-driven Camera Logic ---
 
     // 1. Determine the camera's target state based on priority
-    if (isAnimatingToDistrict) {
+    if (isAnimating && selectedDistrict && selectedDistrict.cameraFocus) {
       // PRIORITY 1: Animate to a selected district.
       targetPosition.set(...selectedDistrict.cameraFocus.pos);
       targetLookAt.set(...selectedDistrict.cameraFocus.lookAt);
