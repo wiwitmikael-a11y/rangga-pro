@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useEffect } from 'react';
-import { useGLTF, Cylinder, Torus, Billboard, Points, Point, Octahedron } from '@react-three/drei';
+import { useGLTF, Cylinder, Torus, Billboard, Points, Octahedron } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -117,22 +117,71 @@ export const PowerUpModel: React.FC<{ position: THREE.Vector3 }> = ({ position }
 interface ExplosionProps {
     position: THREE.Vector3;
     scale: number;
-    life: number; // Normalized life [1..0]
+    life: number; // Normalized life [0..1] -> changed from [1..0] for clarity
 }
+
+// OPTIMIZED EXPLOSION COMPONENT
 export const Explosion: React.FC<ExplosionProps> = ({ position, scale, life }) => {
     const pointsRef = useRef<THREE.Points>(null!);
-    const velocities = useMemo(() => Array.from({ length: 50 }, () => new THREE.Vector3((Math.random() - 0.5), (Math.random() - 0.5), (Math.random() - 0.5)).normalize().multiplyScalar(Math.random() * 20)), []);
+    const NUM_PARTICLES = 50;
+
+    // Store initial random velocities once
+    const velocities = useMemo(() => {
+        const vels = new Float32Array(NUM_PARTICLES * 3);
+        for (let i = 0; i < NUM_PARTICLES; i++) {
+            const vec = new THREE.Vector3(
+                (Math.random() - 0.5),
+                (Math.random() - 0.5),
+                (Math.random() - 0.5)
+            );
+            // Safeguard against zero-vector causing NaN on normalization
+            if (vec.lengthSq() === 0) {
+                vec.set(1, 0, 0);
+            }
+            vec.normalize().multiplyScalar(Math.random() * 20);
+            vels.set([vec.x, vec.y, vec.z], i * 3);
+        }
+        return vels;
+    }, []);
+
+    const particlePositions = useMemo(() => new Float32Array(NUM_PARTICLES * 3), []);
+
+    useFrame(() => {
+        if (!pointsRef.current) return;
+        const progress = 1 - life; // progress goes from 0 to 1 as life goes from 1 to 0
+        for (let i = 0; i < NUM_PARTICLES; i++) {
+            const i3 = i * 3;
+            particlePositions[i3] = velocities[i3] * progress;
+            particlePositions[i3 + 1] = velocities[i3 + 1] * progress;
+            particlePositions[i3 + 2] = velocities[i3 + 2] * progress;
+        }
+        // Very important: tell Three.js to update the geometry
+        pointsRef.current.geometry.attributes.position.needsUpdate = true;
+        // Also update material properties that change over time
+        (pointsRef.current.material as THREE.PointsMaterial).size = 0.5 * life;
+        (pointsRef.current.material as THREE.PointsMaterial).opacity = life;
+    });
 
     return (
-        <Points ref={pointsRef} position={position} scale={scale}>
-            <pointsMaterial color="orange" size={0.5 * life} transparent opacity={life} blending={THREE.AdditiveBlending} depthWrite={false} toneMapped={false} />
-            {velocities.map((v, i) => (
-                <Point key={i} position={v.clone().multiplyScalar(1 - life)} />
-            ))}
-        </Points>
+        <points ref={pointsRef} position={position} scale={scale}>
+            <bufferGeometry>
+                <bufferAttribute
+                    attach="attributes-position"
+                    count={NUM_PARTICLES}
+                    array={particlePositions}
+                    itemSize={3}
+                />
+            </bufferGeometry>
+            <pointsMaterial
+                color="orange"
+                transparent
+                blending={THREE.AdditiveBlending}
+                depthWrite={false}
+                toneMapped={false}
+            />
+        </points>
     );
 };
-
 
 interface LaserBeamProps {
     start: THREE.Vector3;
