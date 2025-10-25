@@ -50,14 +50,16 @@ export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(({
     });
 
     const geometry = useMemo(() => {
-        const size = 500;
+        const radius = 250;
         const segments = 128;
-        const geometry = new THREE.PlaneGeometry(size, size, segments, segments);
+        // Use CircleGeometry to create a round terrain base
+        const geometry = new THREE.CircleGeometry(radius, segments);
         const positions = geometry.attributes.position;
         const vertex = new THREE.Vector3();
 
         for (let i = 0; i < positions.count; i++) {
             vertex.fromBufferAttribute(positions, i);
+            // The noise function remains the same, applying height based on x/y coordinates
             const noise = noise2D(vertex.x * 0.01, vertex.y * 0.01);
             // Apply noise to Z-axis (which becomes Y-axis after rotation)
             positions.setZ(i, noise * 5);
@@ -69,7 +71,7 @@ export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(({
 
     const uniforms = useMemo(() => ({
         uTime: { value: 0.0 },
-        uColor: { value: new THREE.Color('#c2b280') }, // A sandy desert base color
+        uColor: { value: new THREE.Color('#a1662f') }, // Deep orange sand dunes
     }), []);
 
     const handleClick = (e: ThreeEvent<MouseEvent>) => {

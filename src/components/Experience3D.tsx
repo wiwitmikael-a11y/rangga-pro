@@ -20,9 +20,9 @@ import { ProjectSelectionPanel } from './ui/ProjectSelectionPanel';
 import { PatrollingCore } from './scene/PatrollingCore';
 
 // Define the sun's position to be used by the light, sky, and mesh
-const sunPosition: [number, number, number] = [100, 15, -150];
+const sunPosition: [number, number, number] = [100, 5, -200]; // Lower sun for sunset effect
 const sunColor = '#FFFFF0'; // A warm, sun-like white
-const backgroundColor = '#a38c6d'; // Dusty sand color for background
+const backgroundColor = '#5e3a1f'; // Darker, deep orange desert floor color
 
 export const Experience3D: React.FC = () => {
   const [selectedDistrict, setSelectedDistrict] = useState<CityDistrict | null>(null);
@@ -110,11 +110,11 @@ export const Experience3D: React.FC = () => {
         <Suspense fallback={null}>
           <color attach="background" args={[backgroundColor]} />
           
-          <Sky sunPosition={sunPosition} turbidity={10} rayleigh={3} mieCoefficient={0.005} mieDirectionalG={0.8} />
-          <ambientLight intensity={0.3} />
+          <Sky sunPosition={sunPosition} turbidity={20} rayleigh={6} mieCoefficient={0.01} mieDirectionalG={0.9} />
+          <ambientLight intensity={0.2} />
           <directionalLight
             position={sunPosition}
-            intensity={5}
+            intensity={3}
             color={sunColor}
             castShadow
             shadow-mapSize-width={4096}
