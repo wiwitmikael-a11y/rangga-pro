@@ -78,15 +78,16 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
 
   return (
     <>
-      <div style={styles.breadcrumbContainer}>
+      <div style={styles.breadcrumbContainer} className="breadcrumb-container">
           <p style={styles.breadcrumbText}>{breadcrumb}</p>
       </div>
        
-      <div style={styles.bottomLeftContainer}>
+      <div style={styles.bottomLeftContainer} className="bottom-left-container">
           <div style={{...styles.povSelector, ...(isCalibrationMode ? styles.disabled : {})}}>
               <button 
                 onClick={() => onSetPov('main')} 
                 style={{...styles.hudButton, ...(pov === 'main' ? styles.activePov : {})}}
+                className="hud-button"
                 aria-label="Overview Camera"
                 disabled={isCalibrationMode}
               >
@@ -95,6 +96,7 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
               <button 
                 onClick={() => onSetPov('ship')} 
                 style={{...styles.hudButton, ...(pov === 'ship' ? styles.activePov : {})}}
+                className="hud-button"
                 aria-label="Ship Follow Camera"
                 disabled={isCalibrationMode}
               >
@@ -104,6 +106,7 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
           <button 
             onClick={onGoHome} 
             style={{...styles.hudButton, ...(showHomeButton ? styles.visible : styles.hiddenBottom)}}
+            className="hud-button"
             aria-label="Back to City Overview"
           >
             {homeButtonIcon}
@@ -111,6 +114,7 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
           <button
             onClick={onToggleCalibrationMode}
             style={{...styles.hudButton, ...(isCalibrationMode ? styles.activePov : {}), ...styles.visible}}
+            className="hud-button"
             aria-label="Toggle Architect Mode"
             >
             <GridIcon />
@@ -118,6 +122,7 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
            <button
             onClick={onExportLayout}
             style={{...styles.hudButton, ...(isCalibrationMode && !heldDistrictId ? styles.visible : styles.hiddenBottom)}}
+            className="hud-button"
             aria-label="Export Layout"
             >
             <ExportIcon />
@@ -125,13 +130,14 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
           <button
             onClick={onCancelMove}
             style={{...styles.hudButton, ...styles.cancelButton, ...(heldDistrictId ? styles.visible : styles.hiddenBottom)}}
+            className="hud-button"
             aria-label="Cancel Move"
           >
             <CancelIcon />
           </button>
       </div>
 
-      <div style={styles.bottomCenterContainer}>
+      <div style={styles.bottomCenterContainer} className="bottom-center-container">
         <button
           onClick={onToggleNavMenu}
           style={styles.navMenuButton}

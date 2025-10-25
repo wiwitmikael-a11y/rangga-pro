@@ -32,7 +32,7 @@ export const ExportLayoutModal: React.FC<ExportLayoutModalProps> = ({ isOpen, on
       <div style={styles.overlay} onClick={onClose} />
       <div 
         style={styles.container} 
-        className="panel-enter"
+        className={`export-layout-modal responsive-modal ${isOpen ? 'panel-enter' : ''}`}
         onContextMenu={(e) => e.stopPropagation()} // Allow right-click menu
       >
         <div style={styles.header}>

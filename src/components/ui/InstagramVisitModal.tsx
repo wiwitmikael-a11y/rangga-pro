@@ -36,7 +36,7 @@ export const InstagramVisitModal: React.FC<InstagramVisitModalProps> = ({ isOpen
             <div style={styles.overlay} onClick={onClose} />
             <div 
                 style={styles.container} 
-                className="panel-enter"
+                className={`instagram-visit-modal responsive-modal ${isOpen ? 'panel-enter' : ''}`}
                 onContextMenu={(e) => e.stopPropagation()}
             >
                 <div style={styles.content}>

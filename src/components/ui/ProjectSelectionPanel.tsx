@@ -20,7 +20,7 @@ const StrategicAnalysisPanel: React.FC<{ activeCategory: SkillCategory | null }>
   };
 
   return (
-    <div key={data.category} style={styles.analysisPanel}>
+    <div key={data.category} style={styles.analysisPanel} className="analysis-panel">
       <h3 style={styles.analysisTitle}>{data.category}</h3>
       <p style={styles.analysisDescription}>{data.description}</p>
       
@@ -81,7 +81,7 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
   return (
     <>
       <div style={overlayStyle} onClick={onClose} />
-      <div style={containerStyle} className={isOpen ? 'panel-enter' : ''} onContextMenu={(e) => e.stopPropagation()}>
+      <div style={containerStyle} className={`project-selection-panel responsive-modal ${isOpen ? 'panel-enter' : ''}`} onContextMenu={(e) => e.stopPropagation()}>
         <div style={styles.header}>
           <h2 style={styles.title}>{district.title}</h2>
           <button onClick={onClose} style={styles.closeButton} aria-label="Back to Overview">&times;</button>
@@ -89,8 +89,8 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
         <p style={styles.description}>{district.description}</p>
 
         {isCoreMatrix ? (
-          <div style={styles.competencyLayout}>
-            <div style={styles.chartContainer}>
+          <div style={styles.competencyLayout} className="competency-layout">
+            <div style={styles.chartContainer} className="chart-container">
               <SkillsRadarChart 
                 skills={skillsData}
                 activeCategory={activeCategory}
@@ -100,7 +100,7 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
             <StrategicAnalysisPanel activeCategory={activeCategory} />
           </div>
         ) : (
-          <div style={styles.grid}>
+          <div style={styles.grid} className="project-grid">
             {district.subItems?.map((item, index) => (
               <div key={item.id} className="project-card" style={{ ...styles.card, animation: isOpen ? `card-fade-in 0.5s ease ${index * 0.1 + 0.3}s both` : 'none' }} onClick={() => onProjectSelect(item)}>
                 <img src={item.imageUrl} alt={item.title} style={styles.cardImage} />

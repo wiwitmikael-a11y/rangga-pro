@@ -83,14 +83,14 @@ export const ContactHubModal: React.FC<ContactHubModalProps> = ({ isOpen, onClos
                 @keyframes stripe-scroll { from { background-position: 0 0; } to { background-position: 56.5px 0; } }
             `}</style>
             <div style={overlayStyle} onClick={onClose} />
-            <div style={styles.container} className={isOpen ? 'panel-enter' : ''} onContextMenu={(e) => e.stopPropagation()}>
+            <div style={styles.container} className={`contact-hub-modal responsive-modal ${isOpen ? 'panel-enter' : ''}`} onContextMenu={(e) => e.stopPropagation()}>
                 <div style={styles.dangerStripes} />
                 <div style={styles.header}>
                     <h2 style={styles.title}>CONTACT HUB</h2>
                     <button onClick={onClose} style={styles.closeButton} aria-label="Close Contact Hub">&times;</button>
                 </div>
-                <div style={styles.contentGrid}>
-                    <div style={styles.linksPanel}>
+                <div style={styles.contentGrid} className="contact-grid">
+                    <div style={styles.linksPanel} className="contact-links-panel">
                         <h3 style={styles.panelTitle}>Direct Channels</h3>
                         <p style={styles.panelDescription}>For direct networking, scheduling, or social media engagement.</p>
                         <a href="https://www.instagram.com/rangga.p.h/" target="_blank" rel="noopener noreferrer" style={styles.linkButton}>
@@ -106,7 +106,7 @@ export const ContactHubModal: React.FC<ContactHubModalProps> = ({ isOpen, onClos
                             <CalendarIcon /> <span>Schedule a Meeting</span>
                         </a>
                     </div>
-                    <form style={styles.formPanel} onSubmit={handleSubmit}>
+                    <form style={styles.formPanel} className="form-panel" onSubmit={handleSubmit}>
                         <h3 style={styles.panelTitle}>Secure Transmission</h3>
                         <p style={styles.panelDescription}>Use this form for proposals, consultations, or general inquiries.</p>
                         <div style={styles.inputGroup}>
