@@ -1,12 +1,6 @@
-import React, { useMemo } from 'react';
-import * as THREE from 'three';
-import { useGLTF } from '@react-three/drei';
+import React from 'react';
 
-// Placeholder for enemy drone model
-export const EnemyDrone: React.FC<{position: [number, number, number]}> = ({position}) => {
-    const { scene } = useGLTF('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/enemy_drone.glb');
-    const clonedScene = useMemo(() => scene.clone(), [scene]);
-    return <primitive object={clonedScene} position={position} scale={4} />;
+// This component has been removed to focus on the free flight portfolio experience.
+export const EnemyCore: React.FC<{position: [number, number, number]}> = ({position}) => {
+    return <group position={position} />;
 };
-
-useGLTF.preload('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/enemy_drone.glb');

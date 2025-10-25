@@ -13,7 +13,6 @@ interface HUDProps {
   onExportLayout: () => void;
   heldDistrictId: string | null;
   onCancelMove: () => void;
-  gameMode: 'inactive' | 'lobby' | 'active';
 }
 
 // --- SVG Icons ---
@@ -64,43 +63,65 @@ const CancelIcon: React.FC = () => (
     </svg>
 );
 
-export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, onToggleNavMenu, isDetailViewActive, pov, onSetPov, isCalibrationMode, onToggleCalibrationMode, onExportLayout, heldDistrictId, onCancelMove, gameMode }) => {
+export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, onToggleNavMenu, isDetailViewActive, pov, onSetPov, isCalibrationMode, onToggleCalibrationMode, onExportLayout, heldDistrictId, onCancelMove }) => {
 
   const breadcrumb = useMemo(() => {
-    if (gameMode === 'active') return `RAGETOPIA > /AEGIS_PROTOCOL/ACTIVE/`;
-    if (gameMode === 'lobby') return `RAGETOPIA > /AEGIS_COMMAND/STANDBY/`;
     if (heldDistrictId) return `RAGETOPIA > /ARCHITECT_MODE/MOVING...`;
     if (selectedDistrict) return `RAGETOPIA > /${selectedDistrict.id.toUpperCase()}_DISTRICT/`;
     if (isCalibrationMode) return `RAGETOPIA > /ARCHITECT_MODE/`;
     return 'RAGETOPIA';
-  }, [selectedDistrict, isCalibrationMode, heldDistrictId, gameMode]);
+  }, [selectedDistrict, isCalibrationMode, heldDistrictId]);
   
-  const showHomeButton = isDetailViewActive || gameMode === 'active' || pov === 'ship';
+  const showHomeButton = isDetailViewActive || pov === 'ship';
   const homeButtonIcon = '⌂';
 
   return (
     <>
+      {/* FIX: Add hover styles for interactive buttons */}
+      <style>{`
+        .hud-button:not([disabled]):hover {
+            background-color: rgba(0, 170, 255, 0.2);
+            border-color: #00ffff;
+            transform: scale(1.1);
+        }
+        .hud-button.active, .hud-button:active {
+            transform: scale(0.95);
+        }
+      `}</style>
+      
+      {/* FIX: Add top-right container for the navigation menu button */}
+      <div style={styles.topRightContainer}>
+          <button
+            onClick={onToggleNavMenu}
+            style={styles.hudButton}
+            className="hud-button"
+            aria-label="Open Navigation Menu"
+          >
+            <NavMenuIcon />
+          </button>
+      </div>
+
       <div style={styles.breadcrumbContainer} className="breadcrumb-container">
           <p style={styles.breadcrumbText}>{breadcrumb}</p>
       </div>
        
       <div style={styles.bottomLeftContainer} className="bottom-left-container">
-          <div style={{...styles.povSelector, ...(isCalibrationMode || gameMode === 'active' ? styles.disabled : {})}}>
+          <div style={{...styles.povSelector, ...(isCalibrationMode ? styles.disabled : {})}}>
               <button 
                 onClick={() => onSetPov('main')} 
-                style={{...styles.hudButton, ...(pov === 'main' ? styles.activePov : {})}}
+                style={{...styles.hudButton, margin: 0, ...(pov === 'main' ? styles.activePov : {})}}
                 className="hud-button"
                 aria-label="Overview Camera"
-                disabled={isCalibrationMode || gameMode === 'active'}
+                disabled={isCalibrationMode}
               >
                   <CameraIcon />
               </button>
               <button 
                 onClick={() => onSetPov('ship')} 
-                style={{...styles.hudButton, ...(pov === 'ship' ? styles.activePov : {})}}
+                style={{...styles.hudButton, margin: 0, ...(pov === 'ship' ? styles.activePov : {})}}
                 className="hud-button"
                 aria-label="Ship Follow Camera"
-                disabled={isCalibrationMode || gameMode === 'active'}
+                disabled={isCalibrationMode}
               >
                   <ShipIcon />
               </button>
@@ -115,156 +136,122 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
           </button>
           <button
             onClick={onToggleCalibrationMode}
-            style={{...styles.hudButton, ...(isCalibrationMode ? styles.activePov : {}), ...(!isCalibrationMode && gameMode === 'active' ? styles.hiddenBottom : styles.visible)}}
+            style={{...styles.hudButton, ...(isCalibrationMode ? styles.activePov : {}), ...styles.visible}}
             className="hud-button"
             aria-label="Toggle Architect Mode"
-            disabled={gameMode === 'active'}
             >
             <GridIcon />
           </button>
-           <button
-            onClick={onExportLayout}
-            style={{...styles.hudButton, ...(isCalibrationMode && !heldDistrictId ? styles.visible : styles.hiddenBottom)}}
-            className="hud-button"
-            aria-label="Export Layout"
+          {/* FIX: Add conditional architect mode buttons */}
+          {isCalibrationMode && (
+            <button
+                onClick={onExportLayout}
+                style={{...styles.hudButton, ...styles.visible}}
+                className="hud-button"
+                aria-label="Export Layout"
             >
-            <ExportIcon />
-          </button>
-          <button
-            onClick={onCancelMove}
-            style={{...styles.hudButton, ...styles.cancelButton, ...(heldDistrictId ? styles.visible : styles.hiddenBottom)}}
-            className="hud-button"
-            aria-label="Cancel Move"
-          >
-            <CancelIcon />
-          </button>
-      </div>
-
-      <div style={{...styles.bottomCenterContainer, ...(gameMode === 'active' || isCalibrationMode ? styles.hiddenBottom : {})}} className="bottom-center-container">
-        <button
-          onClick={onToggleNavMenu}
-          style={styles.navMenuButton}
-          className="hex-btn"
-          aria-label="Open Quick Navigation"
-        >
-          <NavMenuIcon />
-        </button>
+                <ExportIcon />
+            </button>
+          )}
+          {heldDistrictId && (
+              <button
+                  onClick={onCancelMove}
+                  style={{...styles.hudButton, ...styles.visible, ...styles.dangerButton}}
+                  className="hud-button"
+                  aria-label="Cancel Move"
+              >
+                  <CancelIcon />
+              </button>
+          )}
       </div>
     </>
   );
 });
 
-const glassmorphism: React.CSSProperties = {
-  background: 'rgba(0, 20, 40, 0.7)',
-  backdropFilter: 'blur(10px)',
-  border: '1px solid rgba(0, 170, 255, 0.5)',
-  boxShadow: '0 0 15px rgba(0, 170, 255, 0.1)',
-};
-
+// FIX: Added missing styles object to resolve multiple 'Cannot find name' errors.
 const styles: { [key: string]: React.CSSProperties } = {
+  topRightContainer: {
+    position: 'fixed',
+    top: '20px',
+    right: '20px',
+    zIndex: 100,
+  },
   breadcrumbContainer: {
-    ...glassmorphism,
     position: 'fixed',
     top: '20px',
     left: '50%',
     transform: 'translateX(-50%)',
-    color: '#00aaff',
-    padding: '5px 15px',
+    padding: '8px 16px',
+    background: 'rgba(0, 20, 40, 0.7)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(0, 170, 255, 0.5)',
     borderRadius: '5px',
-    zIndex: 10,
-    textShadow: '0 0 5px #00aaff',
+    color: 'var(--primary-color)',
+    zIndex: 100,
     pointerEvents: 'none',
-    whiteSpace: 'nowrap',
-    transition: 'opacity 0.5s ease',
+    transition: 'opacity 0.3s ease',
   },
   breadcrumbText: {
     margin: 0,
+    fontFamily: 'var(--font-family)',
     fontSize: 'clamp(0.8rem, 1.5vw, 0.9rem)',
     letterSpacing: '0.1em',
+    textShadow: '0 0 5px var(--primary-color)',
   },
   bottomLeftContainer: {
     position: 'fixed',
     bottom: '20px',
     left: '20px',
-    zIndex: 10,
     display: 'flex',
-    gap: '10px',
     alignItems: 'center',
-  },
-  povSelector: {
-    ...glassmorphism,
-    display: 'flex',
-    padding: '4px',
-    borderRadius: '25px',
-    transition: 'opacity 0.3s ease',
-  },
-  disabled: {
-    opacity: 0.5,
-    pointerEvents: 'none',
-  },
-  bottomCenterContainer: {
-    position: 'fixed',
-    bottom: '20px',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    zIndex: 10,
-    transition: 'all 0.5s ease',
+    zIndex: 100,
   },
   hudButton: {
-    ...glassmorphism,
-    color: '#00aaff',
-    width: '38px',
-    height: '38px',
+    background: 'rgba(0, 20, 40, 0.7)',
+    backdropFilter: 'blur(10px)',
     border: '1px solid rgba(0, 170, 255, 0.5)',
+    color: 'var(--primary-color)',
+    width: '44px',
+    height: '44px',
     borderRadius: '50%',
-    padding: '0',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    fontSize: '1.2rem',
-    lineHeight: 1,
     cursor: 'pointer',
-    transition: 'all 0.5s ease',
-    pointerEvents: 'all',
+    transition: 'all 0.2s ease-in-out',
+    margin: '0 5px',
+    fontSize: '1.5rem',
+  },
+  povSelector: {
+    display: 'flex',
+    background: 'rgba(0, 20, 40, 0.7)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(0, 170, 255, 0.5)',
+    borderRadius: '22px',
+    marginRight: '10px',
+    transition: 'opacity 0.3s ease',
+    overflow: 'hidden',
+  },
+  disabled: {
+    opacity: 0.4,
+    pointerEvents: 'none',
   },
   activePov: {
-    background: 'rgba(0, 170, 255, 0.3)',
-    borderColor: 'rgba(0, 225, 255, 0.8)',
+    background: 'rgba(0, 170, 255, 0.2)',
     color: '#fff',
-  },
-  cancelButton: {
-      background: 'rgba(255, 0, 50, 0.3)',
-      borderColor: 'rgba(255, 80, 100, 0.8)',
-      color: '#ff8c8c',
-  },
-  aegisButton: {
-    background: 'rgba(255, 153, 0, 0.15)',
-    borderColor: 'rgba(255, 153, 0, 0.6)',
-    color: '#ff9900',
-  },
-  navMenuButton: {
-    ...glassmorphism,
-    color: '#00aaff',
-    width: '60px',
-    height: '60px',
-    border: '2px solid rgba(0, 225, 255, 0.7)',
-    borderRadius: '50%',
-    padding: '0',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    pointerEvents: 'all',
+    textShadow: '0 0 8px #fff',
   },
   visible: {
     opacity: 1,
     transform: 'translateY(0)',
-    pointerEvents: 'all',
   },
   hiddenBottom: {
     opacity: 0,
     transform: 'translateY(20px)',
     pointerEvents: 'none',
   },
+  dangerButton: {
+    borderColor: '#ff6347',
+    color: '#ff6347',
+  }
 };
