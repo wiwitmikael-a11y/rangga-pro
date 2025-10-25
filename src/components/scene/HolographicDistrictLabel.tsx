@@ -32,7 +32,7 @@ const borderFragmentShader = `
   
   void main() {
     // These ratios define the inner "hole" of the frame, matching the RoundedBox dimensions
-    float innerWidthRatio = 20.0 / 20.5;
+    float innerWidthRatio = 24.0 / 24.5;
     float innerHeightRatio = 9.0 / 9.5;
     
     // Normalized coordinates from center (from 0 to 1 on each axis)
@@ -46,7 +46,7 @@ const borderFragmentShader = `
 
     // Stripe pattern logic for the visible border
     float pattern = (vUv.x + vUv.y); // Creates a 45-degree angle
-    pattern += time * 1.5; // Controls animation speed
+    pattern += time * 0.2; // Controls animation speed
     
     float stripeFrequency = 15.0; // Controls the number/thickness of stripes
     float stripes = step(0.5, fract(pattern * stripeFrequency));
@@ -121,7 +121,7 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
       >
         {/* Animated Danger Stripe Border - placed slightly in front of the main panel */}
         <mesh position-z={-0.09}>
-          <planeGeometry args={[20.5, 9.5]} />
+          <planeGeometry args={[24.5, 9.5]} />
           <shaderMaterial
             vertexShader={borderVertexShader}
             fragmentShader={borderFragmentShader}
@@ -132,7 +132,7 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
         </mesh>
         
         {/* Rounded rectangle background */}
-        <RoundedBox args={[20, 9, 0.2]} radius={0.5} position-z={-0.2}>
+        <RoundedBox args={[24, 9, 0.2]} radius={0.5} position-z={-0.2}>
           <meshStandardMaterial
             color="white"
             transparent
@@ -150,6 +150,8 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
           anchorX="center"
           anchorY="middle"
           position-y={1.5} // Position text inside the box
+          maxWidth={22}
+          textAlign="center"
         >
           {district.title.toUpperCase()}
           <meshStandardMaterial
@@ -166,6 +168,8 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
           color={DESC_ORANGE}
           anchorX="center"
           anchorY="middle"
+          maxWidth={22}
+          textAlign="center"
         >
           {district.description}
         </Text>
