@@ -19,7 +19,7 @@ export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(({
     // Configure texture tiling
     useMemo(() => {
         terrainTexture.wrapS = terrainTexture.wrapT = THREE.RepeatWrapping;
-        terrainTexture.repeat.set(15, 15); // Adjust tiling for a good scale on a large surface
+        terrainTexture.repeat.set(25, 25); // Increased tiling to better showcase the detailed texture
         terrainTexture.anisotropy = 16;
     }, [terrainTexture]);
 
@@ -58,11 +58,13 @@ export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(({
             >
                 <meshStandardMaterial
                     map={terrainTexture}
-                    // Add a normal map for detail. Using the same texture can work for a simple bump map effect.
+                    // Use the detailed texture for multiple PBR channels to enhance realism
                     normalMap={terrainTexture} 
-                    normalScale={new THREE.Vector2(0.5, 0.5)} // Control the intensity of the normal map
+                    normalScale={new THREE.Vector2(1.0, 1.0)} // Increased intensity for more pronounced bumps
                     displacementMap={terrainTexture}
-                    displacementScale={0.2} // Subtle displacement from texture
+                    displacementScale={0.4} // Increased displacement for more physical depth
+                    aoMap={terrainTexture} // Add ambient occlusion for more realistic self-shadowing
+                    aoMapIntensity={0.5}
                     metalness={0.2} // Less metallic for a rock surface
                     roughness={0.8} // More rough for a rock surface
                 />
