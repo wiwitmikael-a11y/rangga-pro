@@ -6,10 +6,14 @@ import { useFrame } from '@react-three/fiber';
 interface DataBridgeProps {
   start: [number, number, number];
   end: [number, number, number];
+  isActive?: boolean;
 }
 
-export const DataBridge: React.FC<DataBridgeProps> = ({ start, end }) => {
-  const lineRef = useRef<any>();
+export const DataBridge: React.FC<DataBridgeProps> = ({ start, end, isActive }) => {
+  const lineRef = useRef<THREE.Line>(null!);
+
+  const activeColor = useMemo(() => new THREE.Color('#ffffff'), []);
+  const inactiveColor = useMemo(() => new THREE.Color('#00ffff'), []);
 
   // This creates a curved path for the bridge to arc gracefully through space
   const points = useMemo(() => {
@@ -26,10 +30,15 @@ export const DataBridge: React.FC<DataBridgeProps> = ({ start, end }) => {
 
   // Animate the material to create a flowing energy effect
   useFrame((_, delta) => {
-    if (lineRef.current) {
-      // The `dashOffset` property is part of the THREE.LineDashedMaterial
-      // By changing it over time, we create the illusion of movement along the line.
-      lineRef.current.material.uniforms.dashOffset.value -= delta * 3;
+    if (lineRef.current && lineRef.current.material instanceof THREE.LineDashedMaterial) {
+      const material = lineRef.current.material;
+      // Animate the dash offset to create a moving effect
+      const speed = isActive ? 12 : 3;
+      material.dashOffset -= delta * speed;
+
+      // Animate the color to indicate active state
+      const targetColor = isActive ? activeColor : inactiveColor;
+      material.color.lerp(targetColor, delta * 4);
     }
   });
 
@@ -37,8 +46,7 @@ export const DataBridge: React.FC<DataBridgeProps> = ({ start, end }) => {
     <CatmullRomLine
       ref={lineRef}
       points={points}
-      color="#00ffff"
-      lineWidth={0.3}
+      color="#00ffff" // Initial color
       dashed={true}
       dashScale={5} // The length of each dash
       gapSize={3} // The length of the gap between dashes

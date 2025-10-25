@@ -1,4 +1,28 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+
+// Helper component for typing effect
+const Typewriter: React.FC<{ text: string; speed?: number; onFinished?: () => void; }> = ({ text, speed = 50, onFinished }) => {
+    const [displayedText, setDisplayedText] = useState('');
+
+    useEffect(() => {
+        setDisplayedText('');
+        if (text) {
+            let i = 0;
+            const intervalId = setInterval(() => {
+                if (i < text.length) {
+                    setDisplayedText(prev => prev + text.charAt(i));
+                    i++;
+                } else {
+                    clearInterval(intervalId);
+                    if (onFinished) onFinished();
+                }
+            }, speed);
+            return () => clearInterval(intervalId);
+        }
+    }, [text, speed, onFinished]);
+
+    return <>{displayedText}</>;
+};
 
 interface StartScreenProps {
   onStart: () => void;
@@ -16,38 +40,33 @@ const styles: { [key: string]: React.CSSProperties } = {
     backgroundColor: 'black',
     zIndex: 1000,
     color: 'var(--primary-color)',
-    fontFamily: 'var(--font-family)',
+    fontFamily: '"Courier New", Courier, monospace',
     textAlign: 'center',
     padding: '20px',
     boxSizing: 'border-box',
     animation: 'fadeInStart 1s ease-in',
   },
-  scanlineEffect: {
-    position: 'absolute',
-    inset: 0,
-    pointerEvents: 'none',
-    background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0) 100%)',
-    backgroundSize: '100% 4px',
-    opacity: 0.1,
-    zIndex: 1,
-  },
   content: {
     zIndex: 2,
+    maxWidth: '800px',
+    width: '100%',
   },
   title: {
-    fontSize: 'clamp(2.5rem, 8vw, 5rem)',
+    fontSize: 'clamp(2rem, 8vw, 4rem)',
     margin: 0,
-    letterSpacing: '0.2em',
+    letterSpacing: '0.1em',
     textTransform: 'uppercase',
     textShadow: '0 0 10px var(--primary-color), 0 0 20px var(--primary-color)',
-    animation: 'pulse 3s infinite',
   },
-  subtitle: {
-    fontSize: 'clamp(1rem, 2vw, 1.2rem)',
-    margin: '10px 0 40px 0',
+  bootText: {
+    fontSize: 'clamp(1rem, 2vw, 1.1rem)',
+    margin: '10px 0',
     letterSpacing: '0.1em',
     textTransform: 'uppercase',
     opacity: 0.8,
+    whiteSpace: 'pre-wrap',
+    textAlign: 'left',
+    minHeight: '2.5em', // Reserve space to prevent layout shift
   },
   startButton: {
     background: 'transparent',
@@ -61,6 +80,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     letterSpacing: '0.1em',
     transition: 'all 0.3s ease',
     textShadow: '0 0 5px var(--primary-color)',
+    marginTop: '20px',
   },
   disclaimer: {
       position: 'absolute',
@@ -74,6 +94,8 @@ const styles: { [key: string]: React.CSSProperties } = {
 };
 
 export const StartScreen: React.FC<StartScreenProps> = React.memo(({ onStart, isExiting }) => {
+  const [bootStep, setBootStep] = useState(0);
+
   const containerStyle: React.CSSProperties = {
     ...styles.container,
     opacity: isExiting ? 0 : 1,
@@ -83,27 +105,31 @@ export const StartScreen: React.FC<StartScreenProps> = React.memo(({ onStart, is
 
   return (
     <div style={containerStyle}>
-      <div style={styles.scanlineEffect} />
       <div style={styles.content}>
-        <h1 style={styles.title}>RAGETOPIA</h1>
-        <p style={styles.subtitle}>Rangga Digital Portfolio</p>
-        <button
-            style={styles.startButton}
-            onClick={onStart}
-            onMouseOver={e => (e.currentTarget.style.backgroundColor = 'rgba(0, 170, 255, 0.2)')}
-            onMouseOut={e => (e.currentTarget.style.backgroundColor = 'transparent')}
-        >
-          Enter 3D World
-        </button>
+        <h1 style={styles.title}>
+            {bootStep >= 0 && <Typewriter text={"R.A.G.E. OS v4.0"} speed={70} onFinished={() => setBootStep(1)} />}
+        </h1>
+        <p style={styles.bootText}>
+            {bootStep >= 1 && <Typewriter text={"[Syncing Neural Interface... OK]"} speed={40} onFinished={() => setBootStep(2)} />}
+        </p>
+         <p style={styles.bootText}>
+            {bootStep >= 2 && <Typewriter text={"[Awaiting User Authentication...]"} speed={40} onFinished={() => setBootStep(3)} />}
+        </p>
+        
+        {bootStep >= 3 && (
+            <button
+                style={{ ...styles.startButton, animation: 'fadeInStart 1s ease-in' }}
+                onClick={onStart}
+                onMouseOver={e => (e.currentTarget.style.backgroundColor = 'rgba(0, 170, 255, 0.2)')}
+                onMouseOut={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+            >
+              &gt; AUTHENTICATE<span className="blinking-cursor">_</span>
+            </button>
+        )}
         <p style={styles.disclaimer}>Best experienced on a desktop browser with a dedicated GPU.</p>
       </div>
        <style>{`
           @keyframes fadeInStart { from { opacity: 0; } to { opacity: 1; } }
-          @keyframes pulse {
-            0% { text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
-            50% { text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color); }
-            100% { text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
-          }
       `}</style>
     </div>
   );

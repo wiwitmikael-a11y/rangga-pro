@@ -120,6 +120,23 @@
         to { background-position: 0 100%; }
       }
       
+      /* --- New Animations --- */
+      @keyframes blinking-cursor {
+        0% { opacity: 1; }
+        50% { opacity: 0; }
+        100% { opacity: 1; }
+      }
+      .blinking-cursor {
+        animation: blinking-cursor 1s step-end infinite;
+      }
+
+      @keyframes pulse-bar {
+        0% { box-shadow: 0 0 4px var(--primary-color); opacity: 0.8; }
+        50% { box-shadow: 0 0 12px var(--primary-color); opacity: 1; }
+        100% { box-shadow: 0 0 4px var(--primary-color); opacity: 0.8; }
+      }
+      /* --- End New Animations --- */
+
       /* --- Contact Hub Floating Labels --- */
       .contact-hub-modal .input-group {
         position: relative;
@@ -213,6 +230,9 @@
           font-size: 0.8rem !important;
           text-align: center;
           padding: 6px 10px !important;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .bottom-left-container {

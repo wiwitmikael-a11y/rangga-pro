@@ -41,13 +41,14 @@ const styles: { [key: string]: React.CSSProperties } = {
   skillLabel: { display: 'flex', justifyContent: 'space-between', marginBottom: '4px' },
   skillPercent: { color: '#aaa', fontSize: '0.8rem' },
   skillBar: { height: '6px', background: 'rgba(0, 170, 255, 0.1)', borderRadius: '3px', width: '100%' },
-  skillBarFill: { height: '100%', background: 'var(--primary-color)', borderRadius: '3px', boxShadow: '0 0 8px var(--primary-color)' },
+  skillBarFill: { height: '100%', background: 'var(--primary-color)', borderRadius: '3px', animation: 'pulse-bar 2.5s infinite ease-in-out' },
 
   // New Carousel Styles
   contentBody: { flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', position: 'relative' },
   carouselViewport: { width: '100%', height: '450px', position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', perspective: '2000px', WebkitPerspective: '2000px', cursor: 'grab', touchAction: 'pan-y' },
-  carouselCard: { ...glassmorphism, position: 'absolute', width: '320px', height: '400px', transition: 'transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.6s ease, filter 0.6s ease', borderRadius: '10px', overflow: 'hidden', display: 'flex', flexDirection: 'column', userSelect: 'none' },
-  cardImage: { width: '100%', height: '250px', objectFit: 'cover', display: 'block' },
+  carouselCard: { ...glassmorphism, position: 'absolute', width: '320px', height: '400px', transition: 'transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.6s ease, filter 0.6s ease', borderRadius: '10px', overflow: 'hidden', display: 'flex', flexDirection: 'column', userSelect: 'none', transformStyle: 'preserve-3d' },
+  cardImageContainer: { width: '100%', height: '250px', display: 'block', transition: 'transform 0.5s ease-in-out' },
+  cardImage: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
   cardContent: { padding: '15px', flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: 'rgba(5, 15, 30, 0.5)' },
   cardTitle: { margin: '0 0 10px 0', color: '#fff', fontSize: '1.1rem', textAlign: 'center' },
   cardDescription: { margin: 0, color: '#aaa', fontSize: '0.9rem', lineHeight: 1.4, flexGrow: 1 },
@@ -113,6 +114,7 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
   const [activeCategory, setActiveCategory] = useState<SkillCategory | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [zoomedImageUrl, setZoomedImageUrl] = useState<string | null>(null);
+  const [parallaxStyle, setParallaxStyle] = useState({});
   const dragInfo = useRef({ isDragging: false, startX: 0 });
 
   const projects = district?.subItems || [];
@@ -125,7 +127,7 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
   const handleNext = useCallback(() => {
     setCurrentIndex(prev => (prev === projects.length - 1 ? 0 : prev + 1));
   }, [projects.length]);
-
+  
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     dragInfo.current.isDragging = true;
     dragInfo.current.startX = e.clientX;
@@ -148,6 +150,25 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
       dragInfo.current.isDragging = false;
       e.currentTarget.releasePointerCapture(e.pointerId);
       e.currentTarget.style.cursor = 'grab';
+  }, []);
+
+  const handleParallaxMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    const { clientX, clientY, currentTarget } = e;
+    const { left, top, width, height } = currentTarget.getBoundingClientRect();
+    const x = (clientX - left) / width - 0.5;
+    const y = (clientY - top) / height - 0.5;
+    const intensity = 20;
+    setParallaxStyle({
+      transform: `rotateX(${-y * intensity}deg) rotateY(${x * intensity}deg) scale3d(1.1, 1.1, 1.1)`,
+      transition: 'transform 0.1s ease-out'
+    });
+  }, []);
+
+  const handleParallaxLeave = useCallback(() => {
+    setParallaxStyle({
+      transform: 'rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)',
+      transition: 'transform 0.5s ease-in-out'
+    });
   }, []);
   
   const containerStyle: React.CSSProperties = { ...styles.container, opacity: isOpen ? 1 : 0, transform: isOpen ? 'translateY(0)' : 'translateY(100vh)', pointerEvents: isOpen ? 'auto' : 'none', userSelect: 'auto' };
@@ -195,7 +216,7 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
                     const offset = index - currentIndex;
                     const distance = Math.abs(offset);
                     const isVisible = distance < 3;
-                    const cardSpacing = 180; // Controls how far apart cards are horizontally
+                    const cardSpacing = 180;
 
                     const cardStyle: React.CSSProperties = {
                       ...styles.carouselCard,
@@ -212,6 +233,8 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
                         key={item.id} 
                         style={cardStyle} 
                         className="carousel-card" 
+                        onPointerMove={offset === 0 ? handleParallaxMove : undefined}
+                        onPointerLeave={offset === 0 ? handleParallaxLeave : undefined}
                         onClick={() => {
                           if (offset === 0) {
                             setZoomedImageUrl(item.imageUrl ?? null);
@@ -220,7 +243,9 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
                           }
                         }}
                       >
-                        <img src={item.imageUrl} alt={item.title} style={{...styles.cardImage, opacity: offset === 0 ? 0.9 : 0.5 }} />
+                        <div style={{...styles.cardImageContainer, ...(offset === 0 ? parallaxStyle : {})}}>
+                            <img src={item.imageUrl} alt={item.title} style={{...styles.cardImage, opacity: offset === 0 ? 0.9 : 0.5 }} />
+                        </div>
                         <div style={styles.cardContent}>
                            {offset === 0 && <h3 style={styles.cardTitle}>{item.title}</h3>}
                            {offset === 0 && <p style={{fontSize: '0.8rem', color: '#88a7a6', margin: 0, textAlign: 'center'}}>[CLICK TO ENLARGE]</p>}

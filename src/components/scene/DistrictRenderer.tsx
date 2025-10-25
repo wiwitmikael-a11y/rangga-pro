@@ -56,7 +56,11 @@ export const DistrictRenderer: React.FC<DistrictRendererProps> = ({
                 </group>
               )}
               {district.id !== 'nexus-core' && (
-                <DataBridge start={district.position} end={[0, 5, 0]} />
+                <DataBridge 
+                  start={district.position} 
+                  end={[0, 5, 0]} 
+                  isActive={isSelected}
+                />
               )}
             </group>
           );

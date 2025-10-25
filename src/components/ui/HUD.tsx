@@ -1,5 +1,29 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import type { CityDistrict } from '../../types';
+
+// Helper component for typing effect
+const Typewriter: React.FC<{ text: string; speed?: number; }> = ({ text, speed = 20 }) => {
+    const [displayedText, setDisplayedText] = useState('');
+
+    useEffect(() => {
+        setDisplayedText(''); // Reset on text change
+        if (text) {
+            let i = 0;
+            const intervalId = setInterval(() => {
+                if (i < text.length) {
+                    setDisplayedText(prev => prev + text.charAt(i));
+                    i++;
+                } else {
+                    clearInterval(intervalId);
+                }
+            }, speed);
+            return () => clearInterval(intervalId);
+        }
+    }, [text, speed]);
+
+    return <>{displayedText}</>;
+};
+
 
 interface HUDProps {
   selectedDistrict: CityDistrict | null;
@@ -78,6 +102,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     zIndex: 100,
     pointerEvents: 'none',
     transition: 'opacity 0.3s ease',
+    minHeight: '35px',
   },
   breadcrumbText: {
     margin: 0,
@@ -85,6 +110,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: 'clamp(0.8rem, 1.5vw, 0.9rem)',
     letterSpacing: '0.1em',
     textShadow: '0 0 5px var(--primary-color)',
+    whiteSpace: 'nowrap',
   },
   bottomLeftContainer: {
     position: 'fixed',
@@ -154,11 +180,11 @@ const styles: { [key: string]: React.CSSProperties } = {
 export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, onToggleNavMenu, isDetailViewActive, pov, onSetPov, isCalibrationMode, onToggleCalibrationMode, onExportLayout, heldDistrictId, onCancelMove }) => {
 
   const breadcrumb = useMemo(() => {
-    if (heldDistrictId) return `RAGETOPIA > /ARCHITECT_MODE/MOVING...`;
-    if (selectedDistrict?.id === 'aegis-command') return 'RAGETOPIA > /AEGIS_COMMAND/ENGAGED';
-    if (selectedDistrict) return `RAGETOPIA > /${selectedDistrict.id.toUpperCase()}_DISTRICT/`;
-    if (isCalibrationMode) return `RAGETOPIA > /ARCHITECT_MODE/`;
-    return 'RAGETOPIA';
+    if (heldDistrictId) return `RAGETOPIA:/ARCHITECT_MODE$ execute --move ${heldDistrictId}`;
+    if (selectedDistrict?.id === 'aegis-command') return 'RAGETOPIA:/AEGIS_COMMAND$ engage --protocol';
+    if (selectedDistrict) return `RAGETOPIA:/DISTRICTS$ cd ${selectedDistrict.id.toUpperCase()}`;
+    if (isCalibrationMode) return `RAGETOPIA:/$ enter --architect_mode`;
+    return 'RAGETOPIA:/$';
   }, [selectedDistrict, isCalibrationMode, heldDistrictId]);
   
   const showHomeButton = isDetailViewActive || pov === 'ship';
@@ -178,7 +204,10 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
       `}</style>
       
       <div style={styles.breadcrumbContainer} className="breadcrumb-container">
-          <p style={styles.breadcrumbText}>{breadcrumb}</p>
+          <p style={styles.breadcrumbText}>
+            <Typewriter text={breadcrumb} />
+            <span className="blinking-cursor">_</span>
+          </p>
       </div>
 
       <div style={styles.bottomCenterContainer} className="bottom-center-container">
