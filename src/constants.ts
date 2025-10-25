@@ -347,41 +347,6 @@ export const portfolioData: CityDistrict[] = [
         10,
         80
       ]
-    },
-    "subItems": [
-      {
-        "id": "contact-email",
-        "title": "Secure Comms",
-        "description": "Send a direct inquiry or proposal via email.",
-        "position": [
-          -5,
-          5,
-          -75
-        ],
-        "imageUrl": "https://images.unsplash.com/photo-1586769852836-bc069f19e1b6?auto=format&fit=crop&w=800&q=80"
-      },
-      {
-        "id": "contact-linkedin",
-        "title": "Professional Network",
-        "description": "Connect on LinkedIn for professional history and networking.",
-        "position": [
-          5,
-          5,
-          -75
-        ],
-        "imageUrl": "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=800&q=80"
-      },
-      {
-        "id": "contact-calendar",
-        "title": "Schedule Meeting",
-        "description": "Book a virtual meeting to discuss a project or opportunity.",
-        "position": [
-          0,
-          5,
-          -85
-        ],
-        "imageUrl": "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&w=800&q=80"
-      }
-    ]
+    }
   }
 ];

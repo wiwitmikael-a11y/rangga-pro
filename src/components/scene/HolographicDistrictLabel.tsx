@@ -75,8 +75,8 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
   useFrame(({ clock }, delta) => {
     if (!groupRef.current) return;
 
-    // Hover scale animation
-    const targetScale = isHovered || isSelected ? 1.2 : 1;
+    // Hover scale animation, with a larger scale when held
+    const targetScale = isHeld ? 1.3 : (isHovered || isSelected ? 1.2 : 1);
     groupRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), delta * 5);
 
     // Update time uniform to animate the border shader

@@ -22,6 +22,7 @@ import { CalibrationGrid } from './scene/CalibrationGrid';
 import { BuildModeController } from './scene/BuildModeController';
 import { ExportLayoutModal } from './ui/ExportLayoutModal';
 import { InstagramVisitModal } from './ui/InstagramVisitModal';
+import { ContactHubModal } from './ui/ContactHubModal';
 
 // Define the sun's position for a warmer, Mars/Venus-like daylight
 const sunPosition: [number, number, number] = [100, 70, -80]; // Lower sun for more dramatic lighting
@@ -37,6 +38,7 @@ export const Experience3D: React.FC = () => {
   const [infoPanelItem, setInfoPanelItem] = useState<CityDistrict | null>(null);
   const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
   const [showVisitModal, setShowVisitModal] = useState(false);
+  const [isContactHubOpen, setIsContactHubOpen] = useState(false);
   
   const [pov, setPov] = useState<'main' | 'ship'>('main');
   const [shipRefs, setShipRefs] = useState<React.RefObject<THREE.Group>[]>([]);
@@ -65,28 +67,26 @@ export const Experience3D: React.FC = () => {
     if (isCalibrationMode) return;
     if (district.id === selectedDistrict?.id && !isAnimating) return;
     
-    if (district.subItems && district.subItems.length > 0) {
-      setSelectedDistrict(districts.find(d => d.id === district.id) || null);
-    } else {
-      // This path is now taken by nexus-core as well, which is intended.
-      setSelectedDistrict(districts.find(d => d.id === district.id) || null);
-      setInfoPanelItem(null);
-    }
-    setIsAnimating(true);
+    // For any interaction, reset panels and stop auto-rotation
     setShowProjects(false);
+    setInfoPanelItem(null);
     setIsAutoRotating(false);
+    
+    // Set the target district to trigger the camera movement
+    setSelectedDistrict(districts.find(d => d.id === district.id) || null);
+    setIsAnimating(true);
   }, [selectedDistrict, isAnimating, districts, isCalibrationMode]);
-
-  const isDetailViewActive = showProjects || !!infoPanelItem || !!selectedDistrict;
+  
+  const isDetailViewActive = showProjects || !!infoPanelItem || !!selectedDistrict || isContactHubOpen;
 
   const resetIdleTimer = useCallback(() => {
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     idleTimerRef.current = setTimeout(() => {
-        if (pov === 'main' && !selectedDistrict && !isDetailViewActive && !isCalibrationMode) {
+        if (pov === 'main' && !isDetailViewActive && !isCalibrationMode) {
             setIsAutoRotating(true);
         }
     }, 5000);
-  }, [pov, selectedDistrict, isDetailViewActive, isCalibrationMode]);
+  }, [pov, isDetailViewActive, isCalibrationMode]);
 
   const handleInteractionStart = useCallback(() => {
       setIsAutoRotating(false);
@@ -110,6 +110,8 @@ export const Experience3D: React.FC = () => {
     setIsAnimating(true);
     setShowProjects(false);
     setInfoPanelItem(null);
+    setIsContactHubOpen(false);
+    setShowVisitModal(false);
     resetIdleTimer();
   }, [resetIdleTimer]);
 
@@ -117,11 +119,13 @@ export const Experience3D: React.FC = () => {
     setIsAnimating(false);
     if (selectedDistrict) {
       if (selectedDistrict.id === 'nexus-core') {
-        setShowVisitModal(true); // Show the visit modal after zooming in to the core
+        setShowVisitModal(true);
+      } else if (selectedDistrict.id === 'contact') {
+        setIsContactHubOpen(true);
       } else if (selectedDistrict.subItems && selectedDistrict.subItems.length > 0) {
-        setShowProjects(true); // Show projects for other districts
+        setShowProjects(true);
       } else {
-        setInfoPanelItem(selectedDistrict); // For districts with no subItems
+        setInfoPanelItem(selectedDistrict);
       }
     } else if (pov === 'main' && !isCalibrationMode) {
       resetIdleTimer();
@@ -172,6 +176,7 @@ export const Experience3D: React.FC = () => {
         setSelectedDistrict(null);
         setShowProjects(false);
         setInfoPanelItem(null);
+        setIsContactHubOpen(false);
       }
       
       if (shipRefs.length > 0) {
@@ -246,11 +251,6 @@ export const Experience3D: React.FC = () => {
       setHeldDistrictId(null);
       setOriginalHeldDistrictPosition(null);
   }, []);
-
-  const handleCloseVisitModal = () => {
-    setShowVisitModal(false);
-    handleGoHome();
-  };
 
   return (
     <>
@@ -383,7 +383,11 @@ export const Experience3D: React.FC = () => {
       />
       <InstagramVisitModal
         isOpen={showVisitModal}
-        onClose={handleCloseVisitModal}
+        onClose={handleGoHome}
+      />
+      <ContactHubModal
+        isOpen={isContactHubOpen}
+        onClose={handleGoHome}
       />
     </>
   );
