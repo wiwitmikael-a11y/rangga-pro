@@ -129,15 +129,6 @@ export const Experience3D: React.FC = () => {
             shadow-camera-top={200}
             shadow-camera-bottom={-200}
           />
-          <mesh position={sunPosition}>
-            <sphereGeometry args={[15, 32, 32]} />
-            <meshStandardMaterial
-                color={sunColor}
-                emissive={sunColor}
-                emissiveIntensity={5}
-                toneMapped={false}
-            />
-          </mesh>
 
           <CityModel />
           <Rain count={2500} />

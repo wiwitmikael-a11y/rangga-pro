@@ -17,7 +17,6 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
   
   const showHomeButton = isDetailViewActive;
   const homeButtonIcon = '⌂'; // Home icon
-  const navMenuIcon = '☰'; // A more common menu icon (hamburger)
 
   return (
     <>
@@ -25,7 +24,7 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
           <p style={styles.breadcrumbText}>{breadcrumb}</p>
       </div>
        
-      <div style={styles.bottomContainer}>
+      <div style={styles.bottomLeftContainer}>
          <button 
             onClick={onGoHome} 
             style={{...styles.hudButton, ...(showHomeButton ? styles.visible : styles.hiddenBottom)}}
@@ -35,14 +34,14 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
           </button>
       </div>
 
-      <div style={styles.bottomRightContainer}>
+      <div style={styles.bottomCenterContainer}>
         <button
           onClick={onToggleNavMenu}
-          style={{...styles.hudButton, ...styles.hexButton}}
+          style={styles.navMenuButton}
           className="hex-btn"
           aria-label="Open Quick Navigation"
         >
-          {navMenuIcon}
+          <span style={styles.navMenuIcon}>{`>>>`}</span>
         </button>
       </div>
     </>
@@ -77,18 +76,17 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: 'clamp(0.8rem, 1.5vw, 0.9rem)',
     letterSpacing: '0.1em',
   },
-  bottomContainer: {
+  bottomLeftContainer: {
+    position: 'fixed',
+    bottom: '20px',
+    left: '20px',
+    zIndex: 10,
+  },
+  bottomCenterContainer: {
     position: 'fixed',
     bottom: '20px',
     left: '50%',
     transform: 'translateX(-50%)',
-    zIndex: 10,
-    textAlign: 'center',
-  },
-  bottomRightContainer: {
-    position: 'fixed',
-    bottom: '20px',
-    right: '20px',
     zIndex: 10,
   },
   hudButton: {
@@ -108,10 +106,27 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: 'all 0.5s ease',
     pointerEvents: 'all',
   },
-  hexButton: {
-    width: '40px',
-    height: '44px',
-    borderRadius: '0', // remove border radius for clip-path
+  navMenuButton: {
+    ...glassmorphism,
+    color: '#00aaff',
+    width: '60px',
+    height: '60px',
+    border: '2px solid rgba(0, 225, 255, 0.7)',
+    borderRadius: '50%',
+    padding: '0',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    pointerEvents: 'all',
+  },
+  navMenuIcon: {
+      transform: 'rotate(-90deg)',
+      fontSize: '1.5rem',
+      fontWeight: 'bold',
+      lineHeight: 1,
+      letterSpacing: '-2px',
   },
   visible: {
     opacity: 1,

@@ -19,7 +19,6 @@ const vertexShader = `
 
 const fragmentShader = `
   uniform vec3 uColor;
-  uniform vec3 uGridColor;
   uniform float uTime;
   varying vec3 vWorldPosition;
 
@@ -28,24 +27,13 @@ const fragmentShader = `
       // Simple pseudo-random generator
       return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
   }
-  
-  float line(float val, float width) {
-    return smoothstep(width, 0.0, abs(fract(val - 0.5) - 0.5));
-  }
 
   void main() {
-    // Scrolling grid layers
-    float majorGrid = max(line(vWorldPosition.x * 0.05, 0.015), line(vWorldPosition.z * 0.05, 0.015));
-    float minorGrid = max(line(vWorldPosition.x * 0.2 - uTime * 0.05, 0.005), line(vWorldPosition.z * 0.2 - uTime * 0.05, 0.005));
-    
     // Animated, subtle noise pattern for a shimmering texture
     float terrainNoise = noise(vWorldPosition.xz * 0.1 + uTime * 0.03) * 0.2;
-
-    // Combine grids and noise for a glowing, textured effect
-    float glow = majorGrid * 1.0 + minorGrid * 0.4;
     
-    // Additive color mixing: start with a base color, add noise shimmer, then add grid glow
-    vec3 finalColor = uColor + vec3(terrainNoise * 0.5) + uGridColor * glow;
+    // Just the base color and the noise shimmer
+    vec3 finalColor = uColor + vec3(terrainNoise * 0.5);
     
     gl_FragColor = vec4(finalColor, 1.0);
   }
@@ -81,8 +69,7 @@ export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(({
 
     const uniforms = useMemo(() => ({
         uTime: { value: 0.0 },
-        uColor: { value: new THREE.Color('#081022') }, // A dark blue base, brighter than before
-        uGridColor: { value: new THREE.Color('#00ffff') }, // Bright cyan grid
+        uColor: { value: new THREE.Color('#081022') }, // A dark blue base
     }), []);
 
     const handleClick = (e: ThreeEvent<MouseEvent>) => {
@@ -91,7 +78,7 @@ export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(({
     };
 
     return (
-        <group position={[0, -5.5, 0]}>
+        <group position={[0, -4.5, 0]}>
             <mesh
                 geometry={geometry}
                 rotation={[-Math.PI / 2, 0, 0]}
