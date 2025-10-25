@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, Suspense } from 'react';
-import { useFrame } from '@react--three/fiber';
+import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { ThrustTrail } from './ThrustTrail';
