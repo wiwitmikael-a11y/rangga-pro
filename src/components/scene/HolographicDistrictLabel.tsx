@@ -1,7 +1,7 @@
 // FIX: Remove the triple-slash directive for @react-three/fiber types.
 import React, { useRef, useState, useMemo } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
-import { Text, Billboard } from '@react-three/drei';
+import { Text, Billboard, RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 import { CityDistrict } from '../../types';
 
@@ -14,23 +14,76 @@ interface HolographicDistrictLabelProps {
   onSetHeld: (id: string | null) => void;
 }
 
+// --- Shader code for the animated danger stripe border ---
+
+// Vertex Shader (simple pass-through for UVs)
+const borderVertexShader = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+// Fragment Shader (creates stripes with a transparent hole in the middle)
+const borderFragmentShader = `
+  uniform float time;
+  varying vec2 vUv;
+  
+  void main() {
+    // These ratios define the inner "hole" of the frame, matching the RoundedBox dimensions
+    float innerWidthRatio = 20.0 / 20.5;
+    float innerHeightRatio = 9.0 / 9.5;
+    
+    // Normalized coordinates from center (from 0 to 1 on each axis)
+    float normX = abs(vUv.x * 2.0 - 1.0);
+    float normY = abs(vUv.y * 2.0 - 1.0);
+    
+    // Discard the fragment if it's inside the transparent hole
+    if (normX < innerWidthRatio && normY < innerHeightRatio) {
+      discard;
+    }
+
+    // Stripe pattern logic for the visible border
+    float pattern = (vUv.x + vUv.y); // Creates a 45-degree angle
+    pattern += time * 1.5; // Controls animation speed
+    
+    float stripeFrequency = 15.0; // Controls the number/thickness of stripes
+    float stripes = step(0.5, fract(pattern * stripeFrequency));
+    
+    vec3 orange = vec3(1.0, 0.6, 0.0); // #ff9900
+    vec3 black = vec3(0.0, 0.0, 0.0);
+    
+    vec3 finalColor = mix(orange, black, stripes);
+    
+    gl_FragColor = vec4(finalColor, 1.0);
+  }
+`;
+
+// Define futuristic orange color palette
+const BASE_ORANGE = '#ff9900';
+const HOVER_ORANGE = '#ffb84d';
+const SELECTED_ORANGE = '#ffdd4d';
+const DESC_ORANGE = '#ffbe66';
+
 const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ district, onSelect, isSelected, isCalibrationMode, isHeld, onSetHeld }) => {
   const groupRef = useRef<THREE.Group>(null!);
   const [isHovered, setIsHovered] = useState(false);
 
-  // Create a memoized color object that we can mutate for the animated outline
-  const animatedOutlineColor = useMemo(() => new THREE.Color(), []);
+  // Uniforms for the shader material, memoized for performance
+  const borderUniforms = useMemo(() => ({
+    time: { value: 0 },
+  }), []);
 
   useFrame(({ clock }, delta) => {
     if (!groupRef.current) return;
 
-    // Hover animation
+    // Hover scale animation
     const targetScale = isHovered || isSelected ? 1.2 : 1;
     groupRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), delta * 5);
 
-    // Animate the outline color using HSL for a smooth rainbow effect
-    const hue = (clock.getElapsedTime() * 0.2) % 1;
-    animatedOutlineColor.setHSL(hue, 1, 0.6); // High saturation and lightness for a neon glow
+    // Update time uniform to animate the border shader
+    borderUniforms.time.value = clock.getElapsedTime();
   });
   
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
@@ -55,7 +108,7 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
     }
   };
   
-  const textColor = isHeld ? '#FFD700' : isSelected ? '#ffffff' : isHovered ? '#00ffff' : '#00aaff';
+  const titleTextColor = isHeld ? SELECTED_ORANGE : isSelected ? SELECTED_ORANGE : isHovered ? HOVER_ORANGE : BASE_ORANGE;
   const emissiveIntensity = isHeld ? 2.5 : isHovered || isSelected ? 2 : 1;
 
   return (
@@ -66,26 +119,51 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
         onPointerOut={handlePointerOut}
         onPointerDown={handlePointerDown}
       >
+        {/* Animated Danger Stripe Border - placed slightly in front of the main panel */}
+        <mesh position-z={-0.09}>
+          <planeGeometry args={[20.5, 9.5]} />
+          <shaderMaterial
+            vertexShader={borderVertexShader}
+            fragmentShader={borderFragmentShader}
+            uniforms={borderUniforms}
+            transparent={true}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+        
+        {/* Rounded rectangle background */}
+        <RoundedBox args={[20, 9, 0.2]} radius={0.5} position-z={-0.2}>
+          <meshStandardMaterial
+            color="white"
+            transparent
+            opacity={0.15}
+            metalness={0.6}
+            roughness={0.3}
+            side={THREE.DoubleSide}
+          />
+        </RoundedBox>
+
+        {/* District Title */}
         <Text
-          fontSize={4}
-          color={textColor}
+          fontSize={3.5}
+          color={titleTextColor}
           anchorX="center"
           anchorY="middle"
-          outlineColor={animatedOutlineColor}
-          outlineWidth={0.15}
-          outlineOpacity={1}
+          position-y={1.5} // Position text inside the box
         >
           {district.title.toUpperCase()}
           <meshStandardMaterial
-            emissive={textColor}
+            emissive={titleTextColor}
             emissiveIntensity={emissiveIntensity}
             toneMapped={false}
           />
         </Text>
+
+        {/* District Description */}
         <Text
-          position={[0, -3, 0]}
+          position={[0, -1.5, 0]} // Position text inside the box
           fontSize={1.5}
-          color="#cccccc"
+          color={DESC_ORANGE}
           anchorX="center"
           anchorY="middle"
         >
