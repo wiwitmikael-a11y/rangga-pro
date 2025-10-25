@@ -90,7 +90,6 @@ export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(({
                     uniforms={uniforms}
                     vertexShader={vertexShader}
                     fragmentShader={fragmentShader}
-                    fog={true}
                 />
             </mesh>
         </group>
