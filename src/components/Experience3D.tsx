@@ -17,6 +17,7 @@ import { ProceduralTerrain } from './scene/ProceduralTerrain';
 import HolographicInfoPanel from './scene/HolographicInfoPanel';
 import { QuickNavMenu } from './ui/QuickNavMenu';
 import { ProjectSelectionPanel } from './ui/ProjectSelectionPanel'; // Impor panel baru
+import { PatrollingCore } from './scene/PatrollingCore';
 
 // Define the sun's position to be used by the light, sky, and mesh
 const sunPosition: [number, number, number] = [-100, 70, -100];
@@ -129,6 +130,7 @@ export const Experience3D: React.FC = () => {
           <CityModel />
           <Rain count={2500} />
           <FlyingShips />
+          <PatrollingCore />
           <ProceduralTerrain onDeselect={handleGoHome} />
 
           <group position={[0, 5, 0]}>
