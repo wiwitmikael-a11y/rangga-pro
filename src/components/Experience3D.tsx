@@ -1,4 +1,4 @@
-import React, { useState, useCallback, Suspense, useRef } from 'react';
+import React, { useState, useCallback, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Sky } from '@react-three/drei';
 import { EffectComposer, Noise, ChromaticAberration } from '@react-three/postprocessing';
