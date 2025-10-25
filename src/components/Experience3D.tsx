@@ -1,6 +1,6 @@
 import React, { useState, useCallback, Suspense, useMemo, useRef, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Sky, useGLTF } from '@react-three/drei';
+import { OrbitControls, Sky } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { EffectComposer, Noise, ChromaticAberration } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';

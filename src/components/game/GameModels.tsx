@@ -10,7 +10,7 @@ export const MuzzleFlash: React.FC = () => {
     const isFiring = useRef(false);
 
     // This simulates rapid, short bursts of fire.
-    useFrame(({ clock }) => {
+    useFrame(() => {
         const shouldFireNow = Math.random() > 0.95; // Fire randomly but frequently
         
         if (shouldFireNow && !isFiring.current) {
