@@ -16,6 +16,7 @@ interface PatrollingCoreProps {
 export const PatrollingCore: React.FC<PatrollingCoreProps> = React.memo(({ godRaysSourceRef }) => {
   const groupRef = useRef<THREE.Group>(null!);
   const spotLightRef = useRef<THREE.SpotLight>(null!);
+  const volumetricLightRef = useRef<THREE.Mesh>(null!); // Ref untuk sinar volumetrik
   const { scene } = useGLTF(MODEL_URL);
   
   const clonedScene = useMemo(() => scene.clone(), [scene]);
@@ -26,36 +27,27 @@ export const PatrollingCore: React.FC<PatrollingCoreProps> = React.memo(({ godRa
     return target;
   }, []);
 
-  // Simpan posisi sebelumnya untuk menghitung arah pergerakan
   const previousPosition = useMemo(() => new THREE.Vector3(), []);
   
   useFrame(({ clock }) => {
-    if (!groupRef.current || !spotLightRef.current) return;
+    if (!groupRef.current || !spotLightRef.current || !volumetricLightRef.current) return;
 
     const elapsedTime = clock.getElapsedTime();
-    const movementSpeed = 0.1; // Mengontrol kecepatan patroli keseluruhan
+    const movementSpeed = 0.1;
 
-    // 1. Buat jalur 3D menggunakan Simplex noise untuk pergerakan yang lebih alami dan eksploratif
     const time = elapsedTime * movementSpeed;
-    const horizontalRange = 80; // Seberapa jauh ia bisa bergerak secara horizontal
-    const verticalRange = 25;   // Rentang pergerakan vertikalnya
-    const baseHeight = 35;      // Ketinggian minimum
+    const horizontalRange = 80;
+    const verticalRange = 25;
+    const baseHeight = 35;
 
-    // Gunakan noise untuk koordinat x dan z
     const x = noise3D(time, 0, 0) * horizontalRange;
     const z = noise3D(0, time, 0) * horizontalRange;
-    
-    // Gunakan dimensi noise ketiga untuk variasi ketinggian yang mulus
-    const heightNoise = (noise3D(0, 0, time) + 1) / 2; // Map noise dari [-1, 1] ke [0, 1]
+    const heightNoise = (noise3D(0, 0, time) + 1) / 2;
     const y = baseHeight + heightNoise * verticalRange;
 
-    // Simpan posisi saat ini sebelum diperbarui
     previousPosition.copy(groupRef.current.position);
-
-    // Interpolasi ke posisi baru secara mulus untuk menghindari gerakan patah-patah
     groupRef.current.position.lerp(new THREE.Vector3(x, y, z), 0.05);
 
-    // 2. Buat core melihat ke arah tujuannya, kecuali jika sedang diam
     if (previousPosition.distanceTo(groupRef.current.position) > 0.01) {
        const lookAtTarget = new THREE.Vector3().copy(groupRef.current.position).add(
          new THREE.Vector3().subVectors(groupRef.current.position, previousPosition).normalize()
@@ -66,9 +58,15 @@ export const PatrollingCore: React.FC<PatrollingCoreProps> = React.memo(({ godRa
        groupRef.current.quaternion.slerp(tempObject.quaternion, 0.05);
     }
 
-    // 3. Perbarui target sorotan agar berada tepat di bawah core
-    spotLightTarget.position.set(groupRef.current.position.x, 0, groupRef.current.position.z);
+    const groundTargetPos = new THREE.Vector3(groupRef.current.position.x, 0, groupRef.current.position.z);
+    spotLightTarget.position.copy(groundTargetPos);
     spotLightRef.current.target = spotLightTarget;
+    
+    // Sinkronkan sinar volumetrik dengan sorotan
+    volumetricLightRef.current.lookAt(groundTargetPos);
+    // Skalakan panjang sinar volumetrik berdasarkan jarak ke tanah
+    const distanceToGround = groupRef.current.position.distanceTo(groundTargetPos);
+    volumetricLightRef.current.scale.z = distanceToGround;
   });
 
   return (
@@ -84,20 +82,33 @@ export const PatrollingCore: React.FC<PatrollingCoreProps> = React.memo(({ godRa
         <meshBasicMaterial color="white" visible={false} />
       </mesh>
 
-      {/* Sorotan diperbarui menjadi sinar pemindai oranye yang lebar */}
       <spotLight
         ref={spotLightRef}
         position={[0, 5, 0]} 
-        angle={Math.PI / 3} // Kerucut cahaya dibuat jauh lebih lebar
-        penumbra={0.4} // Melembutkan tepi untuk efek pemindaian
-        intensity={50} // Kecerahan ditingkatkan untuk kerucut yang lebih lebar
-        distance={150} // Jangkauan ditingkatkan untuk memastikan cahaya mencapai tanah dari ketinggian maks
+        angle={Math.PI / 3.5}
+        penumbra={0.4}
+        intensity={200} // Intensitas ditingkatkan secara drastis
+        distance={200} // Jangkauan ditingkatkan
         castShadow
-        color="#FF9900" // Diubah menjadi oranye
+        color="#FF4500" // Warna oranye menyala yang lebih kontras
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
       />
       
+      {/* Sinar Volumetrik Palsu untuk membuat sorotan terlihat */}
+      <mesh ref={volumetricLightRef} position={[0, 2.5, 0]}>
+        {/* Geometri kerucutnya dibuat panjang 1 unit, lalu di-skalakan secara dinamis */}
+        <coneGeometry args={[undefined, 1, 32, 1, true]} />
+        <meshBasicMaterial
+          color="#FF4500"
+          transparent
+          opacity={0.1}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+
       <primitive object={spotLightTarget} />
     </group>
   );

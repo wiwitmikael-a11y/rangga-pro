@@ -8,6 +8,16 @@ interface HUDProps {
   isDetailViewActive: boolean;
 }
 
+// Komponen Ikon SVG kustom untuk menu navigasi
+const NavMenuIcon: React.FC = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
+    <path d="M4 6H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M4 12H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M4 18H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+
 export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, onToggleNavMenu, isDetailViewActive }) => {
 
   const breadcrumb = useMemo(() => {
@@ -41,7 +51,7 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
           className="hex-btn"
           aria-label="Open Quick Navigation"
         >
-          <span style={styles.navMenuIcon}>{`>>>`}</span>
+          <NavMenuIcon />
         </button>
       </div>
     </>
@@ -121,13 +131,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: 'all 0.3s ease',
     pointerEvents: 'all',
   },
-  navMenuIcon: {
-      transform: 'rotate(-90deg)',
-      fontSize: '1.5rem',
-      fontWeight: 'bold',
-      lineHeight: 1,
-      letterSpacing: '-2px',
-  },
+  // Style ini tidak lagi diperlukan karena ikon SVG baru
+  // navMenuIcon: {
+  //     transform: 'rotate(-90deg)',
+  //     fontSize: '1.5rem',
+  //     fontWeight: 'bold',
+  //     lineHeight: 1,
+  //     letterSpacing: '-2px',
+  // },
   visible: {
     opacity: 1,
     transform: 'translateY(0)',
