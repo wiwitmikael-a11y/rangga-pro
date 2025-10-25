@@ -81,10 +81,10 @@ export const Experience3D: React.FC = () => {
         dpr={[1, 1.5]}
       >
         <color attach="background" args={['#081426']} />
-        <fog attach="fog" args={['#081426', 100, 300]} />
+        <fog attach="fog" args={['#102844', 120, 350]} />
 
         <Suspense fallback={null}>
-          <ambientLight intensity={1.5} />
+          <ambientLight intensity={2.5} />
           <pointLight position={[0, 40, 0]} intensity={1.5} color="#00aaff" distance={150} decay={2} />
           <directionalLight
             position={[-20, 50, -50]}
@@ -130,7 +130,7 @@ export const Experience3D: React.FC = () => {
 
           <EffectComposer>
             <Bloom 
-              intensity={0.6} 
+              intensity={0.7} 
               luminanceThreshold={0.2} 
               luminanceSmoothing={0.8} 
               height={400} 

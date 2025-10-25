@@ -12,7 +12,6 @@ const noise2D = createNoise2D();
 const vertexShader = `
   varying vec3 vWorldPosition;
   void main() {
-    // Pass world position to fragment shader
     vWorldPosition = (modelMatrix * vec4(position, 1.0)).xyz;
     gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(position, 1.0);
   }
@@ -24,21 +23,40 @@ const fragmentShader = `
   uniform float uTime;
   varying vec3 vWorldPosition;
 
-  // Function to create a smooth grid line
+  // 2D Random function
+  float random (vec2 st) {
+      return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
+  }
+
+  // 2D Noise function
+  float noise (vec2 st) {
+      vec2 i = floor(st);
+      vec2 f = fract(st);
+      float a = random(i);
+      float b = random(i + vec2(1.0, 0.0));
+      float c = random(i + vec2(0.0, 1.0));
+      float d = random(i + vec2(1.0, 1.0));
+      vec2 u = f*f*(3.0-2.0*f);
+      return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.y * u.x;
+  }
+  
   float line(float val, float width) {
     return smoothstep(width, 0.0, abs(fract(val - 0.5) - 0.5));
   }
 
   void main() {
-    // Create two scrolling grid layers
-    float majorGrid = max(line(vWorldPosition.x * 0.05, 0.01), line(vWorldPosition.z * 0.05, 0.01));
-    float minorGrid = max(line(vWorldPosition.x * 0.2 + uTime * 0.05, 0.005), line(vWorldPosition.z * 0.2 + uTime * 0.05, 0.005));
+    // Scrolling grid layers
+    float majorGrid = max(line(vWorldPosition.x * 0.05, 0.015), line(vWorldPosition.z * 0.05, 0.015));
+    float minorGrid = max(line(vWorldPosition.x * 0.2 - uTime * 0.05, 0.005), line(vWorldPosition.z * 0.2 - uTime * 0.05, 0.005));
     
-    // Combine grids for a glowing effect
-    float glow = majorGrid * 0.8 + minorGrid * 0.3;
+    // Add a subtle noise pattern for texture
+    float terrainNoise = noise(vWorldPosition.xz * 0.1) * 0.2;
+
+    // Combine grids and noise for a glowing, textured effect
+    float glow = majorGrid * 1.0 + minorGrid * 0.4 + terrainNoise;
     
-    // Mix base color with grid color
-    vec3 finalColor = mix(uColor, uGridColor, glow);
+    // Mix base color with grid color. Clamp the glow to avoid overly bright spots.
+    vec3 finalColor = mix(uColor, uGridColor, clamp(glow, 0.0, 1.0));
     
     gl_FragColor = vec4(finalColor, 1.0);
   }
@@ -56,7 +74,7 @@ export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(({
 
     const geometry = useMemo(() => {
         const size = 500;
-        const segments = 128; // Increased segments for smoother noise
+        const segments = 128;
         const geometry = new THREE.PlaneGeometry(size, size, segments, segments);
         const positions = geometry.attributes.position;
         const vertex = new THREE.Vector3();
@@ -64,6 +82,7 @@ export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(({
         for (let i = 0; i < positions.count; i++) {
             vertex.fromBufferAttribute(positions, i);
             const noise = noise2D(vertex.x * 0.01, vertex.y * 0.01);
+            // Apply noise to Z-axis (which becomes Y-axis after rotation)
             positions.setZ(i, noise * 5);
         }
         
@@ -73,8 +92,8 @@ export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(({
 
     const uniforms = useMemo(() => ({
         uTime: { value: 0.0 },
-        uColor: { value: new THREE.Color('#080418') }, // Dark base color
-        uGridColor: { value: new THREE.Color('#00ffff') }, // Cyan grid color
+        uColor: { value: new THREE.Color('#03010f') }, // A very dark, deep blue/purple base
+        uGridColor: { value: new THREE.Color('#00ffff') }, // Bright cyan grid
     }), []);
 
     const handleClick = (e: ThreeEvent<MouseEvent>) => {
@@ -95,7 +114,7 @@ export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(({
                     uniforms={uniforms}
                     vertexShader={vertexShader}
                     fragmentShader={fragmentShader}
-                    fog={true} // Enable scene fog for this material
+                    fog={true}
                 />
             </mesh>
         </group>
