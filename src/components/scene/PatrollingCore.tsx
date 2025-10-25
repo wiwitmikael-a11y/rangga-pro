@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useLayoutEffect } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -10,47 +10,15 @@ const SCALE = 4;
 // Inisialisasi fungsi noise di luar komponen untuk performa
 const noise3D = createNoise3D();
 
-interface PatrollingCoreProps {
-  godRaysSourceRef: React.RefObject<THREE.Mesh>;
-}
-
-export const PatrollingCore: React.FC<PatrollingCoreProps> = React.memo(({ godRaysSourceRef }) => {
+export const PatrollingCore: React.FC = React.memo(() => {
   const groupRef = useRef<THREE.Group>(null!);
-  const spotLightRef = useRef<THREE.SpotLight>(null!);
-  const volumetricLightRef = useRef<THREE.Mesh>(null!);
   const { scene } = useGLTF(MODEL_URL);
   
   const clonedScene = useMemo(() => scene.clone(), [scene]);
-
-  useLayoutEffect(() => {
-    // Hitung titik tengah-bawah model secara dinamis untuk dijadikan titik asal cahaya.
-    const box = new THREE.Box3().setFromObject(clonedScene);
-    const center = box.getCenter(new THREE.Vector3());
-    const anchorPoint = new THREE.Vector3(center.x, box.min.y, center.z);
-    
-    // Terapkan skala yang sama pada titik anchor
-    anchorPoint.multiplyScalar(SCALE);
-
-    // Langsung atur posisi pada ref untuk menghindari masalah sinkronisasi state
-    if (spotLightRef.current && volumetricLightRef.current && godRaysSourceRef.current) {
-        spotLightRef.current.position.copy(anchorPoint);
-        volumetricLightRef.current.position.copy(anchorPoint);
-        godRaysSourceRef.current.position.copy(anchorPoint);
-    }
-
-  }, [clonedScene, godRaysSourceRef]);
-
-
-  const spotLightTarget = useMemo(() => {
-    const target = new THREE.Object3D();
-    target.position.set(0, 0, 0);
-    return target;
-  }, []);
-
   const previousPosition = useMemo(() => new THREE.Vector3(), []);
   
   useFrame(({ clock }) => {
-    if (!groupRef.current || !spotLightRef.current || !volumetricLightRef.current) return;
+    if (!groupRef.current) return;
 
     const elapsedTime = clock.getElapsedTime();
     const movementSpeed = 0.04;
@@ -77,26 +45,6 @@ export const PatrollingCore: React.FC<PatrollingCoreProps> = React.memo(({ godRa
        tempObject.lookAt(lookAtTarget);
        groupRef.current.quaternion.slerp(tempObject.quaternion, 0.05);
     }
-
-    // Gerakan memindai melingkar di tanah, dengan radius diperkecil
-    const scanRadius = 22.5; 
-    const scanSpeed = 0.3;
-    const scanX = Math.sin(elapsedTime * scanSpeed) * scanRadius;
-    const scanZ = Math.cos(elapsedTime * scanSpeed) * scanRadius;
-
-    const groundTargetPos = new THREE.Vector3(
-        groupRef.current.position.x + scanX,
-        0, 
-        groupRef.current.position.z + scanZ
-    );
-
-    spotLightTarget.position.copy(groundTargetPos);
-    spotLightRef.current.target = spotLightTarget;
-    
-    // Sinkronkan sinar volumetrik dengan sorotan
-    volumetricLightRef.current.lookAt(groundTargetPos);
-    const distanceToGround = groupRef.current.position.distanceTo(groundTargetPos);
-    volumetricLightRef.current.scale.z = distanceToGround;
   });
 
   return (
@@ -106,37 +54,6 @@ export const PatrollingCore: React.FC<PatrollingCoreProps> = React.memo(({ godRa
         scale={SCALE}
         position-y={0} 
       />
-      
-       <mesh ref={godRaysSourceRef}>
-        <sphereGeometry args={[2, 16, 16]} />
-        <meshBasicMaterial color="white" visible={false} />
-      </mesh>
-
-      <spotLight
-        ref={spotLightRef}
-        angle={Math.PI / 3.6} // Sudut diperkecil setengahnya
-        penumbra={0.4}
-        intensity={400}
-        distance={200}
-        castShadow
-        color="#FF4500"
-        shadow-mapSize-width={1024}
-        shadow-mapSize-height={1024}
-      />
-      
-      <mesh ref={volumetricLightRef}>
-        <coneGeometry args={[12.5, 1, 32, 1, true]} /> {/* Radius diperkecil setengahnya */}
-        <meshBasicMaterial
-          color="#FF4500"
-          transparent
-          opacity={0.08}
-          blending={THREE.AdditiveBlending}
-          depthWrite={false}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
-
-      <primitive object={spotLightTarget} />
     </group>
   );
 });

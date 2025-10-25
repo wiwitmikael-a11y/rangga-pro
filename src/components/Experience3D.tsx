@@ -1,7 +1,7 @@
 import React, { useState, useCallback, Suspense, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Sky } from '@react-three/drei';
-import { EffectComposer, Noise, ChromaticAberration, GodRays } from '@react-three/postprocessing';
+import { EffectComposer, Noise, ChromaticAberration } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
 
@@ -30,8 +30,6 @@ export const Experience3D: React.FC = () => {
   const [infoPanelItem, setInfoPanelItem] = useState<CityDistrict | null>(null);
   const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
   
-  const godRaysSourceRef = useRef<THREE.Mesh>(null!);
-
   const handleDistrictSelect = useCallback((district: CityDistrict) => {
     // Special handling for the central @rangga.p.h core
     if (district.id === 'nexus-core') {
@@ -120,7 +118,7 @@ export const Experience3D: React.FC = () => {
           <CityModel />
           <Rain count={2500} />
           <FlyingShips />
-          <PatrollingCore godRaysSourceRef={godRaysSourceRef} />
+          <PatrollingCore />
           <ProceduralTerrain onDeselect={handleGoHome} />
 
           <group position={[0, 5, 0]}>
@@ -145,18 +143,6 @@ export const Experience3D: React.FC = () => {
               radialModulation={false}
               modulationOffset={0.15}
             />
-            {godRaysSourceRef.current && (
-              <GodRays
-                sun={godRaysSourceRef}
-                blendFunction={BlendFunction.SCREEN}
-                samples={40}
-                density={0.97}
-                decay={0.96}
-                weight={0.8}
-                exposure={0.5}
-                clampMax={1}
-              />
-            )}
           </EffectComposer>
 
         </Suspense>

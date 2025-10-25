@@ -2,7 +2,6 @@ import React, { useMemo, useRef, Suspense } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
-import { ThrustTrail } from './ThrustTrail';
 
 const GITHUB_MODEL_URL_BASE = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/';
 
@@ -39,12 +38,10 @@ type ShipState = 'FLYING' | 'DESCENDING' | 'LANDED' | 'ASCENDING';
 interface ShipProps {
   modelUrl: string;
   scale: number;
-  trailConfig?: { width?: number; length?: number; opacity?: number; color?: string };
-  trailOffset?: [number, number, number];
   initialDelay: number;
 }
 
-const Ship: React.FC<ShipProps> = ({ modelUrl, scale, trailConfig, trailOffset, initialDelay }) => {
+const Ship: React.FC<ShipProps> = ({ modelUrl, scale, initialDelay }) => {
   const groupRef = useRef<THREE.Group>(null!);
   const { scene } = useGLTF(modelUrl);
   const clonedScene = useMemo(() => scene.clone(), [scene]);
@@ -183,14 +180,9 @@ const Ship: React.FC<ShipProps> = ({ modelUrl, scale, trailConfig, trailOffset, 
     }
   });
 
-  const isLanded = shipState.current.state === 'LANDED';
-
   return (
     <group ref={groupRef} scale={scale} dispose={null} visible={false}>
       <primitive object={clonedScene} />
-      <Suspense fallback={null}>
-          <ThrustTrail {...trailConfig} opacity={isLanded ? 0 : (trailConfig?.opacity ?? 0.5)} position={trailOffset} />
-      </Suspense>
     </group>
   );
 };
@@ -199,18 +191,18 @@ const Ship: React.FC<ShipProps> = ({ modelUrl, scale, trailConfig, trailOffset, 
 export const FlyingShips: React.FC = React.memo(() => {
   const ships = useMemo(() => [
     // Ukuran diperkecil setengahnya
-    { id: 'space_1', url: `${GITHUB_MODEL_URL_BASE}ship_space.glb`, scale: 0.45, trailConfig: { color: '#00aaff', width: 0.5, length: 8, opacity: 0.7 }, trailOffset: [0, -0.2, -4.0] as [number, number, number], initialDelay: 0 },
-    { id: 'space_2', url: `${GITHUB_MODEL_URL_BASE}ship_space.glb`, scale: 0.47, trailConfig: { color: '#00ccff', width: 0.5, length: 8, opacity: 0.7 }, trailOffset: [0, -0.2, -4.0] as [number, number, number], initialDelay: 5 },
-    { id: 'delorean_1', url: `${GITHUB_MODEL_URL_BASE}ship_delorean.glb`, scale: 0.6, trailConfig: { color: '#ffaa00', width: 0.4, length: 7, opacity: 0.8 }, trailOffset: [0, 0.2, -3.5] as [number, number, number], initialDelay: 2 },
-    { id: 'delorean_2', url: `${GITHUB_MODEL_URL_BASE}ship_delorean.glb`, scale: 0.55, trailConfig: { color: '#ffcc00', width: 0.4, length: 7, opacity: 0.8 }, trailOffset: [0, 0.2, -3.5] as [number, number, number], initialDelay: 7 },
-    { id: 'copter_1', url: `${GITHUB_MODEL_URL_BASE}ship_copter.glb`, scale: 0.05, trailConfig: { color: '#00ffaa', width: 0.15, length: 5, opacity: 0.6 }, trailOffset: [0, -0.1, -1.5] as [number, number, number], initialDelay: 4 },
-    { id: 'copter_2', url: `${GITHUB_MODEL_URL_BASE}ship_copter.glb`, scale: 0.055, trailConfig: { color: '#55ffcc', width: 0.15, length: 5, opacity: 0.6 }, trailOffset: [0, -0.1, -1.5] as [number, number, number], initialDelay: 9 },
+    { id: 'space_1', url: `${GITHUB_MODEL_URL_BASE}ship_space.glb`, scale: 0.45, initialDelay: 0 },
+    { id: 'space_2', url: `${GITHUB_MODEL_URL_BASE}ship_space.glb`, scale: 0.47, initialDelay: 5 },
+    { id: 'delorean_1', url: `${GITHUB_MODEL_URL_BASE}ship_delorean.glb`, scale: 0.6, initialDelay: 2 },
+    { id: 'delorean_2', url: `${GITHUB_MODEL_URL_BASE}ship_delorean.glb`, scale: 0.55, initialDelay: 7 },
+    { id: 'copter_1', url: `${GITHUB_MODEL_URL_BASE}ship_copter.glb`, scale: 0.05, initialDelay: 4 },
+    { id: 'copter_2', url: `${GITHUB_MODEL_URL_BASE}ship_copter.glb`, scale: 0.055, initialDelay: 9 },
   ], []);
 
   return (
     <Suspense fallback={null}>
       {ships.map((ship) => (
-        <Ship key={ship.id} modelUrl={ship.url} scale={ship.scale} trailConfig={ship.trailConfig} trailOffset={ship.trailOffset} initialDelay={ship.initialDelay} />
+        <Ship key={ship.id} modelUrl={ship.url} scale={ship.scale} initialDelay={ship.initialDelay} />
       ))}
     </Suspense>
   );
