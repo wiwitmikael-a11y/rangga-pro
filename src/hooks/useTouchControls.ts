@@ -5,8 +5,6 @@ export const useTouchControls = () => {
   const controls = useRef({
     joystick: { x: 0, y: 0 },
     altitude: 'none' as 'up' | 'down' | 'none',
-    aim: { x: 0, y: 0 }, // Normalized screen coordinates for aiming
-    ionCannon: false,
   });
 
   // State to trigger re-renders in the component using the hook
@@ -23,12 +21,6 @@ export const useTouchControls = () => {
   const altitudeState = useRef({
     upIdentifier: -1,
     downIdentifier: -1,
-  }).current;
-  
-  const aimState = useRef({
-    active: false,
-    identifier: -1,
-    startPos: { x: 0, y: 0 },
   }).current;
 
 
@@ -49,10 +41,6 @@ export const useTouchControls = () => {
         } else if (target.id === 'altitude-down') {
             altitudeState.downIdentifier = touch.identifier;
             controls.current.altitude = 'down';
-        } else if (!aimState.active) { // Start aiming if no other control is active
-            aimState.active = true;
-            aimState.identifier = touch.identifier;
-            aimState.startPos = { x: touch.clientX, y: touch.clientY };
         }
       }
       setLastUpdateTime(Date.now());
@@ -79,12 +67,6 @@ export const useTouchControls = () => {
             y: -clampedY / joystickState.radius, // Invert Y for typical game coordinates
           };
           joystickState.currentPos = { x: joystickState.startPos.x + clampedX, y: joystickState.startPos.y + clampedY };
-
-        } else if (touch.identifier === aimState.identifier) {
-          controls.current.aim = {
-            x: (touch.clientX / window.innerWidth) * 2 - 1,
-            y: -(touch.clientY / window.innerHeight) * 2 + 1,
-          };
         }
       }
        setLastUpdateTime(Date.now());
@@ -103,11 +85,6 @@ export const useTouchControls = () => {
         } else if (touch.identifier === altitudeState.downIdentifier) {
             altitudeState.downIdentifier = -1;
             if(controls.current.altitude === 'down') controls.current.altitude = 'none';
-        } else if (touch.identifier === aimState.identifier) {
-            aimState.active = false;
-            aimState.identifier = -1;
-            // Reset aim vector when touch is released to stop aiming
-            controls.current.aim = { x: 0, y: 0 };
         }
       }
       setLastUpdateTime(Date.now());

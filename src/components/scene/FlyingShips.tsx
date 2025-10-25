@@ -22,21 +22,21 @@ const ROOFTOP_LANDING_SPOTS: THREE.Vector3[] = [
 ];
 
 const TERRAIN_LANDING_SPOTS: THREE.Vector3[] = [
-    new THREE.Vector3(70, -3.5, -50),
-    new THREE.Vector3(-75, -3.5, -30),
-    new THREE.Vector3(20, -3.5, -80),
-    new THREE.Vector3(-30, -3.5, 80),
-    new THREE.Vector3(0, -3.5, 0),
-    new THREE.Vector3(100, -3.5, 100), // Add corner spots
-    new THREE.Vector3(-100, -3.5, -100),
-    new THREE.Vector3(100, -3.5, -100),
-    new THREE.Vector3(-100, -3.5, 100),
+    new THREE.Vector3(70, -5.0, -50),
+    new THREE.Vector3(-75, -5.0, -30),
+    new THREE.Vector3(20, -5.0, -80),
+    new THREE.Vector3(-30, -5.0, 80),
+    new THREE.Vector3(0, -5.0, 0),
+    new THREE.Vector3(100, -5.0, 100), // Add corner spots
+    new THREE.Vector3(-100, -5.0, -100),
+    new THREE.Vector3(100, -5.0, -100),
+    new THREE.Vector3(-100, -5.0, 100),
 ];
 
 // Create landing spots from major districts, normalizing their Y-position to ground level.
 const DISTRICT_LANDING_SPOTS: THREE.Vector3[] = portfolioData
     .filter(d => d.type === 'major')
-    .map(d => new THREE.Vector3(d.position[0], -3.5, d.position[2]));
+    .map(d => new THREE.Vector3(d.position[0], -5.0, d.position[2]));
 
 // Combine all possible landing spots into one comprehensive list.
 const ALL_LANDING_SPOTS = [...ROOFTOP_LANDING_SPOTS, ...TERRAIN_LANDING_SPOTS, ...DISTRICT_LANDING_SPOTS];

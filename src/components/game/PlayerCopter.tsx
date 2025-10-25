@@ -26,10 +26,7 @@ export const PlayerCopter = forwardRef<THREE.Group, PlayerCopterProps>(({ initia
     rotation: new THREE.Quaternion(),
   }), []);
 
-  // Memoize aimVector to avoid reallocation on each frame
-  const aimVector = useMemo(() => new THREE.Vector2(), []);
-
-  useFrame((state, delta) => {
+  useFrame((_, delta) => {
     if (!player.current) return;
 
     const controls = {
@@ -66,29 +63,23 @@ export const PlayerCopter = forwardRef<THREE.Group, PlayerCopterProps>(({ initia
 
     player.current.position.add(physics.velocity.clone().multiplyScalar(delta));
 
-    // --- Optimized Aiming Logic ---
-    // Prioritize active touch aim over the mouse position for hybrid devices.
-    if (touchControls.aim.x !== 0 || touchControls.aim.y !== 0) {
-      aimVector.set(touchControls.aim.x, touchControls.aim.y);
-    } else {
-      aimVector.copy(state.mouse);
-    }
+    // --- New Rotation Logic ---
+    // Automatically orient the copter in the direction of its velocity.
+    if (physics.velocity.lengthSq() > 0.01) { // Only rotate if there's significant movement.
+        const lookDirection = physics.velocity.clone();
+        lookDirection.y = 0; // Keep the copter level, don't pitch up/down with vertical velocity.
 
-    const aimTarget = new THREE.Vector3(aimVector.x, aimVector.y, -1).unproject(state.camera);
-    const aimDirection = aimTarget.sub(player.current.position);
+        // Ensure there is a horizontal direction before trying to look at it.
+        if (lookDirection.lengthSq() > 0.0001) {
+            const targetPosition = player.current.position.clone().add(lookDirection);
 
-    if (aimDirection.lengthSq() > 0.0001) {
-        aimDirection.normalize();
-        const finalTarget = player.current.position.clone().add(aimDirection.multiplyScalar(50));
-        // Keep the helicopter level by aiming only on the horizontal plane.
-        finalTarget.y = player.current.position.y;
-    
-        const tempObject = new THREE.Object3D();
-        tempObject.position.copy(player.current.position);
-        tempObject.lookAt(finalTarget);
-        
-        // Smoothly rotate the copter towards the aim target.
-        player.current.quaternion.slerp(tempObject.quaternion, delta * 4);
+            const tempObject = new THREE.Object3D();
+            tempObject.position.copy(player.current.position);
+            tempObject.lookAt(targetPosition);
+            
+            // Smoothly rotate the copter towards the direction of movement.
+            player.current.quaternion.slerp(tempObject.quaternion, delta * 4);
+        }
     }
   });
 
