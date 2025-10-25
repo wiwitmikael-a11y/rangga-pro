@@ -33,7 +33,7 @@ export const Experience3D: React.FC = () => {
   const handleDistrictSelect = useCallback((district: CityDistrict) => {
     // Special handling for the central @rangga.p.h core
     if (district.id === 'nexus-core') {
-      window.open('https://rangga.p.h', '_blank');
+      window.open('https://www.instagram.com/rangga.p.h/', '_blank');
       // Set as selected to trigger glow effect, but don't start camera animation
       setSelectedDistrict(district); 
       // Ensure other panels are closed
