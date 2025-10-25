@@ -10,7 +10,7 @@ export const portfolioData: CityDistrict[] = [
     "description": "Digital Artisan & Tech Explorer",
     "position": [
       30,
-      5,
+      15,
       20
     ],
     "type": "major"
