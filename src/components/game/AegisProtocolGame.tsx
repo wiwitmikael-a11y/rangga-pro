@@ -201,6 +201,9 @@ export const AegisProtocolGame: React.FC<AegisProtocolGameProps> = ({ onExit, pl
         return; // Don't run the rest of the game logic during spawn
     }
 
+    // --- Game logic is disabled below for debugging the scene ---
+    
+    /* 
     // --- Timers ---
     if (missileCooldown > 0) setMissileCooldown(prev => Math.max(0, prev - delta));
     if (timers.current.shield > 0) {
@@ -217,7 +220,10 @@ export const AegisProtocolGame: React.FC<AegisProtocolGameProps> = ({ onExit, pl
     }
 
     // --- Battleship Attacks ---
-    if (!battleshipState.current.isDestroyed)
+    if (!battleshipState.current.isDestroyed) {
+        // Logic would be here
+    }
+    */
   });
 
   return (
