@@ -1,10 +1,11 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef, useMemo, useState, useLayoutEffect } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { createNoise3D } from 'simplex-noise';
 
 const MODEL_URL = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/PatrollingCore.glb';
+const SCALE = 4; // Skala model didefinisikan sebagai konstanta
 
 // Inisialisasi fungsi noise di luar komponen untuk performa
 const noise3D = createNoise3D();
@@ -20,6 +21,27 @@ export const PatrollingCore: React.FC<PatrollingCoreProps> = React.memo(({ godRa
   const { scene } = useGLTF(MODEL_URL);
   
   const clonedScene = useMemo(() => scene.clone(), [scene]);
+  const [lightSourcePosition, setLightSourcePosition] = useState<[number, number, number]>([0, -2, 0]); // Default sementara kalkulasi
+
+  useLayoutEffect(() => {
+    // Hitung titik tengah-bawah model secara dinamis untuk dijadikan titik asal cahaya.
+    // Ini memastikan cahaya selalu berasal dari struktur model, terlepas dari titik pivotnya.
+    const box = new THREE.Box3().setFromObject(clonedScene);
+    const center = box.getCenter(new THREE.Vector3());
+    
+    const anchorPoint = new THREE.Vector3(
+      center.x, 
+      box.min.y, // Titik terendah dari model
+      center.z
+    );
+
+    // Terapkan skala yang sama pada titik anchor seperti yang diterapkan pada model itu sendiri.
+    anchorPoint.multiplyScalar(SCALE);
+
+    setLightSourcePosition(anchorPoint.toArray());
+
+  }, [clonedScene]);
+
 
   const spotLightTarget = useMemo(() => {
     const target = new THREE.Object3D();
@@ -83,22 +105,22 @@ export const PatrollingCore: React.FC<PatrollingCoreProps> = React.memo(({ godRa
     <group ref={groupRef}>
       <primitive 
         object={clonedScene} 
-        scale={4} // Ukuran diperkecil 3x lipat
+        scale={SCALE}
         position-y={0} 
       />
       
-       {/* Posisi GodRays sekarang di bawah, di sumber cahaya */}
-       <mesh ref={godRaysSourceRef} position={[0, -2, 0]}>
+       {/* Posisi GodRays dan sumber cahaya lainnya menggunakan posisi yang telah dihitung */}
+       <mesh ref={godRaysSourceRef} position={lightSourcePosition}>
         <sphereGeometry args={[2, 16, 16]} />
         <meshBasicMaterial color="white" visible={false} />
       </mesh>
 
       <spotLight
         ref={spotLightRef}
-        position={[0, -2, 0]} // Sumber cahaya disesuaikan dengan skala baru
-        angle={Math.PI / 1.8} // Sudut diperlebar secara dramatis
+        position={lightSourcePosition}
+        angle={Math.PI / 1.8}
         penumbra={0.4}
-        intensity={400} // Intensitas ditingkatkan
+        intensity={400}
         distance={200}
         castShadow
         color="#FF4500"
@@ -106,8 +128,7 @@ export const PatrollingCore: React.FC<PatrollingCoreProps> = React.memo(({ godRa
         shadow-mapSize-height={1024}
       />
       
-      {/* Sinar Volumetrik Palsu diposisikan di sumber cahaya */}
-      <mesh ref={volumetricLightRef} position={[0, -2, 0]}>
+      <mesh ref={volumetricLightRef} position={lightSourcePosition}>
         <coneGeometry args={[25, 1, 32, 1, true]} />
         <meshBasicMaterial
           color="#FF4500"

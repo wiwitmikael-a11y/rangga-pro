@@ -13,17 +13,16 @@ const FLIGHT_ALTITUDE_MAX = 40;
 const FLIGHT_SPEED = 12;
 const TURN_SPEED = 1.5;
 
-// Titik pendaratan yang telah ditentukan di dekat bangunan
-const BUILDING_LANDING_SPOTS: THREE.Vector3[] = [
-  new THREE.Vector3(30, -2, 40),
-  new THREE.Vector3(-25, -2, 50),
-  new THREE.Vector3(50, -1, -30),
-  new THREE.Vector3(-40, 0, -60),
-  new THREE.Vector3(0, -1, -55),
-  new THREE.Vector3(60, -2, 10),
-  new THREE.Vector3(-55, -1, 15),
-  new THREE.Vector3(10, 0, 70),
+// Titik pendaratan di atap gedung-gedung tertinggi (Helipads)
+const ROOFTOP_LANDING_SPOTS: THREE.Vector3[] = [
+  new THREE.Vector3(15, 28, -20),   // Atap gedung tinggi di kanan-tengah
+  new THREE.Vector3(-30, 35, 10),   // Atap gedung tertinggi di kiri
+  new THREE.Vector3(5, 22, 45),    // Atap gedung di depan
+  new THREE.Vector3(40, 18, 30),    // Atap gedung lebih rendah di kanan-depan
+  new THREE.Vector3(-25, 25, -35),  // Atap gedung di kiri-belakang
+  new THREE.Vector3(0, 42, 0),      // Atap gedung pusat (paling tinggi)
 ];
+
 
 // Titik pendaratan di area medan kosong (terrain)
 const TERRAIN_LANDING_SPOTS: THREE.Vector3[] = [
@@ -61,24 +60,20 @@ const Ship: React.FC<ShipProps> = ({ modelUrl, scale, trailConfig, trailOffset, 
   const tempLookAtObject = useMemo(() => new THREE.Object3D(), []);
 
   const getNewFlightTarget = () => {
-    if (Math.random() < 0.7) {
-      const angle = Math.random() * Math.PI * 2;
-      const radius = Math.random() * CITY_RADIUS;
-      return new THREE.Vector3(
-        Math.cos(angle) * radius,
-        FLIGHT_ALTITUDE_MIN + Math.random() * (FLIGHT_ALTITUDE_MAX - FLIGHT_ALTITUDE_MIN),
-        Math.sin(angle) * radius
-      );
-    } else {
-      const allSpots = [...BUILDING_LANDING_SPOTS, ...TERRAIN_LANDING_SPOTS];
-      const targetSpot = allSpots[Math.floor(Math.random() * allSpots.length)];
-      return new THREE.Vector3(targetSpot.x, FLIGHT_ALTITUDE_MIN + Math.random() * (FLIGHT_ALTITUDE_MAX - FLIGHT_ALTITUDE_MIN), targetSpot.z);
-    }
+    // Target terbang bebas di udara
+    const angle = Math.random() * Math.PI * 2;
+    const radius = Math.random() * CITY_RADIUS;
+    return new THREE.Vector3(
+      Math.cos(angle) * radius,
+      FLIGHT_ALTITUDE_MIN + Math.random() * (FLIGHT_ALTITUDE_MAX - FLIGHT_ALTITUDE_MIN),
+      Math.sin(angle) * radius
+    );
   };
   
   useFrame(({ clock }, delta) => {
     if (!groupRef.current) return;
     
+    // Inisialisasi posisi setelah delay awal
     if (!shipState.current.isInitialized && clock.elapsedTime > initialDelay) {
         const angle = Math.random() * Math.PI * 2;
         const radius = Math.random() * CITY_RADIUS;
@@ -101,21 +96,30 @@ const Ship: React.FC<ShipProps> = ({ modelUrl, scale, trailConfig, trailOffset, 
 
     switch (shipState.current.state) {
       case 'FLYING':
+        // Jika sudah dekat dengan target terbang atau timer habis, cari target baru
         if (currentPos.distanceTo(targetPos) < 5 || shipState.current.timer <= 0) {
-          if (shipState.current.timer <= 0 && Math.random() < 0.3) {
+          // 40% kemungkinan akan mencoba mendarat
+          if (Math.random() < 0.4) {
             shipState.current.state = 'DESCENDING';
-            const landingZones = Math.random() < 0.5 ? BUILDING_LANDING_SPOTS : TERRAIN_LANDING_SPOTS;
+            // Pilih secara acak antara mendarat di atap atau di tanah
+            const landingZones = Math.random() < 0.7 ? ROOFTOP_LANDING_SPOTS : TERRAIN_LANDING_SPOTS;
             const targetZone = landingZones[Math.floor(Math.random() * landingZones.length)];
             
-            // Tambahkan offset acak untuk pendaratan yang lebih natural
+            // Tambahkan offset acak kecil untuk pendaratan yang lebih natural
             const landingOffset = new THREE.Vector3(
-                (Math.random() - 0.5) * 15,
+                (Math.random() - 0.5) * 5,
                 0,
-                (Math.random() - 0.5) * 15
+                (Math.random() - 0.5) * 5
             );
             const finalLandingTarget = targetZone.clone().add(landingOffset);
-            shipState.current.targetPosition.copy(finalLandingTarget);
+            
+            // Saat menuju pendaratan, pertama-tama terbang ke posisi di atasnya
+            const hoverPosition = finalLandingTarget.clone();
+            hoverPosition.y = Math.max(hoverPosition.y, FLIGHT_ALTITUDE_MIN) + 15; // Terbang di atas helipad
+            shipState.current.targetPosition.copy(hoverPosition);
+
           } else {
+            // Jika tidak mendarat, cari titik terbang acak baru
             shipState.current.targetPosition.copy(getNewFlightTarget());
             shipState.current.timer = Math.random() * 15 + 10;
           }
@@ -123,20 +127,37 @@ const Ship: React.FC<ShipProps> = ({ modelUrl, scale, trailConfig, trailOffset, 
         break;
 
       case 'DESCENDING':
-        if (currentPos.distanceTo(targetPos) < 1) {
-          shipState.current.state = 'LANDED';
-          shipState.current.timer = Math.random() * 8 + 5;
+         // Saat tiba di posisi 'hover' di atas helipad, mulai turun
+        if (currentPos.distanceTo(targetPos) < 2) {
+            // Target sebenarnya adalah di permukaan helipad/tanah
+            const landingZones = Math.random() < 0.7 ? ROOFTOP_LANDING_SPOTS : TERRAIN_LANDING_SPOTS;
+            const targetZone = landingZones.find(p => p.x === targetPos.x && p.z === targetPos.z) || targetPos;
+            const finalTarget = targetZone.clone();
+             if (currentPos.y > finalTarget.y + 1) { // Jika masih di atas, lanjutkan turun
+                 shipState.current.targetPosition.y = finalTarget.y;
+             } else { // Jika sudah sangat dekat, anggap mendarat
+                shipState.current.state = 'LANDED';
+                shipState.current.timer = Math.random() * 8 + 5;
+             }
+        }
+        // Jika sudah sangat dekat dengan permukaan, anggap mendarat
+        if (Math.abs(currentPos.y - targetPos.y) < 0.5 && currentPos.distanceTo(new THREE.Vector3(targetPos.x, currentPos.y, targetPos.z)) < 1) {
+            shipState.current.state = 'LANDED';
+            shipState.current.timer = Math.random() * 8 + 5;
         }
         break;
 
       case 'LANDED':
+        // Setelah timer habis, mulai lepas landas
         if (shipState.current.timer <= 0) {
           shipState.current.state = 'ASCENDING';
-          shipState.current.targetPosition.set(currentPos.x, FLIGHT_ALTITUDE_MAX - 5, currentPos.z);
+          // Target lepas landas adalah lurus ke atas ke ketinggian jelajah
+          shipState.current.targetPosition.set(currentPos.x, FLIGHT_ALTITUDE_MIN + 10, currentPos.z);
         }
         break;
 
       case 'ASCENDING':
+        // Saat mencapai ketinggian jelajah, cari target terbang baru
         if (currentPos.distanceTo(targetPos) < 1) {
           shipState.current.state = 'FLYING';
           shipState.current.targetPosition.copy(getNewFlightTarget());
@@ -145,8 +166,9 @@ const Ship: React.FC<ShipProps> = ({ modelUrl, scale, trailConfig, trailOffset, 
         break;
     }
 
+    // Logika pergerakan dan rotasi (hanya jika tidak mendarat)
     if (shipState.current.state !== 'LANDED') {
-      const speed = shipState.current.state === 'DESCENDING' ? FLIGHT_SPEED * 0.7 : FLIGHT_SPEED;
+      const speed = shipState.current.state === 'DESCENDING' ? FLIGHT_SPEED * 0.5 : FLIGHT_SPEED;
       const direction = targetPos.clone().sub(currentPos).normalize();
       currentPos.add(direction.multiplyScalar(delta * speed));
       
@@ -155,6 +177,7 @@ const Ship: React.FC<ShipProps> = ({ modelUrl, scale, trailConfig, trailOffset, 
       tempQuaternion.copy(tempLookAtObject.quaternion);
       groupRef.current.quaternion.slerp(tempQuaternion, delta * TURN_SPEED);
     } else {
+        // Efek mengambang sedikit saat mendarat
         const bobble = Math.sin(clock.getElapsedTime() * 2) * 0.05;
         groupRef.current.position.y = targetPos.y + bobble;
     }
