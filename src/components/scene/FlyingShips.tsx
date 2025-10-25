@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, Suspense, forwardRef, useImperativeHandle } from 'react';
+import React, { useMemo, useRef, Suspense, forwardRef, useImperativeHandle, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
@@ -163,10 +163,10 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ modelUrl, scale, initialDelay
 
 
 interface FlyingShipsProps {
-  setTargetShipRef: (ref: React.RefObject<THREE.Group>) => void;
+  setShipRefs: (refs: React.RefObject<THREE.Group>[]) => void;
 }
 
-export const FlyingShips: React.FC<FlyingShipsProps> = React.memo(({ setTargetShipRef }) => {
+export const FlyingShips: React.FC<FlyingShipsProps> = React.memo(({ setShipRefs }) => {
   const ships = useMemo(() => [
     { id: 'space_1', url: `${GITHUB_MODEL_URL_BASE}ship_space.glb`, scale: 0.45, initialDelay: 0 },
     { id: 'space_2', url: `${GITHUB_MODEL_URL_BASE}ship_space.glb`, scale: 0.47, initialDelay: 5 },
@@ -181,9 +181,9 @@ export const FlyingShips: React.FC<FlyingShipsProps> = React.memo(({ setTargetSh
     [ships.length]
   );
   
-  React.useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * shipRefs.length);
-    setTargetShipRef(shipRefs[randomIndex]);
+  useEffect(() => {
+    // Pass the entire array of refs up to the parent component.
+    setShipRefs(shipRefs);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

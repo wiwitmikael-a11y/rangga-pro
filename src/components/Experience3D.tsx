@@ -23,6 +23,7 @@ import { PatrollingCore } from './scene/PatrollingCore';
 const sunPosition: [number, number, number] = [100, 2, -200]; // Lower sun for sunset effect
 const sunColor = '#FFFFF0'; // A warm, sun-like white
 const backgroundColor = '#2c1912'; // Dark, desaturated orange to match the sky's bottom gradient
+const INITIAL_CAMERA_POSITION: [number, number, number] = [0, 100, 250];
 
 export const Experience3D: React.FC = () => {
   const [selectedDistrict, setSelectedDistrict] = useState<CityDistrict | null>(null);
@@ -33,6 +34,7 @@ export const Experience3D: React.FC = () => {
   
   // New state for POV and auto-rotation
   const [pov, setPov] = useState<'main' | 'ship'>('main');
+  const [shipRefs, setShipRefs] = useState<React.RefObject<THREE.Group>[]>([]);
   const [targetShipRef, setTargetShipRef] = useState<React.RefObject<THREE.Group> | null>(null);
   const [isAutoRotating, setIsAutoRotating] = useState(true);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -48,9 +50,12 @@ export const Experience3D: React.FC = () => {
   const handleDistrictSelect = useCallback((district: CityDistrict) => {
     if (district.id === 'nexus-core') {
       window.open('https://www.instagram.com/rangga.p.h/', '_blank');
+      // Even for external links, briefly show selection animation
       setSelectedDistrict(district); 
       setShowProjects(false);
       setInfoPanelItem(null);
+      // After a short delay, clear selection to allow re-clicking
+      setTimeout(() => setSelectedDistrict(null), 1000);
       return;
     }
 
@@ -67,8 +72,7 @@ export const Experience3D: React.FC = () => {
     setIsAutoRotating(false); // Stop autorotate when focusing
   }, [selectedDistrict, isAnimating]);
 
-  // FIX: isDetailViewActive is used in the useCallback below, so it must be declared first.
-  const isDetailViewActive = showProjects || !!infoPanelItem || selectedDistrict?.id === 'nexus-core';
+  const isDetailViewActive = showProjects || !!infoPanelItem || !!selectedDistrict;
 
   const resetIdleTimer = useCallback(() => {
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
@@ -96,8 +100,6 @@ export const Experience3D: React.FC = () => {
   }, [resetIdleTimer]);
 
   const handleGoHome = useCallback(() => {
-    // If we are in ship view, a "home" action triggered by clicking the terrain
-    // should return us to the main overview, not the ship itself.
     if (pov === 'ship') {
       setPov('main');
     }
@@ -113,7 +115,6 @@ export const Experience3D: React.FC = () => {
     if (selectedDistrict && selectedDistrict.id !== 'nexus-core') {
       setShowProjects(true);
     } else if (!selectedDistrict) {
-      // If returning to overview, re-enable auto-rotate
       resetIdleTimer();
     }
   }, [selectedDistrict, resetIdleTimer]);
@@ -133,20 +134,33 @@ export const Experience3D: React.FC = () => {
   };
   
   const handleSetPov = (newPov: 'main' | 'ship') => {
-    setPov(newPov);
     if (newPov === 'ship') {
+        if (shipRefs.length > 0) {
+            let newTargetRef = targetShipRef;
+            if (shipRefs.length > 1) {
+                // Ensure a new ship is selected if possible
+                while (newTargetRef === targetShipRef) {
+                    const randomIndex = Math.floor(Math.random() * shipRefs.length);
+                    newTargetRef = shipRefs[randomIndex];
+                }
+            } else {
+                newTargetRef = shipRefs[0];
+            }
+            setTargetShipRef(newTargetRef);
+        }
       setIsAutoRotating(false);
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     } else {
       resetIdleTimer();
     }
+    setPov(newPov);
   };
 
   return (
     <>
       <Canvas
         shadows
-        camera={{ position: [0, 80, 180], fov: 50, near: 0.1, far: 1000 }}
+        camera={{ position: INITIAL_CAMERA_POSITION, fov: 50, near: 0.1, far: 1000 }}
         gl={{
           powerPreference: 'high-performance',
           antialias: false,
@@ -176,7 +190,7 @@ export const Experience3D: React.FC = () => {
 
           <CityModel />
           <Rain count={2500} />
-          <FlyingShips setTargetShipRef={setTargetShipRef} />
+          <FlyingShips setShipRefs={setShipRefs} />
           <PatrollingCore />
           <ProceduralTerrain onDeselect={handleGoHome} />
 
@@ -215,7 +229,7 @@ export const Experience3D: React.FC = () => {
         <OrbitControls
             enabled={pov === 'main' && !isAnimating && !isNavMenuOpen && !showProjects && !infoPanelItem}
             minDistance={20}
-            maxDistance={300} // Increased max distance
+            maxDistance={400} // Increased max distance to accommodate new overview
             maxPolarAngle={Math.PI / 2.2}
             target={[0, 5, 0]}
             autoRotate={isAutoRotating}
