@@ -80,15 +80,15 @@ export const Experience3D: React.FC = () => {
         }}
         dpr={[1, 1.5]}
       >
-        <color attach="background" args={['#050810']} />
-        <fog attach="fog" args={['#050810', 50, 250]} />
+        <color attach="background" args={['#081426']} />
+        <fog attach="fog" args={['#081426', 100, 300]} />
 
         <Suspense fallback={null}>
-          <ambientLight intensity={0.5} />
+          <ambientLight intensity={1.5} />
           <pointLight position={[0, 40, 0]} intensity={1.5} color="#00aaff" distance={150} decay={2} />
           <directionalLight
             position={[-20, 50, -50]}
-            intensity={2}
+            intensity={3}
             color="#ffffff"
             castShadow
             shadow-mapSize-width={2048}
@@ -126,7 +126,7 @@ export const Experience3D: React.FC = () => {
           
           <CameraRig selectedDistrict={selectedDistrict} onAnimationFinish={onAnimationFinish} isAnimating={isAnimating} />
 
-          <Environment preset="night" />
+          <Environment preset="city" />
 
           <EffectComposer>
             <Bloom 

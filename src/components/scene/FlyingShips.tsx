@@ -46,8 +46,8 @@ export const FlyingShips: React.FC = React.memo(() => {
           lookAt: new THREE.Vector3(Math.sin(angle + 0.1) * 70, 25, Math.cos(angle + 0.1) * 70),
         };
       },
-      trailConfig: { color: '#00aaff', length: 100, opacity: 0.7 },
-      trailOffset: [0, -0.2, -4] as [number, number, number],
+      trailConfig: { color: '#00aaff', width: 0.5, length: 8, opacity: 0.7 },
+      trailOffset: [0, -0.2, 3.0] as [number, number, number],
     },
     {
       url: `${GITHUB_MODEL_URL_BASE}ship_delorean.glb`,
@@ -59,8 +59,8 @@ export const FlyingShips: React.FC = React.memo(() => {
           lookAt: new THREE.Vector3(Math.cos(angle + 0.1) * 50, 15, Math.sin(angle + 0.1) * 80),
         };
       },
-      trailConfig: { color: '#ffaa00', length: 120, opacity: 0.8 },
-      trailOffset: [0, 0.2, -2.5] as [number, number, number],
+      trailConfig: { color: '#ffaa00', width: 0.4, length: 7, opacity: 0.8 },
+      trailOffset: [0, 0.2, 2.5] as [number, number, number],
     },
     {
       url: `${GITHUB_MODEL_URL_BASE}ship_copter.glb`,
@@ -72,8 +72,8 @@ export const FlyingShips: React.FC = React.memo(() => {
           lookAt: new THREE.Vector3(Math.sin(angle - 0.1) * 60, 20, Math.cos(angle - 0.1) * 60),
         };
       },
-      trailConfig: { color: '#00ffaa', width: 0.2, length: 80, opacity: 0.6 },
-      trailOffset: [0, -0.1, -1.5] as [number, number, number],
+      trailConfig: { color: '#00ffaa', width: 0.15, length: 5, opacity: 0.6 },
+      trailOffset: [0, -0.1, 1.2] as [number, number, number],
     },
   ], []);
 
