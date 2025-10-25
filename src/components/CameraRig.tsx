@@ -14,7 +14,7 @@ interface CameraRigProps {
 // Menggunakan vektor helper di luar loop untuk optimasi performa
 const targetPosition = new THREE.Vector3();
 const targetLookAt = new THREE.Vector3();
-const OVERVIEW_POSITION = new THREE.Vector3(0, 60, 120);
+const OVERVIEW_POSITION = new THREE.Vector3(0, 60, 140); // Updated to match wider view
 const OVERVIEW_LOOK_AT = new THREE.Vector3(0, 5, 0);
 
 export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimationFinish, isAnimating }) => {
@@ -22,6 +22,12 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
     // Hanya jalankan logika animasi jika isAnimating bernilai true.
     // Ini mencegah rig bertabrakan dengan kontrol pengguna.
     if (!isAnimating) {
+      // Special case for nexus-core: if it's selected but not animating, keep looking at it.
+      if (selectedDistrict?.id === 'nexus-core') {
+         const tempCamera = state.camera.clone();
+         tempCamera.lookAt(0, 5, 0); // Look at center
+         state.camera.quaternion.slerp(tempCamera.quaternion, delta * 2.5);
+      }
       return;
     }
 

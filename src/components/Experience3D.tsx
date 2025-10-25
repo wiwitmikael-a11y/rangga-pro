@@ -16,7 +16,7 @@ import { HUD } from './ui/HUD';
 import { ProceduralTerrain } from './scene/ProceduralTerrain';
 import HolographicInfoPanel from './scene/HolographicInfoPanel';
 import { QuickNavMenu } from './ui/QuickNavMenu';
-import { ProjectSelectionPanel } from './ui/ProjectSelectionPanel'; // Impor panel baru
+import { ProjectSelectionPanel } from './ui/ProjectSelectionPanel';
 import { PatrollingCore } from './scene/PatrollingCore';
 
 // Define the sun's position to be used by the light, sky, and mesh
@@ -31,21 +31,29 @@ export const Experience3D: React.FC = () => {
   const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
 
   const handleDistrictSelect = useCallback((district: CityDistrict) => {
-    if (district.id === selectedDistrict?.id) return;
+    // Special handling for the central @rangga.p.h core
+    if (district.id === 'nexus-core') {
+      window.open('https://rangga.p.h', '_blank');
+      // Set as selected to trigger glow effect, but don't start camera animation
+      setSelectedDistrict(district); 
+      // Ensure other panels are closed
+      setShowProjects(false);
+      setInfoPanelItem(null);
+      return;
+    }
+
+    if (district.id === selectedDistrict?.id && !isAnimating) return;
     
-    // For districts with sub-items, zoom in. For others, show info panel directly.
+    // For other districts, proceed with the standard animation logic
     if (district.subItems && district.subItems.length > 0) {
       setSelectedDistrict(district);
     } else {
-      setSelectedDistrict(null); // Go to overview if clicking a non-interactive major district
+      setSelectedDistrict(null); 
       setInfoPanelItem(district);
     }
     setIsAnimating(true);
     setShowProjects(false); // Hide old projects immediately
-    if (district.type === 'major' && (!district.subItems || district.subItems.length === 0)) {
-        setInfoPanelItem(district);
-    }
-  }, [selectedDistrict]);
+  }, [selectedDistrict, isAnimating]);
 
   const handleGoHome = useCallback(() => {
     setSelectedDistrict(null);
@@ -56,19 +64,14 @@ export const Experience3D: React.FC = () => {
 
   const onAnimationFinish = useCallback(() => {
     setIsAnimating(false);
-    if (selectedDistrict) {
-      setShowProjects(true); // Show new projects after animation
+    // Show projects panel only if the selected district is not the central core
+    if (selectedDistrict && selectedDistrict.id !== 'nexus-core') {
+      setShowProjects(true);
     }
   }, [selectedDistrict]);
 
   const handleProjectClick = (item: PortfolioSubItem) => {
-    // In a real app, you'd show project details.
-    // Here we can just log it or show a generic panel.
     console.log('Project clicked:', item.title);
-    if(selectedDistrict){
-       // For simplicity, we can close the main panel and show a more detailed one in the future.
-       // For now, let's just log it.
-    }
   };
   
   const handlePanelClose = () => {
@@ -80,28 +83,24 @@ export const Experience3D: React.FC = () => {
     setIsNavMenuOpen(false);
   };
   
-  const isDetailViewActive = showProjects || !!infoPanelItem;
+  const isDetailViewActive = showProjects || !!infoPanelItem || selectedDistrict?.id === 'nexus-core';
 
   return (
     <>
       <Canvas
         shadows
-        camera={{ position: [0, 60, 120], fov: 50, near: 0.1, far: 1000 }}
+        camera={{ position: [0, 60, 140], fov: 50, near: 0.1, far: 1000 }} // Increased Z for wider initial view
         gl={{
           powerPreference: 'high-performance',
-          antialias: false, // Antialiasing is handled by post-processing (FXAA/SMAA) if needed
+          antialias: false,
           stencil: false,
           depth: false,
         }}
         dpr={[1, 1.5]}
       >
         <Suspense fallback={null}>
-          {/* --- NEW NATURAL LIGHTING SETUP --- */}
-          {/* A procedural sky that creates a natural background */}
           <Sky sunPosition={sunPosition} />
-          {/* A low-intensity ambient light to soften shadows */}
           <ambientLight intensity={0.3} />
-          {/* The main directional light source (our "sun") */}
           <directionalLight
             position={sunPosition}
             intensity={5}
@@ -115,18 +114,16 @@ export const Experience3D: React.FC = () => {
             shadow-camera-top={200}
             shadow-camera-bottom={-200}
           />
-          {/* A visible mesh for the sun object */}
           <mesh position={sunPosition}>
             <sphereGeometry args={[15, 32, 32]} />
             <meshStandardMaterial
                 color={sunColor}
                 emissive={sunColor}
                 emissiveIntensity={5}
-                toneMapped={false} // Ensures the sun glows brightly
+                toneMapped={false}
             />
           </mesh>
 
-          {/* --- SCENE OBJECTS --- */}
           <CityModel />
           <Rain count={2500} />
           <FlyingShips />
@@ -139,7 +136,6 @@ export const Experience3D: React.FC = () => {
               selectedDistrict={selectedDistrict}
               onDistrictSelect={handleDistrictSelect}
             />
-            {/* ProjectDisplay 3D items have been removed from here */}
             {infoPanelItem && <HolographicInfoPanel district={infoPanelItem} onClose={handlePanelClose} />}
           </group>
           
@@ -163,7 +159,7 @@ export const Experience3D: React.FC = () => {
         <OrbitControls
             enabled={!isAnimating && !isNavMenuOpen && !showProjects && !infoPanelItem}
             minDistance={20}
-            maxDistance={200}
+            maxDistance={250} // Increased max distance
             maxPolarAngle={Math.PI / 2.2}
             target={[0, 5, 0]}
         />
@@ -180,7 +176,6 @@ export const Experience3D: React.FC = () => {
         onSelectDistrict={handleQuickNavSelect}
         districts={portfolioData.filter(d => d.type === 'major')}
       />
-      {/* --- RENDER THE NEW PROJECT PANEL --- */}
       <ProjectSelectionPanel 
         isOpen={showProjects && !!selectedDistrict}
         district={selectedDistrict}

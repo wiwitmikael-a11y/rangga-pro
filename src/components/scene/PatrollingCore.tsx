@@ -3,7 +3,7 @@ import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-const MODEL_URL = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/city_core.glb';
+const MODEL_URL = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/PatrollingCore.glb';
 
 export const PatrollingCore: React.FC = React.memo(() => {
   const groupRef = useRef<THREE.Group>(null!);
@@ -48,7 +48,7 @@ export const PatrollingCore: React.FC = React.memo(() => {
       {/* The 3D model, scaled down as requested */}
       <primitive 
         object={clonedScene} 
-        scale={0.4} // Significantly reduced scale
+        scale={1.5} // Adjusted scale for the new model
         position-y={-2} // Adjust vertical position relative to the group center
       />
 

@@ -9,39 +9,20 @@ export const portfolioData: CityDistrict[] = [
     id: 'nexus-core',
     title: '@rangga.p.h',
     description: 'Digital Artisan & Tech Explorer',
-    position: [-45, 0, 70], // Depan-kiri
+    position: [0, 5, 0], // Tepat di tengah dan sedikit lebih tinggi
     type: 'major',
-    cameraFocus: {
-      pos: [-55, 25, 90], // Lebih jauh ke luar dan lebih tinggi
-      lookAt: [-25, 10, 30], // Melihat ke arah sudut kota
-    },
-    subItems: [
-      {
-        id: 'philosophy',
-        title: 'My Professional Philosophy',
-        description: 'Fusing analytical financial rigor with creative visual expression and pioneering technological solutions to solve complex problems.',
-        position: [-10, 5, 10],
-        imageUrl: 'https://images.unsplash.com/photo-1534723328310-e82dad3ee43f?auto=format&fit=crop&w=800&q=80',
-      },
-      {
-        id: 'journey',
-        title: 'A Multidisciplinary Trajectory',
-        description: 'From leading micro-banking initiatives to capturing award-winning visuals and now engineering the future with AI and blockchain.',
-        position: [10, 5, 10],
-        imageUrl: 'https://images.unsplash.com/photo-1574680096145-c05b16f03211?auto=format&fit=crop&w=800&q=80',
-      },
-    ],
+    // Tidak ada cameraFocus karena tidak ada animasi zoom untuk core ini
   },
-  // 2. AI & Web Development - Ganti nama menjadi Nova Forge agar konsisten dengan gambar
+  // 2. AI & Web Development
   {
-    id: 'nova-forge', // Ganti nama dari 'ai-forge'
+    id: 'nova-forge',
     title: 'Nova Forge',
     description: 'Engineering & Generative Projects',
-    position: [45, 0, 70], // Depan-kanan
+    position: [80, 0, 35], // Kanan depan
     type: 'major',
     cameraFocus: {
-      pos: [55, 25, 90], // Lebih jauh ke luar dan lebih tinggi
-      lookAt: [25, 10, 30], // Melihat ke arah sudut kota
+      pos: [100, 30, 50], // Lebih jauh ke luar dan lebih tinggi
+      lookAt: [40, 10, 15], // Melihat ke arah kota
     },
      subItems: [
       {
@@ -72,11 +53,11 @@ export const portfolioData: CityDistrict[] = [
     id: 'visual-arts',
     title: 'Visual Arts Archive',
     description: 'Award-Winning Photography & Videography',
-    position: [-80, 0, 20], // Jauh-kiri
+    position: [-80, 0, 35], // Kiri depan
     type: 'major',
     cameraFocus: {
-      pos: [-95, 25, 35], // Lebih jauh ke luar dan lebih tinggi
-      lookAt: [-45, 10, 10], // Melihat ke arah sisi kota
+      pos: [-100, 30, 50], // Lebih jauh ke luar dan lebih tinggi
+      lookAt: [-40, 10, 15], // Melihat ke arah kota
     },
     subItems: [
       {
@@ -104,14 +85,14 @@ export const portfolioData: CityDistrict[] = [
   },
     // 4. Blockchain
   {
-    id: 'defi-data-vault', // Ganti nama dari 'blockchain-vault' agar konsisten
+    id: 'defi-data-vault',
     title: 'DeFi Data-Vault',
     description: 'Blockchain Analysis & Web3 Exploration',
-    position: [80, 0, 20], // Jauh-kanan
+    position: [55, 0, -75], // Kanan belakang
     type: 'major',
     cameraFocus: {
-      pos: [95, 25, 35], // Lebih jauh ke luar dan lebih tinggi
-      lookAt: [45, 10, 10], // Melihat ke arah sisi kota
+      pos: [70, 30, -95], // Lebih jauh ke luar dan lebih tinggi
+      lookAt: [25, 10, -35], // Melihat ke arah kota
     },
     subItems: [
       {
@@ -135,11 +116,11 @@ export const portfolioData: CityDistrict[] = [
     id: 'skills-matrix',
     title: 'Skills Matrix',
     description: 'Core Technical & Creative Proficiencies',
-    position: [-65, 0, -55], // Belakang-kiri
+    position: [-55, 0, -75], // Kiri belakang
     type: 'major',
     cameraFocus: {
-      pos: [-80, 25, -70], // Lebih jauh ke luar dan lebih tinggi
-      lookAt: [-35, 10, -25], // Melihat ke arah sudut belakang kota
+      pos: [-70, 30, -95], // Lebih jauh ke luar dan lebih tinggi
+      lookAt: [-25, 10, -35], // Melihat ke arah kota
     },
      subItems: [
       {
@@ -161,7 +142,7 @@ export const portfolioData: CityDistrict[] = [
         title: 'Blockchain & Web3',
         description: 'Solidity, Ethers.js, Hardhat, The Graph Protocol',
         position: [50, 5, 45],
-        imageUrl: 'https://images.unsplash.com/photo-1642104704074-907126202167?auto=format&fit=crop&w=800&q=80',
+        imageUrl: 'https://images.unsplash.com/photo-16421047041242-df73356c39d6?auto=format&fit=crop&w=800&q=80',
       },
        {
         id: 'skill-creative',
@@ -177,11 +158,11 @@ export const portfolioData: CityDistrict[] = [
     id: 'contact',
     title: 'Contact Terminal',
     description: 'Establish a connection',
-    position: [0, 0, 85], // Depan-tengah
+    position: [0, 0, 90], // Tepat di depan
     type: 'major',
     cameraFocus: {
-      pos: [0, 25, 105], // Lebih tinggi dan lebih jauh ke belakang
-      lookAt: [0, 15, 40], // Melihat ke arah gerbang depan kota
+      pos: [0, 30, 115], // Lebih tinggi dan lebih jauh ke belakang
+      lookAt: [0, 15, 40], // Melihat ke arah kota
     },
     subItems: [
       {
