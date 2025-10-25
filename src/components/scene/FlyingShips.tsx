@@ -57,11 +57,11 @@ interface ShipProps extends ShipData {
   isPaused?: boolean;
 }
 
-const Ship = forwardRef<THREE.Group, ShipProps>(({ modelUrl, scale, initialDelay, isPaused }, ref) => {
+const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isPaused }, ref) => {
   const groupRef = useRef<THREE.Group>(null!);
   useImperativeHandle(ref, () => groupRef.current, []);
 
-  const { scene } = useGLTF(modelUrl);
+  const { scene } = useGLTF(url);
   const clonedScene = useMemo(() => scene.clone(), [scene]);
   
   const shipState = useRef({

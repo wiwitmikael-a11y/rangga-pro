@@ -3,7 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { PlayerCopter } from './PlayerCopter';
 import { GameHUD } from '../ui/GameHUD';
-import { EnemyBattleshipModel, EnemyFighterModel, PlayerMissileModel, LaserBeam, TargetReticule, Explosion, MuzzleFlash, ShieldEffect, PowerUpModel } from './GameModels';
+import { EnemyBattleshipModel, EnemyFighterModel, PlayerMissileModel, LaserBeam, TargetReticule, Explosion, PowerUpModel } from './GameModels';
 
 // --- Types ---
 interface BaseEntity {
@@ -28,7 +28,6 @@ interface AegisProtocolGameProps {
 // --- Constants ---
 const POOL_SIZES = { fighters: 30, bullets: 50, missiles: 5, explosions: 20, powerUps: 10 };
 const CITY_BREACH_Z = 80;
-const BATTLESHIP_DESTRUCTION_Z = 70;
 const FIGHTER_SPAWN_INTERVAL = 3;
 const BATTLESHIP_LASER_INTERVAL = 5;
 const FIGHTER_COLLISION_RADIUS = 3;
@@ -79,12 +78,12 @@ export const AegisProtocolGame: React.FC<AegisProtocolGameProps> = ({ onExit, pl
 
   // --- Entity Object Pools ---
   const pools = useRef({
-      autoBullets: Array.from({ length: POOL_SIZES.bullets }, (_, i) => ({ id: i, active: false, position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), velocity: new THREE.Vector3() })),
-      homingMissiles: Array.from({ length: POOL_SIZES.missiles }, (_, i) => ({ id: i, active: false, position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), targetId: null })),
-      enemyFighters: Array.from({ length: POOL_SIZES.fighters }, (_, i) => ({ id: i, active: false, position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), health: 0, fireCooldown: 0, hitTimer: 0 })),
+      autoBullets: Array.from({ length: POOL_SIZES.bullets }, (_, i): AutoBullet => ({ id: i, active: false, position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), velocity: new THREE.Vector3() })),
+      homingMissiles: Array.from({ length: POOL_SIZES.missiles }, (_, i): HomingMissile => ({ id: i, active: false, position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), targetId: null })),
+      enemyFighters: Array.from({ length: POOL_SIZES.fighters }, (_, i): Fighter => ({ id: i, active: false, position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), health: 0, fireCooldown: 0, hitTimer: 0 })),
       laserBeams: [] as Laser[], // Lasers are transient, no need to pool
-      explosions: Array.from({ length: POOL_SIZES.explosions }, (_, i) => ({ id: i, active: false, position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), scale: 1, life: 0 })),
-      powerUps: Array.from({ length: POOL_SIZES.powerUps }, (_, i) => ({ id: i, active: false, position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), type: 'shield' as PowerUpType })),
+      explosions: Array.from({ length: POOL_SIZES.explosions }, (_, i): ExplosionEntity => ({ id: i, active: false, position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), scale: 1, life: 0 })),
+      powerUps: Array.from({ length: POOL_SIZES.powerUps }, (_, i): PowerUp => ({ id: i, active: false, position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), type: 'shield' as PowerUpType })),
   }).current;
 
   // --- Refs for mutable game state ---
@@ -177,7 +176,7 @@ export const AegisProtocolGame: React.FC<AegisProtocolGameProps> = ({ onExit, pl
     }
   }, [missileCooldown, currentTargetId, pools.homingMissiles, spawnFromPool]);
 
-  useFrame((state, delta) => {
+  useFrame((_, delta) => {
     if (gameState !== 'playing') return;
 
     // --- Timers ---

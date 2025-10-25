@@ -2,10 +2,8 @@ import React, { useMemo, useRef, useEffect } from 'react';
 import { useGLTF, Cylinder, Torus, Billboard, Points, Point, Octahedron } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { createNoise3D } from 'simplex-noise';
 
 const BASE_URL = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/';
-const noise3D = createNoise3D();
 
 // --- Model-based Components ---
 

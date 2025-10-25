@@ -7,14 +7,14 @@ import * as THREE from 'three';
 
 import { CityModel } from './scene/CityModel';
 import Rain from './scene/Rain';
-import { FlyingShips, shipsData } from './scene/FlyingShips';
+import { FlyingShips } from './scene/FlyingShips';
 import { DistrictRenderer } from './scene/DistrictRenderer';
 import { portfolioData } from '../constants';
 import type { CityDistrict, PortfolioSubItem } from '../types';
 import { CameraRig } from './CameraRig';
 import { HUD } from './ui/HUD';
 import { ProceduralTerrain } from './scene/ProceduralTerrain';
-import HolographicInfoPanel from './scene/H holographicInfoPanel';
+import HolographicInfoPanel from './scene/HolographicInfoPanel';
 import { QuickNavMenu } from './ui/QuickNavMenu';
 import { ProjectSelectionPanel } from './ui/ProjectSelectionPanel';
 import { PatrollingCore } from './scene/PatrollingCore';
