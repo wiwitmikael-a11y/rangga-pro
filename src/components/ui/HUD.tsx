@@ -10,6 +10,9 @@ interface HUDProps {
   onSetPov: (pov: 'main' | 'ship') => void;
   isCalibrationMode: boolean;
   onToggleCalibrationMode: () => void;
+  onExportLayout: () => void;
+  heldDistrictId: string | null;
+  onCancelMove: () => void;
 }
 
 // --- SVG Icons ---
@@ -45,14 +48,30 @@ const GridIcon: React.FC = () => (
     </svg>
 );
 
+const ExportIcon: React.FC = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="17 8 12 3 7 8"></polyline>
+        <line x1="12" y1="3" x2="12" y2="15"></line>
+    </svg>
+);
 
-export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, onToggleNavMenu, isDetailViewActive, pov, onSetPov, isCalibrationMode, onToggleCalibrationMode }) => {
+const CancelIcon: React.FC = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+);
+
+
+export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, onToggleNavMenu, isDetailViewActive, pov, onSetPov, isCalibrationMode, onToggleCalibrationMode, onExportLayout, heldDistrictId, onCancelMove }) => {
 
   const breadcrumb = useMemo(() => {
+    if (heldDistrictId) return `METROPOLIS.CORE > /ARCHITECT_MODE/MOVING...`;
     if (selectedDistrict) return `METROPOLIS.CORE > /${selectedDistrict.id.toUpperCase()}_DISTRICT/`;
-    if (isCalibrationMode) return `METROPOLIS.CORE > /CALIBRATION_MODE/`;
+    if (isCalibrationMode) return `METROPOLIS.CORE > /ARCHITECT_MODE/`;
     return 'METROPOLIS.CORE';
-  }, [selectedDistrict, isCalibrationMode]);
+  }, [selectedDistrict, isCalibrationMode, heldDistrictId]);
   
   const showHomeButton = isDetailViewActive;
   const homeButtonIcon = '⌂';
@@ -64,11 +83,12 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
       </div>
        
       <div style={styles.bottomLeftContainer}>
-          <div style={styles.povSelector}>
+          <div style={{...styles.povSelector, ...(isCalibrationMode ? styles.disabled : {})}}>
               <button 
                 onClick={() => onSetPov('main')} 
                 style={{...styles.hudButton, ...(pov === 'main' ? styles.activePov : {})}}
                 aria-label="Overview Camera"
+                disabled={isCalibrationMode}
               >
                   <CameraIcon />
               </button>
@@ -76,6 +96,7 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
                 onClick={() => onSetPov('ship')} 
                 style={{...styles.hudButton, ...(pov === 'ship' ? styles.activePov : {})}}
                 aria-label="Ship Follow Camera"
+                disabled={isCalibrationMode}
               >
                   <ShipIcon />
               </button>
@@ -90,9 +111,23 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
           <button
             onClick={onToggleCalibrationMode}
             style={{...styles.hudButton, ...(isCalibrationMode ? styles.activePov : {}), ...styles.visible}}
-            aria-label="Toggle Calibration Grid"
+            aria-label="Toggle Architect Mode"
             >
             <GridIcon />
+          </button>
+           <button
+            onClick={onExportLayout}
+            style={{...styles.hudButton, ...(isCalibrationMode && !heldDistrictId ? styles.visible : styles.hiddenBottom)}}
+            aria-label="Export Layout"
+            >
+            <ExportIcon />
+          </button>
+          <button
+            onClick={onCancelMove}
+            style={{...styles.hudButton, ...styles.cancelButton, ...(heldDistrictId ? styles.visible : styles.hiddenBottom)}}
+            aria-label="Cancel Move"
+          >
+            <CancelIcon />
           </button>
       </div>
 
@@ -152,6 +187,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     padding: '4px',
     borderRadius: '25px',
+    transition: 'opacity 0.3s ease',
+  },
+  disabled: {
+    opacity: 0.5,
+    pointerEvents: 'none',
   },
   bottomCenterContainer: {
     position: 'fixed',
@@ -181,6 +221,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     background: 'rgba(0, 170, 255, 0.3)',
     borderColor: 'rgba(0, 225, 255, 0.8)',
     color: '#fff',
+  },
+  cancelButton: {
+      background: 'rgba(255, 0, 50, 0.3)',
+      borderColor: 'rgba(255, 80, 100, 0.8)',
+      color: '#ff8c8c',
   },
   navMenuButton: {
     ...glassmorphism,

@@ -9,14 +9,16 @@ interface CameraRigProps {
   isAnimating: boolean;
   pov: 'main' | 'ship';
   targetShipRef: React.RefObject<THREE.Group> | null;
+  isCalibrationMode: boolean;
 }
 
 const targetPosition = new THREE.Vector3();
 const targetLookAt = new THREE.Vector3();
 const OVERVIEW_POSITION = new THREE.Vector3(0, 100, 250);
 const OVERVIEW_LOOK_AT = new THREE.Vector3(0, 5, 0);
+const CALIBRATION_POSITION = new THREE.Vector3(0, 200, 1); // High top-down view
 
-export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimationFinish, isAnimating, pov, targetShipRef }) => {
+export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimationFinish, isAnimating, pov, targetShipRef, isCalibrationMode }) => {
   const shipCam = useMemo(() => ({
     // Closer, "over-the-shoulder" offset
     offset: new THREE.Vector3(0, 2.5, -7),
@@ -37,7 +39,11 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
         // We are in a defined transition animation
         lerpSpeed = 3.5; // Use a faster speed for transitions
 
-        if (selectedDistrict?.cameraFocus) { // To District
+        if (isCalibrationMode) { // Priority for calibration view
+            targetPosition.copy(CALIBRATION_POSITION);
+            targetLookAt.copy(OVERVIEW_LOOK_AT);
+            hasTarget = true;
+        } else if (selectedDistrict?.cameraFocus) { // To District
             targetPosition.set(...selectedDistrict.cameraFocus.pos);
             targetLookAt.set(...selectedDistrict.cameraFocus.lookAt);
             hasTarget = true;

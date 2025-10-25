@@ -34,9 +34,10 @@ interface ShipProps {
   modelUrl: string;
   scale: number;
   initialDelay: number;
+  isPaused?: boolean;
 }
 
-const Ship = forwardRef<THREE.Group, ShipProps>(({ modelUrl, scale, initialDelay }, ref) => {
+const Ship = forwardRef<THREE.Group, ShipProps>(({ modelUrl, scale, initialDelay, isPaused }, ref) => {
   const groupRef = useRef<THREE.Group>(null!);
   useImperativeHandle(ref, () => groupRef.current, []);
 
@@ -64,7 +65,7 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ modelUrl, scale, initialDelay
   };
   
   useFrame(({ clock }, delta) => {
-    if (!groupRef.current) return;
+    if (!groupRef.current || isPaused) return;
     
     if (!shipState.current.isInitialized && clock.elapsedTime > initialDelay) {
         const angle = Math.random() * Math.PI * 2;
@@ -164,9 +165,10 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ modelUrl, scale, initialDelay
 
 interface FlyingShipsProps {
   setShipRefs: (refs: React.RefObject<THREE.Group>[]) => void;
+  isPaused?: boolean;
 }
 
-export const FlyingShips: React.FC<FlyingShipsProps> = React.memo(({ setShipRefs }) => {
+export const FlyingShips: React.FC<FlyingShipsProps> = React.memo(({ setShipRefs, isPaused }) => {
   const ships = useMemo(() => [
     { id: 'space_1', url: `${GITHUB_MODEL_URL_BASE}ship_space.glb`, scale: 0.45, initialDelay: 0 },
     { id: 'space_2', url: `${GITHUB_MODEL_URL_BASE}ship_space.glb`, scale: 0.47, initialDelay: 5 },
@@ -190,7 +192,7 @@ export const FlyingShips: React.FC<FlyingShipsProps> = React.memo(({ setShipRefs
   return (
     <Suspense fallback={null}>
       {ships.map((ship, i) => (
-        <Ship ref={shipRefs[i]} key={ship.id} modelUrl={ship.url} scale={ship.scale} initialDelay={ship.initialDelay} />
+        <Ship ref={shipRefs[i]} key={ship.id} modelUrl={ship.url} scale={ship.scale} initialDelay={ship.initialDelay} isPaused={isPaused} />
       ))}
     </Suspense>
   );

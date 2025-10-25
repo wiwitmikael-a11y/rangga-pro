@@ -1,5 +1,5 @@
 import React, { useRef, useMemo } from 'react';
-import { useGLTF } from '@react-three/drei';
+import { useGLTF } from '@drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { createNoise3D } from 'simplex-noise';
@@ -10,7 +10,11 @@ const SCALE = 4;
 // Inisialisasi fungsi noise di luar komponen untuk performa
 const noise3D = createNoise3D();
 
-export const PatrollingCore: React.FC = React.memo(() => {
+interface PatrollingCoreProps {
+  isPaused?: boolean;
+}
+
+export const PatrollingCore: React.FC<PatrollingCoreProps> = React.memo(({ isPaused }) => {
   const groupRef = useRef<THREE.Group>(null!);
   const { scene } = useGLTF(MODEL_URL);
   
@@ -18,7 +22,7 @@ export const PatrollingCore: React.FC = React.memo(() => {
   const previousPosition = useMemo(() => new THREE.Vector3(), []);
   
   useFrame(({ clock }) => {
-    if (!groupRef.current) return;
+    if (!groupRef.current || isPaused) return;
 
     const elapsedTime = clock.getElapsedTime();
     const movementSpeed = 0.04;

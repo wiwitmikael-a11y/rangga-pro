@@ -9,9 +9,12 @@ interface HolographicDistrictLabelProps {
   district: CityDistrict;
   onSelect: (district: CityDistrict) => void;
   isSelected: boolean;
+  isCalibrationMode: boolean;
+  isHeld: boolean;
+  onSetHeld: (id: string | null) => void;
 }
 
-const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ district, onSelect, isSelected }) => {
+const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ district, onSelect, isSelected, isCalibrationMode, isHeld, onSetHeld }) => {
   const groupRef = useRef<THREE.Group>(null!);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -22,16 +25,12 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
     const targetScale = isHovered || isSelected ? 1.2 : 1;
     groupRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), delta * 5);
   });
-
-  const handleClick = (e: ThreeEvent<MouseEvent>) => {
-    e.stopPropagation();
-    onSelect(district);
-  };
-
+  
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     setIsHovered(true);
-    document.body.style.cursor = 'pointer';
+    if(isCalibrationMode) document.body.style.cursor = 'grab';
+    else document.body.style.cursor = 'pointer';
   };
 
   const handlePointerOut = (e: ThreeEvent<PointerEvent>) => {
@@ -39,16 +38,26 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
     setIsHovered(false);
     document.body.style.cursor = 'auto';
   };
-
-  const textColor = isSelected ? '#ffffff' : isHovered ? '#00ffff' : '#00aaff';
+  
+  const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
+    e.stopPropagation();
+    if (isCalibrationMode) {
+      onSetHeld(district.id);
+    } else {
+      onSelect(district);
+    }
+  };
+  
+  const textColor = isHeld ? '#FFD700' : isSelected ? '#ffffff' : isHovered ? '#00ffff' : '#00aaff';
+  const emissiveIntensity = isHeld ? 2.5 : isHovered || isSelected ? 2 : 1;
 
   return (
     <Billboard position={[0, 10, 0]}>
       <group
         ref={groupRef}
-        onClick={handleClick}
         onPointerOver={handlePointerOver}
         onPointerOut={handlePointerOut}
+        onPointerDown={handlePointerDown}
       >
         <Text
           fontSize={4}
@@ -61,7 +70,7 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
           {district.title.toUpperCase()}
           <meshStandardMaterial
             emissive={textColor}
-            emissiveIntensity={isHovered || isSelected ? 2 : 1}
+            emissiveIntensity={emissiveIntensity}
             toneMapped={false}
           />
         </Text>

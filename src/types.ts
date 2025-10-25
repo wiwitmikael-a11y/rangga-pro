@@ -1,3 +1,4 @@
+import { Vector3 } from 'three';
 
 export type PerformanceTier = 'PERFORMANCE' | 'BALANCED' | 'QUALITY';
 
@@ -25,4 +26,5 @@ export interface CityDistrict {
   cameraFocus?: CameraFocusPoint; // Posisi & target kamera unik
   modelUrl?: string; // URL ke model GLB untuk distrik ini
   modelScale?: number; // Skala untuk model GLB
+  isDirty?: boolean; // Flag to track if the district has been moved by the user
 }

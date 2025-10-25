@@ -1,5 +1,5 @@
 import React, { useState, useCallback, Suspense, useMemo, useRef, useEffect } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Canvas } from '@react-three-fiber';
 import { OrbitControls, Sky } from '@react-three/drei';
 import { EffectComposer, Noise, ChromaticAberration } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
@@ -19,6 +19,8 @@ import { QuickNavMenu } from './ui/QuickNavMenu';
 import { ProjectSelectionPanel } from './ui/ProjectSelectionPanel';
 import { PatrollingCore } from './scene/PatrollingCore';
 import { CalibrationGrid } from './scene/CalibrationGrid';
+import { BuildModeController } from './scene/BuildModeController';
+import { ExportLayoutModal } from './ui/ExportLayoutModal';
 
 // Define the sun's position to be used by the light, sky, and mesh
 const sunPosition: [number, number, number] = [100, 2, -200]; // Lower sun for sunset effect
@@ -27,6 +29,7 @@ const backgroundColor = '#2c1912'; // Dark, desaturated orange to match the sky'
 const INITIAL_CAMERA_POSITION: [number, number, number] = [0, 100, 250];
 
 export const Experience3D: React.FC = () => {
+  const [districts, setDistricts] = useState<CityDistrict[]>(portfolioData);
   const [selectedDistrict, setSelectedDistrict] = useState<CityDistrict | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [showProjects, setShowProjects] = useState(false);
@@ -40,15 +43,24 @@ export const Experience3D: React.FC = () => {
   const [isCalibrationMode, setIsCalibrationMode] = useState(false);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Build Mode State
+  const [heldDistrictId, setHeldDistrictId] = useState<string | null>(null);
+  const [originalHeldDistrictPosition, setOriginalHeldDistrictPosition] = useState<[number, number, number] | null>(null);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [exportedLayoutJson, setExportedLayoutJson] = useState('');
+
+  const isPaused = isCalibrationMode; // Freeze dynamic elements when in calibration mode
+
   const navDistricts = useMemo(() => {
-    const majorDistricts = portfolioData.filter(d => d.type === 'major');
+    const majorDistricts = districts.filter(d => d.type === 'major');
     const nexusCore = majorDistricts.find(d => d.id === 'nexus-core');
     return nexusCore
       ? [...majorDistricts.filter(d => d.id !== 'nexus-core'), nexusCore]
       : majorDistricts;
-  }, []);
+  }, [districts]);
   
   const handleDistrictSelect = useCallback((district: CityDistrict) => {
+    if (isCalibrationMode) return;
     if (district.id === 'nexus-core') {
       window.open('https://www.instagram.com/rangga.p.h/', '_blank');
       setSelectedDistrict(district); 
@@ -61,15 +73,15 @@ export const Experience3D: React.FC = () => {
     if (district.id === selectedDistrict?.id && !isAnimating) return;
     
     if (district.subItems && district.subItems.length > 0) {
-      setSelectedDistrict(district);
+      setSelectedDistrict(districts.find(d => d.id === district.id) || null);
     } else {
       setSelectedDistrict(null); 
-      setInfoPanelItem(district);
+      setInfoPanelItem(districts.find(d => d.id === district.id) || null);
     }
     setIsAnimating(true);
     setShowProjects(false);
     setIsAutoRotating(false);
-  }, [selectedDistrict, isAnimating]);
+  }, [selectedDistrict, isAnimating, districts, isCalibrationMode]);
 
   const isDetailViewActive = showProjects || !!infoPanelItem || !!selectedDistrict;
 
@@ -111,10 +123,10 @@ export const Experience3D: React.FC = () => {
     setIsAnimating(false);
     if (selectedDistrict && selectedDistrict.id !== 'nexus-core') {
       setShowProjects(true);
-    } else if (!selectedDistrict && pov === 'main') {
+    } else if (!selectedDistrict && pov === 'main' && !isCalibrationMode) {
       resetIdleTimer();
     }
-  }, [selectedDistrict, resetIdleTimer, pov]);
+  }, [selectedDistrict, resetIdleTimer, pov, isCalibrationMode]);
 
   const handleProjectClick = (item: PortfolioSubItem) => {
     console.log('Project clicked:', item.title);
@@ -131,7 +143,7 @@ export const Experience3D: React.FC = () => {
   };
   
   const handleSetPov = (newPov: 'main' | 'ship') => {
-    if (newPov === pov) return;
+    if (newPov === pov || isCalibrationMode) return;
 
     if (newPov === 'main') {
       handleGoHome();
@@ -161,20 +173,69 @@ export const Experience3D: React.FC = () => {
       setIsAnimating(true);
     }
   };
-
+  
   const handleToggleCalibrationMode = useCallback(() => {
     setIsCalibrationMode(prev => {
       const newMode = !prev;
       if (newMode) {
+        // Entering architect mode
+        setIsAnimating(true);
         setIsAutoRotating(false);
         if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+        if (isDetailViewActive) handleGoHome();
+        if (pov === 'ship') setPov('main');
       } else {
-        resetIdleTimer();
+        // Exiting architect mode
+        if (heldDistrictId) { // If holding an item, cancel move
+            const districtToReset = districts.find(d => d.id === heldDistrictId);
+            if(districtToReset && originalHeldDistrictPosition) {
+              setDistricts(prev => prev.map(d => d.id === heldDistrictId ? {...d, position: originalHeldDistrictPosition} : d));
+            }
+            setHeldDistrictId(null);
+            setOriginalHeldDistrictPosition(null);
+        }
+        handleGoHome();
       }
       return newMode;
     });
-  }, [resetIdleTimer]);
+  }, [handleGoHome, isDetailViewActive, pov, heldDistrictId, districts, originalHeldDistrictPosition]);
 
+  const handleExportLayout = () => {
+    const layoutToExport = districts.map(d => {
+      // Create a clean object, removing any temporary flags like isDirty
+      const { isDirty, ...rest } = d;
+      return rest;
+    });
+    setExportedLayoutJson(JSON.stringify(layoutToExport, null, 2));
+    setIsExportModalOpen(true);
+  };
+  
+  const handleSetHeldDistrict = useCallback((id: string | null) => {
+    if (id) {
+        const district = districts.find(d => d.id === id);
+        if (district) {
+            setHeldDistrictId(id);
+            setOriginalHeldDistrictPosition(district.position);
+        }
+    } else {
+        setHeldDistrictId(null);
+        setOriginalHeldDistrictPosition(null);
+    }
+  }, [districts]);
+
+  const handleCancelMove = useCallback(() => {
+    if (heldDistrictId && originalHeldDistrictPosition) {
+        setDistricts(prev => prev.map(d => d.id === heldDistrictId ? {...d, position: originalHeldDistrictPosition} : d));
+        setHeldDistrictId(null);
+        setOriginalHeldDistrictPosition(null);
+    }
+  }, [heldDistrictId, originalHeldDistrictPosition]);
+
+  const handlePlaceDistrict = useCallback(() => {
+      // The position is already updated by the controller, we just need to finalize it.
+      setHeldDistrictId(null);
+      setOriginalHeldDistrictPosition(null);
+  }, []);
 
   return (
     <>
@@ -210,20 +271,34 @@ export const Experience3D: React.FC = () => {
 
           <CityModel />
           <Rain count={2500} />
-          <FlyingShips setShipRefs={setShipRefs} />
-          <PatrollingCore />
+          <FlyingShips setShipRefs={setShipRefs} isPaused={isPaused} />
+          <PatrollingCore isPaused={isPaused} />
           <ProceduralTerrain onDeselect={handleGoHome} />
 
           <group position={[0, 5, 0]}>
             <DistrictRenderer
-              districts={portfolioData}
+              districts={districts}
               selectedDistrict={selectedDistrict}
               onDistrictSelect={handleDistrictSelect}
+              isCalibrationMode={isCalibrationMode}
+              heldDistrictId={heldDistrictId}
+              onSetHeldDistrict={handleSetHeldDistrict}
             />
             {infoPanelItem && <HolographicInfoPanel district={infoPanelItem} onClose={handlePanelClose} />}
           </group>
           
-          {isCalibrationMode && <CalibrationGrid size={200} divisions={20} />}
+          {isCalibrationMode && <CalibrationGrid size={250} />}
+          {isCalibrationMode && (
+              <BuildModeController
+                districts={districts}
+                setDistricts={setDistricts}
+                heldDistrictId={heldDistrictId}
+                onPlaceDistrict={handlePlaceDistrict}
+                gridSize={250}
+                gridDivisions={25}
+              />
+            )}
+
 
           <CameraRig 
             selectedDistrict={selectedDistrict} 
@@ -231,6 +306,7 @@ export const Experience3D: React.FC = () => {
             isAnimating={isAnimating}
             pov={pov}
             targetShipRef={targetShipRef}
+            isCalibrationMode={isCalibrationMode}
           />
 
           <EffectComposer>
@@ -249,7 +325,7 @@ export const Experience3D: React.FC = () => {
         </Suspense>
 
         <OrbitControls
-            enabled={pov === 'main' && !isAnimating && !isNavMenuOpen && !showProjects && !infoPanelItem}
+            enabled={pov === 'main' && !isAnimating && !isNavMenuOpen && !showProjects && !infoPanelItem && !heldDistrictId}
             minDistance={20}
             maxDistance={400}
             maxPolarAngle={isCalibrationMode ? Math.PI / 2.05 : Math.PI / 2.2}
@@ -269,6 +345,9 @@ export const Experience3D: React.FC = () => {
         onSetPov={handleSetPov}
         isCalibrationMode={isCalibrationMode}
         onToggleCalibrationMode={handleToggleCalibrationMode}
+        onExportLayout={handleExportLayout}
+        heldDistrictId={heldDistrictId}
+        onCancelMove={handleCancelMove}
       />
       <QuickNavMenu 
         isOpen={isNavMenuOpen}
@@ -281,6 +360,11 @@ export const Experience3D: React.FC = () => {
         district={selectedDistrict}
         onClose={handleGoHome}
         onProjectSelect={handleProjectClick}
+      />
+      <ExportLayoutModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        jsonData={exportedLayoutJson}
       />
     </>
   );
