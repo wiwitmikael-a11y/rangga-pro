@@ -17,7 +17,7 @@ export const Loader: React.FC<LoaderProps> = React.memo(({ progress }) => {
         <div style={styles.container}>
             <div style={styles.scanlineEffect} />
             <div style={styles.content}>
-                <h2 style={styles.title}>ACCESSING METROPOLIS.CORE</h2>
+                <h2 style={styles.title}>ACCESSING RAGETOPIA</h2>
                 <p style={styles.text}>DECRYPTING DATA STREAMS...</p>
                 <div style={styles.progressBarContainer}>
                   <pre style={styles.text}>{progressBar}</pre>

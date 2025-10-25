@@ -141,7 +141,7 @@ export const portfolioData: CityDistrict[] = [
       },
       {
         "id": "project-portfolio",
-        "title": "This Digital Metropolis",
+        "title": "This is Ragetopia",
         "description": "A meta-project about this portfolio. A deep-dive into the technologies and design philosophy behind its creation.",
         "position": [
           -50,

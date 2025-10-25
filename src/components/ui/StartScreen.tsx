@@ -17,7 +17,7 @@ export const StartScreen: React.FC<StartScreenProps> = React.memo(({ onStart, is
     <div style={containerStyle}>
       <div style={styles.scanlineEffect} />
       <div style={styles.content}>
-        <h1 style={styles.title}>METROPOLIS.CORE</h1>
+        <h1 style={styles.title}>RAGETOPIA</h1>
         <p style={styles.subtitle}>Rangga Digital Portfolio</p>
         <button
             style={styles.startButton}

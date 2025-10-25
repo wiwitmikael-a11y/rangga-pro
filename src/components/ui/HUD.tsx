@@ -67,10 +67,10 @@ const CancelIcon: React.FC = () => (
 export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, onToggleNavMenu, isDetailViewActive, pov, onSetPov, isCalibrationMode, onToggleCalibrationMode, onExportLayout, heldDistrictId, onCancelMove }) => {
 
   const breadcrumb = useMemo(() => {
-    if (heldDistrictId) return `METROPOLIS.CORE > /ARCHITECT_MODE/MOVING...`;
-    if (selectedDistrict) return `METROPOLIS.CORE > /${selectedDistrict.id.toUpperCase()}_DISTRICT/`;
-    if (isCalibrationMode) return `METROPOLIS.CORE > /ARCHITECT_MODE/`;
-    return 'METROPOLIS.CORE';
+    if (heldDistrictId) return `RAGETOPIA > /ARCHITECT_MODE/MOVING...`;
+    if (selectedDistrict) return `RAGETOPIA > /${selectedDistrict.id.toUpperCase()}_DISTRICT/`;
+    if (isCalibrationMode) return `RAGETOPIA > /ARCHITECT_MODE/`;
+    return 'RAGETOPIA';
   }, [selectedDistrict, isCalibrationMode, heldDistrictId]);
   
   const showHomeButton = isDetailViewActive;
