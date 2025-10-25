@@ -1,0 +1,166 @@
+import React from 'react';
+import type { CityDistrict, PortfolioSubItem } from '../../types';
+
+interface ProjectSelectionPanelProps {
+  isOpen: boolean;
+  district: CityDistrict | null;
+  onClose: () => void;
+  onProjectSelect: (item: PortfolioSubItem) => void;
+}
+
+export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ isOpen, district, onClose, onProjectSelect }) => {
+  const containerStyle: React.CSSProperties = {
+    ...styles.container,
+    opacity: isOpen ? 1 : 0,
+    transform: isOpen ? 'translateY(0)' : 'translateY(100px)',
+    pointerEvents: isOpen ? 'auto' : 'none',
+  };
+
+  if (!district) return null;
+
+  return (
+    <>
+      <style>{`
+        .project-card {
+          transition: all 0.3s ease;
+          border-left: 3px solid transparent;
+        }
+        .project-card:hover {
+          transform: translateY(-5px);
+          background: rgba(0, 100, 150, 0.3);
+          border-left-color: var(--primary-color);
+        }
+        @keyframes card-fade-in {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+      <div style={containerStyle}>
+        <div style={styles.header}>
+          <h2 style={styles.title}>{district.title}</h2>
+          <button onClick={onClose} style={styles.closeButton} aria-label="Back to Overview">&times;</button>
+        </div>
+        <p style={styles.description}>{district.description}</p>
+        <div style={styles.grid}>
+          {district.subItems?.map((item, index) => (
+            <div 
+              key={item.id} 
+              className="project-card" 
+              style={{ ...styles.card, animation: isOpen ? `card-fade-in 0.5s ease ${index * 0.1}s both` : 'none' }}
+              onClick={() => onProjectSelect(item)}
+            >
+              <img src={item.imageUrl} alt={item.title} style={styles.cardImage} />
+              <div style={styles.cardContent}>
+                <h3 style={styles.cardTitle}>{item.title}</h3>
+                <p style={styles.cardDescription}>{item.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+};
+
+const glassmorphism: React.CSSProperties = {
+  background: 'rgba(5, 15, 30, 0.85)',
+  backdropFilter: 'blur(15px)',
+  border: '1px solid rgba(0, 170, 255, 0.5)',
+};
+
+const styles: { [key: string]: React.CSSProperties } = {
+  container: {
+    ...glassmorphism,
+    position: 'fixed',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '75vh',
+    maxHeight: '800px',
+    zIndex: 50,
+    borderTopLeftRadius: '20px',
+    borderTopRightRadius: '20px',
+    borderBottom: 'none',
+    padding: '20px 40px',
+    boxSizing: 'border-box',
+    display: 'flex',
+    flexDirection: 'column',
+    transition: 'opacity 0.4s ease, transform 0.4s ease',
+    overflowY: 'auto',
+  },
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottom: '1px solid rgba(0, 170, 255, 0.3)',
+    paddingBottom: '15px',
+    flexShrink: 0,
+  },
+  title: {
+    margin: 0,
+    color: 'var(--primary-color)',
+    fontSize: '1.8rem',
+    textShadow: '0 0 8px var(--primary-color)',
+  },
+  description: {
+    margin: '10px 0 20px 0',
+    color: '#ccc',
+    fontSize: '1rem',
+    flexShrink: 0,
+  },
+  closeButton: {
+    background: 'transparent',
+    border: '1px solid rgba(0, 170, 255, 0.7)',
+    color: '#00aaff',
+    width: '35px',
+    height: '35px',
+    borderRadius: '50%',
+    cursor: 'pointer',
+    fontSize: '1.5rem',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    lineHeight: 1,
+    transition: 'all 0.2s',
+  },
+  grid: {
+    flexGrow: 1,
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+    gap: '20px',
+    overflowY: 'auto',
+    paddingRight: '10px', // for scrollbar
+  },
+  card: {
+    ...glassmorphism,
+    borderRadius: '10px',
+    overflow: 'hidden',
+    cursor: 'pointer',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  cardImage: {
+    width: '100%',
+    height: '150px',
+    objectFit: 'cover',
+    opacity: 0.8,
+  },
+  cardContent: {
+    padding: '15px',
+    flexGrow: 1,
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  cardTitle: {
+    margin: '0 0 10px 0',
+    color: '#fff',
+    fontSize: '1.1rem',
+  },
+  cardDescription: {
+    margin: 0,
+    color: '#aaa',
+    fontSize: '0.9rem',
+    lineHeight: 1.4,
+    flexGrow: 1,
+  },
+};

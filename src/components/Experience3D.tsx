@@ -14,8 +14,9 @@ import type { CityDistrict, PortfolioSubItem } from '../types';
 import { CameraRig } from './CameraRig';
 import { HUD } from './ui/HUD';
 import { ProceduralTerrain } from './scene/ProceduralTerrain';
-import { ProjectDisplay } from './scene/ProjectDisplay';
 import HolographicInfoPanel from './scene/HolographicInfoPanel';
+import { QuickNavMenu } from './ui/QuickNavMenu';
+import { ProjectSelectionPanel } from './ui/ProjectSelectionPanel'; // Impor panel baru
 
 // Define the sun's position to be used by the light, sky, and mesh
 const sunPosition: [number, number, number] = [-100, 70, -100];
@@ -26,6 +27,7 @@ export const Experience3D: React.FC = () => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [showProjects, setShowProjects] = useState(false);
   const [infoPanelItem, setInfoPanelItem] = useState<CityDistrict | null>(null);
+  const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
 
   const handleDistrictSelect = useCallback((district: CityDistrict) => {
     if (district.id === selectedDistrict?.id) return;
@@ -63,12 +65,18 @@ export const Experience3D: React.FC = () => {
     // Here we can just log it or show a generic panel.
     console.log('Project clicked:', item.title);
     if(selectedDistrict){
-       setInfoPanelItem(selectedDistrict)
+       // For simplicity, we can close the main panel and show a more detailed one in the future.
+       // For now, let's just log it.
     }
   };
   
   const handlePanelClose = () => {
       setInfoPanelItem(null);
+  };
+
+  const handleQuickNavSelect = (district: CityDistrict) => {
+    handleDistrictSelect(district);
+    setIsNavMenuOpen(false);
   };
 
   return (
@@ -127,16 +135,7 @@ export const Experience3D: React.FC = () => {
               selectedDistrict={selectedDistrict}
               onDistrictSelect={handleDistrictSelect}
             />
-            {showProjects && selectedDistrict?.subItems && (
-              selectedDistrict.subItems.map((item) => (
-                <ProjectDisplay 
-                  key={item.id} 
-                  item={item} 
-                  isLocked={false} 
-                  onClick={() => handleProjectClick(item)} 
-                />
-              ))
-            )}
+            {/* ProjectDisplay 3D items have been removed from here */}
             {infoPanelItem && <HolographicInfoPanel district={infoPanelItem} onClose={handlePanelClose} />}
           </group>
           
@@ -158,14 +157,31 @@ export const Experience3D: React.FC = () => {
         </Suspense>
 
         <OrbitControls
-            enabled={!isAnimating}
+            enabled={!isAnimating && !isNavMenuOpen && !showProjects}
             minDistance={20}
             maxDistance={200}
             maxPolarAngle={Math.PI / 2.2}
             target={[0, 5, 0]}
         />
       </Canvas>
-      <HUD selectedDistrict={selectedDistrict} onGoHome={handleGoHome} />
+      <HUD 
+        selectedDistrict={selectedDistrict} 
+        onGoHome={handleGoHome}
+        onToggleNavMenu={() => setIsNavMenuOpen(!isNavMenuOpen)}
+      />
+      <QuickNavMenu 
+        isOpen={isNavMenuOpen}
+        onClose={() => setIsNavMenuOpen(false)}
+        onSelectDistrict={handleQuickNavSelect}
+        districts={portfolioData.filter(d => d.type === 'major')}
+      />
+      {/* --- RENDER THE NEW PROJECT PANEL --- */}
+      <ProjectSelectionPanel 
+        isOpen={showProjects && !!selectedDistrict}
+        district={selectedDistrict}
+        onClose={handleGoHome}
+        onProjectSelect={handleProjectClick}
+      />
     </>
   );
 };

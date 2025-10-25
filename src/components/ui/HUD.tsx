@@ -4,9 +4,10 @@ import type { CityDistrict } from '../../types';
 interface HUDProps {
   selectedDistrict: CityDistrict | null;
   onGoHome: () => void;
+  onToggleNavMenu: () => void;
 }
 
-export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome }) => {
+export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, onToggleNavMenu }) => {
 
   const breadcrumb = useMemo(() => {
     if (selectedDistrict) return `METROPOLIS.CORE > /${selectedDistrict.id.toUpperCase()}_DISTRICT/`;
@@ -15,9 +16,21 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome 
   
   const showHomeButton = !!selectedDistrict;
   const homeButtonIcon = '⌂'; // Ikon rumah yang familiar
+  const navMenuIcon = '⊘'; // Ikon grid/nexus yang stylish
 
   return (
     <>
+      <style>{`
+        @keyframes pulse-glow {
+          0% { box-shadow: 0 0 5px rgba(0, 170, 255, 0.3), 0 0 10px rgba(0, 170, 255, 0.2); }
+          50% { box-shadow: 0 0 15px rgba(0, 170, 255, 0.6), 0 0 25px rgba(0, 170, 255, 0.4); }
+          100% { box-shadow: 0 0 5px rgba(0, 170, 255, 0.3), 0 0 10px rgba(0, 170, 255, 0.2); }
+        }
+        .hex-btn {
+          clip-path: polygon(50% 0%, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%);
+          animation: pulse-glow 3s infinite ease-in-out;
+        }
+      `}</style>
       <div style={styles.breadcrumbContainer}>
           <p style={styles.breadcrumbText}>{breadcrumb}</p>
       </div>
@@ -30,6 +43,17 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome 
           >
             {homeButtonIcon}
           </button>
+      </div>
+
+      <div style={styles.bottomRightContainer}>
+        <button
+          onClick={onToggleNavMenu}
+          style={{...styles.hudButton, ...styles.hexButton}}
+          className="hex-btn"
+          aria-label="Open Quick Navigation"
+        >
+          {navMenuIcon}
+        </button>
       </div>
     </>
   );
@@ -71,10 +95,15 @@ const styles: { [key: string]: React.CSSProperties } = {
     zIndex: 10,
     textAlign: 'center',
   },
+  bottomRightContainer: {
+    position: 'fixed',
+    bottom: '20px',
+    right: '20px',
+    zIndex: 10,
+  },
   hudButton: {
     ...glassmorphism,
     color: '#00aaff',
-    // Desain baru: Tombol ikon yang lebih kecil dan berbentuk lingkaran
     width: '45px',
     height: '45px',
     borderRadius: '50%',
@@ -82,11 +111,16 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    fontSize: '1.5rem', // Ukuran ikon di dalam tombol
+    fontSize: '1.5rem',
     lineHeight: 1,
     cursor: 'pointer',
     transition: 'all 0.5s ease',
     pointerEvents: 'all',
+  },
+  hexButton: {
+    width: '50px',
+    height: '55px',
+    borderRadius: '0', // hapus border radius untuk clip-path
   },
   visible: {
     opacity: 1,

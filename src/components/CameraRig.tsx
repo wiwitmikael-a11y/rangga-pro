@@ -47,6 +47,10 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
     const rotReached = state.camera.quaternion.angleTo(tempCamera.quaternion) < 0.05;
 
     if (posReached && rotReached) {
+        // BUG FIX: Snap to the final position and rotation to guarantee termination
+        // and prevent overshooting or oscillation around the target.
+        state.camera.position.copy(targetPosition);
+        state.camera.quaternion.copy(tempCamera.quaternion);
         onAnimationFinish();
     }
   });
