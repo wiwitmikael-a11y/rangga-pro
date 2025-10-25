@@ -20,8 +20,8 @@ const CALIBRATION_POSITION = new THREE.Vector3(0, 200, 1); // High top-down view
 
 export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimationFinish, isAnimating, pov, targetShipRef, isCalibrationMode }) => {
   const shipCam = useMemo(() => ({
-    // Closer, "over-the-shoulder" offset
-    offset: new THREE.Vector3(0, 2.5, -7),
+    // Higher, more cinematic "over-the-shoulder" offset looking down
+    offset: new THREE.Vector3(0, 7, -10),
     idealPosition: new THREE.Vector3(),
     idealLookAt: new THREE.Vector3(),
     forwardVector: new THREE.Vector3(0, 0, 15),

@@ -15,6 +15,7 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
     // The transform is now handled by the CSS animation
     transform: isOpen ? 'translateY(0)' : 'translateY(100vh)',
     pointerEvents: isOpen ? 'auto' : 'none',
+    userSelect: 'auto', // Enable text selection within this panel
   };
   
   const overlayStyle: React.CSSProperties = {
@@ -36,7 +37,11 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
   return (
     <>
       <div style={overlayStyle} onClick={handleClose} />
-      <div style={containerStyle} className={isOpen ? 'panel-enter' : ''}>
+      <div 
+        style={containerStyle} 
+        className={isOpen ? 'panel-enter' : ''}
+        onContextMenu={(e) => e.stopPropagation()} // Allow right-click menu
+      >
         <div style={styles.header}>
           <h2 style={styles.title}>{district.title}</h2>
           <button onClick={handleClose} style={styles.closeButton} aria-label="Back to Overview">&times;</button>

@@ -58,7 +58,10 @@ const HolographicInfoPanel: React.FC<HolographicInfoPanelProps> = ({ district, o
               to { opacity: 1; transform: translateY(0); }
             }
           `}</style>
-          <div style={styles.contentWrapper}>
+          <div 
+            style={styles.contentWrapper}
+            onContextMenu={(e) => e.stopPropagation()} // Allow right-click menu
+          >
             <h2 style={styles.title}>{district.title}</h2>
             <h3 style={styles.subtitle}>{district.description}</h3>
             <p style={styles.placeholder}>
@@ -97,6 +100,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
+        userSelect: 'auto', // Enable text selection within this panel
     },
     title: { 
         color: 'var(--primary-color)', 

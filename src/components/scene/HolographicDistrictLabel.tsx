@@ -59,7 +59,7 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
   const emissiveIntensity = isHeld ? 2.5 : isHovered || isSelected ? 2 : 1;
 
   return (
-    <Billboard position={[0, 10, 0]}>
+    <Billboard position={[0, 15, 0]}>
       <group
         ref={groupRef}
         onPointerOver={handlePointerOver}

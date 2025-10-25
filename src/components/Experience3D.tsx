@@ -143,11 +143,28 @@ export const Experience3D: React.FC = () => {
   };
   
   const handleSetPov = (newPov: 'main' | 'ship') => {
-    if (newPov === pov || isCalibrationMode) return;
+    if (isCalibrationMode) return;
+
+    // Handle cycling through ships if already in ship POV
+    if (newPov === 'ship' && pov === 'ship') {
+      if (shipRefs.length > 1) {
+        let newTargetRef = targetShipRef;
+        // Keep picking a random ship until it's different from the current one
+        while (newTargetRef === targetShipRef) {
+          const randomIndex = Math.floor(Math.random() * shipRefs.length);
+          newTargetRef = shipRefs[randomIndex];
+        }
+        setTargetShipRef(newTargetRef);
+        setIsAnimating(true); // Trigger transition to new ship
+      }
+      return;
+    }
+
+    if (newPov === pov) return;
 
     if (newPov === 'main') {
       handleGoHome();
-    } else {
+    } else { // Switching to ship POV for the first time
       setIsAutoRotating(false);
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
       
@@ -158,16 +175,9 @@ export const Experience3D: React.FC = () => {
       }
       
       if (shipRefs.length > 0) {
-        let newTargetRef = targetShipRef;
-        if (shipRefs.length > 1) {
-          while (newTargetRef === targetShipRef) {
-            const randomIndex = Math.floor(Math.random() * shipRefs.length);
-            newTargetRef = shipRefs[randomIndex];
-          }
-        } else {
-          newTargetRef = shipRefs[0];
-        }
-        setTargetShipRef(newTargetRef);
+        // Pick a random ship to start with
+        const randomIndex = Math.floor(Math.random() * shipRefs.length);
+        setTargetShipRef(shipRefs[randomIndex]);
       }
       setPov('ship');
       setIsAnimating(true);

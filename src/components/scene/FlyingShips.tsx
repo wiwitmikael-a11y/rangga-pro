@@ -2,12 +2,13 @@ import React, { useMemo, useRef, Suspense, forwardRef, useImperativeHandle, useE
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
+import { portfolioData } from '../../constants';
 
 const GITHUB_MODEL_URL_BASE = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/';
 
-const CITY_RADIUS = 85;
-const FLIGHT_ALTITUDE_MIN = 20;
-const FLIGHT_ALTITUDE_MAX = 40;
+const FLIGHT_AREA_SIZE = 240; // Use a square area for better corner coverage
+const FLIGHT_ALTITUDE_MIN = 45; // Raised to avoid all buildings
+const FLIGHT_ALTITUDE_MAX = 60;
 const FLIGHT_SPEED = 12;
 const TURN_SPEED = 1.5;
 
@@ -26,7 +27,19 @@ const TERRAIN_LANDING_SPOTS: THREE.Vector3[] = [
     new THREE.Vector3(20, -3.5, -80),
     new THREE.Vector3(-30, -3.5, 80),
     new THREE.Vector3(0, -3.5, 0),
+    new THREE.Vector3(100, -3.5, 100), // Add corner spots
+    new THREE.Vector3(-100, -3.5, -100),
+    new THREE.Vector3(100, -3.5, -100),
+    new THREE.Vector3(-100, -3.5, 100),
 ];
+
+// Create landing spots from major districts, normalizing their Y-position to ground level.
+const DISTRICT_LANDING_SPOTS: THREE.Vector3[] = portfolioData
+    .filter(d => d.type === 'major')
+    .map(d => new THREE.Vector3(d.position[0], -3.5, d.position[2]));
+
+// Combine all possible landing spots into one comprehensive list.
+const ALL_LANDING_SPOTS = [...ROOFTOP_LANDING_SPOTS, ...TERRAIN_LANDING_SPOTS, ...DISTRICT_LANDING_SPOTS];
 
 type ShipState = 'FLYING' | 'DESCENDING' | 'LANDED' | 'ASCENDING';
 
@@ -47,6 +60,7 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ modelUrl, scale, initialDelay
   const shipState = useRef({
     state: 'FLYING' as ShipState,
     targetPosition: new THREE.Vector3(),
+    finalLandingPosition: new THREE.Vector3().set(0, -1000, 0), // Initialized out of bounds
     timer: Math.random() * 10 + 5,
     isInitialized: false,
   });
@@ -55,12 +69,10 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ modelUrl, scale, initialDelay
   const tempLookAtObject = useMemo(() => new THREE.Object3D(), []);
 
   const getNewFlightTarget = () => {
-    const angle = Math.random() * Math.PI * 2;
-    const radius = Math.random() * CITY_RADIUS;
     return new THREE.Vector3(
-      Math.cos(angle) * radius,
+      (Math.random() - 0.5) * FLIGHT_AREA_SIZE,
       FLIGHT_ALTITUDE_MIN + Math.random() * (FLIGHT_ALTITUDE_MAX - FLIGHT_ALTITUDE_MIN),
-      Math.sin(angle) * radius
+      (Math.random() - 0.5) * FLIGHT_AREA_SIZE
     );
   };
   
@@ -68,13 +80,7 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ modelUrl, scale, initialDelay
     if (!groupRef.current || isPaused) return;
     
     if (!shipState.current.isInitialized && clock.elapsedTime > initialDelay) {
-        const angle = Math.random() * Math.PI * 2;
-        const radius = Math.random() * CITY_RADIUS;
-        const initialPos = new THREE.Vector3(
-          Math.cos(angle) * radius,
-          FLIGHT_ALTITUDE_MIN + Math.random() * (FLIGHT_ALTITUDE_MAX - FLIGHT_ALTITUDE_MIN),
-          Math.sin(angle) * radius
-        );
+        const initialPos = getNewFlightTarget();
         groupRef.current.position.copy(initialPos);
         shipState.current.targetPosition.copy(getNewFlightTarget());
         shipState.current.isInitialized = true;
@@ -90,37 +96,35 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ modelUrl, scale, initialDelay
     switch (shipState.current.state) {
       case 'FLYING':
         if (currentPos.distanceTo(targetPos) < 5 || shipState.current.timer <= 0) {
-          if (Math.random() < 0.4) {
+          if (Math.random() < 0.5) { // Increased chance to land and visit a spot
             shipState.current.state = 'DESCENDING';
-            const landingZones = Math.random() < 0.7 ? ROOFTOP_LANDING_SPOTS : TERRAIN_LANDING_SPOTS;
-            const targetZone = landingZones[Math.floor(Math.random() * landingZones.length)];
+            const targetZone = ALL_LANDING_SPOTS[Math.floor(Math.random() * ALL_LANDING_SPOTS.length)];
             const landingOffset = new THREE.Vector3((Math.random() - 0.5) * 5, 0, (Math.random() - 0.5) * 5);
-            const finalLandingTarget = targetZone.clone().add(landingOffset);
-            const hoverPosition = finalLandingTarget.clone();
-            hoverPosition.y = Math.max(hoverPosition.y, FLIGHT_ALTITUDE_MIN) + 15;
+            
+            shipState.current.finalLandingPosition.copy(targetZone.clone().add(landingOffset));
+            
+            const hoverPosition = shipState.current.finalLandingPosition.clone();
+            hoverPosition.y = FLIGHT_ALTITUDE_MIN + 15;
             shipState.current.targetPosition.copy(hoverPosition);
           } else {
             shipState.current.targetPosition.copy(getNewFlightTarget());
             shipState.current.timer = Math.random() * 15 + 10;
+            shipState.current.finalLandingPosition.set(0, -1000, 0);
           }
         }
         break;
 
       case 'DESCENDING':
+        // The target is initially the hover position.
         if (currentPos.distanceTo(targetPos) < 2) {
-            const landingZones = ROOFTOP_LANDING_SPOTS.concat(TERRAIN_LANDING_SPOTS);
-            const targetZone = landingZones.find(p => p.x.toFixed(0) === targetPos.x.toFixed(0) && p.z.toFixed(0) === targetPos.z.toFixed(0)) || targetPos;
-            const finalTarget = targetZone.clone();
-            if (currentPos.y > finalTarget.y + 1) {
-                shipState.current.targetPosition.y = finalTarget.y;
-            } else {
-                shipState.current.state = 'LANDED';
-                shipState.current.timer = Math.random() * 8 + 5;
-            }
+          // Once we reach the hover spot, change the target to the final ground spot to initiate vertical descent.
+          shipState.current.targetPosition.copy(shipState.current.finalLandingPosition);
         }
-        if (Math.abs(currentPos.y - targetPos.y) < 0.5 && currentPos.distanceTo(new THREE.Vector3(targetPos.x, currentPos.y, targetPos.z)) < 1) {
-            shipState.current.state = 'LANDED';
-            shipState.current.timer = Math.random() * 8 + 5;
+        // This check now becomes the primary landing trigger.
+        if (currentPos.distanceTo(shipState.current.finalLandingPosition) < 0.5) {
+          shipState.current.state = 'LANDED';
+          shipState.current.timer = Math.random() * 8 + 5;
+          groupRef.current.position.copy(shipState.current.finalLandingPosition); // Snap to ground
         }
         break;
 
@@ -128,6 +132,10 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ modelUrl, scale, initialDelay
         if (shipState.current.timer <= 0) {
           shipState.current.state = 'ASCENDING';
           shipState.current.targetPosition.set(currentPos.x, FLIGHT_ALTITUDE_MIN + 10, currentPos.z);
+        } else {
+          // Bobble while landed
+          const bobble = Math.sin(clock.getElapsedTime() * 2) * 0.05;
+          groupRef.current.position.y = shipState.current.finalLandingPosition.y + bobble;
         }
         break;
 
@@ -136,6 +144,7 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ modelUrl, scale, initialDelay
           shipState.current.state = 'FLYING';
           shipState.current.targetPosition.copy(getNewFlightTarget());
           shipState.current.timer = Math.random() * 15 + 10;
+          shipState.current.finalLandingPosition.set(0, -1000, 0); 
         }
         break;
     }
@@ -149,9 +158,6 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ modelUrl, scale, initialDelay
       tempLookAtObject.lookAt(targetPos);
       tempQuaternion.copy(tempLookAtObject.quaternion);
       groupRef.current.quaternion.slerp(tempQuaternion, delta * TURN_SPEED);
-    } else {
-        const bobble = Math.sin(clock.getElapsedTime() * 2) * 0.05;
-        groupRef.current.position.y = targetPos.y + bobble;
     }
   });
 

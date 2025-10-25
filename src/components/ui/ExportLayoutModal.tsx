@@ -30,7 +30,11 @@ export const ExportLayoutModal: React.FC<ExportLayoutModalProps> = ({ isOpen, on
   return (
     <>
       <div style={styles.overlay} onClick={onClose} />
-      <div style={styles.container} className="panel-enter">
+      <div 
+        style={styles.container} 
+        className="panel-enter"
+        onContextMenu={(e) => e.stopPropagation()} // Allow right-click menu
+      >
         <div style={styles.header}>
             <h2 style={styles.title}>Export New Layout</h2>
             <button onClick={onClose} style={styles.closeButton} aria-label="Close Export">&times;</button>
@@ -82,6 +86,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     flexDirection: 'column',
     boxShadow: '0 0 40px rgba(0, 170, 255, 0.3)',
+    userSelect: 'auto', // Enable text selection within this panel
   },
   header: {
     display: 'flex',
