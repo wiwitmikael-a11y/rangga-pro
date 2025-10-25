@@ -15,33 +15,42 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
     transform: isOpen ? 'translateY(0)' : 'translateY(100px)',
     pointerEvents: isOpen ? 'auto' : 'none',
   };
+  
+  const overlayStyle: React.CSSProperties = {
+    ...styles.overlay,
+    opacity: isOpen ? 1 : 0,
+    pointerEvents: isOpen ? 'auto' : 'none',
+  };
 
   if (!district) return null;
 
   return (
-    <div style={containerStyle}>
-      <div style={styles.header}>
-        <h2 style={styles.title}>{district.title}</h2>
-        <button onClick={onClose} style={styles.closeButton} aria-label="Back to Overview">&times;</button>
-      </div>
-      <p style={styles.description}>{district.description}</p>
-      <div style={styles.grid}>
-        {district.subItems?.map((item, index) => (
-          <div 
-            key={item.id} 
-            className="project-card" 
-            style={{ ...styles.card, animation: isOpen ? `card-fade-in 0.5s ease ${index * 0.1}s both` : 'none' }}
-            onClick={() => onProjectSelect(item)}
-          >
-            <img src={item.imageUrl} alt={item.title} style={styles.cardImage} />
-            <div style={styles.cardContent}>
-              <h3 style={styles.cardTitle}>{item.title}</h3>
-              <p style={styles.cardDescription}>{item.description}</p>
+    <>
+      <div style={overlayStyle} onClick={onClose} />
+      <div style={containerStyle}>
+        <div style={styles.header}>
+          <h2 style={styles.title}>{district.title}</h2>
+          <button onClick={onClose} style={styles.closeButton} aria-label="Back to Overview">&times;</button>
+        </div>
+        <p style={styles.description}>{district.description}</p>
+        <div style={styles.grid}>
+          {district.subItems?.map((item, index) => (
+            <div 
+              key={item.id} 
+              className="project-card" 
+              style={{ ...styles.card, animation: isOpen ? `card-fade-in 0.5s ease ${index * 0.1}s both` : 'none' }}
+              onClick={() => onProjectSelect(item)}
+            >
+              <img src={item.imageUrl} alt={item.title} style={styles.cardImage} />
+              <div style={styles.cardContent}>
+                <h3 style={styles.cardTitle}>{item.title}</h3>
+                <p style={styles.cardDescription}>{item.description}</p>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
@@ -52,6 +61,14 @@ const glassmorphism: React.CSSProperties = {
 };
 
 const styles: { [key: string]: React.CSSProperties } = {
+  overlay: {
+    position: 'fixed',
+    inset: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backdropFilter: 'blur(5px)',
+    zIndex: 49,
+    transition: 'opacity 0.4s ease',
+  },
   container: {
     ...glassmorphism,
     position: 'fixed',

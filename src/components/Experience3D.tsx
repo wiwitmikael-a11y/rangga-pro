@@ -78,6 +78,8 @@ export const Experience3D: React.FC = () => {
     handleDistrictSelect(district);
     setIsNavMenuOpen(false);
   };
+  
+  const isDetailViewActive = showProjects || !!infoPanelItem;
 
   return (
     <>
@@ -157,7 +159,7 @@ export const Experience3D: React.FC = () => {
         </Suspense>
 
         <OrbitControls
-            enabled={!isAnimating && !isNavMenuOpen && !showProjects}
+            enabled={!isAnimating && !isNavMenuOpen && !showProjects && !infoPanelItem}
             minDistance={20}
             maxDistance={200}
             maxPolarAngle={Math.PI / 2.2}
@@ -168,6 +170,7 @@ export const Experience3D: React.FC = () => {
         selectedDistrict={selectedDistrict} 
         onGoHome={handleGoHome}
         onToggleNavMenu={() => setIsNavMenuOpen(!isNavMenuOpen)}
+        isDetailViewActive={isDetailViewActive}
       />
       <QuickNavMenu 
         isOpen={isNavMenuOpen}

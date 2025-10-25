@@ -5,16 +5,17 @@ interface HUDProps {
   selectedDistrict: CityDistrict | null;
   onGoHome: () => void;
   onToggleNavMenu: () => void;
+  isDetailViewActive: boolean;
 }
 
-export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, onToggleNavMenu }) => {
+export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, onToggleNavMenu, isDetailViewActive }) => {
 
   const breadcrumb = useMemo(() => {
     if (selectedDistrict) return `METROPOLIS.CORE > /${selectedDistrict.id.toUpperCase()}_DISTRICT/`;
     return 'METROPOLIS.CORE';
   }, [selectedDistrict]);
   
-  const showHomeButton = !!selectedDistrict;
+  const showHomeButton = isDetailViewActive;
   const homeButtonIcon = '⌂'; // Home icon
   const navMenuIcon = '☰'; // A more common menu icon (hamburger)
 
