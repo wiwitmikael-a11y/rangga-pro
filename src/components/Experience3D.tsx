@@ -1,4 +1,4 @@
-import React, { useState, useCallback, Suspense } from 'react';
+import React, { useState, useCallback, Suspense, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Sky } from '@react-three/drei';
 import { EffectComposer, Noise, ChromaticAberration } from '@react-three/postprocessing';
@@ -29,6 +29,14 @@ export const Experience3D: React.FC = () => {
   const [showProjects, setShowProjects] = useState(false);
   const [infoPanelItem, setInfoPanelItem] = useState<CityDistrict | null>(null);
   const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
+
+  const navDistricts = useMemo(() => {
+    const majorDistricts = portfolioData.filter(d => d.type === 'major');
+    const nexusCore = majorDistricts.find(d => d.id === 'nexus-core');
+    return nexusCore
+      ? [...majorDistricts.filter(d => d.id !== 'nexus-core'), nexusCore]
+      : majorDistricts;
+  }, []);
   
   const handleDistrictSelect = useCallback((district: CityDistrict) => {
     // Special handling for the central @rangga.p.h core
@@ -165,7 +173,7 @@ export const Experience3D: React.FC = () => {
         isOpen={isNavMenuOpen}
         onClose={() => setIsNavMenuOpen(false)}
         onSelectDistrict={handleQuickNavSelect}
-        districts={portfolioData.filter(d => d.type === 'major')}
+        districts={navDistricts}
       />
       <ProjectSelectionPanel 
         isOpen={showProjects && !!selectedDistrict}

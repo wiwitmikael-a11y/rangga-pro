@@ -52,7 +52,7 @@ export const portfolioData: CityDistrict[] = [
   {
     id: 'visual-arts',
     title: 'Visual Arts Archive',
-    description: 'Award-Winning Photography & Videography',
+    description: 'Award-Winning Content Creations',
     position: [-80, 0, 35], // Kiri depan
     type: 'major',
     cameraFocus: {
