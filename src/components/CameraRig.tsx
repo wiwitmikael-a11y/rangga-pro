@@ -14,12 +14,13 @@ interface CameraRigProps {
 // Menggunakan vektor helper di luar loop untuk optimasi performa
 const targetPosition = new THREE.Vector3();
 const targetLookAt = new THREE.Vector3();
+const OVERVIEW_POSITION = new THREE.Vector3(0, 60, 120);
 const OVERVIEW_LOOK_AT = new THREE.Vector3(0, 5, 0);
 
 export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimationFinish, isAnimating }) => {
   useFrame((state, delta) => {
-    // Only run the animation logic if isAnimating is true.
-    // This prevents the rig from fighting with user controls.
+    // Hanya jalankan logika animasi jika isAnimating bernilai true.
+    // Ini mencegah rig bertabrakan dengan kontrol pengguna.
     if (!isAnimating) {
       return;
     }
@@ -29,26 +30,27 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
       targetPosition.set(...selectedDistrict.cameraFocus.pos);
       targetLookAt.set(...selectedDistrict.cameraFocus.lookAt);
     } else {
-      // Kembali ke posisi overview default, tanpa auto-rotate
-      targetPosition.set(0, 60, 120);
+      // Kembali ke posisi overview default
+      targetPosition.copy(OVERVIEW_POSITION);
       targetLookAt.copy(OVERVIEW_LOOK_AT);
     }
 
     // Interpolasi posisi kamera secara mulus untuk menghindari gerakan yang kaku
-    state.camera.position.lerp(targetPosition, delta * 1.5);
+    const lerpFactor = delta * 1.8; // Sedikit lebih cepat untuk feel yang responsif
+    state.camera.position.lerp(targetPosition, lerpFactor);
 
     // Interpolasi target pandang kamera secara mulus dengan memperbarui quaternion
     const tempCamera = state.camera.clone();
     tempCamera.lookAt(targetLookAt);
-    state.camera.quaternion.slerp(tempCamera.quaternion, delta * 1.5);
+    state.camera.quaternion.slerp(tempCamera.quaternion, lerpFactor);
     
-    // Periksa apakah animasi telah selesai
-    const posReached = state.camera.position.distanceTo(targetPosition) < 0.5;
-    const rotReached = state.camera.quaternion.angleTo(tempCamera.quaternion) < 0.05;
+    // Periksa apakah animasi telah selesai dengan threshold yang lebih toleran
+    const posReached = state.camera.position.distanceTo(targetPosition) < 0.1;
+    const rotReached = state.camera.quaternion.angleTo(tempCamera.quaternion) < 0.01;
 
     if (posReached && rotReached) {
-        // BUG FIX: Snap to the final position and rotation to guarantee termination
-        // and prevent overshooting or oscillation around the target.
+        // BUG FIX: Pindahkan kamera secara paksa ke posisi dan rotasi akhir
+        // untuk menjamin terminasi dan mencegah overshoot atau osilasi di sekitar target.
         state.camera.position.copy(targetPosition);
         state.camera.quaternion.copy(tempCamera.quaternion);
         onAnimationFinish();

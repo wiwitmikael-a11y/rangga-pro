@@ -27,6 +27,53 @@
         height: 100vh;
         isolation: isolate; /* Create a new stacking context for overlays */
       }
+
+      /* QuickNavMenu & HUD Styles */
+      .hex-btn {
+        clip-path: polygon(50% 0%, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%);
+        animation: pulse-glow 3s infinite ease-in-out;
+      }
+      .nav-button:hover {
+        transform: translateY(-5px);
+        border-left-color: var(--primary-color) !important;
+        box-shadow: 0 5px 15px rgba(0, 170, 255, 0.2);
+      }
+      .project-card {
+        transition: all 0.3s ease;
+        border-left: 3px solid transparent;
+      }
+      .project-card:hover {
+        transform: translateY(-5px);
+        background: rgba(0, 100, 150, 0.3);
+        border-left-color: var(--primary-color);
+      }
+
+      @keyframes pulse-glow {
+        0% { box-shadow: 0 0 5px rgba(0, 170, 255, 0.3), 0 0 10px rgba(0, 170, 255, 0.2); }
+        50% { box-shadow: 0 0 15px rgba(0, 170, 255, 0.6), 0 0 25px rgba(0, 170, 255, 0.4); }
+        100% { box-shadow: 0 0 5px rgba(0, 170, 255, 0.3), 0 0 10px rgba(0, 170, 255, 0.2); }
+      }
+      @keyframes card-fade-in {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      /* Media Query for responsive menu */
+      @media (max-width: 768px) {
+        .quick-nav-container {
+            width: 95% !important;
+            bottom: 10px !important;
+            padding: 25px 15px !important;
+        }
+        .quick-nav-grid {
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+        }
+        .nav-button:hover {
+            transform: none !important;
+            border-left-color: var(--primary-color) !important;
+        }
+      }
     </style>
   </head>
   <body>

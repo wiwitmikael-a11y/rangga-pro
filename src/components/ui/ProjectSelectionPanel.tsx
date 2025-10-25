@@ -19,46 +19,29 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
   if (!district) return null;
 
   return (
-    <>
-      <style>{`
-        .project-card {
-          transition: all 0.3s ease;
-          border-left: 3px solid transparent;
-        }
-        .project-card:hover {
-          transform: translateY(-5px);
-          background: rgba(0, 100, 150, 0.3);
-          border-left-color: var(--primary-color);
-        }
-        @keyframes card-fade-in {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
-      <div style={containerStyle}>
-        <div style={styles.header}>
-          <h2 style={styles.title}>{district.title}</h2>
-          <button onClick={onClose} style={styles.closeButton} aria-label="Back to Overview">&times;</button>
-        </div>
-        <p style={styles.description}>{district.description}</p>
-        <div style={styles.grid}>
-          {district.subItems?.map((item, index) => (
-            <div 
-              key={item.id} 
-              className="project-card" 
-              style={{ ...styles.card, animation: isOpen ? `card-fade-in 0.5s ease ${index * 0.1}s both` : 'none' }}
-              onClick={() => onProjectSelect(item)}
-            >
-              <img src={item.imageUrl} alt={item.title} style={styles.cardImage} />
-              <div style={styles.cardContent}>
-                <h3 style={styles.cardTitle}>{item.title}</h3>
-                <p style={styles.cardDescription}>{item.description}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+    <div style={containerStyle}>
+      <div style={styles.header}>
+        <h2 style={styles.title}>{district.title}</h2>
+        <button onClick={onClose} style={styles.closeButton} aria-label="Back to Overview">&times;</button>
       </div>
-    </>
+      <p style={styles.description}>{district.description}</p>
+      <div style={styles.grid}>
+        {district.subItems?.map((item, index) => (
+          <div 
+            key={item.id} 
+            className="project-card" 
+            style={{ ...styles.card, animation: isOpen ? `card-fade-in 0.5s ease ${index * 0.1}s both` : 'none' }}
+            onClick={() => onProjectSelect(item)}
+          >
+            <img src={item.imageUrl} alt={item.title} style={styles.cardImage} />
+            <div style={styles.cardContent}>
+              <h3 style={styles.cardTitle}>{item.title}</h3>
+              <p style={styles.cardDescription}>{item.description}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 };
 

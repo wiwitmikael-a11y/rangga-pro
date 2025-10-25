@@ -9,12 +9,18 @@ interface QuickNavMenuProps {
 }
 
 export const QuickNavMenu: React.FC<QuickNavMenuProps> = ({ isOpen, onClose, onSelectDistrict, districts }) => {
-  if (!isOpen) {
-    return null;
-  }
+  const containerStyle: React.CSSProperties = {
+    ...styles.container,
+    opacity: isOpen ? 1 : 0,
+    transform: isOpen ? 'translate(-50%, 0)' : 'translate(-50%, 100%)',
+    transition: 'opacity 0.3s ease, transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)',
+    pointerEvents: isOpen ? 'auto' : 'none',
+  };
 
-  const handleSelect = (district: CityDistrict) => {
-    onSelectDistrict(district);
+  const overlayStyle: React.CSSProperties = {
+    ...styles.overlay,
+    opacity: isOpen ? 1 : 0,
+    pointerEvents: isOpen ? 'auto' : 'none',
   };
 
   return (
@@ -33,16 +39,17 @@ export const QuickNavMenu: React.FC<QuickNavMenuProps> = ({ isOpen, onClose, onS
           100% { background-position: 56.5px 0; }
         }
       `}</style>
-      <div style={styles.overlay} onClick={onClose} />
-      <div style={styles.container}>
+      <div style={overlayStyle} onClick={onClose} />
+      <div style={containerStyle} className="quick-nav-container">
         <div style={styles.dangerStripes} />
         <button onClick={onClose} style={styles.closeButton} aria-label="Close Navigation">&times;</button>
-        <div style={styles.grid}>
+        <div style={styles.grid} className="quick-nav-grid">
           {districts.map(district => (
             <button
               key={district.id}
               style={styles.navButton}
-              onClick={() => handleSelect(district)}
+              className="nav-button"
+              onClick={() => onSelectDistrict(district)}
             >
               <span style={styles.buttonTitle}>{district.title}</span>
               <span style={styles.buttonDesc}>{district.description}</span>
@@ -66,21 +73,19 @@ const styles: { [key: string]: React.CSSProperties } = {
     inset: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
     zIndex: 100,
-    animation: 'fade-in 0.3s ease-out',
+    transition: 'opacity 0.3s ease-out',
   },
   container: {
     ...glassmorphism,
     position: 'fixed',
     bottom: '20px',
     left: '50%',
-    transform: 'translateX(-50%)',
     width: '90%',
     maxWidth: '1000px',
     padding: '30px',
     borderRadius: '15px',
     zIndex: 101,
     boxShadow: '0 0 30px rgba(0, 170, 255, 0.2)',
-    animation: 'slide-in-up 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)',
     overflow: 'hidden',
   },
   dangerStripes: {
@@ -141,53 +146,3 @@ const styles: { [key: string]: React.CSSProperties } = {
     lineHeight: '1.3',
   },
 };
-
-// Add responsive styles using a media query approach
-const mediaQuery = '@media (max-width: 768px)';
-const responsiveStyles: React.CSSProperties = {
-  container: {
-    ...styles.container,
-    width: '95%',
-    bottom: '10px',
-    padding: '25px 15px',
-  },
-  grid: {
-    ...styles.grid,
-    gridTemplateColumns: '1fr', // Stack vertically on mobile
-    gap: '10px',
-  },
-};
-
-// This is a simple way to apply media queries in JS-in-CSS
-// For a production app, a library like styled-components would be better
-const styleSheet = document.createElement("style");
-styleSheet.type = "text/css";
-styleSheet.innerText = `
-  ${mediaQuery} {
-    .quick-nav-container {
-      width: ${responsiveStyles.container.width} !important;
-      bottom: ${responsiveStyles.container.bottom} !important;
-      padding: ${responsiveStyles.container.padding} !important;
-    }
-    .quick-nav-grid {
-      grid-template-columns: ${responsiveStyles.grid.gridTemplateColumns} !important;
-      gap: ${responsiveStyles.grid.gap} !important;
-    }
-    .quick-nav-button:hover {
-        transform: none !important;
-        border-left-color: #00aaff !important;
-    }
-  }
-  .nav-button:hover {
-      transform: translateY(-5px);
-      border-left-color: #00aaff;
-      box-shadow: 0 5px 15px rgba(0, 170, 255, 0.2);
-  }
-`;
-document.head.appendChild(styleSheet);
-
-// Assign class names for media query targeting
-(styles.container as any).className = 'quick-nav-container';
-(styles.grid as any).className = 'quick-nav-grid';
-(styles.navButton as any).className = 'nav-button';
-

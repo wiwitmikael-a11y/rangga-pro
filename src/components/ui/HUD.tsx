@@ -15,22 +15,11 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
   }, [selectedDistrict]);
   
   const showHomeButton = !!selectedDistrict;
-  const homeButtonIcon = '⌂'; // Ikon rumah yang familiar
-  const navMenuIcon = '⊘'; // Ikon grid/nexus yang stylish
+  const homeButtonIcon = '⌂'; // Home icon
+  const navMenuIcon = '☰'; // A more common menu icon (hamburger)
 
   return (
     <>
-      <style>{`
-        @keyframes pulse-glow {
-          0% { box-shadow: 0 0 5px rgba(0, 170, 255, 0.3), 0 0 10px rgba(0, 170, 255, 0.2); }
-          50% { box-shadow: 0 0 15px rgba(0, 170, 255, 0.6), 0 0 25px rgba(0, 170, 255, 0.4); }
-          100% { box-shadow: 0 0 5px rgba(0, 170, 255, 0.3), 0 0 10px rgba(0, 170, 255, 0.2); }
-        }
-        .hex-btn {
-          clip-path: polygon(50% 0%, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%);
-          animation: pulse-glow 3s infinite ease-in-out;
-        }
-      `}</style>
       <div style={styles.breadcrumbContainer}>
           <p style={styles.breadcrumbText}>{breadcrumb}</p>
       </div>
@@ -106,6 +95,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#00aaff',
     width: '45px',
     height: '45px',
+    border: '1px solid rgba(0, 170, 255, 0.5)',
     borderRadius: '50%',
     padding: '0',
     display: 'flex',
@@ -120,7 +110,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   hexButton: {
     width: '50px',
     height: '55px',
-    borderRadius: '0', // hapus border radius untuk clip-path
+    borderRadius: '0', // remove border radius for clip-path
   },
   visible: {
     opacity: 1,
