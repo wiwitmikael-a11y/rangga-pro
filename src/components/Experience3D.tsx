@@ -1,4 +1,4 @@
-import React, { useState, useCallback, Suspense, useMemo } from 'react';
+import React, { useState, useCallback, Suspense, useMemo, useRef, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Sky } from '@react-three/drei';
 import { EffectComposer, Noise, ChromaticAberration } from '@react-three/postprocessing';
@@ -20,9 +20,9 @@ import { ProjectSelectionPanel } from './ui/ProjectSelectionPanel';
 import { PatrollingCore } from './scene/PatrollingCore';
 
 // Define the sun's position to be used by the light, sky, and mesh
-const sunPosition: [number, number, number] = [100, 5, -200]; // Lower sun for sunset effect
+const sunPosition: [number, number, number] = [100, 2, -200]; // Lower sun for sunset effect
 const sunColor = '#FFFFF0'; // A warm, sun-like white
-const backgroundColor = '#5e3a1f'; // Darker, deep orange desert floor color
+const backgroundColor = '#2c1912'; // Dark, desaturated orange to match the sky's bottom gradient
 
 export const Experience3D: React.FC = () => {
   const [selectedDistrict, setSelectedDistrict] = useState<CityDistrict | null>(null);
@@ -30,6 +30,12 @@ export const Experience3D: React.FC = () => {
   const [showProjects, setShowProjects] = useState(false);
   const [infoPanelItem, setInfoPanelItem] = useState<CityDistrict | null>(null);
   const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
+  
+  // New state for POV and auto-rotation
+  const [pov, setPov] = useState<'main' | 'ship'>('main');
+  const [targetShipRef, setTargetShipRef] = useState<React.RefObject<THREE.Group> | null>(null);
+  const [isAutoRotating, setIsAutoRotating] = useState(true);
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const navDistricts = useMemo(() => {
     const majorDistricts = portfolioData.filter(d => d.type === 'major');
@@ -40,12 +46,9 @@ export const Experience3D: React.FC = () => {
   }, []);
   
   const handleDistrictSelect = useCallback((district: CityDistrict) => {
-    // Special handling for the central @rangga.p.h core
     if (district.id === 'nexus-core') {
       window.open('https://www.instagram.com/rangga.p.h/', '_blank');
-      // Set as selected to trigger glow effect, but don't start camera animation
       setSelectedDistrict(district); 
-      // Ensure other panels are closed
       setShowProjects(false);
       setInfoPanelItem(null);
       return;
@@ -53,7 +56,6 @@ export const Experience3D: React.FC = () => {
 
     if (district.id === selectedDistrict?.id && !isAnimating) return;
     
-    // For other districts, proceed with the standard animation logic
     if (district.subItems && district.subItems.length > 0) {
       setSelectedDistrict(district);
     } else {
@@ -61,23 +63,60 @@ export const Experience3D: React.FC = () => {
       setInfoPanelItem(district);
     }
     setIsAnimating(true);
-    setShowProjects(false); // Hide old projects immediately
+    setShowProjects(false);
+    setIsAutoRotating(false); // Stop autorotate when focusing
   }, [selectedDistrict, isAnimating]);
 
+  // FIX: isDetailViewActive is used in the useCallback below, so it must be declared first.
+  const isDetailViewActive = showProjects || !!infoPanelItem || selectedDistrict?.id === 'nexus-core';
+
+  const resetIdleTimer = useCallback(() => {
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    idleTimerRef.current = setTimeout(() => {
+        if (pov === 'main' && !selectedDistrict && !isDetailViewActive) {
+            setIsAutoRotating(true);
+        }
+    }, 5000); // 5 seconds of inactivity
+  }, [pov, selectedDistrict, isDetailViewActive]);
+
+  const handleInteractionStart = useCallback(() => {
+      setIsAutoRotating(false);
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+  }, []);
+
+  const handleInteractionEnd = useCallback(() => {
+      resetIdleTimer();
+  }, [resetIdleTimer]);
+
+  useEffect(() => {
+    resetIdleTimer();
+    return () => {
+        if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    };
+  }, [resetIdleTimer]);
+
   const handleGoHome = useCallback(() => {
+    // If we are in ship view, a "home" action triggered by clicking the terrain
+    // should return us to the main overview, not the ship itself.
+    if (pov === 'ship') {
+      setPov('main');
+    }
     setSelectedDistrict(null);
     setIsAnimating(true);
     setShowProjects(false);
     setInfoPanelItem(null);
-  }, []);
+    resetIdleTimer();
+  }, [pov, resetIdleTimer]);
 
   const onAnimationFinish = useCallback(() => {
     setIsAnimating(false);
-    // Show projects panel only if the selected district is not the central core
     if (selectedDistrict && selectedDistrict.id !== 'nexus-core') {
       setShowProjects(true);
+    } else if (!selectedDistrict) {
+      // If returning to overview, re-enable auto-rotate
+      resetIdleTimer();
     }
-  }, [selectedDistrict]);
+  }, [selectedDistrict, resetIdleTimer]);
 
   const handleProjectClick = (item: PortfolioSubItem) => {
     console.log('Project clicked:', item.title);
@@ -85,6 +124,7 @@ export const Experience3D: React.FC = () => {
   
   const handlePanelClose = () => {
       setInfoPanelItem(null);
+      resetIdleTimer();
   };
 
   const handleQuickNavSelect = (district: CityDistrict) => {
@@ -92,13 +132,21 @@ export const Experience3D: React.FC = () => {
     setIsNavMenuOpen(false);
   };
   
-  const isDetailViewActive = showProjects || !!infoPanelItem || selectedDistrict?.id === 'nexus-core';
+  const handleSetPov = (newPov: 'main' | 'ship') => {
+    setPov(newPov);
+    if (newPov === 'ship') {
+      setIsAutoRotating(false);
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    } else {
+      resetIdleTimer();
+    }
+  };
 
   return (
     <>
       <Canvas
         shadows
-        camera={{ position: [0, 60, 140], fov: 50, near: 0.1, far: 1000 }} // Increased Z for wider initial view
+        camera={{ position: [0, 80, 180], fov: 50, near: 0.1, far: 1000 }}
         gl={{
           powerPreference: 'high-performance',
           antialias: false,
@@ -110,7 +158,7 @@ export const Experience3D: React.FC = () => {
         <Suspense fallback={null}>
           <color attach="background" args={[backgroundColor]} />
           
-          <Sky sunPosition={sunPosition} turbidity={20} rayleigh={6} mieCoefficient={0.01} mieDirectionalG={0.9} />
+          <Sky sunPosition={sunPosition} turbidity={10} rayleigh={0.5} mieCoefficient={0.005} mieDirectionalG={0.8} />
           <ambientLight intensity={0.2} />
           <directionalLight
             position={sunPosition}
@@ -128,7 +176,7 @@ export const Experience3D: React.FC = () => {
 
           <CityModel />
           <Rain count={2500} />
-          <FlyingShips />
+          <FlyingShips setTargetShipRef={setTargetShipRef} />
           <PatrollingCore />
           <ProceduralTerrain onDeselect={handleGoHome} />
 
@@ -141,7 +189,13 @@ export const Experience3D: React.FC = () => {
             {infoPanelItem && <HolographicInfoPanel district={infoPanelItem} onClose={handlePanelClose} />}
           </group>
           
-          <CameraRig selectedDistrict={selectedDistrict} onAnimationFinish={onAnimationFinish} isAnimating={isAnimating} />
+          <CameraRig 
+            selectedDistrict={selectedDistrict} 
+            onAnimationFinish={onAnimationFinish} 
+            isAnimating={isAnimating}
+            pov={pov}
+            targetShipRef={targetShipRef}
+          />
 
           <EffectComposer>
             <Noise 
@@ -159,11 +213,15 @@ export const Experience3D: React.FC = () => {
         </Suspense>
 
         <OrbitControls
-            enabled={!isAnimating && !isNavMenuOpen && !showProjects && !infoPanelItem}
+            enabled={pov === 'main' && !isAnimating && !isNavMenuOpen && !showProjects && !infoPanelItem}
             minDistance={20}
-            maxDistance={250} // Increased max distance
+            maxDistance={300} // Increased max distance
             maxPolarAngle={Math.PI / 2.2}
             target={[0, 5, 0]}
+            autoRotate={isAutoRotating}
+            autoRotateSpeed={0.5}
+            onStart={handleInteractionStart}
+            onEnd={handleInteractionEnd}
         />
       </Canvas>
       <HUD 
@@ -171,6 +229,8 @@ export const Experience3D: React.FC = () => {
         onGoHome={handleGoHome}
         onToggleNavMenu={() => setIsNavMenuOpen(!isNavMenuOpen)}
         isDetailViewActive={isDetailViewActive}
+        pov={pov}
+        onSetPov={handleSetPov}
       />
       <QuickNavMenu 
         isOpen={isNavMenuOpen}

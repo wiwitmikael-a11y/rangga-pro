@@ -6,9 +6,11 @@ interface HUDProps {
   onGoHome: () => void;
   onToggleNavMenu: () => void;
   isDetailViewActive: boolean;
+  pov: 'main' | 'ship';
+  onSetPov: (pov: 'main' | 'ship') => void;
 }
 
-// Komponen Ikon SVG kustom untuk menu navigasi
+// --- SVG Icons ---
 const NavMenuIcon: React.FC = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
     <path d="M4 6H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -17,8 +19,22 @@ const NavMenuIcon: React.FC = () => (
   </svg>
 );
 
+const CameraIcon: React.FC = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+    <circle cx="12" cy="13" r="4"></circle>
+  </svg>
+);
 
-export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, onToggleNavMenu, isDetailViewActive }) => {
+const ShipIcon: React.FC = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+     <path d="M2 12l2.39 3.19L2.5 22h19l-1.89-6.81L22 12H2z" transform="rotate(-30 12 12) translate(0, 2)"></path>
+     <path d="M12 2L8 12h8L12 2z" transform="rotate(-30 12 12) translate(0, 2)"></path>
+  </svg>
+);
+
+
+export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, onToggleNavMenu, isDetailViewActive, pov, onSetPov }) => {
 
   const breadcrumb = useMemo(() => {
     if (selectedDistrict) return `METROPOLIS.CORE > /${selectedDistrict.id.toUpperCase()}_DISTRICT/`;
@@ -35,7 +51,23 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
       </div>
        
       <div style={styles.bottomLeftContainer}>
-         <button 
+          <div style={styles.povSelector}>
+              <button 
+                onClick={() => onSetPov('main')} 
+                style={{...styles.hudButton, ...(pov === 'main' ? styles.activePov : {})}}
+                aria-label="Overview Camera"
+              >
+                  <CameraIcon />
+              </button>
+              <button 
+                onClick={() => onSetPov('ship')} 
+                style={{...styles.hudButton, ...(pov === 'ship' ? styles.activePov : {})}}
+                aria-label="Ship Follow Camera"
+              >
+                  <ShipIcon />
+              </button>
+          </div>
+          <button 
             onClick={onGoHome} 
             style={{...styles.hudButton, ...(showHomeButton ? styles.visible : styles.hiddenBottom)}}
             aria-label="Back to City Overview"
@@ -91,6 +123,15 @@ const styles: { [key: string]: React.CSSProperties } = {
     bottom: '20px',
     left: '20px',
     zIndex: 10,
+    display: 'flex',
+    gap: '10px',
+    alignItems: 'center',
+  },
+  povSelector: {
+    ...glassmorphism,
+    display: 'flex',
+    padding: '4px',
+    borderRadius: '25px',
   },
   bottomCenterContainer: {
     position: 'fixed',
@@ -116,6 +157,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: 'all 0.5s ease',
     pointerEvents: 'all',
   },
+  activePov: {
+    background: 'rgba(0, 170, 255, 0.3)',
+    borderColor: 'rgba(0, 225, 255, 0.8)',
+    color: '#fff',
+  },
   navMenuButton: {
     ...glassmorphism,
     color: '#00aaff',
@@ -131,14 +177,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: 'all 0.3s ease',
     pointerEvents: 'all',
   },
-  // Style ini tidak lagi diperlukan karena ikon SVG baru
-  // navMenuIcon: {
-  //     transform: 'rotate(-90deg)',
-  //     fontSize: '1.5rem',
-  //     fontWeight: 'bold',
-  //     lineHeight: 1,
-  //     letterSpacing: '-2px',
-  // },
   visible: {
     opacity: 1,
     transform: 'translateY(0)',
