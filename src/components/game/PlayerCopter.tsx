@@ -84,14 +84,20 @@ export const PlayerCopter = forwardRef<THREE.Group, PlayerCopterProps>(({ onFire
 
     // --- Handle Rotation (Aiming) ---
     const aimTarget = new THREE.Vector3(state.mouse.x, state.mouse.y, -1).unproject(state.camera);
-    const finalTarget = player.current.position.clone().add(aimTarget.sub(player.current.position).normalize().multiplyScalar(50));
-    finalTarget.y = player.current.position.y;
+    const aimDirection = aimTarget.sub(player.current.position);
 
-    const tempObject = new THREE.Object3D();
-    tempObject.position.copy(player.current.position);
-    tempObject.lookAt(finalTarget);
+    // Safeguard to prevent normalizing a zero vector, which results in NaN values and crashes the renderer.
+    if (aimDirection.lengthSq() > 0.0001) {
+        aimDirection.normalize();
+        const finalTarget = player.current.position.clone().add(aimDirection.multiplyScalar(50));
+        finalTarget.y = player.current.position.y;
     
-    player.current.quaternion.slerp(tempObject.quaternion, delta * 4);
+        const tempObject = new THREE.Object3D();
+        tempObject.position.copy(player.current.position);
+        tempObject.lookAt(finalTarget);
+        
+        player.current.quaternion.slerp(tempObject.quaternion, delta * 4);
+    }
 
     // --- Automatic Burst Firing Logic ---
     fireState.current.cooldown -= delta;

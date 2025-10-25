@@ -236,9 +236,14 @@ export const AegisProtocolGame: React.FC<AegisProtocolGameProps> = ({ onExit, pl
       if (!f.active) return;
       if (f.hitTimer > 0) f.hitTimer -= delta;
       if (playerCopterRef.current) {
-        const direction = playerCopterRef.current.position.clone().sub(f.position).normalize();
-        f.position.add(direction.multiplyScalar(delta * 15));
-        f.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1), direction), delta * 2);
+        const direction = playerCopterRef.current.position.clone().sub(f.position);
+        // Safeguard to prevent normalizing a zero vector
+        if (direction.lengthSq() > 0.0001) {
+            direction.normalize();
+            f.position.add(direction.multiplyScalar(delta * 15));
+            const targetQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1), direction);
+            f.quaternion.slerp(targetQuaternion, delta * 2);
+        }
       }
     });
     pools.laserBeams = pools.laserBeams.filter(l => (l.life -= delta) > 0);
@@ -255,9 +260,14 @@ export const AegisProtocolGame: React.FC<AegisProtocolGameProps> = ({ onExit, pl
       if (!missile.active) return;
       const target = pools.enemyFighters.find(f => f.id === missile.targetId && f.active);
       if (target) {
-        const direction = target.position.clone().sub(missile.position).normalize();
-        missile.position.add(direction.multiplyScalar(delta * 50));
-        missile.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,-1), direction), delta * 10);
+        const direction = target.position.clone().sub(missile.position);
+        // Safeguard to prevent normalizing a zero vector
+        if (direction.lengthSq() > 0.0001) {
+            direction.normalize();
+            missile.position.add(direction.multiplyScalar(delta * 50));
+            const targetQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,-1), direction);
+            missile.quaternion.slerp(targetQuaternion, delta * 10);
+        }
       } else {
         missile.position.add(new THREE.Vector3(0, 0, -100).applyQuaternion(missile.quaternion).multiplyScalar(delta));
         if (missile.position.z < -300) missile.active = false;
