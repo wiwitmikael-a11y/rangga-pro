@@ -109,20 +109,30 @@ export const PlayerCopter = forwardRef<THREE.Group, PlayerCopterProps>(({ onFire
     player.current.position.add(physics.velocity.clone().multiplyScalar(delta));
 
     // --- Handle Rotation (Aiming) ---
-    const aimTarget = new THREE.Vector3(state.mouse.x, state.mouse.y, -1).unproject(state.camera);
-    const aimDirection = aimTarget.sub(player.current.position);
-
-    // BUG FIX: Safeguard to prevent normalizing a zero vector, which results in NaN values and crashes the renderer.
-    if (aimDirection.lengthSq() > 0.0001) {
-        aimDirection.normalize();
-        const finalTarget = player.current.position.clone().add(aimDirection.multiplyScalar(50));
-        finalTarget.y = player.current.position.y;
-    
-        const tempObject = new THREE.Object3D();
-        tempObject.position.copy(player.current.position);
-        tempObject.lookAt(finalTarget);
-        
-        player.current.quaternion.slerp(tempObject.quaternion, delta * 4);
+    // CRITICAL FIX: Only allow mouse aiming when the player is in control.
+    // During cinematics (spawning), this logic was causing mathematical instability and crashing the renderer.
+    if (isControllable) {
+      const aimTarget = new THREE.Vector3(state.mouse.x, state.mouse.y, -1).unproject(state.camera);
+      const aimDirection = aimTarget.sub(player.current.position);
+  
+      if (aimDirection.lengthSq() > 0.0001) {
+          aimDirection.normalize();
+          const finalTarget = player.current.position.clone().add(aimDirection.multiplyScalar(50));
+          finalTarget.y = player.current.position.y;
+      
+          const tempObject = new THREE.Object3D();
+          tempObject.position.copy(player.current.position);
+          tempObject.lookAt(finalTarget);
+          
+          player.current.quaternion.slerp(tempObject.quaternion, delta * 4);
+      }
+    } else {
+      // During spawn sequence, maintain a stable forward-facing orientation.
+      const lookAtTarget = player.current.position.clone().add(new THREE.Vector3(0, 0, -10));
+      const tempObject = new THREE.Object3D();
+      tempObject.position.copy(player.current.position);
+      tempObject.lookAt(lookAtTarget);
+      player.current.quaternion.slerp(tempObject.quaternion, delta * 1.0);
     }
   });
 

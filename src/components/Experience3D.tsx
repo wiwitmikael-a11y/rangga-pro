@@ -304,8 +304,12 @@ export const Experience3D: React.FC = () => {
 
           <CityModel />
           <Rain count={2500} />
-          <FlyingShips setShipRefs={setShipRefs} isPaused={isPaused} />
-          <PatrollingCore isPaused={isPaused} />
+          {gameMode !== 'active' && (
+            <>
+              <FlyingShips setShipRefs={setShipRefs} isPaused={isPaused} />
+              <PatrollingCore isPaused={isPaused} />
+            </>
+          )}
           <ProceduralTerrain onDeselect={handleGoHome} />
           
           {gameMode === 'active' ? (
