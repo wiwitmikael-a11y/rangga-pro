@@ -10,7 +10,7 @@ interface DataBridgeProps {
 }
 
 export const DataBridge: React.FC<DataBridgeProps> = ({ start, end, isActive }) => {
-  const lineRef = useRef<THREE.Line>(null!);
+  const lineRef = useRef<any>(null!);
 
   const activeColor = useMemo(() => new THREE.Color('#ffffff'), []);
   const inactiveColor = useMemo(() => new THREE.Color('#00ffff'), []);
@@ -31,7 +31,7 @@ export const DataBridge: React.FC<DataBridgeProps> = ({ start, end, isActive }) 
   // Animate the material to create a flowing energy effect
   useFrame((_, delta) => {
     if (lineRef.current && lineRef.current.material instanceof THREE.LineDashedMaterial) {
-      const material = lineRef.current.material;
+      const material = lineRef.current.material as THREE.LineDashedMaterial;
       // Animate the dash offset to create a moving effect
       const speed = isActive ? 12 : 3;
       material.dashOffset -= delta * speed;

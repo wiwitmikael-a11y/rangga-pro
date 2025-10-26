@@ -73,13 +73,10 @@ const GridIcon: React.FC = () => (
     </svg>
 );
 
-const OracleIcon: React.FC = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 2a10 10 0 1 0 10 10" />
-    <path d="M12 12a4 4 0 1 0 4-4" />
-    <path d="M12 12a6 6 0 1 0 6-6" />
-    <path d="M12 12a8 8 0 1 0 8-8" />
-  </svg>
+const ChatIcon: React.FC = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+    </svg>
 );
 
 const ExportIcon: React.FC = () => (
@@ -136,6 +133,30 @@ const styles: { [key: string]: React.CSSProperties } = {
     left: '50%',
     transform: 'translateX(-50%)',
     zIndex: 100,
+  },
+  bottomRightContainer: {
+    position: 'fixed',
+    bottom: '20px',
+    right: '20px',
+    zIndex: 100,
+  },
+  aiChatButton: {
+    background: 'rgba(0, 20, 40, 0.7)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(0, 170, 255, 0.5)',
+    color: 'var(--primary-color)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '10px 18px',
+    borderRadius: '25px',
+    fontFamily: 'var(--font-family)',
+    fontSize: '0.9rem',
+    textTransform: 'uppercase',
+    letterSpacing: '0.1em',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease-in-out',
+    textShadow: '0 0 5px var(--primary-color)',
   },
   hudButton: {
     background: 'rgba(0, 20, 40, 0.7)',
@@ -267,15 +288,6 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
           >
             {homeButtonIcon}
           </button>
-           <button
-            onClick={onSelectOracle}
-            style={{...styles.hudButton, ...(selectedDistrict?.id === 'oracle-ai' ? styles.activePov : {}), ...styles.visible}}
-            className="hud-button"
-            aria-label="Contact Oracle AI"
-            disabled={isCalibrationMode}
-            >
-            <OracleIcon />
-          </button>
           <button
             onClick={onToggleCalibrationMode}
             style={{...styles.hudButton, ...(isCalibrationMode ? styles.activePov : {}), ...styles.visible}}
@@ -304,6 +316,19 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
                   <CancelIcon />
               </button>
           )}
+      </div>
+
+      <div style={styles.bottomRightContainer} className="bottom-right-container">
+        <button
+          onClick={onSelectOracle}
+          style={{ ...styles.aiChatButton, ...(isCalibrationMode || selectedDistrict?.id === 'oracle-ai' ? styles.disabled : {}) }}
+          className="hud-button ai-chat-button"
+          aria-label="Open AI Chat"
+          disabled={isCalibrationMode || selectedDistrict?.id === 'oracle-ai'}
+        >
+          <ChatIcon />
+          <span className="ai-chat-button-text">AI Chat</span>
+        </button>
       </div>
     </>
   );

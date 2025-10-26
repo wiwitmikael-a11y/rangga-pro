@@ -8,7 +8,6 @@ interface ProjectSelectionPanelProps {
   isOpen: boolean;
   district: CityDistrict | null;
   onClose: () => void;
-  onProjectSelect: (item: PortfolioSubItem) => void;
 }
 
 const glassmorphism: React.CSSProperties = {
@@ -110,7 +109,7 @@ const StrategicAnalysisPanel: React.FC<{ activeCategory: SkillCategory | null }>
   );
 };
 
-export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ isOpen, district, onClose, onProjectSelect }) => {
+export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ isOpen, district, onClose }) => {
   const [activeCategory, setActiveCategory] = useState<SkillCategory | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [zoomedImageUrl, setZoomedImageUrl] = useState<string | null>(null);

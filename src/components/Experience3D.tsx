@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, Suspense, useMemo, useRef, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 // FIX: Import 'useGLTF' to resolve 'Cannot find name 'useGLTF'' error.
@@ -9,10 +10,10 @@ import * as THREE from 'three';
 
 import { CityModel } from './scene/CityModel';
 import Rain from './scene/Rain';
-import { FlyingShips } from './scene/FlyingShips';
+import { FlyingShips, shipsData } from './scene/FlyingShips';
 import { DistrictRenderer } from './scene/DistrictRenderer';
 import { portfolioData } from '../constants';
-import type { CityDistrict, PortfolioSubItem } from '../types';
+import type { CityDistrict } from '../types';
 import { CameraRig } from './CameraRig';
 import { HUD } from './ui/HUD';
 import { ProceduralTerrain } from './scene/ProceduralTerrain';
@@ -290,7 +291,7 @@ export const Experience3D: React.FC = () => {
           <ambientLight intensity={0.2} color={sunColor} />
           <directionalLight
             position={sunPosition}
-            intensity={2.5}
+            intensity={1.5}
             color={sunColor}
             castShadow
             shadow-mapSize-width={2048}
@@ -301,47 +302,48 @@ export const Experience3D: React.FC = () => {
             shadow-camera-top={200}
             shadow-camera-bottom={-200}
           />
-
-          <Sky
-            sunPosition={sunPosition}
-            mieCoefficient={0.003}
-            mieDirectionalG={0.95}
-            rayleigh={0.2}
-            turbidity={10}
+          <Sky sunPosition={sunPosition} distance={1000} />
+          <CityModel />
+          <ProceduralTerrain onDeselect={handleGoHome} />
+          <Rain count={5000} />
+          <FlyingShips setShipRefs={setShipRefs} isPaused={isPaused} />
+          <DistrictRenderer
+            districts={districts}
+            selectedDistrict={selectedDistrict}
+            onDistrictSelect={handleDistrictSelect}
+            isCalibrationMode={isCalibrationMode}
+            heldDistrictId={heldDistrictId}
+            onSetHeldDistrict={handleSetHeldDistrict}
           />
-          
-          {!isGameActive && (
-            <>
-              <CityModel />
-              <ProceduralTerrain onDeselect={handleGoHome} />
-              <Rain count={5000} />
-              <FlyingShips setShipRefs={setShipRefs} isPaused={isPaused} />
-              <DistrictRenderer
-                districts={districts}
-                selectedDistrict={selectedDistrict}
-                onDistrictSelect={handleDistrictSelect}
-                isCalibrationMode={isCalibrationMode}
-                heldDistrictId={heldDistrictId}
-                onSetHeldDistrict={handleSetHeldDistrict}
-              />
-              <PatrollingCore
-                  ref={patrollingCoreRef}
-                  isPaused={isPaused}
-                  isSelected={selectedDistrict?.id === 'oracle-ai'}
-                  onSelect={() => handleDistrictSelect(districts.find(d => d.id === 'oracle-ai')!)}
-              />
+           <PatrollingCore
+            ref={patrollingCoreRef}
+            isPaused={isPaused}
+            isSelected={selectedDistrict?.id === 'oracle-ai'}
+            onSelect={() => handleDistrictSelect(portfolioData.find(d => d.id === 'oracle-ai')!)}
+          />
 
-              {infoPanelItem && (
-                <HolographicInfoPanel district={infoPanelItem} onClose={() => setInfoPanelItem(null)} />
-              )}
+          {isCalibrationMode && (
+            <>
+              <CalibrationGrid size={250} />
+              <BuildModeController
+                districts={districts}
+                setDistricts={setDistricts}
+                heldDistrictId={heldDistrictId}
+                onPlaceDistrict={handlePlaceDistrict}
+                gridSize={250}
+                gridDivisions={25}
+              />
             </>
           )}
 
           {isGameActive && <AegisProtocolGame onExit={handleExitGame} playerSpawnPosition={playerSpawnPosition.current} />}
-
-        </Suspense>
-        
-        <CameraRig
+          
+          <EffectComposer>
+            <Noise opacity={0.03} />
+            <ChromaticAberration blendFunction={BlendFunction.NORMAL} offset={new THREE.Vector2(0.001, 0.001)} radialModulation={false} modulationOffset={0.0} />
+          </EffectComposer>
+          
+          <CameraRig
             selectedDistrict={selectedDistrict}
             onAnimationFinish={handleAnimationFinish}
             isAnimating={isAnimating}
@@ -349,102 +351,58 @@ export const Experience3D: React.FC = () => {
             targetShipRef={targetShipRef}
             isCalibrationMode={isCalibrationMode}
             patrollingCoreRef={patrollingCoreRef}
-        />
-        
-        <OrbitControls
-            ref={controlsRef}
-            enabled={pov === 'main' && !isAnimating && !isCalibrationMode && !isGameActive}
-            autoRotate={isAutoRotating}
-            autoRotateSpeed={0.3}
-            enablePan={!isCalibrationMode}
-            enableZoom={!isCalibrationMode}
-            minDistance={30}
-            maxDistance={isCalibrationMode ? 400 : 300}
-            minPolarAngle={isCalibrationMode ? 0 : Math.PI / 4}
-            maxPolarAngle={isCalibrationMode ? Math.PI / 2.1 : Math.PI / 2 - 0.1}
-            onChange={handleControlsChange}
-        />
-
-        {isCalibrationMode && <CalibrationGrid size={250} />}
-        {isCalibrationMode && heldDistrictId && (
-            <BuildModeController 
-                districts={districts}
-                setDistricts={setDistricts}
-                heldDistrictId={heldDistrictId}
-                onPlaceDistrict={handlePlaceDistrict}
-                gridSize={250}
-                gridDivisions={25}
+          />
+          
+          {!isGameActive && (
+              <OrbitControls
+                ref={controlsRef}
+                enableDamping={true}
+                dampingFactor={0.05}
+                minDistance={20}
+                maxDistance={300}
+                maxPolarAngle={Math.PI / 2.1} // Prevent looking straight down or below ground
+                autoRotate={isAutoRotating}
+                autoRotateSpeed={0.3}
+                enablePan={!isCalibrationMode} // Allow panning unless in build mode
+                enabled={pov === 'main' && !isAnimating && !isCalibrationMode}
+                onStart={handleInteractionStart}
+                onEnd={handleInteractionEnd}
+                onChange={handleControlsChange}
             />
-        )}
-        
-        <EffectComposer disableNormalPass>
-            <Noise opacity={0.08} blendFunction={BlendFunction.MULTIPLY} />
-            <ChromaticAberration
-              blendFunction={BlendFunction.NORMAL}
-              offset={new THREE.Vector2(0.0005, 0.0005)}
-            />
-        </EffectComposer>
+          )}
 
+        </Suspense>
       </Canvas>
-
+      
+      {/* --- Overlays --- */}
       {!isGameActive && (
-        <>
-            <HUD
-              selectedDistrict={selectedDistrict}
-              onGoHome={handleGoHome}
-              onToggleNavMenu={handleOpenNavMenu}
-              isDetailViewActive={isDetailViewActive}
-              pov={pov}
-              onSetPov={handleSetPov}
-              isCalibrationMode={isCalibrationMode}
-              onToggleCalibrationMode={handleToggleCalibrationMode}
-              onExportLayout={handleExportLayout}
-              heldDistrictId={heldDistrictId}
-              onCancelMove={handleCancelMove}
-              onSelectOracle={() => handleDistrictSelect(districts.find(d => d.id === 'oracle-ai')!)}
-            />
-            <QuickNavMenu
-              isOpen={isNavMenuOpen}
-              onClose={handleCloseNavMenu}
-              onSelectDistrict={handleNavMenuSelect}
-              districts={navDistricts}
-            />
-            <ProjectSelectionPanel
-              isOpen={showProjects}
-              district={selectedDistrict}
-              onClose={() => setShowProjects(false)}
-              onProjectSelect={() => {}} // Placeholder for future functionality
-            />
-            <InstagramVisitModal
-              isOpen={showVisitModal}
-              onClose={() => setShowVisitModal(false)}
-            />
-             <ContactHubModal
-              isOpen={isContactHubOpen}
-              onClose={() => setIsContactHubOpen(false)}
-            />
-            <ExportLayoutModal
-              isOpen={isExportModalOpen}
-              onClose={() => setIsExportModalOpen(false)}
-              jsonData={exportedLayoutJson}
-            />
-            <GameLobbyPanel 
-              isOpen={isGameLobbyOpen}
-              onLaunch={handleLaunchGame}
-              onClose={() => setIsGameLobbyOpen(false)}
-            />
-             <OracleModal
-                isOpen={isOracleModalOpen}
-                onClose={handleGoHome}
-            />
-        </>
+        <HUD
+          selectedDistrict={selectedDistrict}
+          onGoHome={handleGoHome}
+          onToggleNavMenu={handleOpenNavMenu}
+          isDetailViewActive={isDetailViewActive}
+          pov={pov}
+          onSetPov={handleSetPov}
+          isCalibrationMode={isCalibrationMode}
+          onToggleCalibrationMode={handleToggleCalibrationMode}
+          onExportLayout={handleExportLayout}
+          heldDistrictId={heldDistrictId}
+          onCancelMove={handleCancelMove}
+          onSelectOracle={() => handleDistrictSelect(portfolioData.find(d => d.id === 'oracle-ai')!)}
+        />
       )}
 
+      {infoPanelItem && <HolographicInfoPanel district={infoPanelItem} onClose={handleGoHome} />}
+      <ProjectSelectionPanel isOpen={showProjects} district={selectedDistrict} onClose={handleGoHome} />
+      <QuickNavMenu isOpen={isNavMenuOpen} onClose={handleCloseNavMenu} onSelectDistrict={handleNavMenuSelect} districts={navDistricts} />
+      <InstagramVisitModal isOpen={showVisitModal} onClose={handleGoHome} />
+      <ContactHubModal isOpen={isContactHubOpen} onClose={handleGoHome} />
+      <GameLobbyPanel isOpen={isGameLobbyOpen} onLaunch={handleLaunchGame} onClose={handleGoHome} />
+      <OracleModal isOpen={isOracleModalOpen} onClose={handleGoHome} />
+      
+      {isCalibrationMode && (
+          <ExportLayoutModal isOpen={isExportModalOpen} onClose={() => setIsExportModalOpen(false)} jsonData={exportedLayoutJson} />
+      )}
     </>
   );
 };
-
-// Preload data for flying ships
-import { shipsData } from './scene/FlyingShips';
-const GITHUB_MODEL_URL_BASE = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/';
-shipsData.forEach(ship => useGLTF.preload(ship.url));
