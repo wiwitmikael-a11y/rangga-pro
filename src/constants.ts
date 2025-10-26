@@ -1,352 +1,166 @@
 import type { CityDistrict, SkillCategory } from './types';
 
-// A high-level professional synopsis for the default view in the Competency Core.
-export const professionalSummary = `A rare hybrid professional with 15+ years of parallel experience in strategic leadership and deep technology. Proven ability to architect complex digital solutions, lead high-performance teams in the financial sector, and direct award-winning creative projects. A unique blend of an executive, an engineer, and a creative visionary.`;
+export const professionalSummary: string = "A multidisciplinary technologist and creative developer with over a decade of experience in full-stack web development, AI/ML engineering, and immersive digital experiences. Proven ability to lead teams, architect complex systems, and deliver innovative solutions that bridge the gap between technology and user-centric design.";
 
-// Data structure for the Skills Radar Chart, updated to reflect a 15+ year career.
 export const skillsData: SkillCategory[] = [
   {
-    category: 'Leadership & Finance',
-    description: '15 years building and leading high-performance teams in the competitive financial sector. Proven expertise in strategic planning, P&L management, and driving market growth as a former Head of Unit.',
+    category: "Leadership & Strategy",
+    description: "Expertise in guiding cross-functional teams, defining technical roadmaps, and aligning technology initiatives with business goals. Strong focus on mentorship, agile methodologies, and fostering a culture of innovation.",
+    keyMetrics: ["Led a team of 15+ engineers", "Scaled platform to 1M+ users", "Reduced deployment time by 40%"],
     skills: [
-      { name: 'Executive Leadership', level: 95 },
-      { name: 'Financial Services & Risk', level: 95 },
-      { name: 'Marketing & Growth Strategy', level: 90 },
+      { name: "Team Leadership", level: 95 },
+      { name: "Project Management", level: 90 },
+      { name: "Technical Architecture", level: 88 },
+      { name: "Agile/Scrum", level: 92 },
     ],
-    keyMetrics: ['15+ Years Experience', 'Former Head of Unit (BRI)', 'P&L Management'],
   },
   {
-    category: 'Web & Architecture',
-    description: 'A 15-year veteran in digital craftsmanship. Specializing in building scalable full-stack applications, immersive WebGL experiences, and intuitive user interfaces from concept to deployment.',
+    category: "Web & Full-Stack",
+    description: "Deep proficiency in modern web technologies, from front-end frameworks to back-end services and cloud infrastructure. Specializes in building scalable, high-performance applications with a focus on clean code and robust architecture.",
+    keyMetrics: ["React", "Node.js", "TypeScript", "GraphQL", "AWS/GCP"],
     skills: [
-      { name: 'Full-Stack Architecture', level: 98 },
-      { name: 'UI/UX Engineering', level: 98 },
-      { name: 'Interactive 3D/WebGL', level: 95 },
+      { name: "React / Next.js", level: 98 },
+      { name: "Node.js / Express", level: 95 },
+      { name: "Database (SQL/NoSQL)", level: 85 },
+      { name: "Cloud Infrastructure", level: 80 },
     ],
-    keyMetrics: ['15+ Years Full-Stack Dev', 'Lead UI/UX Designer', 'WebGL Specialist'],
   },
   {
-    category: 'AI & ML',
-    description: 'Actively engineering the future with 3+ years in Generative AI. Focused on leveraging large language models like the Gemini API to create intelligent, data-driven solutions and autonomous agents.',
+    category: "AI & Machine Learning",
+    description: "Hands-on experience in developing and deploying machine learning models. Proficient in data analysis, natural language processing, and computer vision, utilizing frameworks like TensorFlow and PyTorch to solve real-world problems.",
+    keyMetrics: ["Python", "TensorFlow", "PyTorch", "NLP", "Computer Vision"],
     skills: [
-      { name: 'Gemini API Integration', level: 85 },
-      { name: 'Generative AI Engineering', level: 85 },
-      { name: 'Autonomous Agent Design', level: 80 },
+      { name: "Natural Language Processing", level: 85 },
+      { name: "Computer Vision", level: 78 },
+      { name: "Model Deployment", level: 82 },
+      { name: "Data Analysis", level: 90 },
     ],
-    keyMetrics: ['Gemini API Expert', 'Autonomous Agent Dev', 'Continuous R&D'],
   },
   {
-    category: 'Blockchain',
-    description: '5 years of deep engagement in the Web3 ecosystem. Expertise in on-chain data intelligence, DeFi protocol analysis, and secure smart contract development.',
+    category: "Blockchain & Web3",
+    description: "Solid understanding of decentralized technologies, smart contract development, and the Web3 ecosystem. Experienced in building DApps and exploring the potential of blockchain for secure, transparent applications.",
+    keyMetrics: ["Solidity", "Ethers.js", "Hardhat", "The Graph"],
     skills: [
-      { name: 'On-Chain Intelligence', level: 90 },
-      { name: 'Smart Contracts (Solidity)', level: 85 },
-      { name: 'Decentralized Applications', level: 88 },
+      { name: "Smart Contracts (Solidity)", level: 80 },
+      { name: "DApp Development", level: 85 },
+      { name: "DeFi / NFTs", level: 75 },
+      { name: "Cryptography Concepts", level: 70 },
     ],
-    keyMetrics: ['5+ Years in Web3', 'DeFi Protocol Analyst', 'On-Chain Intelligence'],
   },
   {
-    category: 'Creative Tech',
-    description: 'Two decades of experience in visual technology. A master of the full creative pipeline, from award-winning videography and advanced 3D modeling to compelling brand-focused graphic design.',
+    category: "Creative Technology",
+    description: "A passion for merging art and technology to create engaging interactive experiences. Expertise in 3D graphics, game development engines, and creative coding to build immersive worlds and data visualizations.",
+    keyMetrics: ["Three.js / R3F", "GLSL", "Unity", "Blender"],
     skills: [
-      { name: 'Graphic Design & Branding', level: 98 },
-      { name: 'Videography & VFX', level: 95 },
-      { name: '3D Modeling & Rendering', level: 85 },
+      { name: "Three.js / WebGL", level: 95 },
+      { name: "Unity Engine", level: 80 },
+      { name: "GLSL Shaders", level: 75 },
+      { name: "Blender / 3D Modeling", level: 70 },
     ],
-    keyMetrics: ['20 Years Design Exp.', 'Advanced 3D Modeling', 'VFX & Post-Production'],
   },
   {
-    category: 'Arts & Media',
-    description: 'A fusion of technical skill and pure creativity. An accomplished, nationally-awarded photographer and songwriter with a proven eye for powerful, narrative-driven visual and auditory storytelling.',
+    category: "Visual Arts & Music",
+    description: "A background in traditional and digital arts, including music production, graphic design, and photography. This creative foundation informs a unique approach to user interface design and multimedia content creation.",
+    keyMetrics: ["Music Production", "Graphic Design", "UI/UX Principles"],
     skills: [
-      { name: 'Photography (National Champion)', level: 95 },
-      { name: 'Creative/Art Direction', level: 90 },
-      { name: 'Music Composition', level: 85 },
+      { name: "Music Production (Ableton)", level: 90 },
+      { name: "Graphic Design (Figma/Adobe)", level: 85 },
+      { name: "Photography & Video", level: 80 },
+      { name: "User Experience (UX)", level: 88 },
     ],
-    keyMetrics: ['National Photo Champion', 'Published Songwriter', 'Art Direction'],
   },
 ];
 
 
-// Data portofolio telah diisi dengan konten mock yang relevan dan gambar dari CDN.
-// FOKUS KAMERA TELAH DIKALIBRASI ULANG UNTUK PEMBINGKAIAN YANG AKURAT DAN SINEMATIK
 export const portfolioData: CityDistrict[] = [
   {
-    "id": "nexus-core",
-    "title": "@rangga.p.h",
-    "description": "Digital Artisan & Tech Explorer",
-    "position": [
-      30,
-      15,
-      30
-    ],
-    "type": "major",
-    "cameraFocus": {
-      "pos": [
-        30,
-        30,
-        60
-      ],
-      "lookAt": [
-        30,
-        25,
-        20
-      ]
-    }
-  },
-  {
-    "id": "nova-forge",
-    "title": "AI Engineer Lab",
-    "description": "Engineering & Generative Projects",
-    "position": [
-      70,
-      -5,
-      80
-    ],
-    "type": "major",
-    "cameraFocus": {
-      "pos": [
-        80,
-        20,
-        100
-      ],
-      "lookAt": [
-        80,
-        10,
-        60
-      ]
+    id: 'nexus-core',
+    title: 'Nexus Core',
+    description: 'Central Hub & Social Links',
+    position: [0, 5, 0],
+    type: 'major',
+    modelUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/NexusCore.glb',
+    modelScale: 8,
+    cameraFocus: {
+      pos: [0, 15, 40],
+      lookAt: [0, 8, 0],
     },
-    "subItems": [
-      {
-        "id": "project-ai-agent",
-        "title": "AI Financial Risk Agent",
-        "description": "A generative AI agent trained on market data to identify and flag potential risks in micro-loan portfolios. (Gemini API)",
-        "position": [
-          -55,
-          5,
-          -45
-        ],
-        "imageUrl": "https://images.unsplash.com/photo-1620712943543-2858200f7426?auto=format&fit=crop&w=800&q=80"
-      },
-      {
-        "id": "project-data-viz",
-        "title": "WebGL Market Visualizer",
-        "description": "An interactive 3D web application for visualizing real-time market data streams using React and Three.js.",
-        "position": [
-          -45,
-          5,
-          -45
-        ],
-        "imageUrl": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80"
-      },
-      {
-        "id": "project-portfolio",
-        "title": "This is Ragetopia",
-        "description": "A meta-project about this portfolio. A deep-dive into the technologies and design philosophy behind its creation.",
-        "position": [
-          -50,
-          5,
-          -55
-        ],
-        "imageUrl": "https://images.unsplash.com/photo-1542831371-29b0f74f9713?auto=format&fit=crop&w=800&q=80"
-      }
-    ]
   },
   {
-    "id": "visual-arts",
-    "title": "Visual Archiver",
-    "description": "Award-Winning Content Creations",
-    "position": [
-      -30,
-      0,
-      60
+    id: 'web-development',
+    title: 'Web Dev Sector',
+    description: 'Full-Stack & Frontend Projects',
+    position: [50, 0, 0],
+    type: 'major',
+    subItems: [
+      { id: 'proj1', title: 'E-commerce Platform', description: 'Scalable retail solution with Next.js.', imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/P_Ecommerce.jpeg', position: [0,0,0] },
+      { id: 'proj2', title: 'Data Dashboard', description: 'Real-time analytics with React & D3.', imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/P_Dashboard.jpeg', position: [0,0,0] },
     ],
-    "type": "major",
-    "cameraFocus": {
-      "pos": [
-        -30,
-        25,
-        100
-      ],
-      "lookAt": [
-        -30,
-        15,
-        60
-      ]
+    cameraFocus: {
+      pos: [50, 25, 35],
+      lookAt: [50, 5, 0],
     },
-    "subItems": [
-      {
-        "id": "photo-gallery",
-        "title": "Landscape Photography",
-        "description": "A curated gallery of award-winning photographs capturing the raw, dramatic beauty of remote natural landscapes.",
-        "position": [
-          45,
-          5,
-          -45
-        ],
-        "imageUrl": "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=800&q=80"
-      },
-      {
-        "id": "video-reel",
-        "title": "Cinematic Storytelling",
-        "description": "A reel showcasing short films and narrative projects that explore human stories through powerful visual language.",
-        "position": [
-          55,
-          5,
-          -45
-        ],
-        "imageUrl": "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&q=80"
-      },
-      {
-        "id": "drone-showcase",
-        "title": "Aerial Cinematography",
-        "description": "Discovering unique perspectives and breathtaking scales through professional drone cinematography and photography.",
-        "position": [
-          50,
-          5,
-          -55
-        ],
-        "imageUrl": "https://images.unsplash.com/photo-1504938634393-39d2c52b0488?auto=format&fit=crop&w=800&q=80"
-      }
-    ]
   },
   {
-    "id": "defi-data-vault",
-    "title": "DeFi Vault",
-    "description": "Blockchain Analysis & Web3 Exploration",
-    "position": [
-      70,
-      -5,
-      10
+    id: 'ai-ml',
+    title: 'A.I. Citadel',
+    description: 'Machine Learning Initiatives',
+    position: [-45, 0, -35],
+    type: 'major',
+    modelUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/AICitadel.glb',
+    modelScale: 6,
+    subItems: [
+        { id: 'ai1', title: 'Sentiment Analyzer', description: 'NLP model for text classification.', imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/P_AI_1.jpeg', position: [0,0,0] },
+        { id: 'ai2', title: 'Image Recognition', description: 'CNN for object detection in images.', imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/P_AI_2.jpeg', position: [0,0,0] },
     ],
-    "type": "major",
-    "cameraFocus": {
-      "pos": [
-        60,
-        20,
-        -40
-      ],
-      "lookAt": [
-        60,
-        10,
-        0
-      ]
+    cameraFocus: {
+      pos: [-45, 30, -5],
+      lookAt: [-45, 8, -35],
     },
-    "subItems": [
-      {
-        "id": "onchain-reports",
-        "title": "On-Chain Intelligence",
-        "description": "In-depth reports on DeFi protocols, whale transaction tracking, and market sentiment analysis from raw blockchain data.",
-        "position": [
-          -55,
-          5,
-          55
-        ],
-        "imageUrl": "https://images.unsplash.com/photo-1640340434855-6084b1f4901c?auto=format&fit=crop&w=800&q=80"
-      },
-      {
-        "id": "smart-contracts",
-        "title": "Smart Contract Studies",
-        "description": "Case studies on security vulnerabilities and logic exploits in public Solidity-based smart contracts.",
-        "position": [
-          -45,
-          5,
-          55
-        ],
-        "imageUrl": "https://images.unsplash.com/photo-1639755291242-df73356c39d6?auto=format&fit=crop&w=800&q=80"
-      }
-    ]
   },
   {
-    "id": "skills-matrix",
-    "title": "Core Matrix",
-    "description": "Core Technical & Creative Proficiencies",
-    "position": [
-      -20,
-      -5,
-      0
+    id: 'creative-tech',
+    title: 'Creative Tech Spire',
+    description: 'Interactive & 3D Experiences',
+    position: [40, 0, -45],
+    type: 'major',
+    subItems: [
+      { id: 'creative1', title: 'WebGL Fluid Sim', description: 'Interactive particle simulation.', imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/P_Creative_1.jpeg', position: [0,0,0] },
+      { id: 'creative2', title: 'AR Product Visualizer', description: 'Augmented reality app for retail.', imageUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/P_Creative_2.jpeg', position: [0,0,0] },
     ],
-    "type": "major",
-    "cameraFocus": {
-      "pos": [
-        -10,
-        20,
-        -50
-      ],
-      "lookAt": [
-        -10,
-        10,
-        -10
-      ]
+    cameraFocus: {
+      pos: [40, 20, -15],
+      lookAt: [40, 5, -45],
     },
-    "subItems": [
-      {
-        "id": "skill-ai",
-        "title": "AI & Machine Learning",
-        "description": "Python, TensorFlow, PyTorch, LangChain, Gemini API",
-        "position": [
-          45,
-          5,
-          55
-        ],
-        "imageUrl": "https://images.unsplash.com/photo-1678483789004-6f16f39e3170?auto=format&fit=crop&w=800&q=80"
-      },
-      {
-        "id": "skill-web",
-        "title": "Web Technologies",
-        "description": "React, Next.js, Three.js/R3F, Node.js, GraphQL",
-        "position": [
-          55,
-          5,
-          55
-        ],
-        "imageUrl": "https://images.unsplash.com/photo-1596003906917-202d08f44038?auto=format&fit=crop&w=800&q=80"
-      },
-      {
-        "id": "skill-blockchain",
-        "title": "Blockchain & Web3",
-        "description": "Solidity, Ethers.js, Hardhat, The Graph Protocol",
-        "position": [
-          50,
-          5,
-          45
-        ],
-        "imageUrl": "https://images.unsplash.com/photo-16421047041242-df73356c39d6?auto=format&fit=crop&w=800&q=80"
-      },
-      {
-        "id": "skill-creative",
-        "title": "Creative Suite & Tools",
-        "description": "Adobe Photoshop, Premiere Pro, After Effects, DaVinci Resolve",
-        "position": [
-          50,
-          5,
-          65
-        ],
-        "imageUrl": "https://images.unsplash.com/photo-1502472584811-0a7e28494df4?auto=format&fit=crop&w=800&q=80"
-      }
-    ]
   },
   {
-    "id": "contact",
-    "title": "Contact Hub",
-    "description": "Establish a connection",
-    "position": [
-      20,
-      -5,
-      80
-    ],
-    "type": "major",
-    "cameraFocus": {
-      "pos": [
-        20,
-        20,
-        120
-      ],
-      "lookAt": [
-        20,
-        10,
-        80
-      ]
-    }
-  }
+    id: 'skills-matrix',
+    title: 'Skills Matrix',
+    description: 'Interactive Competency Analysis',
+    position: [-55, 0, 25],
+    type: 'major',
+    cameraFocus: {
+      pos: [-55, 20, 55],
+      lookAt: [-55, 5, 25],
+    },
+  },
+  {
+    id: 'contact',
+    title: 'Contact Hub',
+    description: 'Secure Comms & Scheduling',
+    position: [0, 0, 60],
+    type: 'major',
+    modelUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/ContactHub.glb',
+    modelScale: 5,
+    cameraFocus: {
+      pos: [0, 25, 90],
+      lookAt: [0, 5, 60],
+    },
+  },
+  // --- Minor, ambient districts for visual interest ---
+  { id: 'amb1', title: 'Data Farms', description: '', position: [-80, 0, 0], type: 'minor', height: 30, isDirty: false },
+  { id: 'amb2', title: 'Residential Block A', description: '', position: [80, 0, 30], type: 'minor', height: 25, isDirty: false },
+  { id: 'amb3', title: 'Energy Grid', description: '', position: [0, 0, -80], type: 'minor', height: 40, isDirty: false },
+  { id: 'amb4', title: 'Archive Towers', description: '', position: [-70, 0, -70], type: 'minor', height: 35, isDirty: false },
+  { id: 'amb5', title: 'Transit Hub', description: '', position: [70, 0, -60], type: 'minor', height: 20, isDirty: false },
 ];
