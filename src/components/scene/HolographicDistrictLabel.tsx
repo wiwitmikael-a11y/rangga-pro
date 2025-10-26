@@ -72,7 +72,8 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
   const [holdProgress, setHoldProgress] = useState(0);
   const isHoldingRef = useRef(false);
   const animationFrameRef = useRef<number>();
-  const HOLD_DURATION = 750; // ms
+  const actionTriggeredRef = useRef(false); // New ref to track if action has been called
+  const HOLD_DURATION = 1000; // ms
 
   // Uniforms for the shader material, memoized for performance
   const borderUniforms = useMemo(() => ({
@@ -85,6 +86,7 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
         cancelAnimationFrame(animationFrameRef.current);
     }
     setHoldProgress(0);
+    actionTriggeredRef.current = false; // Reset the trigger
   }, []);
 
   useFrame(({ clock }, delta) => {
@@ -136,8 +138,14 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
         const progress = Math.min(elapsedTime / HOLD_DURATION, 1);
         setHoldProgress(progress);
 
-        if (progress >= 1) {
+        // NEW LOGIC: Trigger action at 75% for a more responsive feel
+        if (progress >= 0.75 && !actionTriggeredRef.current) {
+            actionTriggeredRef.current = true; // Set flag to prevent multiple calls
             onSelect(district);
+        }
+
+        if (progress >= 1) {
+            // Animation completes, now just cancel the hold
             cancelHold();
         } else {
             animationFrameRef.current = requestAnimationFrame(animateHold);

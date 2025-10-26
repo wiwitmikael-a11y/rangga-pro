@@ -1,16 +1,13 @@
 import React, { useMemo } from 'react';
-import { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useTexture } from '@react-three/drei';
 import { createNoise2D } from 'simplex-noise';
 
-interface ProceduralTerrainProps {
-    onDeselect: () => void;
-}
+interface ProceduralTerrainProps {}
 
 const TERRAIN_TEXTURE_URL = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/terrain.jpeg?v=2';
 
-export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(({ onDeselect }) => {
+export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(() => {
     
     const terrainTexture = useTexture(TERRAIN_TEXTURE_URL);
 
@@ -72,16 +69,10 @@ export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(({
         return planeGeo;
     }, []);
 
-    const handleClick = (e: ThreeEvent<MouseEvent>) => {
-        e.stopPropagation();
-        onDeselect();
-    };
-
     return (
         <group position={[0, -5.5, 0]}>
             <mesh
                 rotation={[-Math.PI / 2, 0, 0]}
-                onClick={handleClick}
                 receiveShadow
                 geometry={geometry}
             >

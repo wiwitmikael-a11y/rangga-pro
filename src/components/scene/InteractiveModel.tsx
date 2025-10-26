@@ -104,7 +104,8 @@ export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, is
   const [holdProgress, setHoldProgress] = useState(0);
   const isHoldingRef = useRef(false);
   const animationFrameRef = useRef<number>();
-  const HOLD_DURATION = 750;
+  const actionTriggeredRef = useRef(false); // New ref
+  const HOLD_DURATION = 1000;
   
   const cancelHold = useCallback(() => {
     isHoldingRef.current = false;
@@ -112,6 +113,7 @@ export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, is
         cancelAnimationFrame(animationFrameRef.current);
     }
     setHoldProgress(0);
+    actionTriggeredRef.current = false; // Reset
   }, []);
   
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
@@ -147,8 +149,14 @@ export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, is
         const progress = Math.min(elapsedTime / HOLD_DURATION, 1);
         setHoldProgress(progress);
 
-        if (progress >= 1) {
+        // NEW LOGIC: Trigger action at 75% for a more responsive feel
+        if (progress >= 0.75 && !actionTriggeredRef.current) {
+            actionTriggeredRef.current = true;
             onSelect(district);
+        }
+
+        if (progress >= 1) {
+            // Animation completes
             cancelHold();
         } else {
             animationFrameRef.current = requestAnimationFrame(animateHold);

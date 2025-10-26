@@ -291,7 +291,7 @@ export const Experience3D: React.FC = () => {
                 shipInputs={shipInputs}
               />
               <PatrollingCore isPaused={isPaused} />
-              <ProceduralTerrain onDeselect={handleGoHome} />
+              <ProceduralTerrain />
               
               <group position={[0, 5, 0]}>
                 <DistrictRenderer
