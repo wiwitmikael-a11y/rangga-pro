@@ -7,7 +7,6 @@ import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
 
 import { CityModel } from './scene/CityModel';
-import Rain from './scene/Rain';
 import { FlyingShips } from './scene/FlyingShips';
 import { DistrictRenderer } from './scene/DistrictRenderer';
 import { portfolioData } from '../constants';
@@ -22,10 +21,6 @@ import { PatrollingCore } from './scene/PatrollingCore';
 import { CalibrationGrid } from './scene/CalibrationGrid';
 import { BuildModeController } from './scene/BuildModeController';
 import { ExportLayoutModal } from './ui/ExportLayoutModal';
-import { InstagramVisitModal } from './ui/InstagramVisitModal';
-import { ContactHubModal } from './ui/ContactHubModal';
-import { GameLobbyPanel } from './ui/GameLobbyPanel';
-import { AegisProtocolGame } from './game/AegisProtocolGame';
 
 
 // Define the sun's position for a sunset glow near the horizon
@@ -37,11 +32,9 @@ export const Experience3D: React.FC = () => {
   const [districts, setDistricts] = useState<CityDistrict[]>(portfolioData);
   const [selectedDistrict, setSelectedDistrict] = useState<CityDistrict | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [showProjects, setShowProjects] = useState(false);
+  const [showContentPanel, setShowContentPanel] = useState(false);
   const [infoPanelItem, setInfoPanelItem] = useState<CityDistrict | null>(null);
   const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
-  const [showVisitModal, setShowVisitModal] = useState(false);
-  const [isContactHubOpen, setIsContactHubOpen] = useState(false);
   
   const [pov, setPov] = useState<'main' | 'ship'>('main');
   const [shipRefs, setShipRefs] = useState<React.RefObject<THREE.Group>[]>([]);
@@ -56,13 +49,8 @@ export const Experience3D: React.FC = () => {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [exportedLayoutJson, setExportedLayoutJson] = useState('');
 
-  // Game State
-  const [isGameLobbyOpen, setIsGameLobbyOpen] = useState(false);
-  const [isGameActive, setIsGameActive] = useState(false);
-  const playerSpawnPosition = useRef(new THREE.Vector3());
-
   const controlsRef = useRef<OrbitControlsImpl>(null);
-  const isPaused = isCalibrationMode || isGameActive;
+  const isPaused = isCalibrationMode;
 
   const navDistricts = useMemo(() => {
     const majorDistricts = districts.filter(d => d.type === 'major');
@@ -76,17 +64,15 @@ export const Experience3D: React.FC = () => {
     if (isCalibrationMode) return;
     if (district.id === selectedDistrict?.id && !isAnimating) return;
     
-    setShowProjects(false);
+    setShowContentPanel(false);
     setInfoPanelItem(null);
     setIsAutoRotating(false);
-    setIsContactHubOpen(false);
-    setIsGameLobbyOpen(false);
     
     setSelectedDistrict(districts.find(d => d.id === district.id) || null);
     setIsAnimating(true);
   }, [selectedDistrict, isAnimating, districts, isCalibrationMode]);
   
-  const isDetailViewActive = showProjects || !!infoPanelItem || !!selectedDistrict || isContactHubOpen || isGameLobbyOpen;
+  const isDetailViewActive = showContentPanel || !!infoPanelItem || !!selectedDistrict;
 
   const resetIdleTimer = useCallback(() => {
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
@@ -127,12 +113,8 @@ export const Experience3D: React.FC = () => {
     setPov('main');
     setSelectedDistrict(null);
     setIsAnimating(true);
-    setShowProjects(false);
+    setShowContentPanel(false);
     setInfoPanelItem(null);
-    setIsContactHubOpen(false);
-    setShowVisitModal(false);
-    setIsGameLobbyOpen(false);
-    setIsGameActive(false);
     setTargetShipRef(null);
     resetIdleTimer();
   }, [resetIdleTimer]);
@@ -140,39 +122,13 @@ export const Experience3D: React.FC = () => {
   const onAnimationFinish = useCallback(() => {
     setIsAnimating(false);
     if (selectedDistrict) {
-      if (selectedDistrict.id === 'nexus-core') {
-        setShowVisitModal(true);
-      } else if (selectedDistrict.id === 'contact') {
-        setIsContactHubOpen(true);
-      } else if (selectedDistrict.id === 'aegis-command') {
-        setIsGameLobbyOpen(true);
-      } else if (selectedDistrict.subItems && selectedDistrict.subItems.length > 0) {
-        setShowProjects(true);
-      } else {
-        setInfoPanelItem(selectedDistrict);
-      }
+      // For any selected district, we show the unified content panel.
+      // The panel itself will determine what content to render based on the district's ID.
+      setShowContentPanel(true);
     } else if (pov === 'main' && !isCalibrationMode) {
       resetIdleTimer();
     }
   }, [selectedDistrict, resetIdleTimer, pov, isCalibrationMode]);
-
-  const handleLaunchGame = useCallback(() => {
-    const aegisDistrict = districts.find(d => d.id === 'aegis-command');
-    if (aegisDistrict) {
-        playerSpawnPosition.current.set(
-            aegisDistrict.position[0],
-            aegisDistrict.position[1] + 20,
-            aegisDistrict.position[2] + 20
-        );
-    }
-    setIsGameLobbyOpen(false);
-    setIsGameActive(true);
-  }, [districts]);
-
-  const handleExitGame = useCallback(() => {
-      setIsGameActive(false);
-      handleGoHome();
-  }, [handleGoHome]);
 
 
   const handleProjectClick = (item: PortfolioSubItem) => {
@@ -217,9 +173,8 @@ export const Experience3D: React.FC = () => {
       
       if(selectedDistrict) {
         setSelectedDistrict(null);
-        setShowProjects(false);
+        setShowContentPanel(false);
         setInfoPanelItem(null);
-        setIsContactHubOpen(false);
       }
       
       if (shipRefs.length > 0) {
@@ -305,7 +260,6 @@ export const Experience3D: React.FC = () => {
         dpr={[1, 1.5]}
       >
         <Suspense fallback={null}>
-          {!isGameActive ? (
             <>
               {/* The <Sky> component renders the background; fog has been removed for performance. */}
               <Sky sunPosition={sunPosition} turbidity={20} rayleigh={1} mieCoefficient={0.005} mieDirectionalG={0.8} />
@@ -325,7 +279,6 @@ export const Experience3D: React.FC = () => {
               />
 
               <CityModel />
-              <Rain count={2500} />
               <FlyingShips setShipRefs={setShipRefs} isPaused={isPaused} />
               <PatrollingCore isPaused={isPaused} />
               <ProceduralTerrain onDeselect={handleGoHome} />
@@ -376,19 +329,11 @@ export const Experience3D: React.FC = () => {
                 />
               </EffectComposer>
             </>
-          ) : (
-            <>
-              <AegisProtocolGame 
-                onExit={handleExitGame} 
-                playerSpawnPosition={playerSpawnPosition.current}
-              />
-            </>
-          )}
         </Suspense>
 
         <OrbitControls
             ref={controlsRef}
-            enabled={pov === 'main' && !isAnimating && !isNavMenuOpen && !showProjects && !infoPanelItem && !heldDistrictId && !isGameActive}
+            enabled={pov === 'main' && !isAnimating && !isNavMenuOpen && !showContentPanel && !infoPanelItem && !heldDistrictId}
             minDistance={20}
             maxDistance={300}
             maxPolarAngle={isCalibrationMode ? Math.PI / 2.05 : Math.PI / 2.2}
@@ -401,21 +346,19 @@ export const Experience3D: React.FC = () => {
         />
       </Canvas>
       
-      {!isGameActive && (
-        <HUD 
-            selectedDistrict={selectedDistrict} 
-            onGoHome={handleGoHome}
-            onToggleNavMenu={() => setIsNavMenuOpen(!isNavMenuOpen)}
-            isDetailViewActive={isDetailViewActive}
-            pov={pov}
-            onSetPov={handleSetPov}
-            isCalibrationMode={isCalibrationMode}
-            onToggleCalibrationMode={handleToggleCalibrationMode}
-            onExportLayout={handleExportLayout}
-            heldDistrictId={heldDistrictId}
-            onCancelMove={handleCancelMove}
-        />
-      )}
+      <HUD 
+          selectedDistrict={selectedDistrict} 
+          onGoHome={handleGoHome}
+          onToggleNavMenu={() => setIsNavMenuOpen(!isNavMenuOpen)}
+          isDetailViewActive={isDetailViewActive}
+          pov={pov}
+          onSetPov={handleSetPov}
+          isCalibrationMode={isCalibrationMode}
+          onToggleCalibrationMode={handleToggleCalibrationMode}
+          onExportLayout={handleExportLayout}
+          heldDistrictId={heldDistrictId}
+          onCancelMove={handleCancelMove}
+      />
 
       {isNavMenuOpen && (
           <QuickNavMenu 
@@ -425,9 +368,9 @@ export const Experience3D: React.FC = () => {
               districts={navDistricts}
           />
       )}
-       {showProjects && (
+       {showContentPanel && (
           <ProjectSelectionPanel
-              isOpen={showProjects}
+              isOpen={showContentPanel}
               district={selectedDistrict}
               onClose={handleGoHome}
               onProjectSelect={handleProjectClick}
@@ -437,19 +380,6 @@ export const Experience3D: React.FC = () => {
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
         jsonData={exportedLayoutJson}
-      />
-      <InstagramVisitModal
-        isOpen={showVisitModal}
-        onClose={() => setShowVisitModal(false)}
-      />
-      <ContactHubModal
-        isOpen={isContactHubOpen}
-        onClose={() => setIsContactHubOpen(false)}
-      />
-      <GameLobbyPanel
-        isOpen={isGameLobbyOpen}
-        onLaunch={handleLaunchGame}
-        onClose={handleGoHome}
       />
     </>
   );

@@ -155,7 +155,6 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
 
   const breadcrumb = useMemo(() => {
     if (heldDistrictId) return `RAGETOPIA > /ARCHITECT_MODE/MOVING...`;
-    if (selectedDistrict?.id === 'aegis-command') return 'RAGETOPIA > /AEGIS_COMMAND/ENGAGED';
     if (selectedDistrict) return `RAGETOPIA > /${selectedDistrict.id.toUpperCase()}_DISTRICT/`;
     if (isCalibrationMode) return `RAGETOPIA > /ARCHITECT_MODE/`;
     return 'RAGETOPIA';
