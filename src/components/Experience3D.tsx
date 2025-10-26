@@ -39,14 +39,14 @@ export const Experience3D: React.FC = () => {
   const [shipRefs, setShipRefs] = useState<React.RefObject<THREE.Group>[]>([]);
   const [targetShipRef, setTargetShipRef] = useState<React.RefObject<THREE.Group> | null>(null);
   const [isAutoRotating, setIsAutoRotating] = useState(true);
-  const [isCalibrationMode, setIsCalibrationMode] = useState(false);
+  const [isCalibrationMode] = useState(false); // Setter removed as it's no longer used
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   // Build Mode State
   const [heldDistrictId, setHeldDistrictId] = useState<string | null>(null);
   const [originalHeldDistrictPosition, setOriginalHeldDistrictPosition] = useState<[number, number, number] | null>(null);
-  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [exportedLayoutJson, setExportedLayoutJson] = useState('');
+  const [isExportModalOpen] = useState(false); // Setter removed as it's no longer used
+  const [exportedLayoutJson] = useState(''); // Setter removed as it's no longer used
 
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const isPaused = isCalibrationMode;
@@ -198,39 +198,6 @@ export const Experience3D: React.FC = () => {
     }
   };
   
-  const handleToggleCalibrationMode = useCallback(() => {
-    setIsCalibrationMode(prev => {
-      const newMode = !prev;
-      if (newMode) {
-        setIsAnimating(true);
-        setIsAutoRotating(false);
-        if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-        if (isDetailViewActive) handleGoHome();
-        if (pov === 'ship') setPov('main');
-      } else {
-        if (heldDistrictId) {
-            const districtToReset = districts.find(d => d.id === heldDistrictId);
-            if(districtToReset && originalHeldDistrictPosition) {
-              setDistricts(prev => prev.map(d => d.id === heldDistrictId ? {...d, position: originalHeldDistrictPosition} : d));
-            }
-            setHeldDistrictId(null);
-            setOriginalHeldDistrictPosition(null);
-        }
-        handleGoHome();
-      }
-      return newMode;
-    });
-  }, [handleGoHome, isDetailViewActive, pov, heldDistrictId, districts, originalHeldDistrictPosition]);
-
-  const handleExportLayout = () => {
-    const layoutToExport = districts.map(d => {
-      const { isDirty, ...rest } = d;
-      return rest;
-    });
-    setExportedLayoutJson(JSON.stringify(layoutToExport, null, 2));
-    setIsExportModalOpen(true);
-  };
-  
   const handleSetHeldDistrict = useCallback((id: string | null) => {
     if (id) {
         const district = districts.find(d => d.id === id);
@@ -243,14 +210,6 @@ export const Experience3D: React.FC = () => {
         setOriginalHeldDistrictPosition(null);
     }
   }, [districts]);
-
-  const handleCancelMove = useCallback(() => {
-    if (heldDistrictId && originalHeldDistrictPosition) {
-        setDistricts(prev => prev.map(d => d.id === heldDistrictId ? {...d, position: originalHeldDistrictPosition} : d));
-        setHeldDistrictId(null);
-        setOriginalHeldDistrictPosition(null);
-    }
-  }, [heldDistrictId, originalHeldDistrictPosition]);
 
   const handlePlaceDistrict = useCallback(() => {
       setHeldDistrictId(null);
@@ -385,7 +344,7 @@ export const Experience3D: React.FC = () => {
       )}
       <ExportLayoutModal
         isOpen={isExportModalOpen}
-        onClose={() => setIsExportModalOpen(false)}
+        onClose={() => { /* Modal cannot be opened, but this keeps it functional */ }}
         jsonData={exportedLayoutJson}
       />
     </>
