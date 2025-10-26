@@ -1,229 +1,385 @@
-import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useCallback, Suspense, useMemo, useRef, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, PerspectiveCamera, Sky, Stars } from '@react-three/drei';
-import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
+import { OrbitControls, Sky } from '@react-three/drei';
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
+import { EffectComposer, Noise, ChromaticAberration } from '@react-three/postprocessing';
+import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
 
-import { portfolioData } from '../constants';
-import type { CityDistrict } from '../types';
-
-import { CameraRig } from './CameraRig';
 import { CityModel } from './scene/CityModel';
-import { DistrictRenderer } from './scene/DistrictRenderer';
-import { ProceduralTerrain } from './scene/ProceduralTerrain';
-import FloatingParticles from './scene/FloatingParticles';
 import { FlyingShips } from './scene/FlyingShips';
-import { PatrollingCore } from './scene/PatrollingCore';
-import DataTrail from './scene/DataTrail';
-import { BuildModeController } from './scene/BuildModeController';
-import { CalibrationGrid } from './scene/CalibrationGrid';
-
+import { DistrictRenderer } from './scene/DistrictRenderer';
+import { portfolioData } from '../constants';
+import type { CityDistrict, PortfolioSubItem } from '../types';
+import { CameraRig } from './CameraRig';
 import { HUD } from './ui/HUD';
-import { ProjectSelectionPanel } from './ui/ProjectSelectionPanel';
+import { ProceduralTerrain } from './scene/ProceduralTerrain';
+import HolographicInfoPanel from './scene/HolographicInfoPanel';
 import { QuickNavMenu } from './ui/QuickNavMenu';
+import { ProjectSelectionPanel } from './ui/ProjectSelectionPanel';
+import { PatrollingCore } from './scene/PatrollingCore';
+import { CalibrationGrid } from './scene/CalibrationGrid';
+import { BuildModeController } from './scene/BuildModeController';
 import { ExportLayoutModal } from './ui/ExportLayoutModal';
-import { useCopterControls } from '../hooks/useCopterControls';
-import { ThrustTrail } from './scene/ThrustTrail';
 
-// A simple player ship model for POV mode, corrected for forwardRef usage
-const PlayerShip = React.forwardRef<THREE.Group, {}>((_props, ref) => (
-  <group ref={ref}>
-    <mesh>
-      <coneGeometry args={[0.5, 2, 8]} />
-      <meshStandardMaterial color="gold" emissive="orange" />
-    </mesh>
-    <ThrustTrail position={[0, 0, -1]} length={4} width={0.3} />
-  </group>
-));
-PlayerShip.displayName = 'PlayerShip';
 
+// Define the sun's position for a sunset glow near the horizon
+const sunPosition: [number, number, number] = [100, 2, -100]; // Lower sun for a more dramatic sunset
+const sunColor = '#ffd0b3'; // Warmer light
+const INITIAL_CAMERA_POSITION: [number, number, number] = [0, 100, 250];
 
 export const Experience3D: React.FC = () => {
-  // --- STATE MANAGEMENT ---
   const [districts, setDistricts] = useState<CityDistrict[]>(portfolioData);
   const [selectedDistrict, setSelectedDistrict] = useState<CityDistrict | null>(null);
-  const [isDetailViewActive, setIsDetailViewActive] = useState(false);
-  const [isCameraAnimating, setIsCameraAnimating] = useState(false);
-  
-  // UI Panels State
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [showContentPanel, setShowContentPanel] = useState(false);
+  const [infoPanelItem, setInfoPanelItem] = useState<CityDistrict | null>(null);
   const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
-  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-
-  // POV and Architect Mode State
-  const [pov, setPov] = useState<'main' | 'ship'>('main');
-  const [isCalibrationMode, setIsCalibrationMode] = useState(false);
-  const [heldDistrictId, setHeldDistrictId] = useState<string | null>(null);
-
-  // FIX: Provide an explicit `null` initial value to `useRef` to resolve potential type inference issues.
-  const controlsRef = useRef<any>(null);
-  const playerShipRef = useRef<THREE.Group>(null);
   
-  // --- HOOKS ---
-  // FIX: Enable Copter Controls only when POV is 'ship'
-  useCopterControls(playerShipRef, pov === 'ship');
+  const [pov, setPov] = useState<'main' | 'ship'>('main');
+  const [shipRefs, setShipRefs] = useState<React.RefObject<THREE.Group>[]>([]);
+  const [targetShipRef, setTargetShipRef] = useState<React.RefObject<THREE.Group> | null>(null);
+  const [isAutoRotating, setIsAutoRotating] = useState(true);
+  const [isCalibrationMode, setIsCalibrationMode] = useState(false);
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
+  // Build Mode State
+  const [heldDistrictId, setHeldDistrictId] = useState<string | null>(null);
+  const [originalHeldDistrictPosition, setOriginalHeldDistrictPosition] = useState<[number, number, number] | null>(null);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [exportedLayoutJson, setExportedLayoutJson] = useState('');
 
-  useEffect(() => {
-    if (controlsRef.current) {
-        controlsRef.current.enabled = pov === 'main' && !isCameraAnimating && !isCalibrationMode;
-    }
-  }, [pov, isCameraAnimating, isCalibrationMode]);
+  const controlsRef = useRef<OrbitControlsImpl>(null);
+  const isPaused = isCalibrationMode;
 
-  // --- HANDLERS ---
+  const navDistricts = useMemo(() => {
+    const majorDistricts = districts.filter(d => d.type === 'major');
+    const nexusCore = majorDistricts.find(d => d.id === 'nexus-core');
+    return nexusCore
+      ? [nexusCore, ...majorDistricts.filter(d => d.id !== 'nexus-core')]
+      : majorDistricts;
+  }, [districts]);
+
   const handleDistrictSelect = useCallback((district: CityDistrict) => {
     if (isCalibrationMode) return;
-    setSelectedDistrict(district);
-    setIsCameraAnimating(true);
-  }, [isCalibrationMode]);
+    if (district.id === selectedDistrict?.id && !isAnimating) return;
+    
+    setShowContentPanel(false);
+    setInfoPanelItem(null);
+    setIsAutoRotating(false);
+    
+    setSelectedDistrict(districts.find(d => d.id === district.id) || null);
+    setIsAnimating(true);
+  }, [selectedDistrict, isAnimating, districts, isCalibrationMode]);
+  
+  const isDetailViewActive = showContentPanel || !!infoPanelItem || !!selectedDistrict;
+
+  const resetIdleTimer = useCallback(() => {
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    idleTimerRef.current = setTimeout(() => {
+        if (pov === 'main' && !isDetailViewActive && !isCalibrationMode) {
+            setIsAutoRotating(true);
+        }
+    }, 5000);
+  }, [pov, isDetailViewActive, isCalibrationMode]);
+
+  const handleInteractionStart = useCallback(() => {
+      setIsAutoRotating(false);
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+  }, []);
+
+  const handleInteractionEnd = useCallback(() => {
+      resetIdleTimer();
+  }, [resetIdleTimer]);
+
+  const handleControlsChange = useCallback(() => {
+    if (controlsRef.current) {
+      const target = controlsRef.current.target;
+      const boundary = 150;
+      target.x = THREE.MathUtils.clamp(target.x, -boundary, boundary);
+      target.z = THREE.MathUtils.clamp(target.z, -boundary, boundary);
+      target.y = THREE.MathUtils.clamp(target.y, 0, 50); // Prevent looking underground or too high
+    }
+  }, []);
+
+  useEffect(() => {
+    resetIdleTimer();
+    return () => {
+        if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    };
+  }, [resetIdleTimer]);
 
   const handleGoHome = useCallback(() => {
+    setPov('main');
     setSelectedDistrict(null);
-    setIsCameraAnimating(true);
-    setIsDetailViewActive(false);
-    if(pov === 'ship') setPov('main');
-  }, [pov]);
+    setIsAnimating(true);
+    setShowContentPanel(false);
+    setInfoPanelItem(null);
+    setTargetShipRef(null);
+    resetIdleTimer();
+  }, [resetIdleTimer]);
 
-  const handleCameraAnimationFinish = useCallback(() => {
-    setIsCameraAnimating(false);
+  const onAnimationFinish = useCallback(() => {
+    setIsAnimating(false);
     if (selectedDistrict) {
-      setIsDetailViewActive(true);
+      // For any selected district, we show the unified content panel.
+      // The panel itself will determine what content to render based on the district's ID.
+      setShowContentPanel(true);
+    } else if (pov === 'main' && !isCalibrationMode) {
+      resetIdleTimer();
     }
-  }, [selectedDistrict]);
+  }, [selectedDistrict, resetIdleTimer, pov, isCalibrationMode]);
 
-  const handleToggleCalibrationMode = useCallback(() => {
-    setIsCalibrationMode(prev => !prev);
-    if (selectedDistrict) {
-      handleGoHome();
-    }
-  }, [selectedDistrict, handleGoHome]);
+
+  const handleProjectClick = (item: PortfolioSubItem) => {
+    console.log('Project clicked:', item.title);
+  };
   
-  const handlePlaceDistrict = useCallback(() => {
-    setHeldDistrictId(null);
-  }, []);
+  const handlePanelClose = () => {
+      setInfoPanelItem(null);
+      resetIdleTimer();
+  };
+
+  const handleQuickNavSelect = (district: CityDistrict) => {
+    handleDistrictSelect(district);
+    setIsNavMenuOpen(false);
+  };
+  
+  const handleSetPov = (newPov: 'main' | 'ship') => {
+    if (isCalibrationMode) return;
+
+    if (newPov === 'ship' && pov === 'ship') {
+      if (shipRefs.length > 1) {
+        let newTargetIndex = -1;
+        let currentTargetIndex = shipRefs.findIndex(ref => ref === targetShipRef);
+
+        while (newTargetIndex === -1 || newTargetIndex === currentTargetIndex) {
+            newTargetIndex = Math.floor(Math.random() * shipRefs.length);
+        }
+        
+        setTargetShipRef(shipRefs[newTargetIndex]);
+        setIsAnimating(true);
+      }
+      return;
+    }
+
+    if (newPov === pov) return;
+
+    if (newPov === 'main') {
+      handleGoHome();
+    } else {
+      setIsAutoRotating(false);
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      
+      if(selectedDistrict) {
+        setSelectedDistrict(null);
+        setShowContentPanel(false);
+        setInfoPanelItem(null);
+      }
+      
+      if (shipRefs.length > 0) {
+        const randomIndex = Math.floor(Math.random() * shipRefs.length);
+        setTargetShipRef(shipRefs[randomIndex]);
+      }
+      setPov('ship');
+      setIsAnimating(true);
+    }
+  };
+  
+  const handleToggleCalibrationMode = useCallback(() => {
+    setIsCalibrationMode(prev => {
+      const newMode = !prev;
+      if (newMode) {
+        setIsAnimating(true);
+        setIsAutoRotating(false);
+        if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+        if (isDetailViewActive) handleGoHome();
+        if (pov === 'ship') setPov('main');
+      } else {
+        if (heldDistrictId) {
+            const districtToReset = districts.find(d => d.id === heldDistrictId);
+            if(districtToReset && originalHeldDistrictPosition) {
+              setDistricts(prev => prev.map(d => d.id === heldDistrictId ? {...d, position: originalHeldDistrictPosition} : d));
+            }
+            setHeldDistrictId(null);
+            setOriginalHeldDistrictPosition(null);
+        }
+        handleGoHome();
+      }
+      return newMode;
+    });
+  }, [handleGoHome, isDetailViewActive, pov, heldDistrictId, districts, originalHeldDistrictPosition]);
+
+  const handleExportLayout = () => {
+    const layoutToExport = districts.map(d => {
+      const { isDirty, ...rest } = d;
+      return rest;
+    });
+    setExportedLayoutJson(JSON.stringify(layoutToExport, null, 2));
+    setIsExportModalOpen(true);
+  };
+  
+  const handleSetHeldDistrict = useCallback((id: string | null) => {
+    if (id) {
+        const district = districts.find(d => d.id === id);
+        if (district) {
+            setHeldDistrictId(id);
+            setOriginalHeldDistrictPosition(district.position);
+        }
+    } else {
+        setHeldDistrictId(null);
+        setOriginalHeldDistrictPosition(null);
+    }
+  }, [districts]);
 
   const handleCancelMove = useCallback(() => {
-    // This is a simplified reset. A more robust implementation might store original positions separately.
-    const originalPositions = portfolioData.reduce((acc, d) => ({ ...acc, [d.id]: d.position }), {} as {[key: string]: [number, number, number]});
-    setDistricts(prev => prev.map(d => ({ ...d, position: originalPositions[d.id] || d.position, isDirty: false })));
-    setHeldDistrictId(null);
+    if (heldDistrictId && originalHeldDistrictPosition) {
+        setDistricts(prev => prev.map(d => d.id === heldDistrictId ? {...d, position: originalHeldDistrictPosition} : d));
+        setHeldDistrictId(null);
+        setOriginalHeldDistrictPosition(null);
+    }
+  }, [heldDistrictId, originalHeldDistrictPosition]);
+
+  const handlePlaceDistrict = useCallback(() => {
+      setHeldDistrictId(null);
+      setOriginalHeldDistrictPosition(null);
   }, []);
 
-  const exportedJsonData = useMemo(() => {
-    const dirtyDistricts = districts.filter(d => d.isDirty);
-    if (dirtyDistricts.length === 0) return "No layout changes to export.";
-    // Create a string representation of the new positions for easy copy-paste
-    return JSON.stringify(districts, (_key, value) => { // Fixed unused 'key' parameter
-      if (typeof value === 'number') {
-        return parseFloat(value.toFixed(2));
-      }
-      return value;
-    }, 2);
-  }, [districts]);
 
   return (
     <>
-      <Canvas shadows>
-        <PerspectiveCamera makeDefault fov={60} position={[0, 60, 120]} />
-        <OrbitControls 
-          ref={controlsRef} 
-          enableDamping 
-          dampingFactor={0.1}
-          minDistance={10} 
-          maxDistance={200} 
-          maxPolarAngle={Math.PI / 2.1}
+      <Canvas
+        shadows
+        camera={{ position: INITIAL_CAMERA_POSITION, fov: 50, near: 0.1, far: 1000 }}
+        gl={{
+          powerPreference: 'high-performance',
+          antialias: false,
+          stencil: false,
+          depth: false,
+        }}
+        dpr={[1, 1.5]}
+      >
+        <Suspense fallback={null}>
+            <>
+              {/* The <Sky> component renders the background; fog has been removed for performance. */}
+              <Sky sunPosition={sunPosition} turbidity={20} rayleigh={1} mieCoefficient={0.005} mieDirectionalG={0.8} />
+              <ambientLight intensity={1.2} />
+              <directionalLight
+                position={sunPosition}
+                intensity={6.0}
+                color={sunColor}
+                castShadow
+                shadow-mapSize-width={4096}
+                shadow-mapSize-height={4096}
+                shadow-camera-far={500}
+                shadow-camera-left={-200}
+                shadow-camera-right={200}
+                shadow-camera-top={200}
+                shadow-camera-bottom={-200}
+              />
+
+              <CityModel />
+              <FlyingShips setShipRefs={setShipRefs} isPaused={isPaused} />
+              <PatrollingCore isPaused={isPaused} />
+              <ProceduralTerrain onDeselect={handleGoHome} />
+              
+              <group position={[0, 5, 0]}>
+                <DistrictRenderer
+                  districts={districts}
+                  selectedDistrict={selectedDistrict}
+                  onDistrictSelect={handleDistrictSelect}
+                  isCalibrationMode={isCalibrationMode}
+                  heldDistrictId={heldDistrictId}
+                  onSetHeldDistrict={handleSetHeldDistrict}
+                />
+                {infoPanelItem && <HolographicInfoPanel district={infoPanelItem} onClose={handlePanelClose} />}
+              </group>
+              
+              {isCalibrationMode && <CalibrationGrid size={250} />}
+              {isCalibrationMode && (
+                  <BuildModeController
+                    districts={districts}
+                    setDistricts={setDistricts}
+                    heldDistrictId={heldDistrictId}
+                    onPlaceDistrict={handlePlaceDistrict}
+                    gridSize={250}
+                    gridDivisions={25}
+                  />
+                )}
+
+              <CameraRig 
+                selectedDistrict={selectedDistrict} 
+                onAnimationFinish={onAnimationFinish} 
+                isAnimating={isAnimating}
+                pov={pov}
+                targetShipRef={targetShipRef}
+                isCalibrationMode={isCalibrationMode}
+              />
+
+              <EffectComposer>
+                <Noise 
+                  premultiply 
+                  blendFunction={BlendFunction.ADD}
+                  opacity={0.07} 
+                />
+                <ChromaticAberration 
+                  offset={new THREE.Vector2(0.001, 0.001)}
+                  radialModulation={false}
+                  modulationOffset={0.15}
+                />
+              </EffectComposer>
+            </>
+        </Suspense>
+
+        <OrbitControls
+            ref={controlsRef}
+            enabled={pov === 'main' && !isAnimating && !isNavMenuOpen && !showContentPanel && !infoPanelItem && !heldDistrictId}
+            minDistance={20}
+            maxDistance={300}
+            maxPolarAngle={isCalibrationMode ? Math.PI / 2.05 : Math.PI / 2.2}
+            target={[0, 5, 0]}
+            autoRotate={isAutoRotating && !isCalibrationMode}
+            autoRotateSpeed={0.5}
+            onStart={handleInteractionStart}
+            onEnd={handleInteractionEnd}
+            onChange={handleControlsChange}
         />
-        
-        {/* --- LIGHTING & ENVIRONMENT --- */}
-        <ambientLight intensity={0.2} />
-        <directionalLight
-          castShadow
-          position={[50, 80, 50]}
-          intensity={1.5}
-          shadow-mapSize-width={2048}
-          shadow-mapSize-height={2048}
-        />
-        <pointLight position={[0, 30, 0]} intensity={2} color="#00ffff" distance={100} />
-        <Sky sunPosition={[100, 20, 100]} />
-        <Stars radius={200} depth={50} count={5000} factor={4} saturation={0} fade />
-        
-        {/* --- SCENE CONTENT --- */}
-        <ProceduralTerrain onDeselect={handleGoHome} />
-        <CityModel />
-        <FloatingParticles count={200} />
-        <FlyingShips />
-        <PatrollingCore isPaused={pov === 'ship'} />
-        {pov === 'main' && <DataTrail />}
-
-        <DistrictRenderer
-          districts={districts}
-          selectedDistrict={selectedDistrict}
-          onDistrictSelect={handleDistrictSelect}
-          isCalibrationMode={isCalibrationMode}
-          heldDistrictId={heldDistrictId}
-          onSetHeldDistrict={setHeldDistrictId}
-        />
-
-        {pov === 'ship' && <PlayerShip ref={playerShipRef} />}
-
-        {isCalibrationMode && (
-          <>
-            <CalibrationGrid />
-            <BuildModeController
-              districts={districts}
-              setDistricts={setDistricts}
-              heldDistrictId={heldDistrictId}
-              onPlaceDistrict={handlePlaceDistrict}
-              gridSize={250}
-              gridDivisions={50}
-            />
-          </>
-        )}
-
-        {/* --- CAMERA & EFFECTS --- */}
-        <CameraRig
-          selectedDistrict={selectedDistrict}
-          onAnimationFinish={handleCameraAnimationFinish}
-          isAnimating={isCameraAnimating && pov === 'main'}
-        />
-
-        <EffectComposer>
-          <Bloom luminanceThreshold={0.8} intensity={0.8} levels={8} mipmapBlur />
-          <Vignette eskil={false} offset={0.1} darkness={0.8} />
-        </EffectComposer>
       </Canvas>
       
-      {/* --- UI OVERLAYS --- */}
-      <HUD
-        selectedDistrict={selectedDistrict}
-        onGoHome={handleGoHome}
-        onToggleNavMenu={() => setIsNavMenuOpen(true)}
-        isDetailViewActive={isDetailViewActive}
-        pov={pov}
-        onSetPov={setPov}
-        isCalibrationMode={isCalibrationMode}
-        onToggleCalibrationMode={handleToggleCalibrationMode}
-        onExportLayout={() => setIsExportModalOpen(true)}
-        heldDistrictId={heldDistrictId}
-        onCancelMove={handleCancelMove}
+      <HUD 
+          selectedDistrict={selectedDistrict} 
+          onGoHome={handleGoHome}
+          onToggleNavMenu={() => setIsNavMenuOpen(!isNavMenuOpen)}
+          isDetailViewActive={isDetailViewActive}
+          pov={pov}
+          onSetPov={handleSetPov}
+          isCalibrationMode={isCalibrationMode}
+          onToggleCalibrationMode={handleToggleCalibrationMode}
+          onExportLayout={handleExportLayout}
+          heldDistrictId={heldDistrictId}
+          onCancelMove={handleCancelMove}
       />
-      <ProjectSelectionPanel
-        isOpen={isDetailViewActive}
-        district={selectedDistrict}
-        onClose={handleGoHome}
-        onProjectSelect={(item) => console.log('Project selected:', item)}
-      />
-      <QuickNavMenu
-        isOpen={isNavMenuOpen}
-        onClose={() => setIsNavMenuOpen(false)}
-        onSelectDistrict={(d) => {
-          setIsNavMenuOpen(false);
-          handleDistrictSelect(d);
-        }}
-        districts={districts.filter(d => d.type === 'major')}
-      />
+
+      {isNavMenuOpen && (
+          <QuickNavMenu 
+              isOpen={isNavMenuOpen}
+              onClose={() => setIsNavMenuOpen(false)}
+              onSelectDistrict={handleQuickNavSelect}
+              districts={navDistricts}
+          />
+      )}
+       {showContentPanel && (
+          <ProjectSelectionPanel
+              isOpen={showContentPanel}
+              district={selectedDistrict}
+              onClose={handleGoHome}
+              onProjectSelect={handleProjectClick}
+          />
+      )}
       <ExportLayoutModal
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
-        jsonData={exportedJsonData}
+        jsonData={exportedLayoutJson}
       />
     </>
   );

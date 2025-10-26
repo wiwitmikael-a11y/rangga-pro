@@ -9,8 +9,7 @@ interface DataBridgeProps {
 }
 
 export const DataBridge: React.FC<DataBridgeProps> = ({ start, end }) => {
-  // FIX: Provide an explicit `null` initial value to `useRef` to resolve potential type inference issues.
-  const lineRef = useRef<any>(null);
+  const lineRef = useRef<any>();
 
   // This creates a curved path for the bridge to arc gracefully through space
   const points = useMemo(() => {

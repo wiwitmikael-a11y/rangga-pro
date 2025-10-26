@@ -63,35 +63,6 @@ const CancelIcon: React.FC = () => (
     </svg>
 );
 
-// New component for flight control hints
-const FlightControlsHint: React.FC<{visible: boolean}> = ({ visible }) => {
-    const style: React.CSSProperties = {
-        position: 'fixed',
-        bottom: '80px',
-        left: '50%',
-        // FIX: Removed duplicate `transform` property. The conditional transform below handles all cases.
-        padding: '8px 16px',
-        background: 'rgba(0, 20, 40, 0.7)',
-        backdropFilter: 'blur(10px)',
-        border: '1px solid rgba(0, 170, 255, 0.5)',
-        borderRadius: '5px',
-        color: 'var(--primary-color)',
-        zIndex: 100,
-        pointerEvents: 'none',
-        transition: 'opacity 0.3s ease, transform 0.3s ease',
-        opacity: visible ? 1 : 0,
-        transform: visible ? 'translate(-50%, 0)' : 'translate(-50%, 20px)',
-        whiteSpace: 'nowrap'
-    };
-    return (
-        <div style={style}>
-            <p style={{ margin: 0, fontFamily: 'var(--font-family)', fontSize: '0.8rem', letterSpacing: '0.05em' }}>
-                [MOUSE: STEER] [W/S: THRUST] [A/D: ROLL] [SPACE/SHIFT: ALTITUDE] [CLICK TO LOCK]
-            </p>
-        </div>
-    );
-};
-
 const styles: { [key: string]: React.CSSProperties } = {
   breadcrumbContainer: {
     position: 'fixed',
@@ -186,9 +157,8 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
     if (heldDistrictId) return `RAGETOPIA > /ARCHITECT_MODE/MOVING...`;
     if (selectedDistrict) return `RAGETOPIA > /${selectedDistrict.id.toUpperCase()}_DISTRICT/`;
     if (isCalibrationMode) return `RAGETOPIA > /ARCHITECT_MODE/`;
-    if (pov === 'ship') return `RAGETOPIA > /MANUAL_FLIGHT_MODE/`;
     return 'RAGETOPIA';
-  }, [selectedDistrict, isCalibrationMode, heldDistrictId, pov]);
+  }, [selectedDistrict, isCalibrationMode, heldDistrictId]);
   
   const showHomeButton = isDetailViewActive || pov === 'ship';
   const homeButtonIcon = '⌂';
@@ -209,8 +179,6 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
       <div style={styles.breadcrumbContainer} className="breadcrumb-container">
           <p style={styles.breadcrumbText}>{breadcrumb}</p>
       </div>
-
-      <FlightControlsHint visible={pov === 'ship'} />
 
       <div style={styles.bottomCenterContainer} className="bottom-center-container">
         <button
