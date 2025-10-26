@@ -1,4 +1,5 @@
 import type { CityDistrict, SkillCategory } from './types';
+import * as THREE from 'three';
 
 // A high-level professional synopsis for the default view in the Competency Core.
 export const professionalSummary = `A rare hybrid professional with 15+ years of parallel experience in strategic leadership and deep technology. Proven ability to architect complex digital solutions, lead high-performance teams in the financial sector, and direct award-winning creative projects. A unique blend of an executive, an engineer, and a creative visionary.`;
@@ -66,6 +67,10 @@ export const skillsData: SkillCategory[] = [
     keyMetrics: ['National Photo Champion', 'Published Songwriter', 'Art Direction'],
   },
 ];
+
+// --- Global Scene Constants ---
+export const OVERVIEW_CAMERA_POSITION = new THREE.Vector3(0, 100, 250);
+export const FLIGHT_AREA_SIZE = 240;
 
 
 // Data portofolio telah diisi dengan konten mock yang relevan dan gambar dari CDN.

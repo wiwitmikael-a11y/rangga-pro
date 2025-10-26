@@ -1,10 +1,8 @@
-
-
-
 import React, { useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { CityDistrict } from '../types';
+import { OVERVIEW_CAMERA_POSITION } from '../constants';
 
 interface CameraRigProps {
   selectedDistrict: CityDistrict | null;
@@ -17,8 +15,6 @@ interface CameraRigProps {
 
 const targetPosition = new THREE.Vector3();
 const targetLookAt = new THREE.Vector3();
-// Posisi tinjauan umum yang diperbarui untuk transisi yang lebih pendek dan tidak terlalu drastis
-const OVERVIEW_POSITION = new THREE.Vector3(0, 80, 200);
 // Melihat ke tengah ground plane untuk bidikan tinjauan umum yang lebih baik
 const OVERVIEW_LOOK_AT = new THREE.Vector3(0, 0, 0);
 const CALIBRATION_POSITION = new THREE.Vector3(0, 200, 1); // Tampilan top-down yang tinggi
@@ -59,7 +55,7 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
             targetLookAt.copy(shipCam.idealLookAt);
             hasTarget = true;
         } else { // Ke Tinjauan Umum
-            targetPosition.copy(OVERVIEW_POSITION);
+            targetPosition.copy(OVERVIEW_CAMERA_POSITION);
             targetLookAt.copy(OVERVIEW_LOOK_AT);
             hasTarget = true;
         }

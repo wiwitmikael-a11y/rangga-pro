@@ -9,7 +9,7 @@ import * as THREE from 'three';
 import { CityModel } from './scene/CityModel';
 import { FlyingShips } from './scene/FlyingShips';
 import { DistrictRenderer } from './scene/DistrictRenderer';
-import { portfolioData } from '../constants';
+import { portfolioData, OVERVIEW_CAMERA_POSITION } from '../constants';
 import type { CityDistrict, PortfolioSubItem } from '../types';
 import { CameraRig } from './CameraRig';
 import { HUD } from './ui/HUD';
@@ -26,7 +26,6 @@ import { ExportLayoutModal } from './ui/ExportLayoutModal';
 // Define the sun's position for a sunset glow near the horizon
 const sunPosition: [number, number, number] = [100, 2, -100]; // Lower sun for a more dramatic sunset
 const sunColor = '#ffd0b3'; // Warmer light
-const INITIAL_CAMERA_POSITION: [number, number, number] = [0, 100, 250];
 
 export const Experience3D: React.FC = () => {
   const [districts, setDistricts] = useState<CityDistrict[]>(portfolioData);
@@ -250,7 +249,7 @@ export const Experience3D: React.FC = () => {
     <>
       <Canvas
         shadows
-        camera={{ position: INITIAL_CAMERA_POSITION, fov: 50, near: 0.1, far: 1000 }}
+        camera={{ position: OVERVIEW_CAMERA_POSITION.toArray(), fov: 50, near: 0.1, far: 1000 }}
         gl={{
           powerPreference: 'high-performance',
           antialias: false,

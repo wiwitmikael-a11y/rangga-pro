@@ -2,11 +2,10 @@ import React, { useMemo, useRef, Suspense, forwardRef, useImperativeHandle, useE
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
-import { portfolioData } from '../../constants';
+import { portfolioData, FLIGHT_AREA_SIZE } from '../../constants';
 
 const GITHUB_MODEL_URL_BASE = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/';
 
-const FLIGHT_AREA_SIZE = 240; // Use a square area for better corner coverage
 const FLIGHT_ALTITUDE_MIN = 45; // Raised to avoid all buildings
 const FLIGHT_ALTITUDE_MAX = 60;
 const FLIGHT_SPEED = 12;
@@ -65,10 +64,10 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isP
   const clonedScene = useMemo(() => scene.clone(), [scene]);
   
   const shipState = useRef({
-    state: 'FLYING' as ShipState,
+    state: 'LANDED' as ShipState,
     targetPosition: new THREE.Vector3(),
     finalLandingPosition: new THREE.Vector3().set(0, -1000, 0), // Initialized out of bounds
-    timer: Math.random() * 10 + 5,
+    timer: initialDelay, // Use initialDelay for the first wait on the ground
     isInitialized: false,
   });
   
@@ -86,15 +85,14 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isP
   useFrame(({ clock }, delta) => {
     if (!groupRef.current || isPaused) return;
     
-    if (!shipState.current.isInitialized && clock.elapsedTime > initialDelay) {
-        const initialPos = getNewFlightTarget();
-        groupRef.current.position.copy(initialPos);
-        shipState.current.targetPosition.copy(getNewFlightTarget());
+    if (!shipState.current.isInitialized) {
+        // Find a random landing spot to start at.
+        const startPos = TERRAIN_LANDING_SPOTS[Math.floor(Math.random() * TERRAIN_LANDING_SPOTS.length)];
+        groupRef.current.position.copy(startPos);
+        shipState.current.finalLandingPosition.copy(startPos);
         shipState.current.isInitialized = true;
-        groupRef.current.visible = true;
+        groupRef.current.visible = true; // Make it visible once positioned
     }
-
-    if (!shipState.current.isInitialized) return;
 
     shipState.current.timer -= delta;
     const currentPos = groupRef.current.position;
@@ -102,6 +100,13 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isP
 
     switch (shipState.current.state) {
       case 'FLYING':
+        // Geofencing: If ship flies too far, gently guide it back.
+        const boundary = FLIGHT_AREA_SIZE / 2;
+        if (Math.abs(currentPos.x) > boundary || Math.abs(currentPos.z) > boundary) {
+            const centerPoint = new THREE.Vector3(0, currentPos.y, 0);
+            shipState.current.targetPosition.lerp(centerPoint, 0.05); // Nudge target towards center
+        }
+
         if (currentPos.distanceTo(targetPos) < 5 || shipState.current.timer <= 0) {
           if (Math.random() < 0.5) { // Increased chance to land and visit a spot
             shipState.current.state = 'DESCENDING';
