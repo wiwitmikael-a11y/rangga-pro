@@ -3,16 +3,11 @@ import type { CityDistrict } from '../../types';
 
 interface HUDProps {
   selectedDistrict: CityDistrict | null;
-  onGoHome: () => void;
   onToggleNavMenu: () => void;
-  isDetailViewActive: boolean;
   pov: 'main' | 'ship';
   onSetPov: (pov: 'main' | 'ship') => void;
   isCalibrationMode: boolean;
-  onToggleCalibrationMode: () => void;
-  onExportLayout: () => void;
   heldDistrictId: string | null;
-  onCancelMove: () => void;
 }
 
 // --- SVG Icons ---
@@ -126,7 +121,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   }
 };
 
-export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, onToggleNavMenu, isDetailViewActive, pov, onSetPov, isCalibrationMode, onToggleCalibrationMode, onExportLayout, heldDistrictId, onCancelMove }) => {
+export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleNavMenu, pov, onSetPov, isCalibrationMode, heldDistrictId }) => {
 
   const breadcrumb = useMemo(() => {
     if (heldDistrictId) return `RAGETOPIA > /ARCHITECT_MODE/MOVING...`;

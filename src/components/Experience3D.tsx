@@ -360,16 +360,11 @@ export const Experience3D: React.FC = () => {
       
       <HUD 
           selectedDistrict={selectedDistrict} 
-          onGoHome={handleGoHome}
           onToggleNavMenu={() => setIsNavMenuOpen(!isNavMenuOpen)}
-          isDetailViewActive={isDetailViewActive}
           pov={pov}
           onSetPov={handleSetPov}
           isCalibrationMode={isCalibrationMode}
-          onToggleCalibrationMode={handleToggleCalibrationMode}
-          onExportLayout={handleExportLayout}
           heldDistrictId={heldDistrictId}
-          onCancelMove={handleCancelMove}
       />
 
       {isNavMenuOpen && (
