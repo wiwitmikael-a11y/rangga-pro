@@ -100,11 +100,24 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isP
 
     switch (shipState.current.state) {
       case 'FLYING':
-        // Geofencing: If ship flies too far, gently guide it back.
+        // BUG FIX: Replaced weak geofencing with a decisive, forceful redirection.
+        // The previous logic only nudged the target, which was insufficient to prevent
+        // ships from escaping the boundary. This new logic forces a new, opposite target.
         const boundary = FLIGHT_AREA_SIZE / 2;
-        if (Math.abs(currentPos.x) > boundary || Math.abs(currentPos.z) > boundary) {
-            const centerPoint = new THREE.Vector3(0, currentPos.y, 0);
-            shipState.current.targetPosition.lerp(centerPoint, 0.05); // Nudge target towards center
+        let needsNewTarget = false;
+        const newTarget = shipState.current.targetPosition.clone();
+
+        if (Math.abs(currentPos.x) > boundary) {
+            newTarget.x = -currentPos.x * 0.8; // Reverse direction and pull it back in
+            needsNewTarget = true;
+        }
+        if (Math.abs(currentPos.z) > boundary) {
+            newTarget.z = -currentPos.z * 0.8; // Reverse direction and pull it back in
+            needsNewTarget = true;
+        }
+
+        if (needsNewTarget) {
+            shipState.current.targetPosition.copy(newTarget);
         }
 
         if (currentPos.distanceTo(targetPos) < 5 || shipState.current.timer <= 0) {
