@@ -1,191 +1,303 @@
-import React, { useMemo, useEffect, forwardRef } from 'react';
-import { useGLTF } from '@react-three/drei';
+import React, { useMemo, useRef, Suspense, forwardRef, useImperativeHandle, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
-import { createNoise3D } from 'simplex-noise';
-import type { ShipInputState } from '../../types';
-import { ThrustTrail } from './ThrustTrail';
-import { FLIGHT_AREA_SIZE } from '../../constants';
+import { portfolioData, FLIGHT_AREA_SIZE } from '../../constants';
+import { ShipInputState } from '../../types';
 
-// Type definitions
-export type ShipType = 'fighter' | 'transport' | 'copter';
+const GITHUB_MODEL_URL_BASE = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/';
 
-export interface ShipData {
-  id: string;
-  type: ShipType;
-  modelUrl: string;
-  scale: number;
-  initialPosition: [number, number, number];
-}
+const FLIGHT_ALTITUDE_MIN = 45; // Raised to avoid all buildings
+const FLIGHT_ALTITUDE_MAX = 60;
+const FLIGHT_SPEED = 12;
+const TURN_SPEED = 1.5;
 
-// Data for all ships in the scene
-export const shipsData: ShipData[] = [
-  {
-    id: 'ship-01',
-    type: 'fighter',
-    modelUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/FighterShip.glb',
-    scale: 1,
-    initialPosition: [-50, 25, -30],
-  },
-  {
-    id: 'ship-02',
-    type: 'transport',
-    modelUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/TransportShip.glb',
-    scale: 2,
-    initialPosition: [60, 30, 0],
-  },
-  {
-    id: 'ship-03',
-    type: 'copter',
-    modelUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/CopterShip.glb',
-    scale: 1.5,
-    initialPosition: [0, 40, 70],
-  },
-  {
-    id: 'ship-04',
-    type: 'fighter',
-    modelUrl: 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/FighterShip.glb',
-    scale: 1,
-    initialPosition: [20, 20, -60],
-  },
+const ROOFTOP_LANDING_SPOTS: THREE.Vector3[] = [
+  new THREE.Vector3(15, 28, -20),
+  new THREE.Vector3(-30, 35, 10),
+  new THREE.Vector3(5, 22, 45),
+  new THREE.Vector3(40, 18, 30),
+  new THREE.Vector3(-25, 25, -35),
+  new THREE.Vector3(0, 42, 0),
 ];
 
-const noise3D = createNoise3D();
-const MAX_SPEED = 20;
-const TURN_SPEED = 1.5;
-const ROLL_SPEED = 1.8;
+const TERRAIN_LANDING_SPOTS: THREE.Vector3[] = [
+    new THREE.Vector3(70, -5.0, -50),
+    new THREE.Vector3(-75, -5.0, -30),
+    new THREE.Vector3(20, -5.0, -80),
+    new THREE.Vector3(-30, -5.0, 80),
+    new THREE.Vector3(0, -5.0, 0),
+    new THREE.Vector3(100, -5.0, 100), // Add corner spots
+    new THREE.Vector3(-100, -5.0, -100),
+    new THREE.Vector3(100, -5.0, -100),
+    new THREE.Vector3(-100, -5.0, 100),
+];
 
-interface ShipProps {
-  data: ShipData;
-  isPaused?: boolean;
-  isControlled: boolean;
-  inputs: ShipInputState;
+// Create landing spots from major districts, normalizing their Y-position to ground level.
+const DISTRICT_LANDING_SPOTS: THREE.Vector3[] = portfolioData
+    .filter(d => d.type === 'major')
+    .map(d => new THREE.Vector3(d.position[0], -5.0, d.position[2]));
+
+// Combine all possible landing spots into one comprehensive list.
+const ALL_LANDING_SPOTS = [...ROOFTOP_LANDING_SPOTS, ...TERRAIN_LANDING_SPOTS, ...DISTRICT_LANDING_SPOTS];
+
+type ShipState = 'FLYING' | 'DESCENDING' | 'LANDED' | 'ASCENDING';
+
+export type ShipType = 'transport' | 'fighter' | 'copter';
+
+export interface ShipData {
+    id: string;
+    url: string;
+    scale: number;
+    initialDelay: number;
+    shipType: ShipType;
 }
 
-const Ship = forwardRef<THREE.Group, ShipProps>(({ data, isPaused, isControlled, inputs }, ref) => {
-  const { scene } = useGLTF(data.modelUrl);
+interface ShipProps extends ShipData {
+  isPaused?: boolean;
+  isUnderManualControl?: boolean;
+  manualInputs?: ShipInputState;
+}
+
+const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isPaused, shipType, isUnderManualControl, manualInputs }, ref) => {
+  const groupRef = useRef<THREE.Group>(null!);
+  useImperativeHandle(ref, () => groupRef.current, []);
+
+  const { scene } = useGLTF(url);
   const clonedScene = useMemo(() => scene.clone(), [scene]);
-
-  const velocity = useMemo(() => new THREE.Vector3(), []);
-  const acceleration = useMemo(() => new THREE.Vector3(), []);
-  const targetPosition = useMemo(() => new THREE.Vector3(), []);
-  const steering = useMemo(() => new THREE.Vector3(), []);
-  const previousPosition = useMemo(() => new THREE.Vector3(), []);
-
+  
   useEffect(() => {
-    if (ref && 'current' in ref && ref.current) {
-        ref.current.userData.shipType = data.type;
-        ref.current.position.set(...data.initialPosition);
-        previousPosition.copy(ref.current.position);
+    if (groupRef.current) {
+      groupRef.current.userData.shipType = shipType;
     }
-  }, [data, ref, previousPosition]);
+  }, [shipType]);
 
+  const wasManual = useRef(false);
+  const velocity = useRef(new THREE.Vector3());
+
+  // Physics constants for manual control
+  const ACCELERATION = 20.0;
+  const MAX_SPEED = 40.0;
+  const TURN_RATE = 2.0;
+  const ROLL_RATE = 2.5;
+  const VERTICAL_SPEED = 10.0;
+  const DRAG = 0.97;
+  
+  const shipState = useRef({
+    state: 'LANDED' as ShipState,
+    targetPosition: new THREE.Vector3(),
+    finalLandingPosition: new THREE.Vector3().set(0, -1000, 0), // Initialized out of bounds
+    timer: initialDelay, // Use initialDelay for the first wait on the ground
+    isInitialized: false,
+  });
+  
+  const tempQuaternion = useMemo(() => new THREE.Quaternion(), []);
+  const tempLookAtObject = useMemo(() => new THREE.Object3D(), []);
+
+  const getNewFlightTarget = () => {
+    return new THREE.Vector3(
+      (Math.random() - 0.5) * FLIGHT_AREA_SIZE,
+      FLIGHT_ALTITUDE_MIN + Math.random() * (FLIGHT_ALTITUDE_MAX - FLIGHT_ALTITUDE_MIN),
+      (Math.random() - 0.5) * FLIGHT_AREA_SIZE
+    );
+  };
+  
   useFrame(({ clock }, delta) => {
-    if (!ref || !('current' in ref) || !ref.current || isPaused) return;
+    if (!groupRef.current || isPaused) return;
 
-    const ship = ref.current;
-    
-    if (isControlled) {
-      // Manual arcade-style flight controls
-      const turnRate = TURN_SPEED * delta;
-      const rollRate = ROLL_SPEED * delta;
+    if (isUnderManualControl && manualInputs) {
+        const ship = groupRef.current;
+        
+        // 1. Acceleration
+        const forwardVector = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
+        const acceleration = forwardVector.multiplyScalar(manualInputs.forward * ACCELERATION * delta);
+        velocity.current.add(acceleration);
 
-      // Apply rotations based on input
-      if (Math.abs(inputs.turn) > 0.1) ship.rotateY(-inputs.turn * turnRate);
-      if (Math.abs(inputs.roll) > 0.1) ship.rotateZ(-inputs.roll * rollRate);
-      
-      // Auto-level roll when not actively rolling
-      if (Math.abs(inputs.roll) < 0.1) {
-        const euler = new THREE.Euler().setFromQuaternion(ship.quaternion, 'YXZ');
-        euler.z = THREE.MathUtils.lerp(euler.z, 0, delta * 2.0);
-        ship.quaternion.setFromEuler(euler);
-      }
+        // 2. Vertical movement (applied directly to position)
+        ship.position.y += manualInputs.ascend * VERTICAL_SPEED * delta;
+        
+        // 3. Drag
+        velocity.current.multiplyScalar(DRAG);
+        
+        // 4. Clamp speed
+        if (velocity.current.length() > MAX_SPEED) {
+            velocity.current.normalize().multiplyScalar(MAX_SPEED);
+        }
 
-      // Apply forward movement based on ship's direction
-      const forwardVector = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
-      ship.position.addScaledVector(forwardVector, inputs.forward * MAX_SPEED * delta);
-      
-      // Apply vertical movement
-      ship.position.y += inputs.ascend * MAX_SPEED * 0.75 * delta;
+        // 5. Update position
+        ship.position.add(velocity.current.clone().multiplyScalar(delta));
 
-    } else {
-      // AI patrolling logic using simplex noise
-      const elapsedTime = clock.getElapsedTime() + data.id.charCodeAt(5);
-      const movementSpeed = 0.1;
+        // 6. Turning (Yaw) & Rolling
+        const yaw = manualInputs.turn * TURN_RATE * delta;
+        const roll = manualInputs.roll * ROLL_RATE * delta;
+        
+        const yawQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -yaw);
+        const rollQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -roll);
+        
+        ship.quaternion.multiply(yawQuat).multiply(rollQuat).normalize();
+        
+        wasManual.current = true;
+        return;
+    }
 
-      const time = elapsedTime * movementSpeed;
-      const range = FLIGHT_AREA_SIZE / 2;
-      
-      targetPosition.x = noise3D(time, 0, 0) * range;
-      targetPosition.z = noise3D(0, time, 0) * range;
-      targetPosition.y = 20 + (noise3D(0, 0, time) + 1) / 2 * 30;
-
-      steering.subVectors(targetPosition, ship.position).normalize().multiplyScalar(MAX_SPEED * 0.5);
-      acceleration.subVectors(steering, velocity);
-      velocity.add(acceleration.multiplyScalar(delta));
-      
-      if (velocity.length() > MAX_SPEED) velocity.normalize().multiplyScalar(MAX_SPEED);
-      
-      previousPosition.copy(ship.position);
-      ship.position.add(velocity.clone().multiplyScalar(delta));
-      
-      if (previousPosition.distanceTo(ship.position) > 0.01) {
-         const tempObject = new THREE.Object3D();
-         tempObject.position.copy(ship.position);
-         tempObject.lookAt(ship.position.clone().add(velocity));
-         ship.quaternion.slerp(tempObject.quaternion, 0.05);
-      }
+    // --- Autonomous AI Logic ---
+    if (wasManual.current) {
+        // This is the first frame after manual control ended.
+        // Reset AI state to seamlessly transition.
+        shipState.current.state = 'FLYING';
+        shipState.current.targetPosition.copy(getNewFlightTarget());
+        shipState.current.timer = Math.random() * 10 + 5;
+        velocity.current.set(0, 0, 0); // Reset velocity
+        wasManual.current = false;
     }
     
-    // Boundary checks to keep ships within a spherical flight area
-    const boundary = FLIGHT_AREA_SIZE;
-    if (ship.position.length() > boundary) {
-        ship.position.negate();
+    if (!shipState.current.isInitialized) {
+        // Find a random landing spot to start at.
+        const startPos = TERRAIN_LANDING_SPOTS[Math.floor(Math.random() * TERRAIN_LANDING_SPOTS.length)];
+        groupRef.current.position.copy(startPos);
+        shipState.current.finalLandingPosition.copy(startPos);
+        shipState.current.isInitialized = true;
+        groupRef.current.visible = true; // Make it visible once positioned
+    }
+
+    shipState.current.timer -= delta;
+    const currentPos = groupRef.current.position;
+    const targetPos = shipState.current.targetPosition;
+
+    switch (shipState.current.state) {
+      case 'FLYING':
+        // Geofencing: If ship flies too far, gently guide it back.
+        const boundary = FLIGHT_AREA_SIZE / 2;
+        if (Math.abs(currentPos.x) > boundary || Math.abs(currentPos.z) > boundary) {
+            const centerPoint = new THREE.Vector3(0, currentPos.y, 0);
+            shipState.current.targetPosition.lerp(centerPoint, 0.05); // Nudge target towards center
+        }
+
+        if (currentPos.distanceTo(targetPos) < 5 || shipState.current.timer <= 0) {
+          if (Math.random() < 0.5) { // Increased chance to land and visit a spot
+            shipState.current.state = 'DESCENDING';
+            const targetZone = ALL_LANDING_SPOTS[Math.floor(Math.random() * ALL_LANDING_SPOTS.length)];
+            const landingOffset = new THREE.Vector3((Math.random() - 0.5) * 5, 0, (Math.random() - 0.5) * 5);
+            
+            shipState.current.finalLandingPosition.copy(targetZone.clone().add(landingOffset));
+            
+            const hoverPosition = shipState.current.finalLandingPosition.clone();
+            hoverPosition.y = FLIGHT_ALTITUDE_MIN + 15;
+            shipState.current.targetPosition.copy(hoverPosition);
+          } else {
+            shipState.current.targetPosition.copy(getNewFlightTarget());
+            shipState.current.timer = Math.random() * 15 + 10;
+            shipState.current.finalLandingPosition.set(0, -1000, 0);
+          }
+        }
+        break;
+
+      case 'DESCENDING':
+        // The target is initially the hover position.
+        if (currentPos.distanceTo(targetPos) < 2) {
+          // Once we reach the hover spot, change the target to the final ground spot to initiate vertical descent.
+          shipState.current.targetPosition.copy(shipState.current.finalLandingPosition);
+        }
+        // This check now becomes the primary landing trigger.
+        if (currentPos.distanceTo(shipState.current.finalLandingPosition) < 0.5) {
+          shipState.current.state = 'LANDED';
+          shipState.current.timer = Math.random() * 8 + 5;
+          groupRef.current.position.copy(shipState.current.finalLandingPosition); // Snap to ground
+        }
+        break;
+
+      case 'LANDED':
+        if (shipState.current.timer <= 0) {
+          shipState.current.state = 'ASCENDING';
+          shipState.current.targetPosition.set(currentPos.x, FLIGHT_ALTITUDE_MIN + 10, currentPos.z);
+        } else {
+          // Bobble while landed
+          const bobble = Math.sin(clock.getElapsedTime() * 2) * 0.05;
+          groupRef.current.position.y = shipState.current.finalLandingPosition.y + bobble;
+        }
+        break;
+
+      case 'ASCENDING':
+        if (currentPos.distanceTo(targetPos) < 1) {
+          shipState.current.state = 'FLYING';
+          shipState.current.targetPosition.copy(getNewFlightTarget());
+          shipState.current.timer = Math.random() * 15 + 10;
+          shipState.current.finalLandingPosition.set(0, -1000, 0); 
+        }
+        break;
+    }
+
+    if (shipState.current.state !== 'LANDED') {
+      const speed = shipState.current.state === 'DESCENDING' ? FLIGHT_SPEED * 0.5 : FLIGHT_SPEED;
+      const direction = targetPos.clone().sub(currentPos).normalize();
+      currentPos.add(direction.multiplyScalar(delta * speed));
+      
+      const lookAtTarget = targetPos.clone();
+      if (shipState.current.state === 'ASCENDING' || shipState.current.state === 'DESCENDING') {
+          // Keep the ship level during vertical movement
+          lookAtTarget.y = currentPos.y;
+      }
+
+      tempLookAtObject.position.copy(currentPos);
+      tempLookAtObject.lookAt(lookAtTarget);
+      tempQuaternion.copy(tempLookAtObject.quaternion);
+      groupRef.current.quaternion.slerp(tempQuaternion, delta * TURN_SPEED);
     }
   });
 
   return (
-    <group ref={ref}>
-      <primitive object={clonedScene} scale={data.scale} />
-      <ThrustTrail opacity={isControlled ? Math.max(0, inputs.forward) * 0.8 : 0.5} />
+    <group ref={groupRef} scale={scale} dispose={null} visible={false}>
+      <primitive object={clonedScene} />
     </group>
   );
 });
 
-Ship.displayName = 'Ship';
+
+export const shipsData: ShipData[] = [
+    { id: 'space_1', url: `${GITHUB_MODEL_URL_BASE}ship_space.glb`, scale: 0.45, initialDelay: 0, shipType: 'fighter' },
+    { id: 'space_2', url: `${GITHUB_MODEL_URL_BASE}ship_space.glb`, scale: 0.47, initialDelay: 5, shipType: 'fighter' },
+    { id: 'delorean_1', url: `${GITHUB_MODEL_URL_BASE}ship_delorean.glb`, scale: 0.72, initialDelay: 2, shipType: 'transport' },
+    { id: 'delorean_2', url: `${GITHUB_MODEL_URL_BASE}ship_delorean.glb`, scale: 0.66, initialDelay: 7, shipType: 'transport' },
+    { id: 'copter_1', url: `${GITHUB_MODEL_URL_BASE}ship_copter.glb`, scale: 0.05, initialDelay: 4, shipType: 'copter' },
+    { id: 'copter_2', url: `${GITHUB_MODEL_URL_BASE}ship_copter.glb`, scale: 0.055, initialDelay: 9, shipType: 'copter' },
+];
 
 interface FlyingShipsProps {
-  setShipRefs: React.Dispatch<React.SetStateAction<React.RefObject<THREE.Group>[]>>;
+  setShipRefs: (refs: React.RefObject<THREE.Group>[]) => void;
   isPaused?: boolean;
   controlledShipId: string | null;
   shipInputs: ShipInputState;
 }
 
-export const FlyingShips: React.FC<FlyingShipsProps> = ({ setShipRefs, isPaused, controlledShipId, shipInputs }) => {
-  const shipRefs = useMemo(() =>
-    Array(shipsData.length).fill(0).map(() => React.createRef<THREE.Group>()),
+export const FlyingShips: React.FC<FlyingShipsProps> = React.memo(({ setShipRefs, isPaused, controlledShipId, shipInputs }) => {
+  
+  const shipRefs = useMemo(() => 
+    Array.from({ length: shipsData.length }, () => React.createRef<THREE.Group>()), 
     []
   );
-
+  
   useEffect(() => {
+    // Pass the entire array of refs up to the parent component.
     setShipRefs(shipRefs);
-  }, [shipRefs, setShipRefs]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
-    <group>
-      {shipsData.map((data, i) => (
+    <Suspense fallback={null}>
+      {shipsData.map((ship, i) => (
         <Ship 
-          key={data.id} 
-          ref={shipRefs[i]}
-          data={data}
-          isPaused={isPaused}
-          isControlled={controlledShipId === data.id}
-          inputs={shipInputs}
+            ref={shipRefs[i]} 
+            key={ship.id} 
+            {...ship} 
+            isPaused={isPaused} 
+            isUnderManualControl={controlledShipId === ship.id}
+            manualInputs={shipInputs}
         />
       ))}
-    </group>
+    </Suspense>
   );
-};
+});
 
-// Preload models for faster startup
-shipsData.forEach(ship => useGLTF.preload(ship.modelUrl));
+useGLTF.preload(`${GITHUB_MODEL_URL_BASE}ship_space.glb`);
+useGLTF.preload(`${GITHUB_MODEL_URL_BASE}ship_delorean.glb`);
+useGLTF.preload(`${GITHUB_MODEL_URL_BASE}ship_copter.glb`);
