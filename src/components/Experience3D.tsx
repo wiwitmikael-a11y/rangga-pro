@@ -147,7 +147,7 @@ export const Experience3D: React.FC = () => {
     } else { // newPov is 'main'
       // If already in main view, cycle through district POVs
       if (pov === 'main' && !selectedDistrict) {
-        const majorDistricts = districts.filter(d => d.type === 'major' && d.id !== selectedDistrict?.id);
+        const majorDistricts = districts.filter(d => d.type === 'major');
         if (majorDistricts.length > 0) {
           const randomIndex = Math.floor(Math.random() * majorDistricts.length);
           handleDistrictSelect(majorDistricts[randomIndex]);
@@ -242,7 +242,6 @@ export const Experience3D: React.FC = () => {
       
       <HUD 
           selectedDistrict={selectedDistrict} 
-          onGoHome={handleGoHome}
           onToggleNavMenu={() => setIsNavMenuOpen(!isNavMenuOpen)}
           isDetailViewActive={isDetailViewActive}
           pov={pov}

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, FormEvent, useEffect, KeyboardEvent } from 'react';
+import React, { useState, useCallback, FormEvent, useEffect } from 'react';
 import type { CityDistrict, PortfolioSubItem, SkillCategory } from '../../types';
 import { SkillsRadarChart } from './SkillsRadarChart';
 import { skillsData, professionalSummary } from '../../constants';

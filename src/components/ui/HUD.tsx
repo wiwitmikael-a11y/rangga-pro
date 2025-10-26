@@ -3,7 +3,6 @@ import type { CityDistrict } from '../../types';
 
 interface HUDProps {
   selectedDistrict: CityDistrict | null;
-  onGoHome: () => void;
   onToggleNavMenu: () => void;
   isDetailViewActive: boolean;
   pov: 'main' | 'ship';
@@ -110,7 +109,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
 };
 
-export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, onToggleNavMenu, isDetailViewActive, pov, onSetPov }) => {
+export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleNavMenu, isDetailViewActive, pov, onSetPov }) => {
 
   const breadcrumb = useMemo(() => {
     if (selectedDistrict) return `RAGETOPIA > /${selectedDistrict.id.toUpperCase()}_DISTRICT/`;
