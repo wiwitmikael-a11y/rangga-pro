@@ -1,9 +1,6 @@
-
-
 import React, { useState, useCallback, Suspense, useMemo, useRef, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
-// FIX: Import 'useGLTF' to resolve 'Cannot find name 'useGLTF'' error.
-import { OrbitControls, Sky, useGLTF } from '@react-three/drei';
+import { OrbitControls, Sky } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { EffectComposer, Noise, ChromaticAberration } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
@@ -14,7 +11,7 @@ import Rain from './scene/Rain';
 import { FlyingShips, shipsData } from './scene/FlyingShips';
 import { DistrictRenderer } from './scene/DistrictRenderer';
 import { portfolioData } from '../constants';
-import type { CityDistrict } from '../types';
+import type { CityDistrict, CityDistrictId } from '../types';
 import { CameraRig } from './CameraRig';
 import { HUD } from './ui/HUD';
 import { ProceduralTerrain } from './scene/ProceduralTerrain';
@@ -283,26 +280,34 @@ export const Experience3D: React.FC = () => {
     setIsOracleFocused(false);
     setIsOracleModalOpen(true);
   }, []);
+  
+  const handleOracleAction = useCallback((targetId: CityDistrictId) => {
+    setIsOracleModalOpen(false); // Close modal
+    const targetDistrict = districts.find(d => d.id === targetId);
+    if (targetDistrict) {
+        // A small delay to allow modal to fade out before camera moves
+        setTimeout(() => {
+            handleDistrictSelect(targetDistrict);
+        }, 300);
+    }
+  }, [districts, handleDistrictSelect]);
 
 
   return (
     <>
       <Canvas
         camera={{ position: INITIAL_CAMERA_POSITION, fov: 50, near: 0.5, far: 1000 }}
-        shadows
         gl={{ antialias: true, powerPreference: 'high-performance' }}
         onPointerDown={handleInteractionStart}
         onPointerUp={handleInteractionEnd}
         onWheel={handleInteractionStart}
       >
         <Suspense fallback={null}>
-          <fog attach="fog" args={['#050810', 100, 400]} />
           <ambientLight intensity={0.2} color={sunColor} />
           <directionalLight
             position={sunPosition}
             intensity={1.5}
             color={sunColor}
-            castShadow
             shadow-mapSize-width={2048}
             shadow-mapSize-height={2048}
             shadow-camera-far={500}
@@ -349,7 +354,7 @@ export const Experience3D: React.FC = () => {
 
           {isGameActive && <AegisProtocolGame onExit={handleExitGame} playerSpawnPosition={playerSpawnPosition.current} />}
           
-          <EffectComposer>
+          <EffectComposer disableNormalPass={true}>
             <Noise opacity={0.03} />
             <ChromaticAberration blendFunction={BlendFunction.NORMAL} offset={new THREE.Vector2(0.001, 0.001)} radialModulation={false} modulationOffset={0.0} />
           </EffectComposer>
@@ -420,7 +425,7 @@ export const Experience3D: React.FC = () => {
       <InstagramVisitModal isOpen={showVisitModal} onClose={handleGoHome} />
       <ContactHubModal isOpen={isContactHubOpen} onClose={handleGoHome} />
       <GameLobbyPanel isOpen={isGameLobbyOpen} onLaunch={handleLaunchGame} onClose={handleGoHome} />
-      <OracleModal isOpen={isOracleModalOpen} onClose={handleGoHome} />
+      <OracleModal isOpen={isOracleModalOpen} onClose={handleGoHome} onActionTriggered={handleOracleAction} />
       
       {isCalibrationMode && (
           <ExportLayoutModal isOpen={isExportModalOpen} onClose={() => setIsExportModalOpen(false)} jsonData={exportedLayoutJson} />

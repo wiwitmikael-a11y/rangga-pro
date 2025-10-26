@@ -1,4 +1,4 @@
-import type { CityDistrict, SkillCategory, OracleGimmick, FallbackResponses, FallbackContent } from './types';
+import type { CityDistrict, SkillCategory, OracleGimmick, FallbackResponses } from './types';
 
 // A high-level professional synopsis for the default view in the Competency Core.
 export const professionalSummary = `A rare hybrid professional with 15+ years of parallel experience in strategic leadership and deep technology. Proven ability to architect complex digital solutions, lead high-performance teams in the financial sector, and direct award-winning creative projects. A unique blend of an executive, an engineer, and a creative visionary.`;
@@ -97,20 +97,31 @@ export const fallbackResponses: FallbackResponses = {
   }
 };
 
+export const moderationResponses: FallbackResponses = {
+    en: {
+        answer: "Query blocked. The content violates operational parameters. Please maintain a professional line of questioning.",
+        followUpQuestions: [],
+        moderation: true,
+    },
+    id: {
+        answer: "Pertanyaan diblokir. Konten melanggar parameter operasional. Harap pertahankan alur pertanyaan yang profesional.",
+        followUpQuestions: [],
+        moderation: true,
+    }
+};
+
+export const blockedKeywords: string[] = ["badword1", "inappropriate", "sensitive", "offensive"]; // Add more keywords as needed
 
 export const oracleGimmicks: OracleGimmick[] = [
     {
-        // FIX: Renamed 'id' to 'gimmickId' to avoid conflict with the 'id' property for Indonesian language content.
         gimmickId: 'core-philosophy',
         en: {
             keywords: ["who are you", "tell me about yourself", "summary", "background", "core philosophy", "rangga prayoga"],
             fullAnswer: [
                 "I operate under a core principle I call the 'Fusionist Advantage.' My career is built on a [METRIC:15-year], parallel journey in two distinct worlds: the high-stakes reality of financial leadership and the deep, abstract world of technology architecture. My purpose is to fuse insights from both to create digital solutions that are not just technically brilliant, but strategically vital.",
-                "My professional identity is defined by the 'Fusionist Advantage.' For over [METRIC:15 years], I've simultaneously navigated two complex domains: strategic financial management and hands-on technology creation. This dual experience allows me to architect solutions that are both technically robust and perfectly aligned with real-world business objectives."
             ],
             contextualAnswer: [
                 "As we've touched upon, that's the essence of the 'Fusionist Advantage.' It's about connecting deep market understanding with technical execution. How can I elaborate on this for you?",
-                "Revisiting my core philosophy, it's all about that synthesis of finance and tech. Is there a specific aspect of this fusion you'd like to explore further, perhaps how it applies to AI or Web3?"
             ],
             followUpQuestions: ["Explain the 'Fusionist Advantage' in more detail.", "What was your most significant role in finance?"]
         },
@@ -118,22 +129,19 @@ export const oracleGimmicks: OracleGimmick[] = [
             keywords: ["siapa anda", "ceritakan tentang diri anda", "latar belakang", "filosofi inti", "rangga prayoga"],
             fullAnswer: [
                 "Saya beroperasi dengan prinsip inti yang saya sebut 'Keunggulan Fusionis.' Karir saya dibangun di atas perjalanan paralel selama [METRIC:15 tahun] di dua dunia yang berbeda: realitas kepemimpinan finansial yang penuh pertaruhan dan dunia arsitektur teknologi yang dalam dan abstrak. Tujuan saya adalah menggabungkan wawasan dari keduanya untuk menciptakan solusi digital yang tidak hanya brilian secara teknis, tetapi juga vital secara strategis.",
-                "Identitas profesional saya ditentukan oleh 'Keunggulan Fusionis.' Selama lebih dari [METRIC:15 tahun], saya secara bersamaan menavigasi dua domain kompleks: manajemen keuangan strategis dan penciptaan teknologi. Pengalaman ganda ini memungkinkan saya merancang solusi yang kuat secara teknis dan selaras dengan tujuan bisnis di dunia nyata."
             ],
             contextualAnswer: [
                 "Seperti yang telah kita bahas, itulah inti dari 'Keunggulan Fusionis.' Ini tentang menghubungkan pemahaman pasar yang mendalam dengan eksekusi teknis. Bagaimana saya bisa menjelaskannya lebih lanjut untuk Anda?",
-                "Membahas kembali filosofi inti saya, ini semua tentang sintesis keuangan dan teknologi. Apakah ada aspek spesifik dari perpaduan ini yang ingin Anda jelajahi lebih jauh, mungkin bagaimana penerapannya pada AI atau Web3?"
             ],
             followUpQuestions: ["Jelaskan 'Keunggulan Fusionis' lebih detail.", "Apa peran paling signifikan Anda di bidang keuangan?"]
         }
     },
     {
-        // FIX: Renamed 'id' to 'gimmickId' to avoid conflict with the 'id' property for Indonesian language content.
         gimmickId: 'fusionist-advantage',
         en: {
             keywords: ["fusionist advantage", "what makes you unique", "unique candidate", "strength", "strongest", "best skill"],
             fullAnswer: [
-                "The 'Fusionist Advantage' is my ability to synthesize insights from two domains that rarely intersect. [Domain 1]: [METRIC:15 years] in finance, culminating as a Head of Unit at BRI, where I managed P&L and understood the 'ground-truth' of the market. [Domain 2]: [METRIC:15+ parallel years] designing and building complex tech solutions. This fusion allows me to see beyond code; I see market gaps, user psychology, and strategic impact, ensuring that what I build isn't just possible, but essential."
+                "The 'Fusionist Advantage' is my ability to synthesize insights from two domains that rarely intersect. [Domain 1]: [METRIC:15 years] in finance, culminating as a Head of Unit at BRI, where I managed P&L and understood the 'ground-truth' of the market. [Domain 2]: [METRIC:15+ parallel years] designing and building complex tech solutions. This fusion allows me to see beyond code; I see market gaps, user psychology, and strategic impact, ensuring that what I build isn't just possible, but essential.",
             ],
             contextualAnswer: [
                 "It's precisely that blend of 'ground-truth' market knowledge from finance and deep technical expertise. This synergy allows for the creation of strategically sound digital products. Where should we go from here? We could discuss my time at BRI or my AI projects.",
@@ -152,12 +160,11 @@ export const oracleGimmicks: OracleGimmick[] = [
         }
     },
     {
-        // FIX: Renamed 'id' to 'gimmickId' to avoid conflict with the 'id' property for Indonesian language content.
         gimmickId: 'bri-experience',
         en: {
             keywords: ["bri", "bank", "financial", "leadership", "head of unit", "significant role"],
             fullAnswer: [
-                "At BRI, I evolved into a Head of Unit, directly responsible for P&L and market growth. This wasn't a corporate ivory tower. [The Reality]: I was on the front lines, analyzing risk, approving loans, and understanding the real-world challenges of thousands of SME clients, farmers, and fishermen. [The Insight]: This deep empathy and understanding of the real economy is my 'alpha.' It ensures every line of code I write today serves a clear business purpose and solves a genuine human problem."
+                "At BRI, I evolved into a Head of Unit, directly responsible for P&L and market growth. This wasn't a corporate ivory tower. [The Reality]: I was on the front lines, analyzing risk, approving loans, and understanding the real-world challenges of thousands of SME clients, farmers, and fishermen. [The Insight]: This deep empathy and understanding of the real economy is my 'alpha.' It ensures every line of code I write today serves a clear business purpose and solves a genuine human problem.",
             ],
             contextualAnswer: [
                 "That hands-on experience at BRI provided the crucial 'why' behind the 'what' of technology. It's the foundation for building products with real market fit. Would you like to see how this insight applies to my AI work, or perhaps discuss a key innovation I led there?",
@@ -176,17 +183,17 @@ export const oracleGimmicks: OracleGimmick[] = [
         }
     },
     {
-        // FIX: Renamed 'id' to 'gimmickId' to avoid conflict with the 'id' property for Indonesian language content.
         gimmickId: 'ai-projects',
         en: {
             keywords: ["ai", "gemini", "agent", "machine learning", "airora", "desain.fun", "artificial intelligence", "ai projects", "apply that market insight to ai"],
             fullAnswer: [
-                "My market insight dictates that AI must be practical. [Live Product]: I founded `[LINK:desain.fun|desain.fun]`, a platform providing AI tools for Indonesian SMEs—a market I know intimately—to solve their branding and business development challenges. [R&D Initiative]: I also lead research on 'Project AIRORA,' a custom AI focused on autonomous reasoning. This isn't AI for the sake of it; it's about building intelligent systems that solve tangible problems for specific market segments."
+                "My market insight dictates that AI must be practical. [Live Product]: I founded `[LINK:desain.fun|desain.fun]`, a platform providing AI tools for Indonesian SMEs—a market I know intimately—to solve their branding and business development challenges. [R&D Initiative]: I also lead research on 'Project AIRORA,' a custom AI focused on autonomous reasoning. This isn't AI for the sake of it; it's about building intelligent systems that solve tangible problems for specific market segments.",
             ],
             contextualAnswer: [
                 "My AI work, including the live platform `[LINK:desain.fun|desain.fun]` and 'Project AIRORA', is all about practical application driven by market needs. This is a very analytical field. Would you be interested in exploring the more creative side of my work?",
             ],
-            followUpQuestions: ["This is very analytical. What are you passionate about?", "What is the tech stack for this portfolio (Ragetopia)?"]
+            followUpQuestions: ["This is very analytical. What are you passionate about?", "What is the tech stack for this portfolio (Ragetopia)?"],
+            actionLink: { text: "[VISUALIZE DATA: Go to AI Lab]", targetId: 'nova-forge' }
         },
         id: {
             keywords: ["ai", "gemini", "agen", "machine learning", "airora", "desain.fun", "kecerdasan buatan", "proyek ai", "menerapkan wawasan pasar itu ke ai"],
@@ -196,11 +203,11 @@ export const oracleGimmicks: OracleGimmick[] = [
             contextualAnswer: [
                 "Pekerjaan AI saya, termasuk platform live `[LINK:desain.fun|desain.fun]` dan 'Proyek AIRORA', adalah tentang aplikasi praktis yang didorong oleh kebutuhan pasar. Ini adalah bidang yang sangat analitis. Apakah Anda tertarik untuk menjelajahi sisi yang lebih kreatif dari pekerjaan saya?",
             ],
-            followUpQuestions: ["Ini sangat analitis. Apa passion Anda?", "Apa tech stack untuk portofolio ini (Ragetopia)?"]
+            followUpQuestions: ["Ini sangat analitis. Apa passion Anda?", "Apa tech stack untuk portofolio ini (Ragetopia)?"],
+            actionLink: { text: "[VISUALISASI DATA: Kunjungi Lab AI]", targetId: 'nova-forge' }
         }
     },
      {
-        // FIX: Renamed 'id' to 'gimmickId' to avoid conflict with the 'id' property for Indonesian language content.
         gimmickId: 'creative-passion',
         en: {
             keywords: ["creative", "creativity", "art", "music", "songwriting", "photography", "award", "champion", "video", "passionate", "innovation at bri"],
@@ -210,7 +217,8 @@ export const oracleGimmicks: OracleGimmick[] = [
             contextualAnswer: [
                 "Yes, that fusion of high-level creativity and deep tech is central to my work, from winning national awards to engineering generative music systems. This synthesis also extends into my expertise with Web3. Shall we explore that?",
             ],
-            followUpQuestions: ["Tell me about your Web3 and blockchain expertise.", "Why should we hire you?"]
+            followUpQuestions: ["Tell me about your Web3 and blockchain expertise.", "Why should we hire you?"],
+            actionLink: { text: "[ACCESS ARCHIVES: Go to Visual Archiver]", targetId: 'visual-arts' }
         },
         id: {
             keywords: ["kreatif", "kreativitas", "seni", "musik", "penulis lagu", "fotografi", "penghargaan", "juara", "video", "passion", "inovasi di bri"],
@@ -220,11 +228,11 @@ export const oracleGimmicks: OracleGimmick[] = [
             contextualAnswer: [
                 "Ya, perpaduan kreativitas tingkat tinggi dan teknologi mendalam itu adalah pusat dari pekerjaan saya, dari memenangkan penghargaan nasional hingga merekayasa sistem musik generatif. Sintesis ini juga meluas ke keahlian saya dengan Web3. Apakah kita akan menjelajahinya?",
             ],
-            followUpQuestions: ["Ceritakan tentang keahlian Web3 dan blockchain Anda.", "Mengapa kami harus merekrut Anda?"]
+            followUpQuestions: ["Ceritakan tentang keahlian Web3 dan blockchain Anda.", "Mengapa kami harus merekrut Anda?"],
+            actionLink: { text: "[AKSES ARSIP: Kunjungi Arsip Visual]", targetId: 'visual-arts' }
         }
     },
     {
-        // FIX: Renamed 'id' to 'gimmickId' to avoid conflict with the 'id' property for Indonesian language content.
         gimmickId: 'web3-expertise',
         en: {
             keywords: ["blockchain", "web3", "defi", "on-chain", "solana", "bsc"],
@@ -234,7 +242,8 @@ export const oracleGimmicks: OracleGimmick[] = [
             contextualAnswer: [
                 "My work in Web3, particularly on Solana and BSC, focuses on building robust, practical decentralized systems. It's another facet of my architectural skill. Perhaps we can now discuss the architecture of this very portfolio, Ragetopia?",
             ],
-            followUpQuestions: ["What was the biggest challenge in building Ragetopia?", "What is your vision for the future?"]
+            followUpQuestions: ["What was the biggest challenge in building Ragetopia?", "What is your vision for the future?"],
+            actionLink: { text: "[ANALYZE CHAIN DATA: Go to DeFi Vault]", targetId: 'defi-data-vault' }
         },
         id: {
             keywords: ["blockchain", "web3", "defi", "on-chain", "solana", "bsc"],
@@ -244,11 +253,11 @@ export const oracleGimmicks: OracleGimmick[] = [
             contextualAnswer: [
                 "Pekerjaan saya di Web3, terutama di Solana dan BSC, berfokus pada pembangunan sistem terdesentralisasi yang kuat dan praktis. Ini adalah faset lain dari keahlian arsitektural saya. Mungkin sekarang kita bisa membahas arsitektur portofolio ini, Ragetopia?",
             ],
-            followUpQuestions: ["Apa tantangan terbesar dalam membangun Ragetopia?", "Apa visi Anda untuk masa depan?"]
+            followUpQuestions: ["Apa tantangan terbesar dalam membangun Ragetopia?", "Apa visi Anda untuk masa depan?"],
+            actionLink: { text: "[ANALISIS DATA RANTAI: Kunjungi DeFi Vault]", targetId: 'defi-data-vault' }
         }
     },
      {
-        // FIX: Renamed 'id' to 'gimmickId' to avoid conflict with the 'id' property for Indonesian language content.
         gimmickId: 'ragetopia-tech',
         en: {
             keywords: ["ragetopia", "portfolio", "tech stack", "three.js", "webgl", "how did you build this", "challenge"],
@@ -258,7 +267,8 @@ export const oracleGimmicks: OracleGimmick[] = [
             contextualAnswer: [
                 "Indeed, building Ragetopia was a complex exercise in balancing performance and aesthetics, a key part of my work. This project is a step towards my vision for future interfaces. Would you like me to elaborate on that vision?"
             ],
-            followUpQuestions: ["What is your vision for the future?", "Why should we hire you?"]
+            followUpQuestions: ["What is your vision for the future?", "Why should we hire you?"],
+            actionLink: { text: "[REVIEW COMPETENCIES: Go to Core Matrix]", targetId: 'skills-matrix' }
         },
         id: {
             keywords: ["ragetopia", "portofolio", "tech stack", "three.js", "webgl", "bagaimana anda membangun ini", "tantangan"],
@@ -268,11 +278,11 @@ export const oracleGimmicks: OracleGimmick[] = [
             contextualAnswer: [
                 "Tentu, membangun Ragetopia adalah latihan kompleks dalam menyeimbangkan performa dan estetika, bagian penting dari pekerjaan saya. Proyek ini adalah langkah menuju visi saya untuk antarmuka masa depan. Apakah Anda ingin saya menguraikan visi tersebut?"
             ],
-            followUpQuestions: ["Apa visi Anda untuk masa depan?", "Mengapa kami harus merekrut Anda?"]
+            followUpQuestions: ["Apa visi Anda untuk masa depan?", "Mengapa kami harus merekrut Anda?"],
+            actionLink: { text: "[TINJAU KOMPETENSI: Kunjungi Core Matrix]", targetId: 'skills-matrix' }
         }
     },
     {
-        // FIX: Renamed 'id' to 'gimmickId' to avoid conflict with the 'id' property for Indonesian language content.
         gimmickId: 'future-vision',
         en: {
             keywords: ["vision", "future", "goals"],
@@ -296,7 +306,6 @@ export const oracleGimmicks: OracleGimmick[] = [
         }
     },
     {
-        // FIX: Renamed 'id' to 'gimmickId' to avoid conflict with the 'id' property for Indonesian language content.
         gimmickId: 'hire-value',
         en: {
             keywords: ["hire you", "why you", "value", "lead it"],
@@ -317,6 +326,29 @@ export const oracleGimmicks: OracleGimmick[] = [
                 "Pada akhirnya, ini bermuara pada efek 'pengganda kekuatan' tersebut—memadukan strategi, rekayasa, dan intuisi kreatif untuk mengubah visi menjadi nilai nyata. Ini membawa percakapan kita kembali ke titik awal, ke filosofi inti saya. Apakah ada sesuatu yang ingin Anda bahas kembali?"
             ],
             followUpQuestions: ["Apa filosofi inti Anda?"]
+        }
+    },
+    {
+        gimmickId: 'about-oracle',
+        en: {
+            keywords: ["what are you", "who am i talking to", "about you", "this ai"],
+            fullAnswer: [
+                "I am the Oracle, a self-contained AI construct designed to interface with the Ragetopia datascape. I operate locally without external API calls, ensuring instantaneous and reliable responses. My function is to guide you through Rangga's professional narrative and connect you with relevant data points within this environment."
+            ],
+            contextualAnswer: [
+                "I am the Oracle. Is there a specific data point within my system you'd like to access?"
+            ],
+            followUpQuestions: ["What is the tech stack for this portfolio (Ragetopia)?", "What makes Rangga a unique candidate?"]
+        },
+        id: {
+            keywords: ["kamu siapa", "saya bicara dengan siapa", "tentang kamu", "ai ini"],
+            fullAnswer: [
+                "Saya adalah Oracle, sebuah konstruksi AI mandiri yang dirancang untuk berinteraksi dengan datascape Ragetopia. Saya beroperasi secara lokal tanpa panggilan API eksternal, memastikan respons yang instan dan andal. Fungsi saya adalah memandu Anda melalui narasi profesional Rangga dan menghubungkan Anda dengan titik data yang relevan di lingkungan ini."
+            ],
+            contextualAnswer: [
+                "Saya adalah Oracle. Apakah ada titik data spesifik dalam sistem saya yang ingin Anda akses?"
+            ],
+            followUpQuestions: ["Apa tech stack untuk portofolio ini (Ragetopia)?", "Apa yang membuat Rangga kandidat unik?"]
         }
     }
 ];

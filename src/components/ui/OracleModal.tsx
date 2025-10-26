@@ -1,7 +1,7 @@
 import React, { useState, FormEvent, useRef, useEffect } from 'react';
 import { askOracle } from '../../services/oracleService';
 import { curatedOracleQuestions } from '../../constants';
-import type { OracleResponse } from '../../types';
+import type { OracleResponse, OracleActionLink, CityDistrictId } from '../../types';
 
 // --- Helper Component for Typewriter Effect ---
 const Typewriter: React.FC<{ text: string; speed?: number; onFinished?: () => void; showCursor?: boolean }> = ({ text, speed = 15, onFinished, showCursor = true }) => {
@@ -53,11 +53,9 @@ const InteractiveTextRenderer: React.FC<{ text: string }> = ({ text }) => {
     return (
         <p style={{ margin: 0, lineHeight: '1.6' }}>
             {parts.map((part, i) => {
-                // The regex split results in groups of 4: [full_match, type, content, link_text].
-                // We only need to process the captured groups, not the plain text parts.
-                if (i % 4 === 0) { // This is the normal text between matches.
+                if (i % 4 === 0) {
                     return <span key={i}>{part}</span>;
-                } else if (i % 4 === 1) { // This is the 'type' (METRIC or LINK).
+                } else if (i % 4 === 1) {
                     const type = part;
                     const content = parts[i + 1];
                     const linkText = parts[i + 2] || content;
@@ -81,6 +79,7 @@ const InteractiveTextRenderer: React.FC<{ text: string }> = ({ text }) => {
 interface OracleModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onActionTriggered: (targetId: CityDistrictId) => void;
 }
 interface Message {
     sender: 'user' | 'oracle';
@@ -112,14 +111,17 @@ const styles: { [key: string]: React.CSSProperties } = {
     curatedButton: { background: 'rgba(0, 170, 255, 0.1)', border: '1px solid rgba(0, 170, 255, 0.3)', color: '#cceeff', padding: '8px 12px', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer', transition: 'background 0.2s ease' },
     followUpContainer: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '10px', padding: '10px 20px 0 20px', alignSelf: 'flex-start', animation: 'fadeInContent 0.5s 0.2s ease forwards', opacity: 0 },
     followUpHeader: { fontSize: '0.8rem', color: '#88a7a6', margin: '0 0 5px 0', textTransform: 'uppercase', letterSpacing: '0.1em' },
-    followUpButtons: { display: 'flex', flexWrap: 'wrap', gap: '10px' }
+    followUpButtons: { display: 'flex', flexWrap: 'wrap', gap: '10px' },
+    actionButtonContainer: { padding: '0 20px 10px', alignSelf: 'flex-start', animation: 'fadeInContent 0.5s 0.2s ease forwards', opacity: 0 },
+    actionButton: { background: 'rgba(0, 255, 127, 0.15)', border: '1px solid #00ff7f', color: '#00ff7f', padding: '10px 15px', borderRadius: '5px', fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s ease' }
 };
 
-export const OracleModal: React.FC<OracleModalProps> = ({ isOpen, onClose }) => {
+export const OracleModal: React.FC<OracleModalProps> = ({ isOpen, onClose, onActionTriggered }) => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [currentFollowUps, setCurrentFollowUps] = useState<string[]>([]);
+    const [currentAction, setCurrentAction] = useState<OracleActionLink | null>(null);
     const [discussedTopics, setDiscussedTopics] = useState<Set<string>>(new Set());
     const [typingMessageIndex, setTypingMessageIndex] = useState<number | null>(null);
     const [language, setLanguage] = useState<'en' | 'id'>('en');
@@ -136,31 +138,32 @@ export const OracleModal: React.FC<OracleModalProps> = ({ isOpen, onClose }) => 
             setInput('');
             setIsLoading(false);
             setCurrentFollowUps([]);
+            setCurrentAction(null);
             setDiscussedTopics(new Set());
-            setTypingMessageIndex(0); // Start typing the initial message
+            setTypingMessageIndex(0);
         }
     }, [isOpen]);
     
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages, isLoading, currentFollowUps]);
+    }, [messages, isLoading, currentFollowUps, currentAction]);
 
     const handleSubmit = async (e?: FormEvent, query?: string) => {
         if (e) e.preventDefault();
         const userQuery = query || input;
         if (!userQuery.trim() || isLoading) return;
 
-        // Detect language for UI purposes
         const isIndonesianQuery = /\b(apa|siapa|bagaimana|jelaskan|di mana|tentang|pengalaman|anda)\b/.test(userQuery.toLowerCase());
         setLanguage(isIndonesianQuery ? 'id' : 'en');
         
         setCurrentFollowUps([]);
+        setCurrentAction(null);
         const newMessages: Message[] = [...messages, { sender: 'user', text: userQuery }];
         setMessages(newMessages);
         setInput('');
         setIsLoading(true);
 
-        const { answer, followUpQuestions, gimmickId }: OracleResponse = await askOracle(userQuery, discussedTopics);
+        const { answer, followUpQuestions, gimmickId, actionLink }: OracleResponse = await askOracle(userQuery, discussedTopics);
         
         if (gimmickId) {
             setDiscussedTopics(prev => new Set(prev).add(gimmickId));
@@ -168,9 +171,10 @@ export const OracleModal: React.FC<OracleModalProps> = ({ isOpen, onClose }) => 
 
         const newOracleMessage = { sender: 'oracle', text: answer };
         setMessages(prev => [...prev, newOracleMessage]);
-        setTypingMessageIndex(newMessages.length); // Index of the new oracle message
+        setTypingMessageIndex(newMessages.length);
         setIsLoading(false);
         setCurrentFollowUps(followUpQuestions);
+        setCurrentAction(actionLink || null);
     };
     
     const containerStyle: React.CSSProperties = { ...styles.container, opacity: isOpen ? 1 : 0, transform: isOpen ? 'translate(-50%, -50%) scale(1)' : 'translate(-50%, -50%) scale(0.95)', pointerEvents: isOpen ? 'auto' : 'none' };
@@ -205,6 +209,13 @@ export const OracleModal: React.FC<OracleModalProps> = ({ isOpen, onClose }) => 
                             {isLoading && (
                                 <div style={{ ...styles.messageBubble, ...styles.oracleMessage }}>
                                     [PROCESSING...]<span className="blinking-cursor">_</span>
+                                </div>
+                            )}
+                            {!isLoading && currentAction && (
+                                <div style={styles.actionButtonContainer}>
+                                    <button style={styles.actionButton} className="nav-button" onClick={() => onActionTriggered(currentAction.targetId)}>
+                                        {currentAction.text}
+                                    </button>
                                 </div>
                             )}
                             {!isLoading && currentFollowUps.length > 0 && (
