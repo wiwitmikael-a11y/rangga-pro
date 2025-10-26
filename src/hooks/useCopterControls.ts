@@ -1,7 +1,9 @@
-import { useEffect, useRef } from 'react';
+// FIX: Import React to make the 'React' namespace available for types like React.RefObject.
+import React, { useEffect, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
+// Helper to manage keyboard state
 const useInput = () => {
   const keys = useRef<{ [key: string]: boolean }>({}).current;
   useEffect(() => {
@@ -17,71 +19,102 @@ const useInput = () => {
   return keys;
 };
 
-export const useCopterControls = (targetRef: React.RefObject<THREE.Object3D>) => {
+export const useCopterControls = (shipRef: React.RefObject<THREE.Group>, enabled: boolean) => {
   const keys = useInput();
-  const { camera } = useThree();
-  const velocity = useRef(new THREE.Vector3()).current;
-  const rotation = useRef(new THREE.Euler()).current;
+  const { camera, gl } = useThree();
 
-  const moveSpeed = 15;
-  const rotationSpeed = 1.5;
+  const velocity = useRef(new THREE.Vector3(0, 0, 0)).current;
+  const rotationVelocity = useRef(new THREE.Euler(0, 0, 0, 'YXZ')).current;
 
-  useFrame((_, delta) => {
-    if (!targetRef.current) return;
+  // Pointer Lock and Mouse Controls
+  useEffect(() => {
+    if (!enabled) {
+      if(document.pointerLockElement) document.exitPointerLock();
+      return;
+    };
+    
+    const handleMouseMove = (e: MouseEvent) => {
+        if (document.pointerLockElement === gl.domElement) {
+            const sensitivity = 0.002;
+            rotationVelocity.y -= e.movementX * sensitivity;
+            rotationVelocity.x -= e.movementY * sensitivity;
+            rotationVelocity.x = Math.max(-Math.PI / 4, Math.min(Math.PI / 4, rotationVelocity.x)); // Clamp pitch
+        }
+    };
+    
+    const handleClick = () => {
+        gl.domElement.requestPointerLock().catch(err => console.error("Pointer lock failed:", err));
+    };
 
-    // --- Translation ---
+    document.addEventListener('mousemove', handleMouseMove);
+    gl.domElement.addEventListener('click', handleClick);
+
+    return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        gl.domElement.removeEventListener('click', handleClick);
+        if(document.pointerLockElement === gl.domElement) {
+          document.exitPointerLock();
+        }
+    }
+  }, [enabled, gl.domElement, rotationVelocity]);
+
+
+  useFrame((_state, delta) => {
+    if (!shipRef.current || !enabled) {
+      // Smoothly stop the ship when controls are disabled
+      velocity.lerp(new THREE.Vector3(0,0,0), delta * 5);
+      return;
+    };
+
+    // --- CONFIG ---
+    const thrust = 30.0;
+    const verticalThrust = 20.0;
+    const drag = 2.0;
+    const rotationDrag = 3.0;
+
+    // --- KEYBOARD INPUT ---
     const forward = keys['KeyW'] || keys['ArrowUp'] ? 1 : 0;
     const backward = keys['KeyS'] || keys['ArrowDown'] ? 1 : 0;
-    const left = keys['KeyA'] || keys['ArrowLeft'] ? 1 : 0;
-    const right = keys['KeyD'] || keys['ArrowRight'] ? 1 : 0;
-    const up = keys['Space'] || keys['KeyE'] ? 1 : 0;
-    const down = keys['ShiftLeft'] || keys['KeyQ'] ? 1 : 0;
+    const up = keys['Space'] ? 1 : 0;
+    const down = keys['ShiftLeft'] || keys['ControlLeft'] ? 1 : 0;
+    // A/D now control roll
+    const rollLeft = keys['KeyA'] || keys['ArrowLeft'] ? 1 : 0;
+    const rollRight = keys['KeyD'] || keys['ArrowRight'] ? 1 : 0;
 
-    const direction = new THREE.Vector3(
-      right - left,
-      up - down,
-      backward - forward
-    ).normalize();
+    // --- FORCES ---
+    const thrustVector = new THREE.Vector3(0, 0, backward - forward).multiplyScalar(thrust * delta);
+    const verticalVector = new THREE.Vector3(0, up - down, 0).multiplyScalar(verticalThrust * delta);
+    
+    // Update roll from keyboard
+    rotationVelocity.z += (rollLeft - rollRight) * 0.1;
 
-    // Calculate velocity based on direction and speed
-    const targetVelocity = direction.multiplyScalar(moveSpeed);
-    
-    // Apply velocity relative to the object's rotation
-    const rotatedVelocity = targetVelocity.clone().applyQuaternion(targetRef.current.quaternion);
 
-    // Lerp for smooth acceleration/deceleration
-    velocity.lerp(rotatedVelocity, 0.1);
-    
-    targetRef.current.position.add(velocity.clone().multiplyScalar(delta));
+    // --- APPLY FORCES & ROTATION ---
+    const worldThrust = thrustVector.clone().applyQuaternion(shipRef.current.quaternion);
+    velocity.add(worldThrust);
+    velocity.add(verticalVector);
 
-    // --- Rotation ---
-    // The camera should be positioned behind and slightly above the ship
-    const cameraOffset = new THREE.Vector3(0, 2, 8); 
-    const targetCameraPosition = targetRef.current.position.clone().add(cameraOffset.applyQuaternion(targetRef.current.quaternion));
-    
-    camera.position.lerp(targetCameraPosition, delta * 3);
-    
-    // Make camera look at a point slightly in front of the ship for better leading
-    const lookAtPoint = targetRef.current.position.clone().add(new THREE.Vector3(0, 1, -10).applyQuaternion(targetRef.current.quaternion));
-    camera.lookAt(lookAtPoint);
-    
-    // Update ship rotation based on keys
-    const yawLeft = keys['KeyJ'] ? 1 : 0;
-    const yawRight = keys['KeyL'] ? 1 : 0;
-    const pitchUp = keys['KeyI'] ? 1 : 0;
-    const pitchDown = keys['KeyK'] ? 1 : 0;
+    // Apply drag
+    velocity.multiplyScalar(1 - delta * drag);
+    rotationVelocity.x *= (1 - delta * rotationDrag);
+    rotationVelocity.y *= (1 - delta * rotationDrag);
+    rotationVelocity.z *= (1 - delta * rotationDrag);
 
-    const yawDelta = (yawLeft - yawRight) * rotationSpeed * delta;
-    const pitchDelta = (pitchDown - pitchUp) * rotationSpeed * delta;
+    // Update position
+    shipRef.current.position.add(velocity.clone().multiplyScalar(delta));
 
-    rotation.set(targetRef.current.rotation.x, targetRef.current.rotation.y, targetRef.current.rotation.z);
+    // Update rotation
+    const rotationDelta = new THREE.Quaternion().setFromEuler(rotationVelocity);
+    shipRef.current.quaternion.multiply(rotationDelta);
     
-    // Create quaternions for pitch and yaw
-    const yawQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yawDelta);
-    const pitchQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitchDelta);
+    // --- CAMERA FOLLOW ---
+    const cameraOffset = new THREE.Vector3(0, 5, 12);
+    const worldOffset = cameraOffset.applyQuaternion(shipRef.current.quaternion);
+    const cameraTargetPosition = shipRef.current.position.clone().add(worldOffset);
+
+    camera.position.lerp(cameraTargetPosition, delta * 3.0);
     
-    // Apply yaw first, then pitch relative to the new orientation
-    targetRef.current.quaternion.multiplyQuaternions(yawQuat, targetRef.current.quaternion);
-    targetRef.current.quaternion.multiply(pitchQuat);
+    const lookAtTarget = shipRef.current.position.clone();
+    camera.lookAt(lookAtTarget);
   });
 };

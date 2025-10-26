@@ -11,10 +11,10 @@ import { CameraRig } from './CameraRig';
 import { CityModel } from './scene/CityModel';
 import { DistrictRenderer } from './scene/DistrictRenderer';
 import { ProceduralTerrain } from './scene/ProceduralTerrain';
-import { FloatingParticles } from './scene/FloatingParticles';
+import FloatingParticles from './scene/FloatingParticles';
 import { FlyingShips } from './scene/FlyingShips';
 import { PatrollingCore } from './scene/PatrollingCore';
-import { DataTrail } from './scene/DataTrail';
+import DataTrail from './scene/DataTrail';
 import { BuildModeController } from './scene/BuildModeController';
 import { CalibrationGrid } from './scene/CalibrationGrid';
 
@@ -25,16 +25,17 @@ import { ExportLayoutModal } from './ui/ExportLayoutModal';
 import { useCopterControls } from '../hooks/useCopterControls';
 import { ThrustTrail } from './scene/ThrustTrail';
 
-// A simple player ship model for POV mode
-const PlayerShip: React.FC = React.forwardRef<THREE.Group>((props, ref) => (
+// A simple player ship model for POV mode, corrected for forwardRef usage
+const PlayerShip = React.forwardRef<THREE.Group, {}>((_props, ref) => (
   <group ref={ref}>
     <mesh>
       <coneGeometry args={[0.5, 2, 8]} />
       <meshStandardMaterial color="gold" emissive="orange" />
     </mesh>
-    <ThrustTrail position={[0,0,-1]} length={4} width={0.3} />
+    <ThrustTrail position={[0, 0, -1]} length={4} width={0.3} />
   </group>
 ));
+PlayerShip.displayName = 'PlayerShip';
 
 
 export const Experience3D: React.FC = () => {
@@ -57,7 +58,8 @@ export const Experience3D: React.FC = () => {
   const playerShipRef = useRef<THREE.Group>(null);
   
   // --- HOOKS ---
-  useCopterControls(playerShipRef);
+  // FIX: Enable Copter Controls only when POV is 'ship'
+  useCopterControls(playerShipRef, pov === 'ship');
 
   useEffect(() => {
     if (controlsRef.current) {
@@ -108,7 +110,7 @@ export const Experience3D: React.FC = () => {
     const dirtyDistricts = districts.filter(d => d.isDirty);
     if (dirtyDistricts.length === 0) return "No layout changes to export.";
     // Create a string representation of the new positions for easy copy-paste
-    return JSON.stringify(districts, (key, value) => {
+    return JSON.stringify(districts, (_key, value) => { // Fixed unused 'key' parameter
       if (typeof value === 'number') {
         return parseFloat(value.toFixed(2));
       }

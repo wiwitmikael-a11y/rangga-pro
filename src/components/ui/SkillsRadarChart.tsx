@@ -9,7 +9,7 @@ interface SkillsRadarChartProps {
 
 const CHART_SIZE = 400;
 const CHART_CENTER = CHART_SIZE / 2;
-const MAX_RADIUS = CHART_CENTER * 0.8;
+const MAX_RADIUS = CHART_CENTER * 0.4; // Reduced from 0.8 to make the chart smaller
 
 // Define a vibrant, game-like color palette for each category
 const CATEGORY_COLORS = [

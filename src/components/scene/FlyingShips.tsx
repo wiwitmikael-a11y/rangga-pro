@@ -1,67 +1,109 @@
-import React, { useMemo, useRef } from 'react';
-import { useGLTF } from '@react-three/drei';
+import React, { useRef, useMemo, useState, useEffect } from 'react';
+import { useGLTF } from '@drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { createNoise3D } from 'simplex-noise';
-import { ThrustTrail } from './ThrustTrail';
 
-const SHIP_MODEL_URL = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/SciFi_Fighter-MK6-/_Final.glb';
-const noise3D = createNoise3D();
+const SHIP_MODEL_URL = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/Spaceship.glb';
 
-interface ShipProps {
-  seed: number;
-}
-
-const Ship: React.FC<ShipProps> = ({ seed }) => {
-  const groupRef = useRef<THREE.Group>(null!);
+// A single ship that follows a curve
+const Ship: React.FC<{ curve: THREE.CatmullRomCurve3 }> = ({ curve }) => {
   const { scene } = useGLTF(SHIP_MODEL_URL);
+  const shipRef = useRef<THREE.Group>(null!);
+  const [phase, setPhase] = useState<'spawning' | 'patrolling'>('spawning');
+  
   const clonedScene = useMemo(() => scene.clone(), [scene]);
-  const previousPosition = useMemo(() => new THREE.Vector3(), []);
+  const timeOffset = useMemo(() => Math.random() * 100, []);
+  const spawnTargetY = useMemo(() => 20 + Math.random() * 15, []); // Target altitude between 20 and 35
 
-  useFrame(({ clock }) => {
-    if (!groupRef.current) return;
-    const elapsedTime = clock.getElapsedTime() + seed * 1000;
-    const speed = 0.1 + (seed % 0.1); // Vary speed per ship
-    
-    const time = elapsedTime * speed;
-    const range = 100;
+  useEffect(() => {
+    if (shipRef.current) {
+        // Initial position near city center, on the ground
+        const startRadius = 15;
+        shipRef.current.position.set(
+            (Math.random() - 0.5) * startRadius,
+            0,
+            (Math.random() - 0.5) * startRadius
+        );
+        // Point upwards for take-off
+        shipRef.current.lookAt(0, 1, 0);
+    }
+  }, []);
 
-    // Use simplex noise for smooth, pseudo-random flight paths
-    const x = noise3D(time, seed, 0) * range;
-    const z = noise3D(seed, time, 0) * range;
-    const y = 30 + noise3D(0, seed, time) * 15;
+  useFrame(({ clock }, delta) => {
+    if (!shipRef.current) return;
 
-    previousPosition.copy(groupRef.current.position);
-    groupRef.current.position.lerp(new THREE.Vector3(x, y, z), 0.02);
+    if (phase === 'spawning') {
+        // --- Spawning Phase: Fly straight up ---
+        const takeOffSpeed = 10;
+        shipRef.current.position.y += takeOffSpeed * delta;
+        
+        // Tilt forward as it ascends
+        const tiltProgress = shipRef.current.position.y / spawnTargetY;
+        const targetQuaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2 * (1 - tiltProgress), 0, 0));
+        shipRef.current.quaternion.slerp(targetQuaternion, delta * 2);
 
-    // Make the ship look in the direction of movement
-    if (previousPosition.distanceTo(groupRef.current.position) > 0.01) {
-      const lookAtTarget = new THREE.Vector3().copy(groupRef.current.position).add(
-        new THREE.Vector3().subVectors(groupRef.current.position, previousPosition).normalize()
-      );
-      const tempObject = new THREE.Object3D();
-      tempObject.position.copy(groupRef.current.position);
-      tempObject.lookAt(lookAtTarget);
-      groupRef.current.quaternion.slerp(tempObject.quaternion, 0.05);
+        if (shipRef.current.position.y >= spawnTargetY) {
+            setPhase('patrolling'); // Transition to patrolling
+        }
+
+    } else {
+        // --- Patrolling Phase: Follow the curve ---
+        const time = clock.getElapsedTime() + timeOffset;
+        const loopTime = 25; // Time in seconds to complete a loop
+        const t = (time % loopTime) / loopTime;
+
+        const position = curve.getPointAt(t);
+        shipRef.current.position.lerp(position, delta * 2); // Smoothly move towards the path
+
+        // Make the ship look ahead along the curve's tangent
+        const tangent = curve.getTangentAt(t).normalize();
+        const up = new THREE.Vector3(0, 1, 0);
+        const quaternion = new THREE.Quaternion();
+        quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), tangent);
+        shipRef.current.quaternion.slerp(quaternion, delta * 2); // Use slerp for smoother rotation
     }
   });
 
+  return <primitive ref={shipRef} object={clonedScene} scale={0.5} />;
+};
+
+// The main component that creates multiple ships and their paths
+export const FlyingShips: React.FC = React.memo(() => {
+  const curves = useMemo(() => {
+    // Define a few interesting paths for the ships to follow
+    return [
+      // Path 1: Wide, high arc
+      new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-100, 20, -50),
+        new THREE.Vector3(-50, 30, 50),
+        new THREE.Vector3(50, 25, 50),
+        new THREE.Vector3(100, 20, -50),
+      ], true),
+      // Path 2: Lower, faster loop around the center
+      new THREE.CatmullRomCurve3([
+        new THREE.Vector3(0, 15, -80),
+        new THREE.Vector3(70, 18, 0),
+        new THREE.Vector3(0, 15, 80),
+        new THREE.Vector3(-70, 12, 0),
+      ], true),
+      // Path 3: A weaving path through the districts
+      new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-60, 25, 80),
+        new THREE.Vector3(0, 30, 0),
+        new THREE.Vector3(60, 25, 80),
+        new THREE.Vector3(0, 20, 20),
+      ], true),
+    ];
+  }, []);
+
   return (
-    <group ref={groupRef}>
-      <primitive object={clonedScene} scale={0.5} rotation-y={-Math.PI / 2} />
-      <ThrustTrail position={[-0.05, 0.1, -0.6]} color="#ff9900" width={0.1} length={2.5} />
-      <ThrustTrail position={[0.05, 0.1, -0.6]} color="#ff9900" width={0.1} length={2.5} />
+    <group>
+      {curves.map((curve, index) => (
+        <Ship key={index} curve={curve} />
+      ))}
     </group>
   );
-};
+});
 
-export const FlyingShips: React.FC = () => {
-  const shipCount = 5;
-  const ships = useMemo(() => 
-    Array.from({ length: shipCount }).map((_, i) => <Ship key={i} seed={Math.random()} />),
-    [shipCount]
-  );
-  return <>{ships}</>;
-};
-
+// Preload the model for faster instantiation
 useGLTF.preload(SHIP_MODEL_URL);
