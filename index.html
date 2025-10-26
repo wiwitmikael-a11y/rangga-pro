@@ -115,26 +115,28 @@
       .gate-bottom .gate-edge { top: 0; }
       
     </style>
-</head>
-<body>
-    <div id="root"></div>
-    <script type="importmap">
+<script type="importmap">
 {
   "imports": {
-    "react": "https://esm.sh/react@18.2.0",
-    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-    "three": "https://esm.sh/three@0.156.1",
-    "@react-three/fiber": "https://esm.sh/@react-three/fiber@8.14.2",
-    "@react-three/drei": "https://esm.sh/@react-three/drei@9.84.2",
-    "simplex-noise": "https://esm.sh/simplex-noise@4.0.1",
-    "three-stdlib": "https://esm.sh/three-stdlib@2.27.0",
     "vite": "https://aistudiocdn.com/vite@^7.1.12",
     "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.0",
     "path": "https://aistudiocdn.com/path@^0.12.7",
-    "url": "https://aistudiocdn.com/url@^0.11.4"
+    "url": "https://aistudiocdn.com/url@^0.11.4",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "@react-three/fiber": "https://aistudiocdn.com/@react-three/fiber@^9.4.0",
+    "@react-three/drei": "https://aistudiocdn.com/@react-three/drei@^10.7.6",
+    "three": "https://aistudiocdn.com/three@^0.180.0",
+    "three-stdlib": "https://aistudiocdn.com/three-stdlib@^2.36.0",
+    "simplex-noise": "https://aistudiocdn.com/simplex-noise@^4.0.3",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0"
   }
 }
 </script>
-    <script type="module" src="/index.tsx"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>

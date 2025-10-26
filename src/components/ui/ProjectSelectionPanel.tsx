@@ -25,7 +25,6 @@ const styles: { [key: string]: React.CSSProperties } = {
   instructions: { margin: '0 0 20px 0', color: '#88a7a6', fontSize: '0.9rem', fontStyle: 'italic', textAlign: 'center', flexShrink: 0, letterSpacing: '0.1em' },
   closeButton: { background: 'transparent', border: '1px solid rgba(255, 153, 0, 0.7)', color: '#ff9900', width: '35px', height: '35px', borderRadius: '50%', cursor: 'pointer', fontSize: '1.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center', lineHeight: 1, transition: 'all 0.2s' },
   
-  // Competency Core (Radar Chart) styles
   competencyLayout: { display: 'flex', flexDirection: 'row', flexGrow: 1, gap: '20px', minHeight: 0, overflow: 'hidden' },
   chartContainer: { display: 'flex', justifyContent: 'center', alignItems: 'center', flexShrink: 0, flexBasis: '400px' },
   analysisPanel: { flexGrow: 1, minHeight: 0, padding: '20px 30px 20px 20px', background: 'rgba(0, 0, 0, 0.2)', borderRadius: '10px', border: '1px solid rgba(0, 170, 255, 0.2)', animation: 'fadeInDetails 0.5s ease', overflowY: 'auto' },
@@ -41,7 +40,6 @@ const styles: { [key: string]: React.CSSProperties } = {
   skillBar: { height: '6px', background: 'rgba(0, 170, 255, 0.1)', borderRadius: '3px', width: '100%' },
   skillBarFill: { height: '100%', background: 'var(--primary-color)', borderRadius: '3px', animation: 'pulse-bar 2.5s infinite ease-in-out' },
 
-  // New Carousel Styles
   contentBody: { flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', position: 'relative' },
   carouselViewport: { width: '100%', height: '450px', position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', perspective: '2000px', WebkitPerspective: '2000px', cursor: 'grab', touchAction: 'pan-y' },
   carouselCard: { ...glassmorphism, position: 'absolute', width: '320px', height: '400px', transition: 'transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.6s ease, filter 0.6s ease', borderRadius: '10px', overflow: 'hidden', display: 'flex', flexDirection: 'column', userSelect: 'none', transformStyle: 'preserve-3d' },
@@ -55,7 +53,6 @@ const styles: { [key: string]: React.CSSProperties } = {
   infoTitle: { margin: '0 0 5px 0', color: 'var(--primary-color)', fontSize: '1.4rem', textShadow: '0 0 8px var(--primary-color)' },
   infoDescription: { margin: 0, color: '#ccc', fontSize: '0.9rem', lineHeight: 1.5 },
   placeholder: { color: '#88a7a6', fontStyle: 'italic' },
-  // Lightbox styles
   lightboxOverlay: {
     position: 'absolute',
     inset: '0',
@@ -87,7 +84,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
 };
 
-const StrategicAnalysisPanel: React.FC<{ activeCategory: SkillCategory | null }> = ({ activeCategory }) => {
+const StrategicAnalysisPanel: React.FC<{ activeCategory: SkillCategory | null }> = React.memo(({ activeCategory }) => {
   const data = activeCategory || { category: 'Professional Synopsis', description: professionalSummary, skills: [], keyMetrics: [] };
   return (
     <div key={data.category} style={styles.analysisPanel} className="analysis-panel">
@@ -106,9 +103,9 @@ const StrategicAnalysisPanel: React.FC<{ activeCategory: SkillCategory | null }>
       </>)}
     </div>
   );
-};
+});
 
-export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ isOpen, district, onClose }) => {
+export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = React.memo(({ isOpen, district, onClose }) => {
   const [activeCategory, setActiveCategory] = useState<SkillCategory | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [zoomedImageUrl, setZoomedImageUrl] = useState<string | null>(null);
@@ -169,10 +166,7 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
     });
   }, []);
   
-  const containerStyle: React.CSSProperties = { ...styles.container, opacity: isOpen ? 1 : 0, transform: isOpen ? 'translateY(0)' : 'translateY(100vh)', pointerEvents: isOpen ? 'auto' : 'none', userSelect: 'auto' };
-  const overlayStyle: React.CSSProperties = { ...styles.overlay, opacity: isOpen ? 1 : 0, pointerEvents: isOpen ? 'auto' : 'none' };
-  
-  if (!district) return null;
+  if (!isOpen || !district) return null;
 
   const isCoreMatrix = district.id === 'skills-matrix';
 
@@ -182,8 +176,8 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
         @keyframes stripe-scroll { 0% { background-position: 0 0; } 100% { background-position: 56.5px 0; } }
         @keyframes fadeInDetails { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
-      <div style={overlayStyle} onClick={onClose} />
-      <div style={containerStyle} className={`project-selection-panel responsive-modal ${isOpen ? 'panel-enter' : ''}`} onContextMenu={(e) => e.stopPropagation()}>
+      <div style={styles.overlay} onClick={onClose} />
+      <div style={styles.container} className={`project-selection-panel responsive-modal ${isOpen ? 'panel-enter' : ''}`} onContextMenu={(e) => e.stopPropagation()}>
         <div style={styles.dangerStripes} />
         <div style={styles.header}>
           <h2 style={styles.title}>{district.title}</h2>
@@ -275,4 +269,4 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
       </div>
     </>
   );
-};
+});

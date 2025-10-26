@@ -6,20 +6,8 @@ interface GameLobbyPanelProps {
   onClose: () => void;
 }
 
-export const GameLobbyPanel: React.FC<GameLobbyPanelProps> = ({ isOpen, onLaunch, onClose }) => {
-
-  const containerStyle: React.CSSProperties = {
-    ...styles.container,
-    opacity: isOpen ? 1 : 0,
-    transform: isOpen ? 'translate(-50%, -50%) scale(1)' : 'translate(-50%, -50%) scale(0.95)',
-    pointerEvents: isOpen ? 'auto' : 'none',
-  };
-
-  const overlayStyle: React.CSSProperties = {
-    ...styles.overlay,
-    opacity: isOpen ? 1 : 0,
-    pointerEvents: isOpen ? 'auto' : 'none',
-  };
+export const GameLobbyPanel: React.FC<GameLobbyPanelProps> = React.memo(({ isOpen, onLaunch, onClose }) => {
+  if (!isOpen) return null;
 
   return (
     <>
@@ -29,9 +17,9 @@ export const GameLobbyPanel: React.FC<GameLobbyPanelProps> = ({ isOpen, onLaunch
           100% { background-position: 56.5px 0; }
         }
       `}</style>
-      <div style={overlayStyle} onClick={onClose} />
+      <div style={styles.overlay} onClick={onClose} />
       <div 
-        style={containerStyle} 
+        style={styles.container} 
         className={`game-lobby-modal responsive-modal ${isOpen ? 'panel-enter' : ''}`}
         onContextMenu={(e) => e.stopPropagation()}
       >
@@ -60,7 +48,7 @@ export const GameLobbyPanel: React.FC<GameLobbyPanelProps> = ({ isOpen, onLaunch
       </div>
     </>
   );
-};
+});
 
 const glassmorphism: React.CSSProperties = {
   background: 'rgba(5, 15, 30, 0.9)',
@@ -82,6 +70,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     position: 'fixed',
     top: '50%',
     left: '50%',
+    transform: 'translate(-50%, -50%)',
     width: '90%',
     maxWidth: '500px',
     zIndex: 101,

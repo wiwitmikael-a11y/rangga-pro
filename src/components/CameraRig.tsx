@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { CityDistrict } from '../types';
 
@@ -20,6 +20,8 @@ const OVERVIEW_LOOK_AT = new THREE.Vector3(0, 0, 0);
 const CALIBRATION_POSITION = new THREE.Vector3(0, 200, 1);
 
 export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimationFinish, isAnimating, pov, targetShipRef, isCalibrationMode, patrollingCoreRef }) => {
+  const { invalidate } = useThree();
+
   const shipCam = useMemo(() => ({
     offset: new THREE.Vector3(0, 12, -18),
     idealPosition: new THREE.Vector3(),
@@ -77,6 +79,7 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
       const tempCamera = state.camera.clone();
       tempCamera.lookAt(targetLookAt);
       state.camera.quaternion.slerp(tempCamera.quaternion, lerpFactor);
+      invalidate(); // Invalidate frame for smooth animation with frameloop="demand"
       
       if (isAnimatingRef.current) {
         const posReached = state.camera.position.distanceTo(targetPosition) < 0.2;

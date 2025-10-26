@@ -23,7 +23,6 @@ const Typewriter: React.FC<{ text: string; speed?: number; onFinished?: () => vo
         }
     }, [text, speed, onFinished]);
     
-    // Don't show cursor if the animation is finished
     const isFinished = displayedText.length === text.length;
 
     return <>{displayedText}{showCursor && !isFinished && <span className="blinking-cursor">_</span>}</>;
@@ -65,7 +64,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     followUpContainer: { display: 'flex', justifyContent: 'flex-start', flexWrap: 'wrap', gap: '10px', padding: '10px 20px 0 20px', alignSelf: 'flex-start', animation: 'fadeInContent 0.5s 0.2s ease forwards', opacity: 0 },
 };
 
-export const OracleModal: React.FC<OracleModalProps> = ({ isOpen, onClose }) => {
+export const OracleModal: React.FC<OracleModalProps> = React.memo(({ isOpen, onClose }) => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -95,7 +94,7 @@ export const OracleModal: React.FC<OracleModalProps> = ({ isOpen, onClose }) => 
         const userQuery = query || input;
         if (!userQuery.trim() || isLoading) return;
 
-        setCurrentFollowUps([]); // Clear previous follow-ups immediately
+        setCurrentFollowUps([]);
         const newMessages: Message[] = [...messages, { sender: 'user', text: userQuery }];
         setMessages(newMessages);
         setInput('');
@@ -105,18 +104,16 @@ export const OracleModal: React.FC<OracleModalProps> = ({ isOpen, onClose }) => 
 
         setMessages(prev => [...prev, { sender: 'oracle', text: oracleResponse.answer }]);
         setIsLoading(false);
-        // Set new follow-up questions after the response is received
         setCurrentFollowUps(oracleResponse.followUpQuestions);
     };
     
-    const containerStyle: React.CSSProperties = { ...styles.container, opacity: isOpen ? 1 : 0, transform: isOpen ? 'translate(-50%, -50%) scale(1)' : 'translate(-50%, -50%) scale(0.95)', pointerEvents: isOpen ? 'auto' : 'none' };
-    const overlayStyle: React.CSSProperties = { ...styles.overlay, opacity: isOpen ? 1 : 0, pointerEvents: isOpen ? 'auto' : 'none' };
+    if (!isOpen) return null;
 
     return (
         <>
             <style>{`@keyframes fadeInContent { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }`}</style>
-            <div style={overlayStyle} onClick={onClose} />
-            <div style={containerStyle} className={`oracle-modal responsive-modal ${isOpen ? 'panel-enter' : ''}`} onContextMenu={(e) => e.stopPropagation()}>
+            <div style={styles.overlay} onClick={onClose} />
+            <div style={styles.container} className={`oracle-modal responsive-modal ${isOpen ? 'panel-enter' : ''}`} onContextMenu={(e) => e.stopPropagation()}>
                 <div style={styles.dangerStripes} />
                 <div style={styles.header}>
                     <h2 style={styles.title}>ORACLE AI</h2>
@@ -168,4 +165,4 @@ export const OracleModal: React.FC<OracleModalProps> = ({ isOpen, onClose }) => 
             </div>
         </>
     );
-};
+});

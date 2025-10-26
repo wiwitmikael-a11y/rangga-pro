@@ -2,7 +2,7 @@ import React from 'react';
 import * as THREE from 'three';
 import { PlayerCopter } from './PlayerCopter';
 import { EnemyCore } from './GameModels';
-import { GameHUD } from '../ui/GameHUD';
+// import { GameHUD } from '../ui/GameHUD'; // GameHUD is now rendered by UIController
 
 interface AegisProtocolGameProps {
   onExit: () => void;
@@ -26,8 +26,7 @@ export const AegisProtocolGame: React.FC<AegisProtocolGameProps> = ({ onExit, pl
         {enemyPositions.map((pos, i) => (
             <EnemyCore key={`enemy-${i}`} position={pos} />
         ))}
-        {/* The GameHUD is an HTML overlay, so it's rendered outside the Canvas components */}
-        <GameHUD onExit={onExit} />
+        {/* The GameHUD is an HTML overlay, and is now rendered by the root UIController */}
     </>
   );
 };

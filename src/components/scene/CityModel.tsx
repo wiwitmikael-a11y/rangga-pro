@@ -1,4 +1,5 @@
 
+
 import React, { useLayoutEffect, useMemo, useRef } from 'react';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
@@ -32,7 +33,8 @@ export const CityModel: React.FC = React.memo(() => {
   
   // Animate the pulse of the city lights
   useFrame(({ clock }) => {
-    const pulse = Math.sin(clock.getElapsedTime() * 2) * 0.5 + 1.5; // Creates a value that oscillates between 1 and 2
+    // Slower, more subtle pulse to reduce visual noise
+    const pulse = Math.sin(clock.getElapsedTime() * 1.5) * 0.4 + 1.3; 
     emissiveMaterials.current.forEach(material => {
       material.emissiveIntensity = pulse;
     });

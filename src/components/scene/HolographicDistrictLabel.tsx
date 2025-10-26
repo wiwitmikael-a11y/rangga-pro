@@ -5,15 +5,6 @@ import { Text, Billboard, RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 import { CityDistrict } from '../../types';
 
-interface HolographicDistrictLabelProps {
-  district: CityDistrict;
-  onSelect: (district: CityDistrict) => void;
-  isSelected: boolean;
-  isCalibrationMode: boolean;
-  isHeld: boolean;
-  onSetHeld: (id: string | null) => void;
-}
-
 // --- Shader code for the animated borders ---
 
 // Vertex Shader (simple pass-through for UVs)
@@ -25,42 +16,50 @@ const borderVertexShader = `
   }
 `;
 
-// Original cyan border Fragment Shader - NO LONGER IN USE
-// const borderFragmentShader = `...`;
-
-// Danger Zone Fragment Shader for ALL labels
-const dangerBorderFragmentShader = `
+// New, simplified, and performant cyan glow border shader
+const borderFragmentShader = `
   uniform float time;
   varying vec2 vUv;
   
   void main() {
-    float innerWidthRatio = 28.0 / 28.5;
-    float innerHeightRatio = 10.0 / 10.5;
-    float normX = abs(vUv.x * 2.0 - 1.0);
-    float normY = abs(vUv.y * 2.0 - 1.0);
+    float border_width = 0.05; // 5% of the edge is border
+    vec2 uv = abs(vUv * 2.0 - 1.0); // Remap UVs to be 0 at center, 1 at edge
     
-    if (normX < innerWidthRatio && normY < innerHeightRatio) {
+    // Create a smooth-edged border mask
+    float border_mask = smoothstep(1.0 - border_width, 1.0 - border_width + 0.02, max(uv.x, uv.y));
+    
+    // Discard fragments that are not part of the border to improve performance
+    if (border_mask < 0.1) {
       discard;
     }
-
-    float pattern = (vUv.x - vUv.y);
-    pattern += time * 0.05; // Very slow animation
     
-    float stripeFrequency = 10.0;
-    float stripes = step(0.5, fract(pattern * stripeFrequency));
+    // Create a slow, subtle scanning line effect
+    float scan_line = sin((vUv.y + time * 0.2) * 20.0) * 0.5 + 0.5;
+    scan_line = pow(scan_line, 2.0); // Sharpen the line to make it crisper
     
-    vec3 orange = vec3(1.0, 0.6, 0.0); // #ff9900
-    vec3 black = vec3(0.0, 0.0, 0.0);
+    // Create a slow pulse for the whole border
+    float pulse = sin(time * 1.5) * 0.4 + 0.6; // oscillates between 0.6 and 1.0
     
-    vec3 finalColor = mix(orange, black, stripes);
+    vec3 color = vec3(0.0, 1.0, 1.0); // Cyan
     
-    gl_FragColor = vec4(finalColor, 1.0);
+    // Combine effects for the final color
+    gl_FragColor = vec4(color, border_mask * (scan_line * 0.5 + 0.5) * pulse);
   }
 `;
 
 
 // Define futuristic cyan color palette for high contrast
 const DESC_CYAN = '#afeeee'; // Pale turquoise for description
+
+// FIX: Define the props interface for the component.
+interface HolographicDistrictLabelProps {
+  district: CityDistrict;
+  onSelect: (district: CityDistrict) => void;
+  isSelected: boolean;
+  isCalibrationMode: boolean;
+  isHeld: boolean;
+  onSetHeld: (id: string | null) => void;
+}
 
 const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ district, onSelect, isSelected, isCalibrationMode, isHeld, onSetHeld }) => {
   const groupRef = useRef<THREE.Group>(null!);
@@ -116,15 +115,17 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
         onPointerOut={handlePointerOut}
         onPointerDown={handlePointerDown}
       >
-        {/* Animated Border - uses danger zone shader for all labels */}
+        {/* Animated Border - uses the new clean shader */}
         <mesh position-z={-0.09}>
           <planeGeometry args={[28.5, 10.5]} />
           <shaderMaterial
             vertexShader={borderVertexShader}
-            fragmentShader={dangerBorderFragmentShader}
+            fragmentShader={borderFragmentShader}
             uniforms={borderUniforms}
             transparent={true}
             side={THREE.DoubleSide}
+            blending={THREE.AdditiveBlending}
+            depthWrite={false}
           />
         </mesh>
         

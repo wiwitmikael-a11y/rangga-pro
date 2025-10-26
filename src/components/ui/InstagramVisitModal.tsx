@@ -1,6 +1,5 @@
 import React from 'react';
 
-// SVG Icon Component with a gradient to mimic Instagram's colors
 const InstagramIcon: React.FC = () => (
     <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', marginBottom: '10px' }}>
       <defs>
@@ -43,6 +42,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     position: 'fixed',
     top: '50%',
     left: '50%',
+    transform: 'translate(-50%, -50%)',
     width: '90%',
     maxWidth: '400px',
     zIndex: 201,
@@ -106,25 +106,14 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
 };
 
-export const InstagramVisitModal: React.FC<InstagramVisitModalProps> = ({ isOpen, onClose }) => {
+export const InstagramVisitModal: React.FC<InstagramVisitModalProps> = React.memo(({ isOpen, onClose }) => {
 
     const handleVisit = () => {
         window.open('https://www.instagram.com/rangga.p.h/', '_blank');
         onClose();
     };
 
-    const containerStyle: React.CSSProperties = {
-      ...styles.container,
-      opacity: isOpen ? 1 : 0,
-      transform: isOpen ? 'translate(-50%, -50%) scale(1)' : 'translate(-50%, -50%) scale(0.95)',
-      pointerEvents: isOpen ? 'auto' : 'none',
-    };
-
-    const overlayStyle: React.CSSProperties = {
-      ...styles.overlay,
-      opacity: isOpen ? 1 : 0,
-      pointerEvents: isOpen ? 'auto' : 'none',
-    };
+    if (!isOpen) return null;
 
     return (
         <>
@@ -134,9 +123,9 @@ export const InstagramVisitModal: React.FC<InstagramVisitModalProps> = ({ isOpen
                     100% { background-position: 56.5px 0; }
                 }
             `}</style>
-            <div style={overlayStyle} onClick={onClose} />
+            <div style={styles.overlay} onClick={onClose} />
             <div 
-                style={containerStyle} 
+                style={styles.container} 
                 className={`instagram-visit-modal responsive-modal ${isOpen ? 'panel-enter' : ''}`}
                 onContextMenu={(e) => e.stopPropagation()}
             >
@@ -155,4 +144,4 @@ export const InstagramVisitModal: React.FC<InstagramVisitModalProps> = ({ isOpen
             </div>
         </>
     );
-};
+});

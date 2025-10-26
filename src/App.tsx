@@ -1,11 +1,15 @@
-import React, { useState, useCallback, Suspense, useEffect } from 'react';
+import React, { useState, useCallback, Suspense, useEffect, useMemo, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { useProgress } from '@react-three/drei';
+import * as THREE from 'three';
 
 import Experience3D from './components/Experience3D';
 import { StartScreen } from './components/ui/StartScreen';
-import { ControlHints } from './components/ui/ControlHints';
-import { LoaderUI } from './components/ui/Loader'; 
+import { LoaderUI } from './components/ui/Loader';
+import { UIController } from './components/ui/UIController';
+import { useAppState } from './hooks/useAppState';
+import { useBuildMode } from './hooks/useBuildMode';
+import { useGameManager } from './hooks/useGameManager';
 
 // Helper component to bridge the progress from inside the Canvas to the App state
 const LoadingManager: React.FC<{ onProgress: (p: number) => void, onLoaded: () => void }> = ({ onProgress, onLoaded }) => {
@@ -14,79 +18,136 @@ const LoadingManager: React.FC<{ onProgress: (p: number) => void, onLoaded: () =
   useEffect(() => {
     onProgress(progress);
     if (!active && progress === 100) {
-      // Use a small timeout to ensure the final 100% is visible and transition is smooth
-      setTimeout(onLoaded, 300);
+      setTimeout(onLoaded, 300); // Smooth transition
     }
   }, [active, progress, onProgress, onLoaded]);
 
-  return null; // This component doesn't render anything itself
+  return null;
 };
 
 const App: React.FC = () => {
-  const [appState, setAppState] = useState<'loading' | 'start' | 'entering' | 'experience'>('loading');
-  const [hasShownHints, setHasShownHints] = useState(false);
+  const [appStatus, setAppStatus] = useState<'loading' | 'start' | 'entering' | 'experience'>('loading');
   const [progress, setProgress] = useState(0);
+  
+  const shipRefs = useRef<React.RefObject<THREE.Group>[]>([]);
+  const hasShownHintsInitially = !!sessionStorage.getItem('hasShownHints');
+
+  // All state management logic is now centralized here
+  const {
+    appState,
+    handleDistrictSelect,
+    handleGoHome,
+    handleAnimationFinish,
+    handleInteractionStart,
+    handleInteractionEnd,
+    handleAccessOracleChat,
+    setPov,
+    handleSetShipRefs,
+  } = useAppState(shipRefs, hasShownHintsInitially);
+
+  const {
+    buildState,
+    handleToggleCalibrationMode,
+    handleSetHeldDistrict,
+    handlePlaceDistrict,
+    handleCancelMove,
+    handleExportLayout,
+    setDistricts,
+    setIsExportModalOpen,
+  } = useBuildMode(handleGoHome, handleInteractionEnd);
+
+  const {
+    gameState,
+    handleLaunchGame,
+    handleExitGame,
+  } = useGameManager(handleGoHome);
+
+  const navDistricts = useMemo(() => {
+    const majorDistricts = buildState.districts.filter(d => d.type === 'major');
+    const nexusCore = majorDistricts.find(d => d.id === 'nexus-core');
+    return nexusCore
+      ? [nexusCore, ...majorDistricts.filter(d => d.id !== 'nexus-core')]
+      : majorDistricts;
+  }, [buildState.districts]);
+
 
   const handleAssetsLoaded = useCallback(() => {
-    // This check prevents the state from being set to 'start' prematurely
-    if (progress >= 100) {
-        setAppState('start');
-    }
-  }, [progress]);
+    setAppStatus('start');
+  }, []);
   
   const handleStart = useCallback(() => {
-    setAppState('entering');
-    // This timeout matches the 1.5s hydraulic gate animation duration
+    setAppStatus('entering');
     setTimeout(() => {
-      setAppState('experience');
-      if (!sessionStorage.getItem('hasShownHints')) {
-        setHasShownHints(true);
-        sessionStorage.setItem('hasShownHints', 'true');
-      }
-    }, 1500);
+      setAppStatus('experience');
+    }, 1500); // Matches hydraulic gate animation
   }, []);
 
-  const showStartScreen = appState === 'start' || appState === 'entering';
-  // The 3D experience is always in the DOM after the initial load to prevent re-loading assets.
-  // Its visibility is controlled by the appState.
-  const isExperienceVisible = appState === 'experience';
+  const showStartScreen = appStatus === 'start' || appStatus === 'entering';
+  const isExperienceVisible = appStatus === 'experience';
 
   return (
     <>
-      {appState === 'loading' && <LoaderUI progress={Math.round(progress)} />}
+      {appStatus === 'loading' && <LoaderUI progress={Math.round(progress)} />}
 
       {showStartScreen && (
         <StartScreen
           onStart={handleStart}
-          isExiting={appState === 'entering'}
+          isExiting={appStatus === 'entering'}
         />
       )}
       
-      {/* 
-        The main container for the 3D experience.
-        It's mounted immediately but kept hidden during the loading and start screens.
-        This ensures assets are loaded in the background and ready for a seamless transition.
-      */}
       <main style={{
           position: 'fixed',
           inset: 0,
-          width: '100vw',
-          height: '100vh',
-          backgroundColor: 'var(--background-color)',
-          // Control visibility and fade-in via opacity
           opacity: isExperienceVisible ? 1 : 0,
-          // Hide from mouse events when not visible to prevent interference
           pointerEvents: isExperienceVisible ? 'auto' : 'none',
           transition: 'opacity 1.5s ease-in-out',
         }}>
-        <Canvas>
+        <Canvas
+            frameloop="demand"
+            shadows
+        >
           <Suspense fallback={<LoadingManager onProgress={setProgress} onLoaded={handleAssetsLoaded} />}>
-            <Experience3D />
+            <Experience3D 
+              appState={appState}
+              buildState={buildState}
+              gameState={gameState}
+              handlers={{
+                setDistricts,
+                handleDistrictSelect,
+                handleGoHome,
+                handleAnimationFinish,
+                handleInteractionStart,
+                handleInteractionEnd,
+                handleAccessOracleChat,
+                handleSetShipRefs,
+                handleSetHeldDistrict,
+                handlePlaceDistrict,
+                handleExitGame,
+              }}
+            />
           </Suspense>
         </Canvas>
+        
+        {/* UI CONTROLLER IS NOW A SIBLING TO CANVAS, NOT A CHILD */}
+        <UIController
+            appState={appState}
+            buildState={buildState}
+            gameState={gameState}
+            navDistricts={navDistricts}
+            handlers={{
+              onDistrictSelect: handleDistrictSelect,
+              onGoHome: handleGoHome,
+              onSetPov: setPov,
+              onToggleCalibrationMode: handleToggleCalibrationMode,
+              onExportLayout: handleExportLayout,
+              onCancelMove: handleCancelMove,
+              onLaunchGame: handleLaunchGame,
+              onExitGame: handleExitGame,
+              onCloseExportModal: () => setIsExportModalOpen(false),
+            }}
+          />
       </main>
-      
-      {hasShownHints && <ControlHints />}
     </>
   );
 };

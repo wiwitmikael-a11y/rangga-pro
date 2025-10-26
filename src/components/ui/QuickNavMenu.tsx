@@ -80,6 +80,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     flexDirection: 'column',
     borderRadius: '5px',
+    width: '100%', // Ensure button takes full grid cell width
   },
   buttonTitle: {
     fontSize: '1rem',
@@ -94,24 +95,8 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
 };
 
-export const QuickNavMenu: React.FC<QuickNavMenuProps> = ({ isOpen, onClose, onSelectDistrict, districts }) => {
-  const containerStyle: React.CSSProperties = {
-    ...styles.container,
-    opacity: isOpen ? 1 : 0,
-    transform: isOpen ? 'translate(-50%, 0)' : 'translate(-50%, 100%)',
-    transition: 'opacity 0.4s ease, transform 0.5s cubic-bezier(0.2, 1, 0.2, 1)',
-    pointerEvents: isOpen ? 'auto' : 'none',
-  };
-
-  const overlayStyle: React.CSSProperties = {
-    ...styles.overlay,
-    opacity: isOpen ? 1 : 0,
-    pointerEvents: isOpen ? 'auto' : 'none',
-  };
-  
-  const handleClose = () => {
-    onClose();
-  };
+export const QuickNavMenu: React.FC<QuickNavMenuProps> = React.memo(({ isOpen, onClose, onSelectDistrict, districts }) => {
+  if (!isOpen) return null;
 
   const handleSelect = (district: CityDistrict) => {
     onSelectDistrict(district);
@@ -131,10 +116,10 @@ export const QuickNavMenu: React.FC<QuickNavMenuProps> = ({ isOpen, onClose, onS
           background: rgba(0, 100, 150, 0.4);
         }
       `}</style>
-      <div style={overlayStyle} onClick={handleClose} />
-      <div style={containerStyle} className={`quick-nav-container ${isOpen ? 'panel-enter' : ''}`}>
+      <div style={styles.overlay} onClick={onClose} />
+      <div style={styles.container} className={`quick-nav-container ${isOpen ? 'panel-enter' : ''}`}>
         <div style={styles.dangerStripes} />
-        <button onClick={handleClose} style={styles.closeButton} aria-label="Close Navigation">&times;</button>
+        <button onClick={onClose} style={styles.closeButton} aria-label="Close Navigation">&times;</button>
         <div style={styles.grid} className="quick-nav-grid">
           {districts.map(district => (
             <button
@@ -151,4 +136,4 @@ export const QuickNavMenu: React.FC<QuickNavMenuProps> = ({ isOpen, onClose, onS
       </div>
     </>
   );
-};
+});

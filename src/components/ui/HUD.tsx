@@ -1,11 +1,14 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import type { CityDistrict } from '../../types';
+import { MainControls } from './hud/MainControls';
+import { ViewControls } from './hud/ViewControls';
+import { ArchitectControls } from './hud/ArchitectControls';
 
 // Helper component for typing effect
 const Typewriter: React.FC<{ text: string; speed?: number; }> = ({ text, speed = 20 }) => {
-    const [displayedText, setDisplayedText] = useState('');
+    const [displayedText, setDisplayedText] = React.useState('');
 
-    useEffect(() => {
+    React.useEffect(() => {
         setDisplayedText(''); // Reset on text change
         if (text) {
             let i = 0;
@@ -40,60 +43,6 @@ interface HUDProps {
   onSelectOracle: () => void;
 }
 
-// --- SVG Icons ---
-const NavMenuIcon: React.FC = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
-    <path d="M4 6H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M4 12H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M4 18H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
-
-const CameraIcon: React.FC = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-    <circle cx="12" cy="13" r="4"></circle>
-  </svg>
-);
-
-const ShipIcon: React.FC = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-     <path d="M2 12l2.39 3.19L2.5 22h19l-1.89-6.81L22 12H2z" transform="rotate(-30 12 12) translate(0, 2)"></path>
-     <path d="M12 2L8 12h8L12 2z" transform="rotate(-30 12 12) translate(0, 2)"></path>
-  </svg>
-);
-
-const GridIcon: React.FC = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 3h18v18H3z"></path>
-        <path d="M3 9h18"></path>
-        <path d="M3 15h18"></path>
-        <path d="M9 3v18"></path>
-        <path d="M15 3v18"></path>
-    </svg>
-);
-
-const ChatIcon: React.FC = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-    </svg>
-);
-
-const ExportIcon: React.FC = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-        <polyline points="17 8 12 3 7 8"></polyline>
-        <line x1="12" y1="3" x2="12" y2="15"></line>
-    </svg>
-);
-
-const CancelIcon: React.FC = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-        <line x1="18" y1="6" x2="6" y2="18"></line>
-        <line x1="6" y1="6" x2="18" y2="18"></line>
-    </svg>
-);
-
 const styles: { [key: string]: React.CSSProperties } = {
   breadcrumbContainer: {
     position: 'fixed',
@@ -119,96 +68,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     textShadow: '0 0 5px var(--primary-color)',
     whiteSpace: 'nowrap',
   },
-  bottomLeftContainer: {
-    position: 'fixed',
-    bottom: '20px',
-    left: '20px',
-    display: 'flex',
-    alignItems: 'center',
-    zIndex: 100,
-  },
-  bottomCenterContainer: {
-    position: 'fixed',
-    bottom: '20px',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    zIndex: 100,
-  },
-  bottomRightContainer: {
-    position: 'fixed',
-    bottom: '20px',
-    right: '20px',
-    zIndex: 100,
-  },
-  aiChatButton: {
-    background: 'rgba(0, 20, 40, 0.7)',
-    backdropFilter: 'blur(10px)',
-    border: '1px solid rgba(0, 170, 255, 0.5)',
-    color: 'var(--primary-color)',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    padding: '10px 18px',
-    borderRadius: '25px',
-    fontFamily: 'var(--font-family)',
-    fontSize: '0.9rem',
-    textTransform: 'uppercase',
-    letterSpacing: '0.1em',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease-in-out',
-    textShadow: '0 0 5px var(--primary-color)',
-  },
-  hudButton: {
-    background: 'rgba(0, 20, 40, 0.7)',
-    backdropFilter: 'blur(10px)',
-    border: '1px solid rgba(0, 170, 255, 0.5)',
-    color: 'var(--primary-color)',
-    width: '44px',
-    height: '44px',
-    borderRadius: '50%',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease-in-out',
-    margin: '0 5px',
-    fontSize: '1.5rem',
-  },
-  povSelector: {
-    display: 'flex',
-    background: 'rgba(0, 20, 40, 0.7)',
-    backdropFilter: 'blur(10px)',
-    border: '1px solid rgba(0, 170, 255, 0.5)',
-    borderRadius: '22px',
-    marginRight: '10px',
-    transition: 'opacity 0.3s ease',
-    overflow: 'hidden',
-  },
-  disabled: {
-    opacity: 0.4,
-    pointerEvents: 'none',
-  },
-  activePov: {
-    background: 'rgba(0, 170, 255, 0.2)',
-    color: '#fff',
-    textShadow: '0 0 8px #fff',
-  },
-  visible: {
-    opacity: 1,
-    transform: 'translateY(0)',
-  },
-  hiddenBottom: {
-    opacity: 0,
-    transform: 'translateY(20px)',
-    pointerEvents: 'none',
-  },
-  dangerButton: {
-    borderColor: '#ff6347',
-    color: '#ff6347',
-  }
 };
 
-export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, onToggleNavMenu, isDetailViewActive, pov, onSetPov, isCalibrationMode, onToggleCalibrationMode, onExportLayout, heldDistrictId, onCancelMove, onSelectOracle }) => {
+export const HUD: React.FC<HUDProps> = React.memo((props) => {
+
+  const { selectedDistrict, isCalibrationMode, heldDistrictId, isDetailViewActive, pov } = props;
 
   const breadcrumb = useMemo(() => {
     if (heldDistrictId) return `RAGETOPIA:/ARCHITECT_MODE$ execute --move ${heldDistrictId}`;
@@ -220,21 +84,9 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
   }, [selectedDistrict, isCalibrationMode, heldDistrictId]);
   
   const showHomeButton = isDetailViewActive || pov === 'ship';
-  const homeButtonIcon = '⌂';
 
   return (
     <>
-      <style>{`
-        .hud-button:not([disabled]):hover {
-            background-color: rgba(0, 170, 255, 0.2);
-            border-color: #00ffff;
-            transform: scale(1.1);
-        }
-        .hud-button.active, .hud-button:active {
-            transform: scale(0.95);
-        }
-      `}</style>
-      
       <div style={styles.breadcrumbContainer} className="breadcrumb-container">
           <p style={styles.breadcrumbText}>
             <Typewriter text={breadcrumb} />
@@ -242,94 +94,27 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
           </p>
       </div>
 
-      <div style={styles.bottomCenterContainer} className="bottom-center-container">
-        <button
-          onClick={onToggleNavMenu}
-          style={{
-            ...styles.hudButton,
-            width: '64px',
-            height: '64px',
-            margin: 0,
-            borderRadius: 0, // Reset border radius for clip-path to work
-          }}
-          className="hud-button hex-btn"
-          aria-label="Open Navigation Menu"
-        >
-          <NavMenuIcon />
-        </button>
-      </div>
+      <MainControls 
+        onToggleNavMenu={props.onToggleNavMenu} 
+        onSelectOracle={props.onSelectOracle}
+        isOracleDisabled={isCalibrationMode || selectedDistrict?.id === 'oracle-ai'}
+      />
        
-      <div style={styles.bottomLeftContainer} className="bottom-left-container">
-          <div style={{...styles.povSelector, ...(isCalibrationMode ? styles.disabled : {})}}>
-              <button 
-                onClick={() => onSetPov('main')} 
-                style={{...styles.hudButton, margin: 0, ...(pov === 'main' ? styles.activePov : {})}}
-                className="hud-button"
-                aria-label="Overview Camera"
-                disabled={isCalibrationMode}
-              >
-                  <CameraIcon />
-              </button>
-              <button 
-                onClick={() => onSetPov('ship')} 
-                style={{...styles.hudButton, margin: 0, ...(pov === 'ship' ? styles.activePov : {})}}
-                className="hud-button"
-                aria-label="Ship Follow Camera"
-                disabled={isCalibrationMode}
-              >
-                  <ShipIcon />
-              </button>
-          </div>
-          <button 
-            onClick={onGoHome} 
-            style={{...styles.hudButton, ...(showHomeButton ? styles.visible : styles.hiddenBottom)}}
-            className="hud-button"
-            aria-label="Back to City Overview"
-          >
-            {homeButtonIcon}
-          </button>
-          <button
-            onClick={onToggleCalibrationMode}
-            style={{...styles.hudButton, ...(isCalibrationMode ? styles.activePov : {}), ...styles.visible}}
-            className="hud-button"
-            aria-label="Toggle Architect Mode"
-            >
-            <GridIcon />
-          </button>
-          {isCalibrationMode && (
-            <button
-                onClick={onExportLayout}
-                style={{...styles.hudButton, ...styles.visible}}
-                className="hud-button"
-                aria-label="Export Layout"
-            >
-                <ExportIcon />
-            </button>
-          )}
-          {heldDistrictId && (
-              <button
-                  onClick={onCancelMove}
-                  style={{...styles.hudButton, ...styles.visible, ...styles.dangerButton}}
-                  className="hud-button"
-                  aria-label="Cancel Move"
-              >
-                  <CancelIcon />
-              </button>
-          )}
-      </div>
-
-      <div style={styles.bottomRightContainer} className="bottom-right-container">
-        <button
-          onClick={onSelectOracle}
-          style={{ ...styles.aiChatButton, ...(isCalibrationMode || selectedDistrict?.id === 'oracle-ai' ? styles.disabled : {}) }}
-          className="hud-button ai-chat-button"
-          aria-label="Open AI Chat"
-          disabled={isCalibrationMode || selectedDistrict?.id === 'oracle-ai'}
-        >
-          <ChatIcon />
-          <span className="ai-chat-button-text">AI Chat</span>
-        </button>
-      </div>
+      <ViewControls
+        onSetPov={props.onSetPov}
+        pov={pov}
+        onGoHome={props.onGoHome}
+        showHomeButton={showHomeButton}
+        isCalibrationMode={isCalibrationMode}
+        onToggleCalibrationMode={props.onToggleCalibrationMode}
+      />
+      
+      <ArchitectControls 
+        isCalibrationMode={isCalibrationMode}
+        onExportLayout={props.onExportLayout}
+        heldDistrictId={heldDistrictId}
+        onCancelMove={props.onCancelMove}
+      />
     </>
   );
 });

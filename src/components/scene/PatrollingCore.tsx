@@ -9,7 +9,6 @@ const SCALE = 4;
 
 const noise3D = createNoise3D();
 
-// --- Tooltip Component Definition ---
 const tooltipStyles: { [key: string]: React.CSSProperties } = {
   container: {
     transform: 'translate(-50%, -120%)',
@@ -51,7 +50,7 @@ const tooltipStyles: { [key: string]: React.CSSProperties } = {
   },
 };
 
-const OracleAccessTooltip: React.FC<{ onAccess: () => void }> = ({ onAccess }) => {
+const OracleAccessTooltip: React.FC<{ onAccess: () => void }> = React.memo(({ onAccess }) => {
   return (
     <Html center>
        <style>{`
@@ -75,7 +74,7 @@ const OracleAccessTooltip: React.FC<{ onAccess: () => void }> = ({ onAccess }) =
       </div>
     </Html>
   );
-};
+});
 
 
 interface PatrollingCoreProps {
@@ -91,7 +90,7 @@ export const PatrollingCore = forwardRef<THREE.Group, PatrollingCoreProps>(({ is
   useImperativeHandle(ref, () => groupRef.current, []);
 
   const { scene } = useGLTF(MODEL_URL);
-  const { camera } = useThree();
+  const { camera, invalidate } = useThree();
   
   const clonedScene = useMemo(() => scene.clone(), [scene]);
   const previousPosition = useMemo(() => new THREE.Vector3(), []);
@@ -101,9 +100,9 @@ export const PatrollingCore = forwardRef<THREE.Group, PatrollingCoreProps>(({ is
 
   useFrame(({ clock }) => {
     if (!groupRef.current) return;
+    invalidate(); // Keep rendering frames for core animation
 
     if (isSelected) {
-      // When selected, stop patrolling and turn to face the camera.
       const lookAtTarget = new THREE.Vector3(camera.position.x, groupRef.current.position.y, camera.position.z);
       const tempObject = new THREE.Object3D();
       tempObject.position.copy(groupRef.current.position);
