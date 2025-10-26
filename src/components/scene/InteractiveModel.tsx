@@ -1,5 +1,5 @@
 import React, { Suspense, useLayoutEffect, useMemo, useRef, useCallback } from 'react';
-import { useGLTF, Text } from '@drei';
+import { useGLTF, Text } from '@react-three/drei';
 import * as THREE from 'three';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
 import { CityDistrict } from '../../types';
