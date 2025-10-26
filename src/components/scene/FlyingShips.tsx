@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { portfolioData, FLIGHT_AREA_SIZE } from '../../constants';
+import { ShipInputState } from '../../types';
 
 const GITHUB_MODEL_URL_BASE = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/';
 
@@ -54,9 +55,11 @@ export interface ShipData {
 
 interface ShipProps extends ShipData {
   isPaused?: boolean;
+  isUnderManualControl?: boolean;
+  manualInputs?: ShipInputState;
 }
 
-const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isPaused, shipType }, ref) => {
+const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isPaused, shipType, isUnderManualControl, manualInputs }, ref) => {
   const groupRef = useRef<THREE.Group>(null!);
   useImperativeHandle(ref, () => groupRef.current, []);
 
@@ -68,6 +71,17 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isP
       groupRef.current.userData.shipType = shipType;
     }
   }, [shipType]);
+
+  const wasManual = useRef(false);
+  const velocity = useRef(new THREE.Vector3());
+
+  // Physics constants for manual control
+  const ACCELERATION = 20.0;
+  const MAX_SPEED = 40.0;
+  const TURN_RATE = 2.0;
+  const ROLL_RATE = 2.5;
+  const VERTICAL_SPEED = 10.0;
+  const DRAG = 0.97;
   
   const shipState = useRef({
     state: 'LANDED' as ShipState,
@@ -90,6 +104,52 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isP
   
   useFrame(({ clock }, delta) => {
     if (!groupRef.current || isPaused) return;
+
+    if (isUnderManualControl && manualInputs) {
+        const ship = groupRef.current;
+        
+        // 1. Acceleration
+        const forwardVector = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
+        const acceleration = forwardVector.multiplyScalar(manualInputs.forward * ACCELERATION * delta);
+        velocity.current.add(acceleration);
+
+        // 2. Vertical movement (applied directly to position)
+        ship.position.y += manualInputs.ascend * VERTICAL_SPEED * delta;
+        
+        // 3. Drag
+        velocity.current.multiplyScalar(DRAG);
+        
+        // 4. Clamp speed
+        if (velocity.current.length() > MAX_SPEED) {
+            velocity.current.normalize().multiplyScalar(MAX_SPEED);
+        }
+
+        // 5. Update position
+        ship.position.add(velocity.current.clone().multiplyScalar(delta));
+
+        // 6. Turning (Yaw) & Rolling
+        const yaw = manualInputs.turn * TURN_RATE * delta;
+        const roll = manualInputs.roll * ROLL_RATE * delta;
+        
+        const yawQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -yaw);
+        const rollQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -roll);
+        
+        ship.quaternion.multiply(yawQuat).multiply(rollQuat).normalize();
+        
+        wasManual.current = true;
+        return;
+    }
+
+    // --- Autonomous AI Logic ---
+    if (wasManual.current) {
+        // This is the first frame after manual control ended.
+        // Reset AI state to seamlessly transition.
+        shipState.current.state = 'FLYING';
+        shipState.current.targetPosition.copy(getNewFlightTarget());
+        shipState.current.timer = Math.random() * 10 + 5;
+        velocity.current.set(0, 0, 0); // Reset velocity
+        wasManual.current = false;
+    }
     
     if (!shipState.current.isInitialized) {
         // Find a random landing spot to start at.
@@ -205,9 +265,11 @@ export const shipsData: ShipData[] = [
 interface FlyingShipsProps {
   setShipRefs: (refs: React.RefObject<THREE.Group>[]) => void;
   isPaused?: boolean;
+  controlledShipId: string | null;
+  shipInputs: ShipInputState;
 }
 
-export const FlyingShips: React.FC<FlyingShipsProps> = React.memo(({ setShipRefs, isPaused }) => {
+export const FlyingShips: React.FC<FlyingShipsProps> = React.memo(({ setShipRefs, isPaused, controlledShipId, shipInputs }) => {
   
   const shipRefs = useMemo(() => 
     Array.from({ length: shipsData.length }, () => React.createRef<THREE.Group>()), 
@@ -223,7 +285,14 @@ export const FlyingShips: React.FC<FlyingShipsProps> = React.memo(({ setShipRefs
   return (
     <Suspense fallback={null}>
       {shipsData.map((ship, i) => (
-        <Ship ref={shipRefs[i]} key={ship.id} {...ship} isPaused={isPaused} />
+        <Ship 
+            ref={shipRefs[i]} 
+            key={ship.id} 
+            {...ship} 
+            isPaused={isPaused} 
+            isUnderManualControl={controlledShipId === ship.id}
+            manualInputs={shipInputs}
+        />
       ))}
     </Suspense>
   );

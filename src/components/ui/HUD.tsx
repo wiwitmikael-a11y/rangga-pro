@@ -8,6 +8,8 @@ interface HUDProps {
   onSetPov: (pov: 'main' | 'ship') => void;
   isCalibrationMode: boolean;
   heldDistrictId: string | null;
+  shipControlMode: 'follow' | 'manual';
+  onToggleShipControl: () => void;
 }
 
 // --- SVG Icons ---
@@ -31,6 +33,21 @@ const ShipIcon: React.FC = () => (
      <path d="M2 12l2.39 3.19L2.5 22h19l-1.89-6.81L22 12H2z" transform="rotate(-30 12 12) translate(0, 2)"></path>
      <path d="M12 2L8 12h8L12 2z" transform="rotate(-30 12 12) translate(0, 2)"></path>
   </svg>
+);
+
+const PilotIcon: React.FC = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2L6 22l6-4 6 4L12 2z"></path>
+        <path d="M12 14v-4"></path>
+    </svg>
+);
+
+const AutopilotIcon: React.FC = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2L6 22l6-4 6 4L12 2z"></path>
+        <path d="M12 14v-4"></path>
+        <path d="M18.3 18.3a5 5 0 1 0-12.6 0"></path>
+    </svg>
 );
 
 const styles: { [key: string]: React.CSSProperties } = {
@@ -62,6 +79,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     left: '20px',
     display: 'flex',
     alignItems: 'center',
+    gap: '10px',
     zIndex: 100,
   },
   bottomCenterContainer: {
@@ -93,7 +111,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     backdropFilter: 'blur(10px)',
     border: '1px solid rgba(0, 170, 255, 0.5)',
     borderRadius: '22px',
-    marginRight: '10px',
     transition: 'opacity 0.3s ease',
     overflow: 'hidden',
   },
@@ -121,14 +138,15 @@ const styles: { [key: string]: React.CSSProperties } = {
   }
 };
 
-export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleNavMenu, pov, onSetPov, isCalibrationMode, heldDistrictId }) => {
+export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleNavMenu, pov, onSetPov, isCalibrationMode, heldDistrictId, shipControlMode, onToggleShipControl }) => {
 
   const breadcrumb = useMemo(() => {
     if (heldDistrictId) return `RAGETOPIA > /ARCHITECT_MODE/MOVING...`;
+    if (shipControlMode === 'manual') return `RAGETOPIA > /SHIP_CONTROL/PILOTING...`;
     if (selectedDistrict) return `RAGETOPIA > /${selectedDistrict.id.toUpperCase()}_DISTRICT/`;
     if (isCalibrationMode) return `RAGETOPIA > /ARCHITECT_MODE/`;
     return 'RAGETOPIA';
-  }, [selectedDistrict, isCalibrationMode, heldDistrictId]);
+  }, [selectedDistrict, isCalibrationMode, heldDistrictId, shipControlMode]);
   
   return (
     <>
@@ -185,6 +203,16 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
                   <ShipIcon />
               </button>
           </div>
+          {pov === 'ship' && (
+            <button
+                onClick={onToggleShipControl}
+                style={{...styles.hudButton, margin: 0}}
+                className="hud-button"
+                aria-label={shipControlMode === 'follow' ? 'Take Manual Control' : 'Engage Autopilot'}
+            >
+                {shipControlMode === 'follow' ? <PilotIcon /> : <AutopilotIcon />}
+            </button>
+          )}
       </div>
     </>
   );

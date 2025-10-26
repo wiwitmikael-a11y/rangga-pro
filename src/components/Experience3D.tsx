@@ -7,10 +7,10 @@ import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
 
 import { CityModel } from './scene/CityModel';
-import { FlyingShips } from './scene/FlyingShips';
+import { FlyingShips, shipsData } from './scene/FlyingShips';
 import { DistrictRenderer } from './scene/DistrictRenderer';
 import { portfolioData, OVERVIEW_CAMERA_POSITION } from '../constants';
-import type { CityDistrict, PortfolioSubItem } from '../types';
+import type { CityDistrict, PortfolioSubItem, ShipControlMode } from '../types';
 import { CameraRig } from './CameraRig';
 import { HUD } from './ui/HUD';
 import { ProceduralTerrain } from './scene/ProceduralTerrain';
@@ -21,6 +21,7 @@ import { PatrollingCore } from './scene/PatrollingCore';
 import { CalibrationGrid } from './scene/CalibrationGrid';
 import { BuildModeController } from './scene/BuildModeController';
 import { ExportLayoutModal } from './ui/ExportLayoutModal';
+import { useShipControls } from '../hooks/useShipControls';
 
 
 // Define the sun's position for a sunset glow near the horizon
@@ -41,6 +42,11 @@ export const Experience3D: React.FC = () => {
   const [isAutoRotating, setIsAutoRotating] = useState(true);
   const [isCalibrationMode] = useState(false); // Setter removed as it's no longer used
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
+  // Ship Control State
+  const [shipControlMode, setShipControlMode] = useState<ShipControlMode>('follow');
+  const [controlledShipId, setControlledShipId] = useState<string | null>(null);
+  const shipInputs = useShipControls(shipControlMode === 'manual');
   
   // Build Mode State
   const [heldDistrictId, setHeldDistrictId] = useState<string | null>(null);
@@ -177,6 +183,8 @@ export const Experience3D: React.FC = () => {
     if (newPov === pov) return;
 
     if (newPov === 'main') {
+      setShipControlMode('follow');
+      setControlledShipId(null);
       handleGoHome();
     } else {
       setIsAutoRotating(false);
@@ -196,6 +204,28 @@ export const Experience3D: React.FC = () => {
       setIsAnimating(true);
     }
   };
+  
+  const handleToggleShipControl = useCallback(() => {
+    if (pov !== 'ship') return;
+
+    setShipControlMode(prev => {
+      if (prev === 'follow') {
+        if (targetShipRef?.current) {
+          const targetNode = targetShipRef.current;
+          // Find ship data by matching the ref object
+          const shipIndex = shipRefs.findIndex(ref => ref.current === targetNode);
+          if (shipIndex !== -1) {
+            setControlledShipId(shipsData[shipIndex].id);
+            return 'manual';
+          }
+        }
+        return 'follow'; // Cannot switch if no target is found
+      } else {
+        setControlledShipId(null);
+        return 'follow';
+      }
+    });
+  }, [pov, targetShipRef, shipRefs]);
   
   const handleSetHeldDistrict = useCallback((id: string | null) => {
     if (id) {
@@ -246,7 +276,12 @@ export const Experience3D: React.FC = () => {
               />
 
               <CityModel />
-              <FlyingShips setShipRefs={setShipRefs} isPaused={isPaused} />
+              <FlyingShips 
+                setShipRefs={setShipRefs} 
+                isPaused={isPaused} 
+                controlledShipId={controlledShipId}
+                shipInputs={shipInputs}
+              />
               <PatrollingCore isPaused={isPaused} />
               <ProceduralTerrain onDeselect={handleGoHome} />
               
@@ -300,7 +335,7 @@ export const Experience3D: React.FC = () => {
 
         <OrbitControls
             ref={controlsRef}
-            enabled={pov === 'main' && !isAnimating && !isNavMenuOpen && !showContentPanel && !infoPanelItem && !heldDistrictId}
+            enabled={pov === 'main' && shipControlMode === 'follow' && !isAnimating && !isNavMenuOpen && !showContentPanel && !infoPanelItem && !heldDistrictId}
             minDistance={20}
             maxDistance={300}
             maxPolarAngle={isCalibrationMode ? Math.PI / 2.05 : Math.PI / 2.2}
@@ -320,6 +355,8 @@ export const Experience3D: React.FC = () => {
           onSetPov={handleSetPov}
           isCalibrationMode={isCalibrationMode}
           heldDistrictId={heldDistrictId}
+          shipControlMode={shipControlMode}
+          onToggleShipControl={handleToggleShipControl}
       />
 
       {isNavMenuOpen && (

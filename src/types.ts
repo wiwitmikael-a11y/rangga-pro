@@ -41,3 +41,13 @@ export interface SkillCategory {
   skills: Skill[];
   keyMetrics: string[]; // Concrete achievements for the category
 }
+
+// --- New Types for Ship Control ---
+export type ShipControlMode = 'follow' | 'manual';
+
+export interface ShipInputState {
+  forward: number;
+  turn: number;
+  ascend: number;
+  roll: number;
+}
