@@ -9,9 +9,6 @@ interface HolographicDistrictLabelProps {
   district: CityDistrict;
   onSelect: (district: CityDistrict) => void;
   isSelected: boolean;
-  isCalibrationMode: boolean;
-  isHeld: boolean;
-  onSetHeld: (id: string | null) => void;
 }
 
 // --- Shader code for the animated borders ---
@@ -24,9 +21,6 @@ const borderVertexShader = `
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `;
-
-// Original cyan border Fragment Shader - NO LONGER IN USE
-// const borderFragmentShader = `...`;
 
 // Danger Zone Fragment Shader for ALL labels
 const dangerBorderFragmentShader = `
@@ -62,7 +56,7 @@ const dangerBorderFragmentShader = `
 // Define futuristic cyan color palette for high contrast
 const DESC_CYAN = '#afeeee'; // Pale turquoise for description
 
-const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ district, onSelect, isSelected, isCalibrationMode, isHeld, onSetHeld }) => {
+const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ district, onSelect, isSelected }) => {
   const groupRef = useRef<THREE.Group>(null!);
   const [isHovered, setIsHovered] = useState(false);
   const glowIntensityRef = useRef(1.0);
@@ -75,8 +69,8 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
   useFrame(({ clock }, delta) => {
     if (!groupRef.current) return;
 
-    // Hover scale animation, with a larger scale when held
-    const targetScale = isHeld ? 1.3 : (isHovered || isSelected ? 1.2 : 1);
+    // Hover scale animation
+    const targetScale = (isHovered || isSelected ? 1.2 : 1);
     groupRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), delta * 5);
 
     // Update time uniform to animate the border shader
@@ -89,8 +83,7 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     setIsHovered(true);
-    if(isCalibrationMode) document.body.style.cursor = 'grab';
-    else document.body.style.cursor = 'pointer';
+    document.body.style.cursor = 'pointer';
   };
 
   const handlePointerOut = (e: ThreeEvent<PointerEvent>) => {
@@ -101,11 +94,7 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
   
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
-    if (isCalibrationMode) {
-      onSetHeld(district.id);
-    } else {
-      onSelect(district);
-    }
+    onSelect(district);
   };
   
   return (

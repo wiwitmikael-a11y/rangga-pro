@@ -8,11 +8,6 @@ interface HUDProps {
   isDetailViewActive: boolean;
   pov: 'main' | 'ship';
   onSetPov: (pov: 'main' | 'ship') => void;
-  isCalibrationMode: boolean;
-  onToggleCalibrationMode: () => void;
-  onExportLayout: () => void;
-  heldDistrictId: string | null;
-  onCancelMove: () => void;
 }
 
 // --- SVG Icons ---
@@ -36,31 +31,6 @@ const ShipIcon: React.FC = () => (
      <path d="M2 12l2.39 3.19L2.5 22h19l-1.89-6.81L22 12H2z" transform="rotate(-30 12 12) translate(0, 2)"></path>
      <path d="M12 2L8 12h8L12 2z" transform="rotate(-30 12 12) translate(0, 2)"></path>
   </svg>
-);
-
-const GridIcon: React.FC = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 3h18v18H3z"></path>
-        <path d="M3 9h18"></path>
-        <path d="M3 15h18"></path>
-        <path d="M9 3v18"></path>
-        <path d="M15 3v18"></path>
-    </svg>
-);
-
-const ExportIcon: React.FC = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-        <polyline points="17 8 12 3 7 8"></polyline>
-        <line x1="12" y1="3" x2="12" y2="15"></line>
-    </svg>
-);
-
-const CancelIcon: React.FC = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-        <line x1="18" y1="6" x2="6" y2="18"></line>
-        <line x1="6" y1="6" x2="18" y2="18"></line>
-    </svg>
 );
 
 const styles: { [key: string]: React.CSSProperties } = {
@@ -100,6 +70,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     left: '50%',
     transform: 'translateX(-50%)',
     zIndex: 100,
+    transition: 'opacity 0.3s ease, transform 0.3s ease',
   },
   hudButton: {
     background: 'rgba(0, 20, 40, 0.7)',
@@ -127,42 +98,26 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: 'opacity 0.3s ease',
     overflow: 'hidden',
   },
-  disabled: {
-    opacity: 0.4,
-    pointerEvents: 'none',
-  },
   activePov: {
     background: 'rgba(0, 170, 255, 0.2)',
     color: '#fff',
     textShadow: '0 0 8px #fff',
   },
-  visible: {
-    opacity: 1,
-    transform: 'translateY(0)',
-  },
   hiddenBottom: {
     opacity: 0,
-    transform: 'translateY(20px)',
+    transform: 'translate(-50%, 20px)',
     pointerEvents: 'none',
   },
-  dangerButton: {
-    borderColor: '#ff6347',
-    color: '#ff6347',
-  }
 };
 
-export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, onToggleNavMenu, isDetailViewActive, pov, onSetPov, isCalibrationMode, onToggleCalibrationMode, onExportLayout, heldDistrictId, onCancelMove }) => {
+export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, onToggleNavMenu, isDetailViewActive, pov, onSetPov }) => {
 
   const breadcrumb = useMemo(() => {
-    if (heldDistrictId) return `RAGETOPIA > /ARCHITECT_MODE/MOVING...`;
     if (selectedDistrict) return `RAGETOPIA > /${selectedDistrict.id.toUpperCase()}_DISTRICT/`;
-    if (isCalibrationMode) return `RAGETOPIA > /ARCHITECT_MODE/`;
+    if (pov === 'ship') return `RAGETOPIA > /PILOTING_SHIP/`;
     return 'RAGETOPIA';
-  }, [selectedDistrict, isCalibrationMode, heldDistrictId]);
+  }, [selectedDistrict, pov]);
   
-  const showHomeButton = isDetailViewActive || pov === 'ship';
-  const homeButtonIcon = '⌂';
-
   return (
     <>
       <style>{`
@@ -180,7 +135,7 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
           <p style={styles.breadcrumbText}>{breadcrumb}</p>
       </div>
 
-      <div style={styles.bottomCenterContainer} className="bottom-center-container">
+      <div style={{...styles.bottomCenterContainer, ...(isDetailViewActive ? styles.hiddenBottom : {})}} className="bottom-center-container">
         <button
           onClick={onToggleNavMenu}
           style={{
@@ -188,7 +143,7 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
             width: '64px',
             height: '64px',
             margin: 0,
-            borderRadius: 0, // Reset border radius for clip-path to work
+            borderRadius: 0, 
           }}
           className="hud-button hex-btn"
           aria-label="Open Navigation Menu"
@@ -198,13 +153,12 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
       </div>
        
       <div style={styles.bottomLeftContainer} className="bottom-left-container">
-          <div style={{...styles.povSelector, ...(isCalibrationMode ? styles.disabled : {})}}>
+          <div style={styles.povSelector}>
               <button 
                 onClick={() => onSetPov('main')} 
                 style={{...styles.hudButton, margin: 0, ...(pov === 'main' ? styles.activePov : {})}}
                 className="hud-button"
-                aria-label="Overview Camera"
-                disabled={isCalibrationMode}
+                aria-label="Overview Camera / Cycle Districts"
               >
                   <CameraIcon />
               </button>
@@ -212,48 +166,11 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
                 onClick={() => onSetPov('ship')} 
                 style={{...styles.hudButton, margin: 0, ...(pov === 'ship' ? styles.activePov : {})}}
                 className="hud-button"
-                aria-label="Ship Follow Camera"
-                disabled={isCalibrationMode}
+                aria-label="Ship Follow Camera / Cycle Ships"
               >
                   <ShipIcon />
               </button>
           </div>
-          <button 
-            onClick={onGoHome} 
-            style={{...styles.hudButton, ...(showHomeButton ? styles.visible : styles.hiddenBottom)}}
-            className="hud-button"
-            aria-label="Back to City Overview"
-          >
-            {homeButtonIcon}
-          </button>
-          <button
-            onClick={onToggleCalibrationMode}
-            style={{...styles.hudButton, ...(isCalibrationMode ? styles.activePov : {}), ...styles.visible}}
-            className="hud-button"
-            aria-label="Toggle Architect Mode"
-            >
-            <GridIcon />
-          </button>
-          {isCalibrationMode && (
-            <button
-                onClick={onExportLayout}
-                style={{...styles.hudButton, ...styles.visible}}
-                className="hud-button"
-                aria-label="Export Layout"
-            >
-                <ExportIcon />
-            </button>
-          )}
-          {heldDistrictId && (
-              <button
-                  onClick={onCancelMove}
-                  style={{...styles.hudButton, ...styles.visible, ...styles.dangerButton}}
-                  className="hud-button"
-                  aria-label="Cancel Move"
-              >
-                  <CancelIcon />
-              </button>
-          )}
       </div>
     </>
   );

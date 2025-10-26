@@ -10,24 +10,17 @@ interface DistrictRendererProps {
   districts: CityDistrict[];
   selectedDistrict: CityDistrict | null;
   onDistrictSelect: (district: CityDistrict) => void;
-  isCalibrationMode: boolean;
-  heldDistrictId: string | null;
-  onSetHeldDistrict: (id: string | null) => void;
 }
 
 export const DistrictRenderer: React.FC<DistrictRendererProps> = ({
   districts,
   selectedDistrict,
   onDistrictSelect,
-  isCalibrationMode,
-  heldDistrictId,
-  onSetHeldDistrict,
 }) => {
   return (
     <group>
       {districts.map((district) => {
         const isSelected = selectedDistrict?.id === district.id;
-        const isHeld = heldDistrictId === district.id;
 
         // Render the main interactive portfolio districts
         if (district.type === 'major') {
@@ -38,9 +31,6 @@ export const DistrictRenderer: React.FC<DistrictRendererProps> = ({
                   district={district}
                   isSelected={isSelected}
                   onSelect={onDistrictSelect}
-                  isCalibrationMode={isCalibrationMode}
-                  isHeld={isHeld}
-                  onSetHeld={onSetHeldDistrict}
                 />
               ) : (
                 <group position={district.position}>
@@ -49,9 +39,6 @@ export const DistrictRenderer: React.FC<DistrictRendererProps> = ({
                     district={district}
                     isSelected={isSelected}
                     onSelect={onDistrictSelect}
-                    isCalibrationMode={isCalibrationMode}
-                    isHeld={isHeld}
-                    onSetHeld={onSetHeldDistrict}
                   />
                 </group>
               )}

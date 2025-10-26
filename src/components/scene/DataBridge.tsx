@@ -15,7 +15,7 @@ export const DataBridge: React.FC<DataBridgeProps> = ({ start, end }) => {
   const points = useMemo(() => {
     const startVec = new THREE.Vector3(...start);
     const endVec = new THREE.Vector3(...end);
-    // FIX: Refactored midpoint calculation to resolve "Expected 1 arguments, but got 0" error.
+    // FIX: The `add` method requires a vector argument. Pass `endVec` to correctly calculate the midpoint.
     const midPoint = startVec.clone().add(endVec).multiplyScalar(0.5);
     
     // The height of the arc is proportional to the distance between points
