@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { CityDistrict } from '../types';
 import { OVERVIEW_CAMERA_POSITION } from '../constants';
+import type { ShipType } from './scene/FlyingShips';
 
 interface CameraRigProps {
   selectedDistrict: CityDistrict | null;
@@ -19,9 +20,16 @@ const targetLookAt = new THREE.Vector3();
 const OVERVIEW_LOOK_AT = new THREE.Vector3(0, 5, 0);
 const CALIBRATION_POSITION = new THREE.Vector3(0, 200, 1); // Tampilan top-down yang tinggi
 
+// Pengaturan offset kamera yang berbeda untuk setiap jenis kapal
+const shipCamOffsets: { [key in ShipType | 'default']: THREE.Vector3 } = {
+    fighter: new THREE.Vector3(0, 7, -5),   // Turun 5, maju 3
+    transport: new THREE.Vector3(0, 7, -5), // Turun 5, maju 3
+    copter: new THREE.Vector3(0, 9, -8),  // Turun 3 dari 12
+    default: new THREE.Vector3(0, 12, -8), // Fallback
+};
+
 export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimationFinish, isAnimating, pov, targetShipRef, isCalibrationMode }) => {
   const shipCam = useMemo(() => ({
-    offset: new THREE.Vector3(0, 12, -8),
     idealPosition: new THREE.Vector3(),
     idealLookAt: new THREE.Vector3(),
     forwardVector: new THREE.Vector3(0, 0, 15),
@@ -49,7 +57,9 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
             hasTarget = true;
         } else if (pov === 'ship' && targetShipRef?.current) { // Ke Kapal
             const ship = targetShipRef.current;
-            shipCam.idealPosition.copy(shipCam.offset).applyQuaternion(ship.quaternion).add(ship.position);
+            const shipType = (ship.userData.shipType as ShipType) || 'default';
+            const offset = shipCamOffsets[shipType];
+            shipCam.idealPosition.copy(offset).applyQuaternion(ship.quaternion).add(ship.position);
             shipCam.idealLookAt.copy(shipCam.forwardVector).applyQuaternion(ship.quaternion).add(ship.position);
             targetPosition.copy(shipCam.idealPosition);
             targetLookAt.copy(shipCam.idealLookAt);
@@ -63,7 +73,9 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
         // Kita dalam mode mengikuti terus-menerus (bukan animasi sekali jalan)
         lerpSpeed = 4.0; // Kecepatan mengikuti yang responsif
         const ship = targetShipRef.current;
-        shipCam.idealPosition.copy(shipCam.offset).applyQuaternion(ship.quaternion).add(ship.position);
+        const shipType = (ship.userData.shipType as ShipType) || 'default';
+        const offset = shipCamOffsets[shipType];
+        shipCam.idealPosition.copy(offset).applyQuaternion(ship.quaternion).add(ship.position);
         shipCam.idealLookAt.copy(shipCam.forwardVector).applyQuaternion(ship.quaternion).add(ship.position);
         targetPosition.copy(shipCam.idealPosition);
         targetLookAt.copy(shipCam.idealLookAt);
