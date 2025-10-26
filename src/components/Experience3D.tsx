@@ -9,8 +9,8 @@ import * as THREE from 'three';
 import { CityModel } from './scene/CityModel';
 import { FlyingShips, shipsData } from './scene/FlyingShips';
 import { DistrictRenderer } from './scene/DistrictRenderer';
-import { portfolioData, OVERVIEW_CAMERA_POSITION } from '../constants';
-import type { CityDistrict, PortfolioSubItem, ShipControlMode } from '../types';
+import { portfolioData, OVERVIEW_CAMERA_POSITION } from '../../constants';
+import type { CityDistrict, PortfolioSubItem, ShipControlMode, ShipInputState } from '../../types';
 import { CameraRig } from './CameraRig';
 import { HUD } from './ui/HUD';
 import { ProceduralTerrain } from './scene/ProceduralTerrain';
@@ -21,7 +21,7 @@ import { PatrollingCore } from './scene/PatrollingCore';
 import { CalibrationGrid } from './scene/CalibrationGrid';
 import { BuildModeController } from './scene/BuildModeController';
 import { ExportLayoutModal } from './ui/ExportLayoutModal';
-import { useShipControls } from '../hooks/useShipControls';
+import { useShipControls } from '../../hooks/useShipControls';
 
 
 // Define the sun's position for a sunset glow near the horizon
@@ -43,10 +43,15 @@ export const Experience3D: React.FC = () => {
   const [isCalibrationMode] = useState(false); // Setter removed as it's no longer used
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
+  const isTouchDevice = useMemo(() => 'ontouchstart' in window || navigator.maxTouchPoints > 0, []);
+
   // Ship Control State
   const [shipControlMode, setShipControlMode] = useState<ShipControlMode>('follow');
   const [controlledShipId, setControlledShipId] = useState<string | null>(null);
-  const shipInputs = useShipControls(shipControlMode === 'manual');
+  
+  const shipKeyboardInputs = useShipControls(shipControlMode === 'manual' && !isTouchDevice);
+  const [shipTouchInputs, setShipTouchInputs] = useState<ShipInputState>({ forward: 0, turn: 0, ascend: 0, roll: 0 });
+  const shipInputs = isTouchDevice ? shipTouchInputs : shipKeyboardInputs;
   
   // Build Mode State
   const [heldDistrictId, setHeldDistrictId] = useState<string | null>(null);
@@ -357,6 +362,8 @@ export const Experience3D: React.FC = () => {
           heldDistrictId={heldDistrictId}
           shipControlMode={shipControlMode}
           onToggleShipControl={handleToggleShipControl}
+          isTouchDevice={isTouchDevice}
+          onShipTouchInputChange={setShipTouchInputs}
       />
 
       {isNavMenuOpen && (

@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import type { CityDistrict } from '../../types';
+import React, { useMemo, useEffect, useRef, useCallback } from 'react';
+import type { CityDistrict, ShipInputState } from '../../types';
 
 interface HUDProps {
   selectedDistrict: CityDistrict | null;
@@ -10,6 +10,8 @@ interface HUDProps {
   heldDistrictId: string | null;
   shipControlMode: 'follow' | 'manual';
   onToggleShipControl: () => void;
+  isTouchDevice: boolean;
+  onShipTouchInputChange: (input: ShipInputState) => void;
 }
 
 // --- SVG Icons ---
@@ -50,6 +52,168 @@ const AutopilotIcon: React.FC = () => (
     </svg>
 );
 
+// --- New Control Hint and Virtual Joystick Components ---
+
+const ControlHints: React.FC<{isManual: boolean}> = ({ isManual }) => {
+    const hintStyle: React.CSSProperties = {
+        position: 'fixed',
+        bottom: '80px',
+        right: '20px',
+        padding: '10px 15px',
+        background: 'rgba(0, 20, 40, 0.7)',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(0, 170, 255, 0.3)',
+        borderRadius: '8px',
+        color: '#ccc',
+        zIndex: 99,
+        pointerEvents: 'none',
+        fontFamily: 'var(--font-family)',
+        fontSize: '0.8rem',
+        textAlign: 'right',
+        transition: 'opacity 0.3s ease, transform 0.3s ease',
+        opacity: isManual ? 1 : 0,
+        transform: isManual ? 'translateY(0)' : 'translateY(10px)',
+    };
+
+    return (
+        <div style={hintStyle}>
+            <p style={{ margin: '2px 0' }}><strong>[W/S]</strong> ACCEL/DECEL</p>
+            <p style={{ margin: '2px 0' }}><strong>[A/D]</strong> TURN</p>
+            <p style={{ margin: '2px 0' }}><strong>[Q/E]</strong> ROLL</p>
+            <p style={{ margin: '2px 0' }}><strong>[SPACE/SHIFT]</strong> ASCEND/DESCEND</p>
+        </div>
+    );
+};
+
+
+interface VirtualControlsProps {
+    onInputChange: (input: ShipInputState) => void;
+}
+const VirtualControls: React.FC<VirtualControlsProps> = ({ onInputChange }) => {
+    const moveStickRef = useRef<HTMLDivElement>(null);
+    const ascendSliderRef = useRef<HTMLDivElement>(null);
+    const rollSliderRef = useRef<HTMLDivElement>(null);
+    const moveNubRef = useRef<HTMLDivElement>(null);
+    const ascendNubRef = useRef<HTMLDivElement>(null);
+    const rollNubRef = useRef<HTMLDivElement>(null);
+
+    const inputs = useRef<ShipInputState>({ forward: 0, turn: 0, ascend: 0, roll: 0 });
+    const activeTouches = useRef<{ [id: number]: { control: 'move' | 'ascend' | 'roll'; element: HTMLDivElement; nub: HTMLDivElement } }>({});
+
+    const updateParent = useCallback(() => {
+        onInputChange({ ...inputs.current });
+    }, [onInputChange]);
+
+    const handleTouchStart = useCallback((e: TouchEvent) => {
+        for (const touch of Array.from(e.changedTouches)) {
+            const x = touch.clientX;
+            const y = touch.clientY;
+            
+            const moveRect = moveStickRef.current?.getBoundingClientRect();
+            const ascendRect = ascendSliderRef.current?.getBoundingClientRect();
+            const rollRect = rollSliderRef.current?.getBoundingClientRect();
+
+            if (moveRect && x > moveRect.left && x < moveRect.right && y > moveRect.top && y < moveRect.bottom) {
+                activeTouches.current[touch.identifier] = { control: 'move', element: moveStickRef.current!, nub: moveNubRef.current! };
+            } else if (ascendRect && x > ascendRect.left && x < ascendRect.right && y > ascendRect.top && y < ascendRect.bottom) {
+                activeTouches.current[touch.identifier] = { control: 'ascend', element: ascendSliderRef.current!, nub: ascendNubRef.current! };
+            } else if (rollRect && x > rollRect.left && x < rollRect.right && y > rollRect.top && y < rollRect.bottom) {
+                activeTouches.current[touch.identifier] = { control: 'roll', element: rollSliderRef.current!, nub: rollNubRef.current! };
+            }
+        }
+        handleTouchMove(e);
+    }, []);
+
+    const handleTouchMove = useCallback((e: TouchEvent) => {
+        e.preventDefault();
+        for (const touch of Array.from(e.changedTouches)) {
+            const active = activeTouches.current[touch.identifier];
+            if (!active) continue;
+
+            const rect = active.element.getBoundingClientRect();
+            
+            if (active.control === 'move') {
+                const size = rect.width;
+                const halfSize = size / 2;
+                const dx = touch.clientX - (rect.left + halfSize);
+                const dy = touch.clientY - (rect.top + halfSize);
+                
+                const distance = Math.min(halfSize, Math.sqrt(dx * dx + dy * dy));
+                const angle = Math.atan2(dy, dx);
+
+                const newX = distance * Math.cos(angle);
+                const newY = distance * Math.sin(angle);
+                
+                active.nub.style.transform = `translate(${newX}px, ${newY}px)`;
+                
+                inputs.current.turn = -newX / halfSize;
+                inputs.current.forward = -newY / halfSize;
+
+            } else { // Sliders
+                const size = rect.height;
+                const halfSize = size / 2;
+                const y = Math.max(0, Math.min(size, touch.clientY - rect.top));
+                
+                const value = -((y / size) * 2 - 1); // Range -1 (bottom) to 1 (top)
+                
+                active.nub.style.transform = `translateY(${y - halfSize}px)`;
+
+                if(active.control === 'ascend') inputs.current.ascend = value;
+                if(active.control === 'roll') inputs.current.roll = -value; // Invert for intuitive feel
+            }
+        }
+        updateParent();
+    }, [updateParent]);
+
+    const handleTouchEnd = useCallback((e: TouchEvent) => {
+        for (const touch of Array.from(e.changedTouches)) {
+            const active = activeTouches.current[touch.identifier];
+            if (active) {
+                if(active.control === 'move') {
+                    inputs.current.forward = 0;
+                    inputs.current.turn = 0;
+                    active.nub.style.transform = `translate(0px, 0px)`;
+                } else {
+                    if (active.control === 'ascend') inputs.current.ascend = 0;
+                    if (active.control === 'roll') inputs.current.roll = 0;
+                    active.nub.style.transform = `translateY(0px)`;
+                }
+                delete activeTouches.current[touch.identifier];
+            }
+        }
+        updateParent();
+    }, [updateParent]);
+    
+    useEffect(() => {
+        const options = { passive: false };
+        window.addEventListener('touchstart', handleTouchStart, options);
+        window.addEventListener('touchmove', handleTouchMove, options);
+        window.addEventListener('touchend', handleTouchEnd, options);
+        window.addEventListener('touchcancel', handleTouchEnd, options);
+        
+        return () => {
+            window.removeEventListener('touchstart', handleTouchStart);
+            window.removeEventListener('touchmove', handleTouchMove);
+            window.removeEventListener('touchend', handleTouchEnd);
+            window.removeEventListener('touchcancel', handleTouchEnd);
+        };
+    }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
+
+    return (
+        <div style={styles.virtualControlsContainer}>
+            <div ref={moveStickRef} style={{...styles.joystickBase, left: '20px', bottom: '20px'}}>
+                <div ref={moveNubRef} style={styles.joystickNub} />
+            </div>
+            <div ref={ascendSliderRef} style={{...styles.sliderBase, right: '80px', bottom: '20px'}}>
+                <div ref={ascendNubRef} style={styles.sliderNub} />
+            </div>
+             <div ref={rollSliderRef} style={{...styles.sliderBase, right: '20px', bottom: '20px'}}>
+                <div ref={rollNubRef} style={styles.sliderNub} />
+            </div>
+        </div>
+    );
+};
+
 const styles: { [key: string]: React.CSSProperties } = {
   breadcrumbContainer: {
     position: 'fixed',
@@ -78,8 +242,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     bottom: '20px',
     left: '20px',
     display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
+    alignItems: 'flex-end',
+    gap: '15px',
     zIndex: 100,
   },
   bottomCenterContainer: {
@@ -102,7 +266,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center',
     cursor: 'pointer',
     transition: 'all 0.2s ease-in-out',
-    margin: '0 5px',
     fontSize: '1.5rem',
   },
   povSelector: {
@@ -135,10 +298,73 @@ const styles: { [key: string]: React.CSSProperties } = {
   dangerButton: {
     borderColor: '#ff6347',
     color: '#ff6347',
-  }
+  },
+  virtualControlsContainer: {
+    position: 'fixed',
+    inset: 0,
+    pointerEvents: 'none',
+    zIndex: 98,
+  },
+  joystickBase: {
+    position: 'absolute',
+    width: '120px',
+    height: '120px',
+    background: 'rgba(0, 20, 40, 0.5)',
+    borderRadius: '50%',
+    border: '1px solid rgba(0, 170, 255, 0.3)',
+    pointerEvents: 'auto',
+  },
+  joystickNub: {
+    position: 'absolute',
+    width: '50px',
+    height: '50px',
+    background: 'rgba(0, 170, 255, 0.5)',
+    borderRadius: '50%',
+    top: 'calc(50% - 25px)',
+    left: 'calc(50% - 25px)',
+    transition: 'transform 0.1s linear',
+  },
+  sliderBase: {
+    position: 'absolute',
+    width: '50px',
+    height: '120px',
+    background: 'rgba(0, 20, 40, 0.5)',
+    borderRadius: '25px',
+    border: '1px solid rgba(0, 170, 255, 0.3)',
+    pointerEvents: 'auto',
+  },
+  sliderNub: {
+    position: 'absolute',
+    width: '40px',
+    height: '40px',
+    background: 'rgba(0, 170, 255, 0.5)',
+    borderRadius: '50%',
+    top: 'calc(50% - 20px)',
+    left: 'calc(50% - 20px)',
+    transition: 'transform 0.1s linear',
+  },
+  buttonWrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '5px',
+  },
+  buttonLabel: {
+    fontSize: '0.6rem',
+    fontWeight: 'bold',
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase',
+    color: 'rgba(0, 170, 255, 0.6)',
+    pointerEvents: 'none',
+    transition: 'color 0.2s, text-shadow 0.2s',
+  },
+  activeButtonLabel: {
+    color: '#fff',
+    textShadow: '0 0 4px #fff',
+  },
 };
 
-export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleNavMenu, pov, onSetPov, isCalibrationMode, heldDistrictId, shipControlMode, onToggleShipControl }) => {
+export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleNavMenu, pov, onSetPov, isCalibrationMode, heldDistrictId, shipControlMode, onToggleShipControl, isTouchDevice, onShipTouchInputChange }) => {
 
   const breadcrumb = useMemo(() => {
     if (heldDistrictId) return `RAGETOPIA > /ARCHITECT_MODE/MOVING...`;
@@ -148,6 +374,8 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
     return 'RAGETOPIA';
   }, [selectedDistrict, isCalibrationMode, heldDistrictId, shipControlMode]);
   
+  const isManualMode = shipControlMode === 'manual';
+
   return (
     <>
       <style>{`
@@ -182,38 +410,56 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
         </button>
       </div>
        
-      <div style={styles.bottomLeftContainer} className="bottom-left-container">
-          <div style={{...styles.povSelector, ...(isCalibrationMode ? styles.disabled : {})}}>
+      <div style={{...styles.bottomLeftContainer, ...(isCalibrationMode ? styles.disabled : {})}} className="bottom-left-container">
+          <div style={styles.buttonWrapper}>
               <button 
                 onClick={() => onSetPov('main')} 
-                style={{...styles.hudButton, margin: 0, ...(pov === 'main' ? styles.activePov : {})}}
+                style={{...styles.hudButton, ...(pov === 'main' ? styles.activePov : {})}}
                 className="hud-button"
                 aria-label="Overview Camera"
                 disabled={isCalibrationMode}
               >
                   <CameraIcon />
               </button>
+              <span style={{...styles.buttonLabel, ...(pov === 'main' ? styles.activeButtonLabel : {})}}>
+                Overview
+              </span>
+          </div>
+          <div style={styles.buttonWrapper}>
               <button 
                 onClick={() => onSetPov('ship')} 
-                style={{...styles.hudButton, margin: 0, ...(pov === 'ship' ? styles.activePov : {})}}
+                style={{...styles.hudButton, ...(pov === 'ship' ? styles.activePov : {})}}
                 className="hud-button"
                 aria-label="Ship Follow Camera"
                 disabled={isCalibrationMode}
               >
                   <ShipIcon />
               </button>
+              <span style={{...styles.buttonLabel, ...(pov === 'ship' ? styles.activeButtonLabel : {})}}>
+                Ship POV
+              </span>
           </div>
+
           {pov === 'ship' && (
-            <button
-                onClick={onToggleShipControl}
-                style={{...styles.hudButton, margin: 0}}
-                className="hud-button"
-                aria-label={shipControlMode === 'follow' ? 'Take Manual Control' : 'Engage Autopilot'}
-            >
-                {shipControlMode === 'follow' ? <PilotIcon /> : <AutopilotIcon />}
-            </button>
+            <div style={styles.buttonWrapper}>
+                <button
+                    onClick={onToggleShipControl}
+                    style={styles.hudButton}
+                    className="hud-button"
+                    aria-label={shipControlMode === 'follow' ? 'Take Manual Control' : 'Engage Autopilot'}
+                >
+                    {shipControlMode === 'follow' ? <PilotIcon /> : <AutopilotIcon />}
+                </button>
+                <span style={{...styles.buttonLabel, color: '#fff'}}>
+                    {shipControlMode === 'follow' ? 'Manual' : 'Autopilot'}
+                </span>
+            </div>
           )}
       </div>
+
+      {!isTouchDevice && <ControlHints isManual={isManualMode} />}
+      {isTouchDevice && isManualMode && <VirtualControls onInputChange={onShipTouchInputChange} />}
+
     </>
   );
 });
