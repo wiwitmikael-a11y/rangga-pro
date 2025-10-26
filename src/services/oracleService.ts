@@ -92,7 +92,7 @@ export const askOracle = async (query: string): Promise<OracleResponse> => {
         });
         
         return {
-            answer: response.text,
+            answer: response.text ?? "[Oracle is silent... No data stream received.]",
             followUpQuestions: [] // No follow-ups for generic answers
         };
 
