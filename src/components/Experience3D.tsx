@@ -1,4 +1,5 @@
 
+
 import React, { useState, useCallback, useRef, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Stars } from '@react-three/drei';
@@ -190,7 +191,7 @@ export const Experience3D: React.FC = () => {
                         </>
                     )}
                     
-                    <EffectComposer disableNormalPass>
+                    <EffectComposer enableNormalPass={false}>
                         <Bloom 
                             luminanceThreshold={0.5} 
                             intensity={0.3} 
