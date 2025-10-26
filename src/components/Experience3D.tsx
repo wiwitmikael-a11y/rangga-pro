@@ -4,7 +4,7 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 
 import { CityModel } from './scene/CityModel';
-import { FlyingShips } from './scene/FlyingShips';
+// import { FlyingShips } from './scene/FlyingShips'; // Disabled for performance
 import { DistrictRenderer } from './scene/DistrictRenderer';
 import { portfolioData } from '../constants';
 import { CameraRig } from './CameraRig';
@@ -101,7 +101,7 @@ const Experience3D: React.FC<Experience3DProps> = ({ appState, buildState, gameS
         {/* Scene Objects */}
         <CityModel />
         <ProceduralTerrain onDeselect={handlers.handleGoHome} />
-        <FlyingShips setShipRefs={handlers.handleSetShipRefs} isPaused={isPaused} />
+        {/* <FlyingShips setShipRefs={handlers.handleSetShipRefs} isPaused={isPaused} /> */}
         <DistrictRenderer
           districts={districts}
           selectedDistrict={selectedDistrict}

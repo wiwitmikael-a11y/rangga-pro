@@ -41,11 +41,14 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
             targetPosition.copy(CALIBRATION_POSITION);
             targetLookAt.copy(OVERVIEW_LOOK_AT);
             hasTarget = true;
-        } else if (selectedDistrict?.id === 'oracle-ai' && patrollingCoreRef?.current) {
-            const corePos = patrollingCoreRef.current.position;
-            targetPosition.set(corePos.x, corePos.y + 10, corePos.z + 25);
-            targetLookAt.copy(corePos);
-            hasTarget = true;
+        } else if (selectedDistrict?.id === 'oracle-ai') {
+            const core = patrollingCoreRef?.current;
+            if (core) { // Defensive check to prevent null reference error
+                const corePos = core.position;
+                targetPosition.set(corePos.x, corePos.y + 10, corePos.z + 25);
+                targetLookAt.copy(corePos);
+                hasTarget = true;
+            }
         } else if (selectedDistrict?.cameraFocus) {
             targetPosition.set(...selectedDistrict.cameraFocus.pos);
             targetLookAt.set(...selectedDistrict.cameraFocus.lookAt);
