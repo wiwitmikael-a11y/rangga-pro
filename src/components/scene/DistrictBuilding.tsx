@@ -1,5 +1,3 @@
-// FIX: Remove the triple-slash directive for @react-three/fiber types.
-
 import React, { useState, useRef, useMemo } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';

@@ -1,5 +1,3 @@
-// FIX: Remove the triple-slash directive for @react-three/fiber types.
-
 import React, { useLayoutEffect, useMemo, useRef } from 'react';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';

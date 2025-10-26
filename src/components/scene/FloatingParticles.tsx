@@ -1,5 +1,3 @@
-// FIX: Remove the triple-slash directive for @react-three/fiber types.
-
 // FIX: Import 'React' to resolve 'React.FC' and other React namespace errors.
 import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';

@@ -6,41 +6,38 @@ import { portfolioData, FLIGHT_AREA_SIZE } from '../../constants';
 
 const GITHUB_MODEL_URL_BASE = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/';
 
-const FLIGHT_ALTITUDE_MIN = 45; // Raised to avoid all buildings
+const FLIGHT_ALTITUDE_MIN = 45;
 const FLIGHT_ALTITUDE_MAX = 60;
 const FLIGHT_SPEED = 12;
+const VTOL_SPEED = 8; // Kecepatan untuk pergerakan vertikal
 const TURN_SPEED = 1.5;
 
-const ROOFTOP_LANDING_SPOTS: THREE.Vector3[] = [
+// Tentukan beberapa titik pendaratan spesifik di tengah kota untuk spawn awal
+const CITY_CENTER_SPAWN_SPOTS: THREE.Vector3[] = [
   new THREE.Vector3(15, 28, -20),
   new THREE.Vector3(-30, 35, 10),
   new THREE.Vector3(5, 22, 45),
+  new THREE.Vector3(0, 42, 0), // Nexus Core
+  ...portfolioData.filter(d => d.type === 'major').map(d => new THREE.Vector3(d.position[0], -5.0, d.position[2]))
+];
+
+// Gabungkan semua kemungkinan titik pendaratan untuk patroli normal
+const ALL_LANDING_SPOTS = [
+  ...CITY_CENTER_SPAWN_SPOTS,
+  new THREE.Vector3(70, -5.0, -50),
+  new THREE.Vector3(-75, -5.0, -30),
+  new THREE.Vector3(20, -5.0, -80),
+  new THREE.Vector3(-30, -5.0, 80),
+  new THREE.Vector3(100, -5.0, 100),
+  new THREE.Vector3(-100, -5.0, -100),
+  new THREE.Vector3(100, -5.0, -100),
+  new THREE.Vector3(-100, -5.0, 100),
   new THREE.Vector3(40, 18, 30),
   new THREE.Vector3(-25, 25, -35),
-  new THREE.Vector3(0, 42, 0),
 ];
 
-const TERRAIN_LANDING_SPOTS: THREE.Vector3[] = [
-    new THREE.Vector3(70, -5.0, -50),
-    new THREE.Vector3(-75, -5.0, -30),
-    new THREE.Vector3(20, -5.0, -80),
-    new THREE.Vector3(-30, -5.0, 80),
-    new THREE.Vector3(0, -5.0, 0),
-    new THREE.Vector3(100, -5.0, 100), // Add corner spots
-    new THREE.Vector3(-100, -5.0, -100),
-    new THREE.Vector3(100, -5.0, -100),
-    new THREE.Vector3(-100, -5.0, 100),
-];
-
-// Create landing spots from major districts, normalizing their Y-position to ground level.
-const DISTRICT_LANDING_SPOTS: THREE.Vector3[] = portfolioData
-    .filter(d => d.type === 'major')
-    .map(d => new THREE.Vector3(d.position[0], -5.0, d.position[2]));
-
-// Combine all possible landing spots into one comprehensive list.
-const ALL_LANDING_SPOTS = [...ROOFTOP_LANDING_SPOTS, ...TERRAIN_LANDING_SPOTS, ...DISTRICT_LANDING_SPOTS];
-
-type ShipState = 'FLYING' | 'DESCENDING' | 'LANDED' | 'ASCENDING';
+// State machine yang lebih detail untuk VTOL
+type ShipState = 'SPAWNING' | 'ASCENDING_TAKEOFF' | 'FLYING_TO_TARGET' | 'DESCENDING_LANDING' | 'LANDED';
 
 export type ShipType = 'transport' | 'fighter' | 'copter';
 
@@ -64,34 +61,30 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isP
   const clonedScene = useMemo(() => scene.clone(), [scene]);
   
   const shipState = useRef({
-    state: 'LANDED' as ShipState,
-    targetPosition: new THREE.Vector3(),
-    finalLandingPosition: new THREE.Vector3().set(0, -1000, 0), // Initialized out of bounds
-    timer: initialDelay, // Use initialDelay for the first wait on the ground
+    state: 'SPAWNING' as ShipState,
+    targetPosition: new THREE.Vector3(), // Target pergerakan saat ini
+    finalLandingPosition: new THREE.Vector3(), // Titik pendaratan akhir
+    timer: 3 + initialDelay, // Waktu tunggu awal saat spawn
     isInitialized: false,
   });
   
   const tempQuaternion = useMemo(() => new THREE.Quaternion(), []);
   const tempLookAtObject = useMemo(() => new THREE.Object3D(), []);
 
-  const getNewFlightTarget = () => {
-    return new THREE.Vector3(
-      (Math.random() - 0.5) * FLIGHT_AREA_SIZE,
-      FLIGHT_ALTITUDE_MIN + Math.random() * (FLIGHT_ALTITUDE_MAX - FLIGHT_ALTITUDE_MIN),
-      (Math.random() - 0.5) * FLIGHT_AREA_SIZE
-    );
+  const getNewLandingTarget = () => {
+    return ALL_LANDING_SPOTS[Math.floor(Math.random() * ALL_LANDING_SPOTS.length)];
   };
   
-  useFrame(({ clock }, delta) => {
+  useFrame((_, delta) => {
     if (!groupRef.current || isPaused) return;
     
     if (!shipState.current.isInitialized) {
-        // Find a random landing spot to start at.
-        const startPos = TERRAIN_LANDING_SPOTS[Math.floor(Math.random() * TERRAIN_LANDING_SPOTS.length)];
+        // Tentukan posisi spawn awal di pusat kota
+        const startPos = CITY_CENTER_SPAWN_SPOTS[Math.floor(Math.random() * CITY_CENTER_SPAWN_SPOTS.length)];
         groupRef.current.position.copy(startPos);
-        shipState.current.finalLandingPosition.copy(startPos);
+        shipState.current.finalLandingPosition.copy(startPos); // Simpan posisi pendaratan
         shipState.current.isInitialized = true;
-        groupRef.current.visible = true; // Make it visible once positioned
+        groupRef.current.visible = true;
     }
 
     shipState.current.timer -= delta;
@@ -99,96 +92,82 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isP
     const targetPos = shipState.current.targetPosition;
 
     switch (shipState.current.state) {
-      case 'FLYING':
-        // BUG FIX: Replaced weak geofencing with a decisive, forceful redirection.
-        // The previous logic only nudged the target, which was insufficient to prevent
-        // ships from escaping the boundary. This new logic forces a new, opposite target.
-        const boundary = FLIGHT_AREA_SIZE / 2;
-        let needsNewTarget = false;
-        const newTarget = shipState.current.targetPosition.clone();
-
-        if (Math.abs(currentPos.x) > boundary) {
-            newTarget.x = -currentPos.x * 0.8; // Reverse direction and pull it back in
-            needsNewTarget = true;
-        }
-        if (Math.abs(currentPos.z) > boundary) {
-            newTarget.z = -currentPos.z * 0.8; // Reverse direction and pull it back in
-            needsNewTarget = true;
-        }
-
-        if (needsNewTarget) {
-            shipState.current.targetPosition.copy(newTarget);
-        }
-
-        if (currentPos.distanceTo(targetPos) < 5 || shipState.current.timer <= 0) {
-          if (Math.random() < 0.5) { // Increased chance to land and visit a spot
-            shipState.current.state = 'DESCENDING';
-            const targetZone = ALL_LANDING_SPOTS[Math.floor(Math.random() * ALL_LANDING_SPOTS.length)];
-            const landingOffset = new THREE.Vector3((Math.random() - 0.5) * 5, 0, (Math.random() - 0.5) * 5);
-            
-            shipState.current.finalLandingPosition.copy(targetZone.clone().add(landingOffset));
-            
-            const hoverPosition = shipState.current.finalLandingPosition.clone();
-            hoverPosition.y = FLIGHT_ALTITUDE_MIN + 15;
-            shipState.current.targetPosition.copy(hoverPosition);
-          } else {
-            shipState.current.targetPosition.copy(getNewFlightTarget());
-            shipState.current.timer = Math.random() * 15 + 10;
-            shipState.current.finalLandingPosition.set(0, -1000, 0);
-          }
+      case 'SPAWNING':
+        if (shipState.current.timer <= 0) {
+          shipState.current.state = 'ASCENDING_TAKEOFF';
+          const takeoffAltitude = currentPos.y + FLIGHT_ALTITUDE_MIN + Math.random() * 10;
+          shipState.current.targetPosition.set(currentPos.x, takeoffAltitude, currentPos.z);
         }
         break;
 
-      case 'DESCENDING':
-        // The target is initially the hover position.
-        if (currentPos.distanceTo(targetPos) < 2) {
-          // Once we reach the hover spot, change the target to the final ground spot to initiate vertical descent.
-          shipState.current.targetPosition.copy(shipState.current.finalLandingPosition);
+      case 'ASCENDING_TAKEOFF':
+        if (currentPos.distanceTo(targetPos) < 1) {
+          shipState.current.state = 'FLYING_TO_TARGET';
+          // Tentukan tujuan pendaratan berikutnya
+          const nextLandingSpot = getNewLandingTarget();
+          shipState.current.finalLandingPosition.copy(nextLandingSpot);
+          // Target terbang adalah titik di atas landasan
+          const hoverPosition = nextLandingSpot.clone();
+          hoverPosition.y = FLIGHT_ALTITUDE_MIN + Math.random() * (FLIGHT_ALTITUDE_MAX - FLIGHT_ALTITUDE_MIN);
+          shipState.current.targetPosition.copy(hoverPosition);
         }
-        // This check now becomes the primary landing trigger.
-        if (currentPos.distanceTo(shipState.current.finalLandingPosition) < 0.5) {
+        break;
+
+      case 'FLYING_TO_TARGET':
+        const boundary = FLIGHT_AREA_SIZE / 2;
+        const isOutOfBounds = Math.abs(currentPos.x) > boundary || Math.abs(currentPos.z) > boundary;
+
+        if (isOutOfBounds) {
+            // Logika geofencing yang tegas: paksa kembali ke tengah
+            const returnTarget = new THREE.Vector3(0, targetPos.y, 0);
+            shipState.current.targetPosition.copy(returnTarget);
+        } else if (currentPos.distanceTo(targetPos) < 10) {
+            // Cukup dekat dengan titik hover, mulai pendaratan
+            shipState.current.state = 'DESCENDING_LANDING';
+            // Target sekarang adalah titik pendaratan di darat
+            shipState.current.targetPosition.copy(shipState.current.finalLandingPosition);
+        }
+        break;
+
+      case 'DESCENDING_LANDING':
+        if (currentPos.distanceTo(targetPos) < 0.5) {
           shipState.current.state = 'LANDED';
-          shipState.current.timer = Math.random() * 8 + 5;
-          groupRef.current.position.copy(shipState.current.finalLandingPosition); // Snap to ground
+          shipState.current.timer = Math.random() * 8 + 5; // Waktu "bongkar muat"
+          groupRef.current.position.copy(shipState.current.finalLandingPosition); // Snap ke posisi akhir
         }
         break;
 
       case 'LANDED':
         if (shipState.current.timer <= 0) {
-          shipState.current.state = 'ASCENDING';
-          shipState.current.targetPosition.set(currentPos.x, FLIGHT_ALTITUDE_MIN + 10, currentPos.z);
-        } else {
-          // Bobble while landed
-          const bobble = Math.sin(clock.getElapsedTime() * 2) * 0.05;
-          groupRef.current.position.y = shipState.current.finalLandingPosition.y + bobble;
-        }
-        break;
-
-      case 'ASCENDING':
-        if (currentPos.distanceTo(targetPos) < 1) {
-          shipState.current.state = 'FLYING';
-          shipState.current.targetPosition.copy(getNewFlightTarget());
-          shipState.current.timer = Math.random() * 15 + 10;
-          shipState.current.finalLandingPosition.set(0, -1000, 0); 
+          shipState.current.state = 'ASCENDING_TAKEOFF'; // Mulai siklus baru
+          const takeoffAltitude = currentPos.y + FLIGHT_ALTITUDE_MIN + Math.random() * 10;
+          shipState.current.targetPosition.set(currentPos.x, takeoffAltitude, currentPos.z);
         }
         break;
     }
 
-    if (shipState.current.state !== 'LANDED') {
-      const speed = shipState.current.state === 'DESCENDING' ? FLIGHT_SPEED * 0.5 : FLIGHT_SPEED;
-      const direction = targetPos.clone().sub(currentPos).normalize();
-      currentPos.add(direction.multiplyScalar(delta * speed));
-      
-      const lookAtTarget = targetPos.clone();
-      if (shipState.current.state === 'ASCENDING' || shipState.current.state === 'DESCENDING') {
-          // Keep the ship level during vertical movement
-          lookAtTarget.y = currentPos.y;
-      }
+    // --- LOGIKA PERGERAKAN & ROTASI ---
+    if (shipState.current.state !== 'LANDED' && shipState.current.state !== 'SPAWNING') {
+        let speed = FLIGHT_SPEED;
+        let lookAtTarget = targetPos.clone();
 
-      tempLookAtObject.position.copy(currentPos);
-      tempLookAtObject.lookAt(lookAtTarget);
-      tempQuaternion.copy(tempLookAtObject.quaternion);
-      groupRef.current.quaternion.slerp(tempQuaternion, delta * TURN_SPEED);
+        if (shipState.current.state === 'ASCENDING_TAKEOFF' || shipState.current.state === 'DESCENDING_LANDING') {
+            speed = VTOL_SPEED;
+            // Saat bergerak vertikal, jangan lihat lurus ke atas/bawah.
+            // Lihat ke arah posisi horizontal target pendaratan berikutnya untuk transisi yang mulus.
+            lookAtTarget = shipState.current.finalLandingPosition.clone();
+            lookAtTarget.y = currentPos.y; // Jaga agar tetap horizontal
+        }
+
+        const direction = targetPos.clone().sub(currentPos).normalize();
+        currentPos.add(direction.multiplyScalar(delta * speed));
+      
+        if (currentPos.distanceTo(lookAtTarget) > 0.1) {
+            tempLookAtObject.position.copy(currentPos);
+            tempLookAtObject.lookAt(lookAtTarget);
+            tempQuaternion.copy(tempLookAtObject.quaternion);
+            groupRef.current.quaternion.slerp(tempQuaternion, delta * TURN_SPEED);
+        }
     }
   });
 
@@ -222,7 +201,6 @@ export const FlyingShips: React.FC<FlyingShipsProps> = React.memo(({ setShipRefs
   );
   
   useEffect(() => {
-    // Pass the entire array of refs up to the parent component.
     setShipRefs(shipRefs);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
