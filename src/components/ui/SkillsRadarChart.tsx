@@ -71,7 +71,7 @@ export const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ skills, sele
         .radar-data-slice { opacity: 0; transform-origin: ${CHART_CENTER}px ${CHART_CENTER}px; transform: scale(0.8); animation: fade-in 0.8s ease 0.5s forwards; transition: opacity 0.3s; }
         .radar-active .radar-data-slice { animation: pulse-glow 2s infinite; }
       `}</style>
-      <svg viewBox={`0 0 ${CHART_SIZE} ${CHART_SIZE}`} width="100%" height="100%" style={{ maxHeight: '400px', maxWidth: '400px' }}>
+      <svg viewBox={`-40 -40 ${CHART_SIZE + 80} ${CHART_SIZE + 80}`} width="100%" height="100%" style={{ maxHeight: '400px', maxWidth: '400px' }}>
         
         {/* Grid lines (Hexagons) */}
         {[0.25, 0.5, 0.75, 1].map((scale, index) => {

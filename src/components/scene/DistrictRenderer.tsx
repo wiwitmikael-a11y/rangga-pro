@@ -23,6 +23,11 @@ export const DistrictRenderer: React.FC<DistrictRendererProps> = ({
   heldDistrictId,
   onSetHeldDistrict,
 }) => {
+  // Find the central core's position dynamically to serve as the endpoint for all data streams.
+  const nexusCore = districts.find(d => d.id === 'nexus-core');
+  // Use the core's position, or a fallback if it's not found.
+  const corePosition = nexusCore ? nexusCore.position : [0, 5, 0] as [number, number, number];
+
   return (
     <group>
       {districts.map((district) => {
@@ -56,7 +61,7 @@ export const DistrictRenderer: React.FC<DistrictRendererProps> = ({
                 </group>
               )}
               {district.id !== 'nexus-core' && (
-                <DataBridge start={district.position} end={[0, 5, 0]} />
+                <DataBridge start={district.position} end={corePosition} />
               )}
             </group>
           );
