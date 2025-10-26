@@ -1,4 +1,5 @@
 
+
 import React, { useState, useCallback, Suspense, useMemo, useRef, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 // FIX: Import 'useGLTF' to resolve 'Cannot find name 'useGLTF'' error.
@@ -46,6 +47,7 @@ export const Experience3D: React.FC = () => {
   const [showVisitModal, setShowVisitModal] = useState(false);
   const [isContactHubOpen, setIsContactHubOpen] = useState(false);
   const [isOracleModalOpen, setIsOracleModalOpen] = useState(false);
+  const [isOracleFocused, setIsOracleFocused] = useState(false);
   
   const [pov, setPov] = useState<'main' | 'ship'>('main');
   const [shipRefs, setShipRefs] = useState<React.RefObject<THREE.Group>[]>([]);
@@ -87,6 +89,7 @@ export const Experience3D: React.FC = () => {
     setIsContactHubOpen(false);
     setIsGameLobbyOpen(false);
     setIsOracleModalOpen(false);
+    setIsOracleFocused(false);
     
     setSelectedDistrict(districts.find(d => d.id === district.id) || null);
     setIsAnimating(true);
@@ -138,7 +141,7 @@ export const Experience3D: React.FC = () => {
     }
 
     if (selectedDistrict.id === 'oracle-ai') {
-        setIsOracleModalOpen(true);
+        setIsOracleFocused(true);
     } else if (selectedDistrict.subItems) {
         setShowProjects(true);
     } else if (selectedDistrict.id === 'nexus-core') {
@@ -164,6 +167,7 @@ export const Experience3D: React.FC = () => {
     setShowVisitModal(false);
     setIsGameLobbyOpen(false);
     setIsOracleModalOpen(false);
+    setIsOracleFocused(false);
   }, [isCalibrationMode]);
 
   const handleOpenNavMenu = useCallback(() => setIsNavMenuOpen(true), []);
@@ -274,6 +278,11 @@ export const Experience3D: React.FC = () => {
       setIsGameActive(false);
       handleGoHome();
   }, [handleGoHome]);
+  
+  const handleAccessOracleChat = useCallback(() => {
+    setIsOracleFocused(false);
+    setIsOracleModalOpen(true);
+  }, []);
 
 
   return (
@@ -320,6 +329,8 @@ export const Experience3D: React.FC = () => {
             isPaused={isPaused}
             isSelected={selectedDistrict?.id === 'oracle-ai'}
             onSelect={() => handleDistrictSelect(portfolioData.find(d => d.id === 'oracle-ai')!)}
+            isFocused={isOracleFocused}
+            onAccessChat={handleAccessOracleChat}
           />
 
           {isCalibrationMode && (
@@ -375,6 +386,17 @@ export const Experience3D: React.FC = () => {
       </Canvas>
       
       {/* --- Overlays --- */}
+      {isCalibrationMode && (
+        <div style={{
+            position: 'fixed',
+            inset: 0,
+            pointerEvents: 'none',
+            background: 'radial-gradient(ellipse at center, transparent 30%, rgba(0, 100, 150, 0.1) 100%), repeating-linear-gradient(rgba(0, 170, 255, 0.05) 0, rgba(0, 170, 255, 0.05) 1px, transparent 1px, transparent 20px), repeating-linear-gradient(90deg, rgba(0, 170, 255, 0.05) 0, rgba(0, 170, 255, 0.05) 1px, transparent 1px, transparent 20px)',
+            zIndex: 1,
+            animation: 'fadeInGrid 0.5s ease'
+        }} />
+      )}
+      
       {!isGameActive && (
         <HUD
           selectedDistrict={selectedDistrict}

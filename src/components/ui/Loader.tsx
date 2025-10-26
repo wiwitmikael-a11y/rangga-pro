@@ -1,8 +1,17 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 
 interface LoaderProps {
   progress: number;
 }
+
+const loadingMessages = [
+    'DECRYPTING DATA STREAMS...',
+    'CALIBRATING NEURAL INTERFACE...',
+    'LOADING GEOSCAPE DATA...',
+    'ESTABLISHING SECURE LINK...',
+    'COMPILING SHADER KERNELS...',
+    'AUTHENTICATING R.A.G.E. OS...',
+];
 
 const styles: { [key: string]: React.CSSProperties } = {
     container: {
@@ -44,6 +53,8 @@ const styles: { [key: string]: React.CSSProperties } = {
         whiteSpace: 'pre-wrap',
         textShadow: '0 0 5px var(--primary-color)',
         letterSpacing: '0.05em',
+        minHeight: '1.2em', // Prevent layout shift
+        transition: 'opacity 0.3s ease-in-out',
     },
     progressBarContainer: {
       marginTop: '20px',
@@ -56,6 +67,14 @@ const styles: { [key: string]: React.CSSProperties } = {
 };
 
 export const Loader: React.FC<LoaderProps> = React.memo(({ progress }) => {
+    const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentMessageIndex(prevIndex => (prevIndex + 1) % loadingMessages.length);
+        }, 2000); // Change message every 2 seconds
+        return () => clearInterval(interval);
+    }, []);
 
     const progressBar = useMemo(() => {
         const barWidth = 40;
@@ -69,7 +88,7 @@ export const Loader: React.FC<LoaderProps> = React.memo(({ progress }) => {
             <div style={styles.scanlineEffect} />
             <div style={styles.content}>
                 <h2 style={styles.title}>ACCESSING RAGETOPIA</h2>
-                <p style={styles.text}>DECRYPTING DATA STREAMS...</p>
+                <p style={styles.text}>{loadingMessages[currentMessageIndex]}</p>
                 <div style={styles.progressBarContainer}>
                   <pre style={styles.text}>{progressBar}</pre>
                 </div>

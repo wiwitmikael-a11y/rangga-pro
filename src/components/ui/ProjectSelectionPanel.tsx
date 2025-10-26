@@ -1,4 +1,5 @@
 
+
 import React, { useState, useCallback, useRef } from 'react';
 import type { CityDistrict, PortfolioSubItem, SkillCategory } from '../../types';
 import { SkillsRadarChart } from './SkillsRadarChart';
@@ -46,7 +47,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   contentBody: { flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', position: 'relative' },
   carouselViewport: { width: '100%', height: '450px', position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', perspective: '2000px', WebkitPerspective: '2000px', cursor: 'grab', touchAction: 'pan-y' },
   carouselCard: { ...glassmorphism, position: 'absolute', width: '320px', height: '400px', transition: 'transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.6s ease, filter 0.6s ease', borderRadius: '10px', overflow: 'hidden', display: 'flex', flexDirection: 'column', userSelect: 'none', transformStyle: 'preserve-3d' },
-  cardImageContainer: { width: '100%', height: '250px', display: 'block', transition: 'transform 0.5s ease-in-out' },
+  cardImageContainer: { width: '100%', height: '250px', display: 'block', transition: 'transform 0.5s ease-in-out', transformStyle: 'preserve-3d' },
   cardImage: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
   cardContent: { padding: '15px', flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: 'rgba(5, 15, 30, 0.5)' },
   cardTitle: { margin: '0 0 10px 0', color: '#fff', fontSize: '1.1rem', textAlign: 'center' },
@@ -86,6 +87,27 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     textShadow: '0 0 5px black',
   },
+  paginationDots: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '8px',
+    marginTop: '10px',
+    position: 'absolute',
+    bottom: '-10px',
+    left: '50%',
+    transform: 'translateX(-50%)'
+  },
+  dot: {
+    width: '8px',
+    height: '8px',
+    borderRadius: '50%',
+    background: 'rgba(0, 170, 255, 0.3)',
+    transition: 'background 0.3s, transform 0.3s',
+  },
+  activeDot: {
+    background: 'var(--primary-color)',
+    transform: 'scale(1.3)',
+  },
 };
 
 const StrategicAnalysisPanel: React.FC<{ activeCategory: SkillCategory | null }> = ({ activeCategory }) => {
@@ -110,7 +132,8 @@ const StrategicAnalysisPanel: React.FC<{ activeCategory: SkillCategory | null }>
 };
 
 export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ isOpen, district, onClose }) => {
-  const [activeCategory, setActiveCategory] = useState<SkillCategory | null>(null);
+  const [hoverCategory, setHoverCategory] = useState<SkillCategory | null>(null);
+  const [stickyCategory, setStickyCategory] = useState<SkillCategory | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [zoomedImageUrl, setZoomedImageUrl] = useState<string | null>(null);
   const [parallaxStyle, setParallaxStyle] = useState({});
@@ -118,6 +141,17 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
 
   const projects = district?.subItems || [];
   const activeProject = projects.length > 0 ? projects[currentIndex] : null;
+
+  const handleCategoryHover = useCallback((category: SkillCategory | null) => {
+    if (!stickyCategory) {
+      setHoverCategory(category);
+    }
+  }, [stickyCategory]);
+  
+  const handleCategoryClick = useCallback((category: SkillCategory) => {
+    setStickyCategory(prev => (prev?.category === category.category ? null : category));
+    setHoverCategory(category);
+  }, []);
 
   const handlePrev = useCallback(() => {
     setCurrentIndex(prev => (prev === 0 ? projects.length - 1 : prev - 1));
@@ -156,7 +190,7 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
     const { left, top, width, height } = currentTarget.getBoundingClientRect();
     const x = (clientX - left) / width - 0.5;
     const y = (clientY - top) / height - 0.5;
-    const intensity = 20;
+    const intensity = 15;
     setParallaxStyle({
       transform: `rotateX(${-y * intensity}deg) rotateY(${x * intensity}deg) scale3d(1.1, 1.1, 1.1)`,
       transition: 'transform 0.1s ease-out'
@@ -176,6 +210,7 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
   if (!district) return null;
 
   const isCoreMatrix = district.id === 'skills-matrix';
+  const activeAnalysisCategory = stickyCategory || hoverCategory;
 
   return (
     <>
@@ -196,8 +231,8 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
 
         {isCoreMatrix ? (
           <div style={styles.competencyLayout} className="competency-layout">
-            <div style={styles.chartContainer} className="chart-container"><SkillsRadarChart skills={skillsData} activeCategory={activeCategory} onCategoryHover={setActiveCategory} /></div>
-            <StrategicAnalysisPanel activeCategory={activeCategory} />
+            <div style={styles.chartContainer} className="chart-container"><SkillsRadarChart skills={skillsData} activeCategory={activeAnalysisCategory} onCategoryHover={handleCategoryHover} onCategoryClick={handleCategoryClick} /></div>
+            <StrategicAnalysisPanel activeCategory={activeAnalysisCategory} />
           </div>
         ) : (
           <div style={styles.contentBody}>
@@ -257,6 +292,11 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
                   <div key={activeProject.id} style={styles.infoPanel}>
                     <h3 style={styles.infoTitle}>{activeProject.title}</h3>
                     <p style={styles.infoDescription}>{activeProject.description}</p>
+                    <div style={styles.paginationDots}>
+                        {projects.map((_, index) => (
+                            <div key={index} style={{...styles.dot, ...(index === currentIndex ? styles.activeDot : {})}} />
+                        ))}
+                    </div>
                   </div>
                 )}
                 <button onClick={handlePrev} style={{...styles.navButton, left: '20px'}} className="carousel-nav-button" aria-label="Previous Project">&#8249;</button>

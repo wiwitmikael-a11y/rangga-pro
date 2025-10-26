@@ -80,6 +80,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     flexDirection: 'column',
     borderRadius: '5px',
+    opacity: 0,
+    animation: 'list-item-enter 0.4s ease forwards',
+  },
+  homeButton: {
+    borderColor: 'var(--primary-color)',
+    background: 'rgba(0, 170, 255, 0.1)',
   },
   buttonTitle: {
     fontSize: '1rem',
@@ -130,17 +136,24 @@ export const QuickNavMenu: React.FC<QuickNavMenuProps> = ({ isOpen, onClose, onS
         <div style={styles.dangerStripes} />
         <button onClick={handleClose} style={styles.closeButton} aria-label="Close Navigation">&times;</button>
         <div style={styles.grid} className="quick-nav-grid">
-          {districts.map(district => (
-            <button
-              key={district.id}
-              style={styles.navButton}
-              className="nav-button"
-              onClick={() => handleSelect(district)}
-            >
-              <span style={styles.buttonTitle}>{district.title}</span>
-              <span style={styles.buttonDesc}>{district.description}</span>
-            </button>
-          ))}
+          {districts.map((district, index) => {
+            const isHomeButton = district.id === 'nexus-core';
+            return (
+              <button
+                key={district.id}
+                style={{
+                  ...styles.navButton,
+                  ...(isHomeButton ? styles.homeButton : {}),
+                  animationDelay: isOpen ? `${index * 50}ms` : '0ms',
+                }}
+                className="nav-button"
+                onClick={() => handleSelect(district)}
+              >
+                <span style={styles.buttonTitle}>{district.title}</span>
+                <span style={styles.buttonDesc}>{district.description}</span>
+              </button>
+            )
+          })}
         </div>
       </div>
     </>

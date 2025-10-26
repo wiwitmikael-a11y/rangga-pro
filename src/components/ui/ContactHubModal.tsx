@@ -35,6 +35,18 @@ const TransmitIcon: React.FC = () => (
         <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
     </svg>
 );
+const SpinnerIcon: React.FC = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px', animation: 'spin 1s linear infinite' }}>
+    <line x1="12" y1="2" x2="12" y2="6"></line>
+    <line x1="12" y1="18" x2="12" y2="22"></line>
+    <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+    <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+    <line x1="2" y1="12" x2="6" y2="12"></line>
+    <line x1="18" y1="12" x2="22" y2="12"></line>
+    <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+    <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+  </svg>
+);
 
 interface ContactHubModalProps {
   isOpen: boolean;
@@ -63,7 +75,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     linkButton: { ...glassmorphism, display: 'flex', alignItems: 'center', gap: '15px', padding: '12px 15px', color: '#cceeff', textDecoration: 'none', borderRadius: '5px', marginBottom: '10px', transition: 'all 0.3s ease', borderLeft: '3px solid transparent' },
     submitButton: { width: '100%', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', padding: '12px', fontSize: '1rem', fontFamily: 'inherit', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', transition: 'all 0.3s ease', textShadow: '0 0 5px var(--primary-color)', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '5px' },
     statusConsole: { marginTop: '15px', padding: '8px 12px', background: 'rgba(0,0,0,0.5)', borderRadius: '4px', border: '1px solid #333', color: '#888', fontFamily: 'monospace', fontSize: '0.8rem', textAlign: 'center', transition: 'all 0.3s ease' },
+    errorMessage: { color: '#ff6347', fontSize: '0.8rem', marginTop: '-20px', marginBottom: '10px', minHeight: '1.2em' },
 };
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const ContactHubModal: React.FC<ContactHubModalProps> = ({ isOpen, onClose }) => {
     const [name, setName] = useState('');
@@ -71,10 +86,24 @@ export const ContactHubModal: React.FC<ContactHubModalProps> = ({ isOpen, onClos
     const [inquiry, setInquiry] = useState('Project Proposal / Collaboration');
     const [message, setMessage] = useState('');
     const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+    const [errors, setErrors] = useState({ email: '' });
+
+    const validate = () => {
+        let hasError = false;
+        const newErrors = { email: '' };
+
+        if (!emailRegex.test(email)) {
+            newErrors.email = 'Invalid email format.';
+            hasError = true;
+        }
+
+        setErrors(newErrors);
+        return !hasError;
+    };
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
-        if (!name || !email || !message) {
+        if (!validate() || !name || !message) {
             setStatus('error');
             setTimeout(() => setStatus('idle'), 2000);
             return;
@@ -119,7 +148,7 @@ export const ContactHubModal: React.FC<ContactHubModalProps> = ({ isOpen, onClos
 
     const getSubmitButtonInfo = () => {
         switch (status) {
-            case 'sending': return { text: 'Encrypting...', background: 'rgba(255, 165, 0, 0.2)', borderColor: '#ffa500', color: '#ffa500', animation: 'pulse-orange 1.5s infinite' };
+            case 'sending': return { text: <><SpinnerIcon /> Encrypting...</>, background: 'rgba(255, 165, 0, 0.2)', borderColor: '#ffa500', color: '#ffa500' };
             case 'success': return { text: 'Transmission Complete', background: 'rgba(0, 255, 127, 0.2)', borderColor: '#00ff7f', color: '#00ff7f' };
             case 'error': return { text: 'Transmission Error', background: 'rgba(255, 68, 68, 0.2)', borderColor: '#ff4444', color: '#ff4444' };
             default: return { text: <><TransmitIcon /> Transmit Message</>, background: 'rgba(0, 170, 255, 0.2)', borderColor: 'var(--primary-color)', color: 'var(--primary-color)' };
@@ -132,16 +161,16 @@ export const ContactHubModal: React.FC<ContactHubModalProps> = ({ isOpen, onClos
         <>
             <style>{`
                 @keyframes stripe-scroll { from { background-position: 0 0; } to { background-position: 56.5px 0; } }
-                @keyframes pulse-orange { 
-                  0% { box-shadow: 0 0 5px rgba(255, 165, 0, 0.3); } 
-                  50% { box-shadow: 0 0 15px rgba(255, 165, 0, 0.7); } 
-                  100% { box-shadow: 0 0 5px rgba(255, 165, 0, 0.3); } 
-                }
+                @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
                 .link-button:hover {
                     transform: translateY(-3px);
                     border-left-color: var(--primary-color) !important;
                     box-shadow: 0 5px 15px rgba(0, 225, 255, 0.2);
                     background: rgba(0, 100, 150, 0.4);
+                }
+                .link-button:hover svg {
+                  transform: scale(1.15);
+                  transition: transform 0.2s ease-in-out;
                 }
             `}</style>
             <div style={overlayStyle} onClick={onClose} />
@@ -178,9 +207,10 @@ export const ContactHubModal: React.FC<ContactHubModalProps> = ({ isOpen, onClos
                             <label htmlFor="name" className="form-label">Name / Organization</label>
                         </div>
                         <div className="input-group">
-                            <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="form-input" placeholder=" " />
+                            <input type="email" id="email" value={email} onChange={(e) => { setEmail(e.target.value); if(errors.email) validate(); }} required className="form-input" placeholder=" " style={{ borderColor: errors.email ? '#ff6347' : undefined }} />
                             <label htmlFor="email" className="form-label">Email Address</label>
                         </div>
+                        <div style={styles.errorMessage}>{errors.email}</div>
                         <div className="input-group">
                              <select id="inquiry" value={inquiry} onChange={(e) => setInquiry(e.target.value)} required className="form-input">
                                 <option>Project Proposal / Collaboration</option>
@@ -195,7 +225,7 @@ export const ContactHubModal: React.FC<ContactHubModalProps> = ({ isOpen, onClos
                             <label htmlFor="message" className="form-label">Your message...</label>
                         </div>
 
-                        <button type="submit" style={{...styles.submitButton, ...submitButtonInfo, animation: submitButtonInfo.animation || 'none' }} disabled={status !== 'idle'}>
+                        <button type="submit" style={{...styles.submitButton, ...submitButtonInfo }} disabled={status !== 'idle'}>
                             {submitButtonInfo.text}
                         </button>
                         <div style={{ ...styles.statusConsole, color: statusInfo.color, borderColor: statusInfo.color }}>

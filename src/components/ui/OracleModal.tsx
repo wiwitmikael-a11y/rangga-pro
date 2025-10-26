@@ -56,13 +56,25 @@ const styles: { [key: string]: React.CSSProperties } = {
     chatContainer: { flexGrow: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' },
     messageBubble: { maxWidth: '80%', padding: '10px 15px', borderRadius: '10px', lineHeight: 1.5, wordBreak: 'break-word', animation: 'fadeInContent 0.4s ease forwards' },
     oracleMessage: { background: 'rgba(0, 50, 80, 0.5)', border: '1px solid rgba(0, 170, 255, 0.3)', alignSelf: 'flex-start' },
-    userMessage: { background: 'rgba(0, 170, 255, 0.2)', border: '1px solid rgba(0, 170, 255, 0.5)', color: '#e0faff', alignSelf: 'flex-end' },
+    userMessage: { background: 'rgba(0, 170, 255, 0.2)', border: '1px solid rgba(0, 170, 255, 0.5)', color: '#e0faff', alignSelf: 'flex-end', animation: 'slideInUserMessage 0.4s ease-out forwards' },
     formContainer: { display: 'flex', gap: '10px', padding: '20px', borderTop: '1px solid rgba(0, 170, 255, 0.2)', flexShrink: 0 },
-    input: { flexGrow: 1, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(0, 170, 255, 0.3)', color: '#fff', padding: '12px', borderRadius: '4px', fontSize: '1rem' },
+    input: { flexGrow: 1, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(0, 170, 255, 0.3)', color: '#fff', padding: '12px', borderRadius: '4px', fontSize: '1rem', transition: 'opacity 0.3s' },
     submitButton: { border: '1px solid var(--primary-color)', color: 'var(--primary-color)', padding: '12px 20px', fontSize: '1rem', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', transition: 'all 0.3s ease', borderRadius: '5px' },
     curatedQuestionsContainer: { display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px', padding: '10px 20px 15px', borderTop: '1px solid rgba(0, 170, 255, 0.2)', flexShrink: 0 },
     curatedButton: { background: 'rgba(0, 170, 255, 0.1)', border: '1px solid rgba(0, 170, 255, 0.3)', color: '#cceeff', padding: '8px 12px', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer', transition: 'background 0.2s ease' },
-    followUpContainer: { display: 'flex', justifyContent: 'flex-start', flexWrap: 'wrap', gap: '10px', padding: '10px 20px 0 20px', alignSelf: 'flex-start', animation: 'fadeInContent 0.5s 0.2s ease forwards', opacity: 0 },
+    followUpContainer: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '10px', padding: '10px 20px 0 20px', alignSelf: 'flex-start', animation: 'fadeInContent 0.5s 0.2s ease forwards', opacity: 0 },
+    followUpHeader: {
+        fontSize: '0.8rem',
+        color: '#88a7a6',
+        margin: '0 0 5px 0',
+        textTransform: 'uppercase',
+        letterSpacing: '0.1em',
+    },
+    followUpButtons: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '10px',
+    }
 };
 
 export const OracleModal: React.FC<OracleModalProps> = ({ isOpen, onClose }) => {
@@ -114,7 +126,10 @@ export const OracleModal: React.FC<OracleModalProps> = ({ isOpen, onClose }) => 
 
     return (
         <>
-            <style>{`@keyframes fadeInContent { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+            <style>{`
+              @keyframes fadeInContent { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+              @keyframes slideInUserMessage { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+            `}</style>
             <div style={overlayStyle} onClick={onClose} />
             <div style={containerStyle} className={`oracle-modal responsive-modal ${isOpen ? 'panel-enter' : ''}`} onContextMenu={(e) => e.stopPropagation()}>
                 <div style={styles.dangerStripes} />
@@ -140,7 +155,10 @@ export const OracleModal: React.FC<OracleModalProps> = ({ isOpen, onClose }) => 
                             )}
                             {!isLoading && currentFollowUps.length > 0 && (
                                 <div style={styles.followUpContainer}>
-                                    {currentFollowUps.map(q => <button key={q} style={styles.curatedButton} className="nav-button" onClick={() => handleSubmit(undefined, q)}>{q}</button>)}
+                                    <p style={styles.followUpHeader}>[Suggested Prompts]</p>
+                                    <div style={styles.followUpButtons}>
+                                      {currentFollowUps.map(q => <button key={q} style={styles.curatedButton} className="nav-button" onClick={() => handleSubmit(undefined, q)}>{q}</button>)}
+                                    </div>
                                 </div>
                             )}
                             <div ref={chatEndRef} />
@@ -148,7 +166,7 @@ export const OracleModal: React.FC<OracleModalProps> = ({ isOpen, onClose }) => 
                         <div style={styles.curatedQuestionsContainer}>
                             {curatedOracleQuestions.map(q => <button key={q} style={styles.curatedButton} className="nav-button" onClick={() => handleSubmit(undefined, q)} disabled={isLoading}>{q}</button>)}
                         </div>
-                        <form style={styles.formContainer} onSubmit={handleSubmit}>
+                        <form style={{...styles.formContainer, opacity: isLoading ? 0.5 : 1}} onSubmit={handleSubmit}>
                             <input
                                 type="text"
                                 value={input}

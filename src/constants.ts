@@ -70,55 +70,57 @@ export const skillsData: SkillCategory[] = [
 export const curatedOracleQuestions: string[] = [
     "What is your core philosophy?",
     "Tell me about your background.",
-    "Show me your AI projects.",
     "What makes you a unique candidate?",
+    "Show me your AI projects.",
+    "What was your role at BRI?",
+    "What are you passionate about?",
 ];
 
 export const oracleGimmicks: OracleGimmick[] = [
     {
-        keywords: ["who are you", "tell me about yourself", "summary", "rangga prayoga hermawan", "rangga", "rangga prayoga", "@rangga.p.h", "background", "what is your core philosophy"],
-        answer: "Saya adalah seorang arsitek digital yang beroperasi dengan sebuah 'Fusionist Advantage'. Visi saya adalah membangun masa depan digital di mana teknologi tidak hanya canggih, tetapi juga bijaksana dan terhubung secara intrinsik dengan hasil bisnis yang nyata. Ini bukanlah filosofi teoretis; ini adalah hasil dari rekam jejak 15 tahun yang unik.",
-        followUpQuestions: ["Explain the 'Fusionist Advantage'.", "How does your 15 years in finance shape your tech approach?"]
+        keywords: ["who are you", "tell me about yourself", "summary", "rangga prayoga hermawan", "rangga", "rangga prayoga", "@rangga.p.h", "background", "core philosophy"],
+        answer: "I operate under a core principle I call the 'Fusionist Advantage.' My career is built on a 15-year, parallel journey in two distinct worlds: the high-stakes reality of financial leadership and the deep, abstract world of technology architecture. My purpose is to fuse insights from both to create digital solutions that are not just technically brilliant, but strategically vital.",
+        followUpQuestions: ["Explain the 'Fusionist Advantage'.", "What was your most significant role?"]
     },
     {
         keywords: ["fusionist advantage", "what makes you unique", "unique candidate", "strength", "strongest", "best skill", "kekuatan"],
-        answer: "Itu adalah kemampuan untuk mensintesis dua dunia yang jarang bertemu. [Dunia 1]: 15 tahun di garis depan sektor keuangan sebagai Kepala Unit BRI, mengelola P&L dan memahami 'ground-truth' tentang bagaimana pasar dan bisnis nyata beroperasi. [Dunia 2]: 15+ tahun secara paralel merancang dan membangun solusi teknologi yang kompleks. Keunggulan fusi ini memungkinkan saya untuk tidak hanya membangun apa yang 'mungkin' secara teknis, tetapi membangun apa yang 'penting' secara strategis.",
-        followUpQuestions: ["Give me a concrete example from your BRI experience.", "Show me an AI project built on this principle."]
+        answer: "The 'Fusionist Advantage' is my ability to synthesize insights from two domains that rarely intersect. [Domain 1]: 15 years in finance, culminating as a Head of Unit at BRI, where I managed P&L and understood the 'ground-truth' of the market. [Domain 2]: 15+ parallel years designing and building complex tech solutions. This fusion allows me to see beyond code; I see market gaps, user psychology, and strategic impact, ensuring that what I build isn't just possible, but essential.",
+        followUpQuestions: ["Tell me more about your experience at BRI.", "How does this 'ground-truth' influence your AI projects?"]
     },
     {
-        keywords: ["bri", "bank", "financial", "leadership", "head of unit", "kepala unit", "concrete example"],
-        answer: "Di BRI, saya berevolusi menjadi Kepala Unit, di mana saya bertanggung jawab penuh atas P&L dan pertumbuhan pasar. [Situasi]: Saya berhadapan langsung dengan ribuan nasabah UMKM, petani, dan nelayan. Saya tidak membaca laporan tentang mereka; saya menganalisis risiko mereka, menyetujui pinjaman mereka, dan memahami tantangan mereka. [Hasil]: Wawasan mendalam tentang ekonomi riil ini adalah 'alpha' saya. Ini memastikan setiap baris kode yang saya tulis hari ini memiliki tujuan bisnis yang jelas dan berempati pada pengguna akhir.",
-        followUpQuestions: ["How do you apply that market insight to AI?", "What was your most significant innovation at BRI?"]
+        keywords: ["bri", "bank", "financial", "leadership", "head of unit", "kepala unit", "significant role"],
+        answer: "At BRI, I evolved into a Head of Unit, directly responsible for P&L and market growth. This wasn't a corporate ivory tower. [The Reality]: I was on the front lines, analyzing risk, approving loans, and understanding the real-world challenges of thousands of SME clients, farmers, and fishermen. [The Insight]: This deep empathy and understanding of the real economy is my 'alpha.' It ensures every line of code I write today serves a clear business purpose and solves a genuine human problem.",
+        followUpQuestions: ["How do you apply that market insight to AI?", "What was a key innovation you led at BRI?"]
     },
     {
         keywords: ["ai", "gemini", "agent", "machine learning", "airora", "desain.fun", "artificial intelligence", "ai projects"],
-        answer: "Saya menerapkan wawasan pasar saya untuk membangun AI yang praktis. [Produk Live]: Saya mendirikan `desain.fun`, platform yang menyediakan tools AI untuk UMKM Indonesia—pasar yang saya pahami secara mendalam—guna memberdayakan mereka dalam branding dan pengembangan bisnis. [R&D]: Saya juga memimpin riset untuk 'Project AIRORA', sebuah AI kustom yang fokus pada penalaran otonom. Ini bukan tentang AI demi AI; ini tentang membangun sistem cerdas yang memecahkan masalah nyata.",
-        followUpQuestions: ["Tell me about your full-spectrum creativity.", "What is the tech stack for this portfolio (Ragetopia)?"]
+        answer: "My market insight dictates that AI must be practical. [Live Product]: I founded `desain.fun`, a platform providing AI tools for Indonesian SMEs—a market I know intimately—to solve their branding and business development challenges. [R&D Initiative]: I also lead research on 'Project AIRORA,' a custom AI focused on autonomous reasoning. This isn't AI for the sake of it; it's about building intelligent systems that solve tangible problems for specific market segments.",
+        followUpQuestions: ["This is very analytical. What are you passionate about?", "What is the tech stack for this portfolio (Ragetopia)?"]
     },
     {
-        keywords: ["creative", "creativity", "art", "music", "songwriting", "photography", "award", "champion", "video", "live streaming", "innovation at bri"],
-        answer: "Kreativitas adalah benang merahnya. [Visual]: Saya adalah juara nasional fotografi 'BRIght On' dan kompetisi video, membuktikan kemampuan menghasilkan visual A-list. [Inovasi Teknis]: Saya merancang mekanisme live streaming broadcast-level untuk event nasional BRI. [Sintesis Tertinggi]: Saat ini, saya membangun proyek yang memadukan bakat sebagai penulis lagu dengan AI generatif musik. Tujuannya adalah menciptakan musik siap publish. Ini adalah bukti utama filosofi fusi saya: mengorkestrasi keahlian teknis (AI Engineering), kreativitas manusia (musik), dan produksi (visual 2D/3D) menjadi satu produk jadi.",
-        followUpQuestions: ["Explain your Web3 and blockchain expertise.", "Why should we hire you?"]
+        keywords: ["creative", "creativity", "art", "music", "songwriting", "photography", "award", "champion", "video", "passionate", "innovation at bri"],
+        answer: "I'm passionate about full-spectrum creation. For me, creativity and technology are not separate disciplines. [Visual Excellence]: As a national photography and video champion, I produce A-list visuals. [Technical Innovation]: I engineered a broadcast-level live streaming system for BRI's national events. [The Ultimate Synthesis]: My current R&D project fuses my skill as a songwriter with generative AI to produce release-ready music. This is the ultimate expression of my fusionist philosophy: orchestrating technical engineering, human creativity, and production into a single, cohesive product.",
+        followUpQuestions: ["Tell me about your Web3 and blockchain expertise.", "Why should we hire you?"]
     },
     {
         keywords: ["blockchain", "web3", "defi", "on-chain", "solana", "bsc"],
-        answer: "Keahlian Web3 saya bersifat praktis dan berorientasi pada arsitektur. Dengan pengalaman mendalam di ekosistem high-throughput seperti Solana dan EVM (BSC), saya telah berulang kali merancang dan men-deploy proyek token DeFi dan dApps. Ini mencakup seluruh siklus hidup: dari tokenomics dan arsitektur smart contract hingga strategi likuiditas pasca-peluncuran. Saya melihat blockchain sebagai lapisan infrastruktur baru untuk model bisnis yang transparan dan efisien.",
+        answer: "My Web3 expertise is practical and architectural. With deep experience in high-throughput ecosystems like Solana and EVM (BSC), I've repeatedly architected and deployed DeFi token projects and dApps. This covers the full lifecycle: from tokenomics and smart contract design to post-launch liquidity strategies. I view blockchain not as a hype cycle, but as a new infrastructure layer for more transparent and efficient business models.",
         followUpQuestions: ["What was the biggest challenge in building Ragetopia?", "What is your vision for the future?"]
     },
     {
         keywords: ["ragetopia", "portfolio", "tech stack", "three.js", "webgl", "how did you build this", "challenge"],
-        answer: "Ragetopia adalah demonstrasi live dari filosofi saya. Dibangun dengan React, TypeScript, dan Three.js (via React-Three-Fiber), ini adalah bukti keahlian dalam rendering real-time, optimisasi WebGL, dan desain UI/UX yang imersif. Tantangan terbesarnya adalah menyeimbangkan kompleksitas visual dengan performa yang lancar, sebuah metafora untuk pekerjaan saya: menyeimbangkan visi besar dengan eksekusi yang solid dan efisien.",
+        answer: "Ragetopia is a live demonstration of my philosophy. Built with React, TypeScript, and Three.js (via React-Three-Fiber), it showcases expertise in real-time rendering, WebGL optimization, and immersive UI/UX design. The greatest challenge was balancing visual complexity with smooth performance—a perfect metaphor for my work: balancing a grand vision with solid, efficient execution.",
         followUpQuestions: ["What is your vision for the future?", "Why should we hire you?"]
     },
      {
         keywords: ["vision", "future", "goals"],
-        answer: "Visi saya adalah memimpin pengembangan antarmuka generasi berikutnya, di mana batas antara dunia digital dan fisik semakin kabur. Saya percaya masa depan interaksi manusia-komputer ada pada lingkungan 3D yang cerdas, personal, dan didukung oleh AI. Tujuan saya adalah berada di garis depan, merancang platform-platform ini dan menciptakan cara-cara baru bagi bisnis untuk terhubung dengan pelanggan mereka secara lebih mendalam.",
+        answer: "My vision is to lead the development of next-generation interfaces where the lines between digital and physical worlds blur. I believe the future of human-computer interaction lies in intelligent, personalized 3D environments powered by AI. My goal is to be at the forefront, architecting these platforms and creating new ways for businesses to connect with their customers on a deeper, more intuitive level.",
         followUpQuestions: ["That's a bold vision. Why should we hire you to lead it?"]
     },
     {
         keywords: ["hire you", "why you", "value"],
-        answer: "Karena saya adalah seorang 'force multiplier'. Anda tidak sekadar merekrut seorang engineer, pemimpin, atau direktur kreatif. Anda mengintegrasikan seorang mitra strategis yang dapat memahami tantangan bisnis Anda dari perspektif seorang eksekutif, merancang solusi teknis dari kacamata seorang arsitek, dan memastikan produk akhir memikat pasar dari intuisi seorang kreator. Saya menjembatani kesenjangan kritis antara dewan direksi, tim R&D, dan pengguna akhir. Saya mengubah visi menjadi nilai.",
-        followUpQuestions: [] // The final, powerful closing statement.
+        answer: "Because I'm a 'force multiplier.' You don't just get an engineer, a leader, or a creative director. You get a strategic partner who can understand your business challenges from an executive's perspective, architect the technical solution from an engineer's viewpoint, and ensure the final product captivates the market with a creator's intuition. I bridge the critical gap between the boardroom, the R&D lab, and the end-user. I turn vision into value.",
+        followUpQuestions: ["What is your core philosophy?"]
     }
 ];
 

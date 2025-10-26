@@ -205,10 +205,26 @@ const styles: { [key: string]: React.CSSProperties } = {
   dangerButton: {
     borderColor: '#ff6347',
     color: '#ff6347',
-  }
+  },
+   tooltip: {
+    position: 'fixed',
+    background: 'rgba(0, 20, 40, 0.9)',
+    color: 'var(--primary-color)',
+    padding: '6px 12px',
+    borderRadius: '5px',
+    border: '1px solid rgba(0, 170, 255, 0.5)',
+    fontSize: '0.8rem',
+    letterSpacing: '0.05em',
+    zIndex: 101,
+    pointerEvents: 'none',
+    transition: 'opacity 0.2s ease, transform 0.2s ease',
+    whiteSpace: 'nowrap',
+  },
 };
 
 export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, onToggleNavMenu, isDetailViewActive, pov, onSetPov, isCalibrationMode, onToggleCalibrationMode, onExportLayout, heldDistrictId, onCancelMove, onSelectOracle }) => {
+  const [pressedButton, setPressedButton] = useState<string | null>(null);
+  const [tooltip, setTooltip] = useState<{ text: string; x: number; y: number } | null>(null);
 
   const breadcrumb = useMemo(() => {
     if (heldDistrictId) return `RAGETOPIA:/ARCHITECT_MODE$ execute --move ${heldDistrictId}`;
@@ -221,6 +237,22 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
   
   const showHomeButton = isDetailViewActive || pov === 'ship';
   const homeButtonIcon = '⌂';
+  
+  const handlePress = (id: string, action: () => void) => {
+    setPressedButton(id);
+    action();
+    setTimeout(() => setPressedButton(null), 300);
+  };
+  
+  const handleTooltip = (text: string | null, e?: React.MouseEvent<HTMLButtonElement>) => {
+    if (text && e) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      setTooltip({ text, x: rect.left + rect.width / 2, y: rect.top - 10 });
+    } else {
+      setTooltip(null);
+    }
+  };
+
 
   return (
     <>
@@ -234,6 +266,18 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
             transform: scale(0.95);
         }
       `}</style>
+      
+      {tooltip && (
+          <div style={{
+              ...styles.tooltip,
+              left: tooltip.x,
+              top: tooltip.y,
+              transform: `translate(-50%, -100%)`,
+              opacity: tooltip ? 1 : 0
+          }}>
+              {tooltip.text}
+          </div>
+      )}
       
       <div style={styles.breadcrumbContainer} className="breadcrumb-container">
           <p style={styles.breadcrumbText}>
@@ -262,18 +306,22 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
       <div style={styles.bottomLeftContainer} className="bottom-left-container">
           <div style={{...styles.povSelector, ...(isCalibrationMode ? styles.disabled : {})}}>
               <button 
-                onClick={() => onSetPov('main')} 
+                onClick={() => handlePress('pov-main', () => onSetPov('main'))}
+                onMouseEnter={(e) => handleTooltip('Overview Camera', e)}
+                onMouseLeave={() => handleTooltip(null)}
                 style={{...styles.hudButton, margin: 0, ...(pov === 'main' ? styles.activePov : {})}}
-                className="hud-button"
+                className={`hud-button ${pressedButton === 'pov-main' ? 'icon-pressed' : ''}`}
                 aria-label="Overview Camera"
                 disabled={isCalibrationMode}
               >
                   <CameraIcon />
               </button>
               <button 
-                onClick={() => onSetPov('ship')} 
+                onClick={() => handlePress('pov-ship', () => onSetPov('ship'))}
+                onMouseEnter={(e) => handleTooltip('Ship Follow Camera', e)}
+                onMouseLeave={() => handleTooltip(null)}
                 style={{...styles.hudButton, margin: 0, ...(pov === 'ship' ? styles.activePov : {})}}
-                className="hud-button"
+                className={`hud-button ${pressedButton === 'pov-ship' ? 'icon-pressed' : ''}`}
                 aria-label="Ship Follow Camera"
                 disabled={isCalibrationMode}
               >
@@ -281,17 +329,19 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
               </button>
           </div>
           <button 
-            onClick={onGoHome} 
+            onClick={() => handlePress('home', onGoHome)}
             style={{...styles.hudButton, ...(showHomeButton ? styles.visible : styles.hiddenBottom)}}
-            className="hud-button"
+            className={`hud-button ${pressedButton === 'home' ? 'icon-pressed' : ''}`}
             aria-label="Back to City Overview"
           >
             {homeButtonIcon}
           </button>
           <button
-            onClick={onToggleCalibrationMode}
+            onClick={() => handlePress('architect', onToggleCalibrationMode)}
+            onMouseEnter={(e) => handleTooltip('Architect Mode', e)}
+            onMouseLeave={() => handleTooltip(null)}
             style={{...styles.hudButton, ...(isCalibrationMode ? styles.activePov : {}), ...styles.visible}}
-            className="hud-button"
+            className={`hud-button ${pressedButton === 'architect' ? 'icon-pressed' : ''}`}
             aria-label="Toggle Architect Mode"
             >
             <GridIcon />
