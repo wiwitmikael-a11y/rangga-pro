@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, forwardRef, useImperativeHandle } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { useGLTF, Html } from '@react-three/drei';
 import { useFrame, ThreeEvent, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -83,11 +83,11 @@ interface PatrollingCoreProps {
   onSelect: () => void;
   isFocused: boolean;
   onAccessChat: () => void;
+  onPositionUpdate: (position: THREE.Vector3) => void;
 }
 
-export const PatrollingCore = forwardRef<THREE.Group, PatrollingCoreProps>(({ isPaused, isSelected, onSelect, isFocused, onAccessChat }, ref) => {
+export const PatrollingCore: React.FC<PatrollingCoreProps> = ({ isPaused, isSelected, onSelect, isFocused, onAccessChat, onPositionUpdate }) => {
   const groupRef = useRef<THREE.Group>(null!);
-  useImperativeHandle(ref, () => groupRef.current, []);
 
   const { scene } = useGLTF(MODEL_URL);
   const { camera, invalidate } = useThree();
@@ -108,35 +108,35 @@ export const PatrollingCore = forwardRef<THREE.Group, PatrollingCoreProps>(({ is
       tempObject.position.copy(groupRef.current.position);
       tempObject.lookAt(lookAtTarget);
       groupRef.current.quaternion.slerp(tempObject.quaternion, 0.05);
-      return;
+    } else if (!isPaused) {
+        const elapsedTime = clock.getElapsedTime();
+        const movementSpeed = 0.04;
+        const time = elapsedTime * movementSpeed;
+        const horizontalRange = 80;
+        const verticalRange = 25;
+        const baseHeight = 35;
+
+        const x = noise3D(time, 0, 0) * horizontalRange;
+        const z = noise3D(0, time, 0) * horizontalRange;
+        const heightNoise = (noise3D(0, 0, time) + 1) / 2;
+        const y = baseHeight + heightNoise * verticalRange;
+
+        previousPosition.copy(groupRef.current.position);
+        groupRef.current.position.lerp(new THREE.Vector3(x, y, z), 0.05);
+
+        if (previousPosition.distanceTo(groupRef.current.position) > 0.01) {
+           const lookAtTarget = new THREE.Vector3().copy(groupRef.current.position).add(
+             new THREE.Vector3().subVectors(groupRef.current.position, previousPosition).normalize()
+           );
+           const tempObject = new THREE.Object3D();
+           tempObject.position.copy(groupRef.current.position);
+           tempObject.lookAt(lookAtTarget);
+           groupRef.current.quaternion.slerp(tempObject.quaternion, 0.05);
+        }
     }
     
-    if (isPaused) return;
-
-    const elapsedTime = clock.getElapsedTime();
-    const movementSpeed = 0.04;
-    const time = elapsedTime * movementSpeed;
-    const horizontalRange = 80;
-    const verticalRange = 25;
-    const baseHeight = 35;
-
-    const x = noise3D(time, 0, 0) * horizontalRange;
-    const z = noise3D(0, time, 0) * horizontalRange;
-    const heightNoise = (noise3D(0, 0, time) + 1) / 2;
-    const y = baseHeight + heightNoise * verticalRange;
-
-    previousPosition.copy(groupRef.current.position);
-    groupRef.current.position.lerp(new THREE.Vector3(x, y, z), 0.05);
-
-    if (previousPosition.distanceTo(groupRef.current.position) > 0.01) {
-       const lookAtTarget = new THREE.Vector3().copy(groupRef.current.position).add(
-         new THREE.Vector3().subVectors(groupRef.current.position, previousPosition).normalize()
-       );
-       const tempObject = new THREE.Object3D();
-       tempObject.position.copy(groupRef.current.position);
-       tempObject.lookAt(lookAtTarget);
-       groupRef.current.quaternion.slerp(tempObject.quaternion, 0.05);
-    }
+    // Report the new position up to the parent every frame.
+    onPositionUpdate(groupRef.current.position);
   });
 
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
@@ -179,6 +179,6 @@ export const PatrollingCore = forwardRef<THREE.Group, PatrollingCoreProps>(({ is
       {isFocused && <OracleAccessTooltip onAccess={onAccessChat} />}
     </group>
   );
-});
+};
 
 useGLTF.preload(MODEL_URL);

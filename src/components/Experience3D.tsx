@@ -28,6 +28,7 @@ interface Experience3DProps {
     appState: AppState;
     buildState: BuildState;
     gameState: GameState;
+    oraclePosition: THREE.Vector3;
     handlers: {
       setDistricts: React.Dispatch<React.SetStateAction<any[]>>;
       handleDistrictSelect: (district: any) => void;
@@ -40,12 +41,12 @@ interface Experience3DProps {
       handleSetHeldDistrict: (id: string | null) => void;
       handlePlaceDistrict: () => void;
       handleExitGame: () => void;
+      onOraclePositionUpdate: (position: THREE.Vector3) => void;
     };
 }
 
-const Experience3D: React.FC<Experience3DProps> = ({ appState, buildState, gameState, handlers }) => {
+const Experience3D: React.FC<Experience3DProps> = ({ appState, buildState, gameState, oraclePosition, handlers }) => {
   const controlsRef = useRef<OrbitControlsImpl>(null);
-  const patrollingCoreRef = useRef<THREE.Group>(null);
 
   const {
     selectedDistrict,
@@ -111,12 +112,12 @@ const Experience3D: React.FC<Experience3DProps> = ({ appState, buildState, gameS
           onSetHeldDistrict={handlers.handleSetHeldDistrict}
         />
         <PatrollingCore
-          ref={patrollingCoreRef}
           isPaused={isPaused}
           isSelected={selectedDistrict?.id === 'oracle-ai'}
           onSelect={() => handlers.handleDistrictSelect(portfolioData.find(d => d.id === 'oracle-ai')!)}
           isFocused={isOracleFocused}
           onAccessChat={handlers.handleAccessOracleChat}
+          onPositionUpdate={handlers.onOraclePositionUpdate}
         />
 
         {/* Conditional Scene Components */}
@@ -151,7 +152,7 @@ const Experience3D: React.FC<Experience3DProps> = ({ appState, buildState, gameS
           pov={pov}
           targetShipRef={targetShipRef}
           isCalibrationMode={isCalibrationMode}
-          patrollingCoreRef={patrollingCoreRef}
+          oraclePosition={oraclePosition}
         />
         
         {!isGameActive && (

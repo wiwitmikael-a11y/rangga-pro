@@ -10,7 +10,7 @@ interface CameraRigProps {
   pov: 'main' | 'ship';
   targetShipRef: React.RefObject<THREE.Group> | null;
   isCalibrationMode: boolean;
-  patrollingCoreRef: React.RefObject<THREE.Group> | null;
+  oraclePosition: THREE.Vector3;
 }
 
 const targetPosition = new THREE.Vector3();
@@ -19,7 +19,7 @@ const OVERVIEW_POSITION = new THREE.Vector3(0, 100, 250);
 const OVERVIEW_LOOK_AT = new THREE.Vector3(0, 0, 0);
 const CALIBRATION_POSITION = new THREE.Vector3(0, 200, 1);
 
-export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimationFinish, isAnimating, pov, targetShipRef, isCalibrationMode, patrollingCoreRef }) => {
+export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimationFinish, isAnimating, pov, targetShipRef, isCalibrationMode, oraclePosition }) => {
   const { invalidate } = useThree();
 
   const shipCam = useMemo(() => ({
@@ -42,11 +42,10 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
             targetLookAt.copy(OVERVIEW_LOOK_AT);
             hasTarget = true;
         } else if (selectedDistrict?.id === 'oracle-ai') {
-            const core = patrollingCoreRef?.current;
-            if (core) { // Defensive check to prevent null reference error
-                const corePos = core.position;
-                targetPosition.set(corePos.x, corePos.y + 10, corePos.z + 25);
-                targetLookAt.copy(corePos);
+            // Use the stable oraclePosition prop instead of the fragile ref.
+            if (oraclePosition) {
+                targetPosition.set(oraclePosition.x, oraclePosition.y + 10, oraclePosition.z + 25);
+                targetLookAt.copy(oraclePosition);
                 hasTarget = true;
             }
         } else if (selectedDistrict?.cameraFocus) {

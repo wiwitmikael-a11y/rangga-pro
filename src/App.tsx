@@ -32,6 +32,12 @@ const App: React.FC = () => {
   const shipRefs = useRef<React.RefObject<THREE.Group>[]>([]);
   const hasShownHintsInitially = !!sessionStorage.getItem('hasShownHints');
 
+  // Centralized state for the Oracle's position to eliminate race conditions
+  const [oraclePosition, setOraclePosition] = useState(new THREE.Vector3(0, 35, 0));
+  const handleOraclePositionUpdate = useCallback((position: THREE.Vector3) => {
+      setOraclePosition(position);
+  }, []);
+
   // All state management logic is now centralized here
   const {
     appState,
@@ -112,6 +118,7 @@ const App: React.FC = () => {
               appState={appState}
               buildState={buildState}
               gameState={gameState}
+              oraclePosition={oraclePosition} // Pass stable position state down
               handlers={{
                 setDistricts,
                 handleDistrictSelect,
@@ -124,6 +131,7 @@ const App: React.FC = () => {
                 handleSetHeldDistrict,
                 handlePlaceDistrict,
                 handleExitGame,
+                onOraclePositionUpdate: handleOraclePositionUpdate, // Pass updater down
               }}
             />
           </Suspense>
