@@ -5,6 +5,7 @@ interface SkillsRadarChartProps {
   skills: SkillCategory[];
   activeCategory: SkillCategory | null;
   onCategoryHover: (category: SkillCategory | null) => void;
+  onCategoryClick: (category: SkillCategory) => void;
 }
 
 const CHART_SIZE = 400;
@@ -21,7 +22,7 @@ const CATEGORY_COLORS = [
   '#9370db', // Medium Purple - Arts
 ];
 
-export const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ skills, activeCategory, onCategoryHover }) => {
+export const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ skills, activeCategory, onCategoryHover, onCategoryClick }) => {
   const numAxes = skills.length;
 
   const dataPoints = skills.map((cat, i) => {
@@ -118,7 +119,10 @@ export const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ skills, acti
                     className={`interactive-sector ${isActive ? 'radar-active' : ''}`}
                     onMouseEnter={() => onCategoryHover(category)} 
                     onMouseLeave={() => onCategoryHover(null)}
-                    onClick={() => onCategoryHover(category)}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onCategoryClick(category);
+                    }}
                 >
                     {/* Axis Line */}
                     <line x1={CHART_CENTER} y1={CHART_CENTER} x2={axis.x2} y2={axis.y2} stroke={color} strokeOpacity={isActive ? 1 : 0.5} strokeWidth={isActive ? 2 : 1} className="radar-axis" style={{ animationDelay: `${i * 0.1}s` }} />
@@ -143,7 +147,7 @@ export const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ skills, acti
                             x={axis.labelX}
                             y={axis.labelY}
                             fill={isActive ? '#ffffff' : color}
-                            fontSize="11"
+                            fontSize="10.5"
                             fontWeight="700"
                             textAnchor="middle"
                             dominantBaseline="middle"

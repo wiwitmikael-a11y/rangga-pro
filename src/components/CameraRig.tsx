@@ -82,9 +82,9 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
       
       // Periksa apakah animasi sekali jalan telah selesai.
       if (isAnimatingRef.current) {
-        // Toleransi yang lebih ketat untuk memastikan akurasi sebelum snap
-        const posReached = state.camera.position.distanceTo(targetPosition) < 0.2;
-        const rotReached = state.camera.quaternion.angleTo(tempCamera.quaternion) < 0.02;
+        // FIX: Toleransi dilonggarkan untuk memastikan onAnimationFinish dipanggil.
+        const posReached = state.camera.position.distanceTo(targetPosition) < 0.5;
+        const rotReached = state.camera.quaternion.angleTo(tempCamera.quaternion) < 0.05;
 
         if (posReached && rotReached) {
             // Snap ke posisi akhir untuk pembingkaian yang sempurna dan untuk menghentikan state animasi.
