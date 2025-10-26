@@ -1,25 +1,9 @@
 import React, { useState, useCallback, Suspense, useEffect } from 'react';
-import { useGLTF, useTexture } from '@react-three/drei';
 
 import { Experience3D } from './components/Experience3D';
 import { StartScreen } from './components/ui/StartScreen';
 import { ControlHints } from './components/ui/ControlHints';
-import { LoaderUI } from './components/ui/Loader'; // Re-introducing the custom loader UI
-import { shipsData } from './components/scene/FlyingShips';
-import { portfolioData } from './constants';
-
-// --- Asset Preloading ---
-// By calling these hooks at the top level, we initiate the download for critical assets
-// as soon as the app component loads. They will be cached and ready when the 3D scene is mounted.
-const Preloader = () => {
-  useGLTF.preload('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/cyberpunk_city.glb');
-  useGLTF.preload('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/PatrollingCore.glb');
-  useTexture.preload('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/terrain.jpeg?v=2');
-  shipsData.forEach(ship => useGLTF.preload(ship.url));
-  portfolioData.filter(d => d.modelUrl).forEach(d => useGLTF.preload(d.modelUrl!));
-  return null;
-}
-
+import { LoaderUI } from './components/ui/Loader'; 
 
 const App: React.FC = () => {
   const [appState, setAppState] = useState<'loading' | 'start' | 'entering' | 'experience'>('loading');
@@ -73,7 +57,10 @@ const App: React.FC = () => {
 
   return (
     <>
-      <Suspense fallback={null}><Preloader /></Suspense>
+      {/* 
+        The asset preloader has been removed as it was the likely cause of the startup crash.
+        Assets will now be loaded just-in-time when the Experience3D component is mounted.
+      */}
 
       {appState === 'loading' && <LoaderUI progress={progress} />}
 
