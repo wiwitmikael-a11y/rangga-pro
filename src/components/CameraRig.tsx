@@ -22,8 +22,8 @@ const CALIBRATION_POSITION = new THREE.Vector3(0, 200, 1); // Tampilan top-down 
 
 // Pengaturan offset kamera yang berbeda untuk setiap jenis kapal
 const shipCamOffsets: { [key in ShipType | 'default']: THREE.Vector3 } = {
-    fighter: new THREE.Vector3(0, 7, -5),   // Turun 5, maju 3
-    transport: new THREE.Vector3(0, 7, -5), // Turun 5, maju 3
+    fighter: new THREE.Vector3(0, 4, 1),   // Turun 3, maju 6
+    transport: new THREE.Vector3(0, 4, 1), // Turun 3, maju 6
     copter: new THREE.Vector3(0, 9, -8),  // Turun 3 dari 12
     default: new THREE.Vector3(0, 12, -8), // Fallback
 };
