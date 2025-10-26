@@ -121,13 +121,26 @@ export const Experience3D: React.FC = () => {
   const onAnimationFinish = useCallback(() => {
     setIsAnimating(false);
     if (selectedDistrict) {
-      // For any selected district, we show the unified content panel.
-      // The panel itself will determine what content to render based on the district's ID.
+      // Ketika animasi ke distrik selesai, tampilkan panel kontennya.
       setShowContentPanel(true);
+
+      // FIX: Sinkronkan target OrbitControls dengan titik fokus kamera yang baru.
+      // Ini mencegah "snap" yang mengganggu saat pengguna berinteraksi dengan kamera
+      // setelah animasi terprogram selesai.
+      if (controlsRef.current && selectedDistrict.cameraFocus) {
+        const { lookAt } = selectedDistrict.cameraFocus;
+        controlsRef.current.target.set(lookAt[0], lookAt[1], lookAt[2]);
+      }
     } else if (pov === 'main' && !isCalibrationMode) {
+      // Saat kembali ke tinjauan umum, reset timer idle.
       resetIdleTimer();
+
+      // FIX: Reset target OrbitControls ke posisi tinjauan umum default.
+      if (controlsRef.current) {
+        controlsRef.current.target.set(0, 5, 0);
+      }
     }
-  }, [selectedDistrict, resetIdleTimer, pov, isCalibrationMode]);
+  }, [selectedDistrict, pov, isCalibrationMode, resetIdleTimer]);
 
 
   const handleProjectClick = (item: PortfolioSubItem) => {

@@ -15,13 +15,13 @@ interface CameraRigProps {
 
 const targetPosition = new THREE.Vector3();
 const targetLookAt = new THREE.Vector3();
-// Melihat ke tengah ground plane untuk bidikan tinjauan umum yang lebih baik
-const OVERVIEW_LOOK_AT = new THREE.Vector3(0, 0, 0);
+// FIX: Menyesuaikan target look-at agar konsisten dengan target OrbitControls untuk transisi yang mulus.
+const OVERVIEW_LOOK_AT = new THREE.Vector3(0, 5, 0);
 const CALIBRATION_POSITION = new THREE.Vector3(0, 200, 1); // Tampilan top-down yang tinggi
 
 export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimationFinish, isAnimating, pov, targetShipRef, isCalibrationMode }) => {
   const shipCam = useMemo(() => ({
-    offset: new THREE.Vector3(0, 12, -18),
+    offset: new THREE.Vector3(0, 12, -15),
     idealPosition: new THREE.Vector3(),
     idealLookAt: new THREE.Vector3(),
     forwardVector: new THREE.Vector3(0, 0, 15),
