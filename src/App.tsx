@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, Suspense, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { useProgress } from '@react-three/drei';

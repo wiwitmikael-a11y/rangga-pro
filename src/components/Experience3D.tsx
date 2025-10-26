@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, Suspense, useMemo, useRef, useEffect } from 'react';
 import { OrbitControls, Sky } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
@@ -306,6 +305,7 @@ const Experience3D: React.FC = () => {
             onDistrictSelect={handleDistrictSelect}
             isCalibrationMode={isCalibrationMode}
             heldDistrictId={heldDistrictId}
+            // FIX: Pass the correct handler function `handleSetHeldDistrict` instead of the undefined variable `onSetHeldDistrict`.
             onSetHeldDistrict={handleSetHeldDistrict}
           />
            <PatrollingCore
