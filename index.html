@@ -35,26 +35,6 @@
         height: 100vh;
         isolation: isolate; /* Create a new stacking context for overlays */
       }
-      
-      /* --- Custom Scrollbar Styling --- */
-      ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-      }
-      ::-webkit-scrollbar-track {
-        background: rgba(0, 20, 40, 0.5);
-      }
-      ::-webkit-scrollbar-thumb {
-        background: var(--primary-color);
-        border-radius: 4px;
-        border: 2px solid transparent;
-        background-clip: content-box;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #ffffff;
-        background-clip: content-box;
-      }
-
 
       /* QuickNavMenu & HUD Styles */
       .hex-btn {
@@ -157,25 +137,6 @@
         0% { box-shadow: 0 0 4px var(--primary-color); opacity: 0.8; }
         50% { box-shadow: 0 0 12px var(--primary-color); opacity: 1; }
         100% { box-shadow: 0 0 4px var(--primary-color); opacity: 0.8; }
-      }
-      
-      @keyframes icon-press {
-        0% { transform: scale(1); }
-        50% { transform: scale(0.85) rotate(-10deg); filter: brightness(1.5); }
-        100% { transform: scale(1); }
-      }
-      .icon-pressed {
-        animation: icon-press 0.3s ease-out;
-      }
-      
-      @keyframes fadeInGrid {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
-      
-      @keyframes list-item-enter {
-        from { opacity: 0; transform: translateX(20px); }
-        to { opacity: 1; transform: translateX(0); }
       }
       /* --- End New Animations --- */
 

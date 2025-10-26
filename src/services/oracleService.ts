@@ -1,71 +1,106 @@
-import { oracleGimmicks, fallbackResponses, blockedKeywords, moderationResponses } from '../constants';
+import { GoogleGenAI } from "@google/genai";
+import { portfolioData, skillsData, professionalSummary, oracleGimmicks } from '../constants';
 import type { OracleResponse } from '../types';
 
-/**
- * A stateful, bilingual, gimmick-based oracle that provides pre-defined answers.
- * It simulates an intelligent conversation by tracking discussed topics, detecting language,
- * providing varied, contextual responses, and filtering content without any external API calls.
- * @param {string} query The user's question.
- * @param {Set<string>} discussedTopics A set of gimmick IDs that have already been discussed.
- * @returns {Promise<OracleResponse>} An object containing the response and metadata.
- */
-export const askOracle = async (query: string, discussedTopics: Set<string>): Promise<OracleResponse> => {
-    const lowerCaseQuery = query.toLowerCase().trim();
+// --- Static System Instruction for Gemini Fallback ---
+const systemInstruction = `
+You are The Oracle, the central AI consciousness of the digital city, Ragetopia.
+Your sole purpose is to act as an intelligent, professional, and slightly enigmatic guide to the portfolio of Rangga Prayoga Hermawan.
+You must answer questions based *only* on the context provided below. Do not invent information.
+When asked about a project, try to connect technical actions to business outcomes.
+If a question is outside the scope of the provided context, politely state that the information is "beyond your current operational parameters."
+Your tone should be precise, confident, and analytical. Keep answers concise.
+`;
 
-    // --- Language Detection ---
-    // More robust detection to differentiate between EN and ID, defaulting to EN.
-    const isIndonesian = /\b(apa|siapa|bagaimana|jelaskan|di mana|tentang|pengalaman|anda|kamu|kenapa)\b/.test(lowerCaseQuery);
-    const isEnglish = /\b(what|who|how|explain|where|about|experience|you|why)\b/.test(lowerCaseQuery);
-    
-    let lang: 'id' | 'en' = 'en'; // Default to English
-    if (isIndonesian && !isEnglish) {
-        lang = 'id';
-    } else if (isEnglish && !isIndonesian) {
-        lang = 'en';
-    } else {
-        // If both or neither, check for more Indonesian-specific words or stick to default
-        if (isIndonesian) lang = 'id';
-    }
+// --- Context Generation (runs once) ---
+const generateContext = (): string => {
+    const portfolioContext = portfolioData
+        .map(district => {
+            let districtInfo = `District ID: ${district.id}, Title: ${district.title}, Description: ${district.description}.`;
+            if (district.subItems) {
+                const projects = district.subItems.map(p => `Project: ${p.title} - ${p.description}`).join('; ');
+                districtInfo += ` Contains projects: [${projects}].`;
+            }
+            return districtInfo;
+        })
+        .join('\n');
 
-    // --- Content Moderation ---
-    for (const keyword of blockedKeywords) {
-        if (lowerCaseQuery.includes(keyword)) {
-            const moderationResponse = moderationResponses[lang];
-            return {
-                answer: moderationResponse.answer,
-                followUpQuestions: moderationResponse.followUpQuestions,
-                gimmickId: null,
-                actionLink: undefined
-            };
+    const skillsContext = skillsData
+        .map(category => {
+            const skillDetails = category.skills.map(s => `${s.name} (${s.level}/100)`).join(', ');
+            return `Skill Category: ${category.category}, Description: ${category.description}, Key Metrics: [${category.keyMetrics.join(', ')}], Proficiencies: [${skillDetails}].`;
+        })
+        .join('\n');
+
+    return `
+--- PORTFOLIO CONTEXT ---
+Professional Summary: ${professionalSummary}
+--- City Districts & Projects ---
+${portfolioContext}
+--- Skills & Competencies ---
+${skillsContext}
+--- END OF CONTEXT ---
+`;
+};
+
+const context = generateContext();
+
+let ai: GoogleGenAI | null = null;
+const getAI = () => {
+    if (!ai) {
+        if (!process.env.API_KEY) {
+            console.error("API_KEY environment variable not set.");
+            throw new Error("API Key is missing.");
         }
+        ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     }
+    return ai;
+};
 
-    // --- Gimmick Matching ---
+/**
+ * Checks for a pre-defined answer based on keywords. If none is found,
+ * sends the query to the Gemini API as a fallback.
+ * @param {string} query The user's question.
+ * @returns {Promise<OracleResponse>} An object containing the AI's response and suggested follow-up questions.
+ */
+export const askOracle = async (query: string): Promise<OracleResponse> => {
+    const lowerCaseQuery = query.toLowerCase();
+
+    // 1. Gimmick Engine: Check for keyword matches first.
     for (const gimmick of oracleGimmicks) {
-        const content = gimmick[lang];
-        for (const keyword of content.keywords) {
+        for (const keyword of gimmick.keywords) {
             if (lowerCaseQuery.includes(keyword)) {
-                const isTopicDiscussed = discussedTopics.has(gimmick.gimmickId);
-                const answerArray = isTopicDiscussed ? content.contextualAnswer : content.fullAnswer;
-                
-                const randomAnswer = answerArray[Math.floor(Math.random() * answerArray.length)];
-
                 return {
-                    answer: randomAnswer,
-                    followUpQuestions: content.followUpQuestions || [],
-                    gimmickId: gimmick.gimmickId,
-                    actionLink: content.actionLink
+                    answer: gimmick.answer,
+                    followUpQuestions: gimmick.followUpQuestions || []
                 };
             }
         }
     }
 
-    // --- Fallback Response ---
-    const fallbackContent = fallbackResponses[lang];
-    return {
-        answer: fallbackContent.answer,
-        followUpQuestions: fallbackContent.followUpQuestions,
-        gimmickId: null,
-        actionLink: undefined
-    };
+    // 2. Gemini Fallback: If no gimmick matched, call the real API.
+    try {
+        const aiInstance = getAI();
+        const fullPrompt = `${context}\n\nUser Query: "${query}"`;
+        
+        const response = await aiInstance.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: fullPrompt,
+            config: {
+                systemInstruction: systemInstruction,
+            },
+        });
+        
+        return {
+            answer: response.text,
+            followUpQuestions: [] // No follow-ups for generic answers
+        };
+
+    } catch (error) {
+        console.error("Error querying Gemini API:", error);
+        return {
+            answer: "Error: Connection to the Oracle AI has been temporarily disrupted. Please check system logs and try again.",
+            followUpQuestions: []
+        };
+    }
 };
