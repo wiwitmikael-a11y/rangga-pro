@@ -58,7 +58,7 @@ const AutopilotIcon: React.FC = () => (
 const ControlHints: React.FC<{isManual: boolean}> = ({ isManual }) => {
     const hintStyle: React.CSSProperties = {
         position: 'fixed',
-        bottom: '80px',
+        bottom: '20px',
         right: '20px',
         padding: '10px 15px',
         background: 'rgba(0, 20, 40, 0.7)',
@@ -90,6 +90,8 @@ const ControlHints: React.FC<{isManual: boolean}> = ({ isManual }) => {
 interface VirtualControlsProps {
     onInputChange: (input: ShipInputState) => void;
 }
+const VIRTUAL_CONTROLS_BOTTOM_OFFSET = '90px'; // Dinaikkan untuk mencegah tumpang tindih dengan tombol HUD
+
 const VirtualControls: React.FC<VirtualControlsProps> = ({ onInputChange }) => {
     const moveStickRef = useRef<HTMLDivElement>(null);
     const ascendSliderRef = useRef<HTMLDivElement>(null);
@@ -202,13 +204,13 @@ const VirtualControls: React.FC<VirtualControlsProps> = ({ onInputChange }) => {
 
     return (
         <div style={styles.virtualControlsContainer}>
-            <div ref={moveStickRef} style={{...styles.joystickBase, left: '20px', bottom: '20px'}}>
+            <div ref={moveStickRef} style={{...styles.joystickBase, left: '20px', bottom: VIRTUAL_CONTROLS_BOTTOM_OFFSET}}>
                 <div ref={moveNubRef} style={styles.joystickNub} />
             </div>
-            <div ref={ascendSliderRef} style={{...styles.sliderBase, right: '80px', bottom: '20px'}}>
+            <div ref={ascendSliderRef} style={{...styles.sliderBase, right: '80px', bottom: VIRTUAL_CONTROLS_BOTTOM_OFFSET}}>
                 <div ref={ascendNubRef} style={styles.sliderNub} />
             </div>
-             <div ref={rollSliderRef} style={{...styles.sliderBase, right: '20px', bottom: '20px'}}>
+             <div ref={rollSliderRef} style={{...styles.sliderBase, right: '20px', bottom: VIRTUAL_CONTROLS_BOTTOM_OFFSET}}>
                 <div ref={rollNubRef} style={styles.sliderNub} />
             </div>
         </div>

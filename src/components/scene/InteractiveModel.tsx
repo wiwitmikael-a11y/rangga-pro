@@ -1,5 +1,5 @@
 import React, { Suspense, useLayoutEffect, useMemo, useRef, useCallback } from 'react';
-import { useGLTF, Text } from '@react-three/drei';
+import { useGLTF, Text } from '@drei';
 import * as THREE from 'three';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
 import { CityDistrict } from '../../types';
@@ -19,11 +19,12 @@ interface ModelProps {
   scale: number;
   isHeld: boolean;
   onPointerDown: (e: ThreeEvent<PointerEvent>) => void;
+  onPointerUp: (e: ThreeEvent<PointerEvent>) => void;
   onPointerOver: (e: ThreeEvent<PointerEvent>) => void;
   onPointerOut: (e: ThreeEvent<PointerEvent>) => void;
 }
 
-function Model({ url, scale, isHeld, onPointerOver, onPointerOut, onPointerDown }: ModelProps) {
+function Model({ url, scale, isHeld, onPointerOver, onPointerOut, onPointerDown, onPointerUp }: ModelProps) {
   const { scene } = useGLTF(url);
   const clonedScene = useMemo(() => scene.clone(), [scene]);
   const originalEmissives = useRef<{ [uuid: string]: THREE.Color }>({});
@@ -91,12 +92,23 @@ function Model({ url, scale, isHeld, onPointerOver, onPointerOut, onPointerDown 
       onPointerOver={handlePointerOver}
       onPointerOut={handlePointerOut}
       onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
     />
   );
 }
 
 export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, isSelected, onSelect, isCalibrationMode, isHeld, onSetHeld }) => {
   const groupRef = useRef<THREE.Group>(null!);
+  
+  // --- NEW: Logic for quick and intentional long press ---
+  const longPressTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
+  const clearLongPress = useCallback(() => {
+    if (longPressTimeout.current) {
+        clearTimeout(longPressTimeout.current);
+        longPressTimeout.current = null;
+    }
+  }, []);
   
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
@@ -106,17 +118,30 @@ export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, is
 
   const handlePointerOut = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
+    clearLongPress(); // Cancel press if user drags out
     document.body.style.cursor = 'auto';
   };
   
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
+    clearLongPress();
+
     if (isCalibrationMode) {
       onSetHeld(district.id);
-    } else {
-      onSelect(district);
+      return;
     }
+    
+    // Start a timer for the long press action
+    longPressTimeout.current = setTimeout(() => {
+        onSelect(district);
+    }, 250); // 250ms for a quick, intentional hold
   };
+
+  const handlePointerUp = (e: ThreeEvent<PointerEvent>) => {
+      e.stopPropagation();
+      clearLongPress(); // Cancel the timer if released before 250ms
+  };
+
 
   useFrame((_, delta) => {
       if (groupRef.current) {
@@ -150,6 +175,7 @@ export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, is
                 onPointerOver={handlePointerOver}
                 onPointerOut={handlePointerOut}
                 onPointerDown={handlePointerDown}
+                onPointerUp={handlePointerUp}
             />
         </Suspense>
         <HolographicDistrictLabel 

@@ -1,5 +1,5 @@
 // FIX: Remove the triple-slash directive for @react-three/fiber types.
-import React, { useRef, useState, useMemo } from 'react';
+import React, { useRef, useState, useMemo, useCallback } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
 import { Text, Billboard, RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
@@ -54,7 +54,8 @@ const dangerBorderFragmentShader = `
     
     vec3 finalColor = mix(orange, black, stripes);
     
-    gl_FragColor = vec4(finalColor, 1.0);
+    // FIX: Tingkatkan kecerahan untuk membuatnya lebih menonjol dan cocok dengan UI
+    gl_FragColor = vec4(finalColor * 1.5, 1.0);
   }
 `;
 
@@ -66,6 +67,16 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
   const groupRef = useRef<THREE.Group>(null!);
   const [isHovered, setIsHovered] = useState(false);
   const glowIntensityRef = useRef(1.0);
+  
+  // --- NEW: Logic for quick and intentional long press ---
+  const longPressTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearLongPress = useCallback(() => {
+    if (longPressTimeout.current) {
+      clearTimeout(longPressTimeout.current);
+      longPressTimeout.current = null;
+    }
+  }, []);
 
   // Uniforms for the shader material, memoized for performance
   const borderUniforms = useMemo(() => ({
@@ -95,17 +106,29 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
 
   const handlePointerOut = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
+    clearLongPress(); // Cancel press if user drags out
     setIsHovered(false);
     document.body.style.cursor = 'auto';
   };
   
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
+    clearLongPress();
+
     if (isCalibrationMode) {
       onSetHeld(district.id);
-    } else {
-      onSelect(district);
+      return;
     }
+    
+    // Start a timer for the long press action
+    longPressTimeout.current = setTimeout(() => {
+      onSelect(district);
+    }, 250); // 250ms for a quick, intentional hold
+  };
+
+  const handlePointerUp = (e: ThreeEvent<PointerEvent>) => {
+      e.stopPropagation();
+      clearLongPress(); // Cancel the timer if released before 250ms
   };
   
   return (
@@ -115,6 +138,7 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
         onPointerOver={handlePointerOver}
         onPointerOut={handlePointerOut}
         onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
       >
         {/* Animated Border - uses danger zone shader for all labels */}
         <mesh position-z={-0.09}>
