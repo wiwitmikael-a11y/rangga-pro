@@ -1,268 +1,271 @@
-import React, { useState, useCallback, useRef, useEffect, Suspense } from 'react';
+
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, PerspectiveCamera, Effects, Stars } from '@react-three/drei';
+import { OrbitControls, Stars, Sparkles, PerspectiveCamera } from '@react-three/drei';
+import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import * as THREE from 'three';
 
-import type { CityDistrict, OracleActionLink } from '../types';
-import { portfolioData } from '../constants';
+import { portfolioData as initialPortfolioData } from '../constants';
+import type { CityDistrict } from '../types';
 
-import { DistrictRenderer } from './scene/DistrictRenderer';
+// UI Components
+import { HUD } from './ui/HUD';
+import { ProjectSelectionPanel } from './ui/ProjectSelectionPanel';
+import { QuickNavMenu } from './ui/QuickNavMenu';
+import { ContactHubModal } from './ui/ContactHubModal';
+import { OracleModal } from './ui/OracleModal';
+import { ExportLayoutModal } from './ui/ExportLayoutModal';
+import { GameLobbyPanel } from './ui/GameLobbyPanel';
+
+// Scene Components
 import { CameraRig } from './CameraRig';
+import { DistrictRenderer } from './scene/DistrictRenderer';
 import { FlyingShips } from './scene/FlyingShips';
 import { PatrollingCore } from './scene/PatrollingCore';
 import { ProceduralTerrain } from './scene/ProceduralTerrain';
 import { CalibrationGrid } from './scene/CalibrationGrid';
 import { BuildModeController } from './scene/BuildModeController';
-import Rain from './scene/Rain';
-import FloatingParticles from './scene/FloatingParticles';
 
-import { HUD } from './ui/HUD';
-import { ProjectSelectionPanel } from './ui/ProjectSelectionPanel';
-import { QuickNavMenu } from './ui/QuickNavMenu';
-import { OracleModal } from './ui/OracleModal';
-import { ContactHubModal } from './ui/ContactHubModal';
-import { ExportLayoutModal } from './ui/ExportLayoutModal';
+// Game Components
 import { AegisProtocolGame } from './game/AegisProtocolGame';
-import { GameLobbyPanel } from './ui/GameLobbyPanel';
-
-const GRID_SIZE = 250;
-const GRID_DIVISIONS = 25;
 
 export const Experience3D: React.FC = () => {
-    // --- State Management ---
-    const [districts, setDistricts] = useState<CityDistrict[]>(portfolioData);
-    const [selectedDistrict, setSelectedDistrict] = useState<CityDistrict | null>(null);
-    const [isAnimating, setIsAnimating] = useState(false);
-    const [isDetailViewActive, setIsDetailViewActive] = useState(false);
-    const [isPanelOpen, setIsPanelOpen] = useState(false);
-    const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
-    const [isOracleModalOpen, setIsOracleModalOpen] = useState(false);
-    const [isContactModalOpen, setIsContactModalOpen] = useState(false);
-    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-    const [isLobbyOpen, setIsLobbyOpen] = useState(false);
-    const [isGameActive, setIsGameActive] = useState(false);
-    const [pov, setPov] = useState<'main' | 'ship'>('main');
-    const [isCalibrationMode, setIsCalibrationMode] = useState(false);
-    const [heldDistrictId, setHeldDistrictId] = useState<string | null>(null);
-    const [exportedLayout, setExportedLayout] = useState('');
-    
-    // --- Refs ---
-    const controlsRef = useRef<any>(null!);
-    const shipRefs = useRef<React.RefObject<THREE.Group>[]>([]);
-    const patrollingCoreRef = useRef<THREE.Group>(null);
-    
-    const targetShipRef = pov === 'ship' ? shipRefs.current[0] : null;
-    
-    // --- Handlers ---
-    const handleSelectDistrict = useCallback((district: CityDistrict) => {
-        if (isCalibrationMode || isGameActive) return;
-        
-        if (district.id === 'oracle-ai') {
-          setIsOracleModalOpen(true);
-        } else {
-          setSelectedDistrict(district);
-          setIsAnimating(true);
-          setIsDetailViewActive(true);
-          if (district.id === 'contact-hub') {
-              setIsContactModalOpen(true);
-          } else if(district.id === 'aegis-command') {
-              setIsLobbyOpen(true);
-          } else {
-              setIsPanelOpen(true);
-          }
-        }
-    }, [isCalibrationMode, isGameActive]);
+  // --- STATE MANAGEMENT ---
+  const [districts, setDistricts] = useState<CityDistrict[]>(initialPortfolioData);
+  const [selectedDistrict, setSelectedDistrict] = useState<CityDistrict | null>(null);
+  const [isAnimatingCamera, setIsAnimatingCamera] = useState(false);
+  const [isDetailView, setIsDetailView] = useState(false);
+  const [pov, setPov] = useState<'main' | 'ship'>('main');
+  const [isCalibrationMode, setIsCalibrationMode] = useState(false);
+  const [heldDistrictId, setHeldDistrictId] = useState<string | null>(null);
 
-    const handleGoHome = useCallback(() => {
-        setSelectedDistrict(null);
-        setIsAnimating(true);
-        setIsDetailViewActive(false);
-        setIsPanelOpen(false);
-        setIsLobbyOpen(false);
-        setIsContactModalOpen(false);
-        setPov('main');
-    }, []);
+  // UI States
+  const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
+  const [isProjectPanelOpen, setIsProjectPanelOpen] = useState(false);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [isOracleModalOpen, setIsOracleModalOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isGameLobbyOpen, setIsGameLobbyOpen] = useState(false);
+  const [isGameActive, setIsGameActive] = useState(false);
+  const [exportedJson, setExportedJson] = useState('');
 
-    const handleAnimationFinish = useCallback(() => setIsAnimating(false), []);
+  // Scene Refs
+  const shipRefs = useRef<React.RefObject<THREE.Group>[]>([]);
+  const patrollingCoreRef = useRef<THREE.Group>(null);
+  const playerShipRef = pov === 'ship' ? shipRefs.current[2] : null;
 
-    const handleToggleCalibrationMode = useCallback(() => {
-        setIsCalibrationMode(prev => !prev);
-        handleGoHome();
-    }, [handleGoHome]);
-    
-    const handlePlaceDistrict = useCallback(() => {
-        setHeldDistrictId(null);
-        if (controlsRef.current) {
-            controlsRef.current.enabled = true;
-        }
-        document.body.style.cursor = 'auto';
-    }, []);
-
-    const handleExportLayout = () => {
-        const layout = districts.map(({ id, position, isDirty }) => ({ id, position, isDirty }));
-        setExportedLayout(JSON.stringify(layout, null, 2));
-        setIsExportModalOpen(true);
-    };
-
-    const handleOracleAction = (action: OracleActionLink) => {
-        const targetDistrict = districts.find(d => d.id === action.targetId);
-        if (targetDistrict) {
-            setIsOracleModalOpen(false);
-            // Wait for modal to close before starting animation
-            setTimeout(() => handleSelectDistrict(targetDistrict), 300);
-        }
-    };
-    
-    // --- Effects ---
-    useEffect(() => {
-        if (controlsRef.current) {
-            controlsRef.current.enabled = !isAnimating && !isCalibrationMode && pov === 'main';
-        }
-    }, [isAnimating, isCalibrationMode, pov]);
-
-    useEffect(() => {
-      if (heldDistrictId && controlsRef.current) {
-          controlsRef.current.enabled = false;
-      }
-    }, [heldDistrictId]);
-
-    if (isGameActive) {
-        return (
-            <Canvas shadows>
-                <AegisProtocolGame onExitGame={() => setIsGameActive(false)} />
-            </Canvas>
-        );
+  // --- SIDE EFFECTS ---
+  useEffect(() => {
+    // When entering calibration mode, reset camera to a top-down view.
+    if (isCalibrationMode) {
+      setSelectedDistrict(null);
+      setIsDetailView(false);
+      setPov('main');
+      setIsAnimatingCamera(true);
     }
+  }, [isCalibrationMode]);
 
-    return (
-        <>
-            <Canvas shadows>
-                <Suspense fallback={null}>
-                    <PerspectiveCamera makeDefault position={[0, 100, 250]} fov={50} />
-                    {!isCalibrationMode && (
-                        <OrbitControls 
-                            ref={controlsRef}
-                            enablePan={false}
-                            enableZoom={true}
-                            minDistance={20}
-                            maxDistance={300}
-                            maxPolarAngle={Math.PI / 2 - 0.05}
-                        />
-                    )}
-                    
-                    <fog attach="fog" args={['#050810', 150, 450]} />
-                    <color attach="background" args={['#050810']} />
+  // --- EVENT HANDLERS ---
+  const handleDistrictSelect = useCallback((district: CityDistrict | null) => {
+    if (isCalibrationMode || isGameActive) return;
 
-                    <ambientLight intensity={0.2} />
-                    <directionalLight position={[100, 100, 50]} intensity={1.5} color="#5e3a1f" castShadow />
-                    <pointLight position={[0, 50, 0]} intensity={2} color="#00aaff" distance={300} />
+    setSelectedDistrict(district);
+    setIsAnimatingCamera(true);
+    
+    if (district) {
+      if (district.id === 'contact-hub') {
+        setIsContactModalOpen(true);
+      } else if (district.id === 'oracle-ai') {
+        // Just focus, don't open a detail panel
+        setIsDetailView(true);
+      } else if (district.id === 'aegis-command') {
+        setIsGameLobbyOpen(true);
+      } else {
+        setIsDetailView(true);
+        setIsProjectPanelOpen(true);
+      }
+    }
+  }, [isCalibrationMode, isGameActive]);
 
-                    <Stars radius={200} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
-                    <ProceduralTerrain />
-                    <Rain count={5000} />
-                    <FloatingParticles count={200} />
+  const handleGoHome = useCallback(() => {
+    setSelectedDistrict(null);
+    setIsAnimatingCamera(true);
+    setIsDetailView(false);
+    setIsProjectPanelOpen(false);
+    setIsGameLobbyOpen(false);
+    setPov('main');
+  }, []);
 
-                    <DistrictRenderer
-                        districts={districts}
-                        selectedDistrict={selectedDistrict}
-                        onDistrictSelect={handleSelectDistrict}
-                        isCalibrationMode={isCalibrationMode}
-                        heldDistrictId={heldDistrictId}
-                        onSetHeldDistrict={setHeldDistrictId}
-                    />
-                    
-                    <FlyingShips setShipRefs={(refs) => (shipRefs.current = refs)} isPaused={isPanelOpen || isNavMenuOpen} />
+  const handleClosePanels = useCallback(() => {
+    setIsProjectPanelOpen(false);
+    // Don't go home automatically, just close the panel. The camera remains focused.
+  }, []);
+  
+  const handleToggleCalibration = () => {
+    setIsCalibrationMode(prev => !prev);
+  };
+  
+  const handleExportLayout = () => {
+    const updatedLayout = districts
+      .filter(d => d.isDirty)
+      .map(({ id, position }) => ({ id, position }));
+    
+    if (updatedLayout.length === 0) {
+      alert("No changes to export. Move a district in Architect Mode first.");
+      return;
+    }
+    
+    setExportedJson(JSON.stringify(updatedLayout, null, 2));
+    setIsExportModalOpen(true);
+  };
 
-                    <PatrollingCore
-                      ref={patrollingCoreRef}
-                      isPaused={isPanelOpen || isNavMenuOpen}
-                      isSelected={selectedDistrict?.id === 'oracle-ai'}
-                      onSelect={() => handleSelectDistrict({ id: 'oracle-ai', title: 'Oracle AI', description: 'Patrolling AI Assistant', position: [0,35,0], type: 'major' })}
-                      isFocused={selectedDistrict?.id === 'oracle-ai'}
-                      onAccessChat={() => setIsOracleModalOpen(true)}
-                    />
+  const handleSetHeldDistrict = useCallback((id: string | null) => {
+    if (isCalibrationMode) {
+      setHeldDistrictId(id);
+      document.body.style.cursor = id ? 'grabbing' : 'grab';
+    }
+  }, [isCalibrationMode]);
 
-                    {isCalibrationMode && (
-                        <>
-                            <CalibrationGrid size={GRID_SIZE} />
-                            <BuildModeController
-                                districts={districts}
-                                setDistricts={setDistricts}
-                                heldDistrictId={heldDistrictId}
-                                onPlaceDistrict={handlePlaceDistrict}
-                                gridSize={GRID_SIZE}
-                                gridDivisions={GRID_DIVISIONS}
-                            />
-                        </>
-                    )}
+  // --- RENDER LOGIC ---
+  const orbitControlsEnabled = !isAnimatingCamera && !isDetailView && !isCalibrationMode && pov === 'main' && !isGameActive;
 
-                    <CameraRig 
-                        selectedDistrict={selectedDistrict} 
-                        onAnimationFinish={handleAnimationFinish}
-                        isAnimating={isAnimating}
-                        pov={pov}
-                        targetShipRef={targetShipRef}
-                        isCalibrationMode={isCalibrationMode}
-                        patrollingCoreRef={patrollingCoreRef}
-                    />
+  if (isGameActive) {
+    return <AegisProtocolGame onExit={() => setIsGameActive(false)} />;
+  }
 
-                    <Effects>
-                        <unrealBloomPass threshold={0.8} strength={0.3} radius={1} />
-                    </Effects>
-                </Suspense>
-            </Canvas>
+  return (
+    <>
+      <Canvas shadows>
+        <PerspectiveCamera makeDefault fov={60} position={[0, 100, 250]} />
+        <color attach="background" args={['#050810']} />
+        <fog attach="fog" args={['#050810', 150, 400]} />
 
-            {/* --- UI Overlays --- */}
-            <HUD
-                selectedDistrict={selectedDistrict}
-                onGoHome={handleGoHome}
-                onToggleNavMenu={() => setIsNavMenuOpen(prev => !prev)}
-                isDetailViewActive={isDetailViewActive}
-                pov={pov}
-                onSetPov={setPov}
-                isCalibrationMode={isCalibrationMode}
-                onToggleCalibrationMode={handleToggleCalibrationMode}
-                onExportLayout={handleExportLayout}
-                heldDistrictId={heldDistrictId}
-                onCancelMove={handlePlaceDistrict}
-                onSelectOracle={() => handleSelectDistrict({ id: 'oracle-ai', title: 'Oracle AI', description: 'Patrolling AI Assistant', position: [0,35,0], type: 'major' })}
+        {/* --- LIGHTING --- */}
+        <ambientLight intensity={0.5} />
+        <directionalLight
+          position={[10, 50, -50]}
+          intensity={1.5}
+          castShadow
+          shadow-mapSize-width={2048}
+          shadow-mapSize-height={2048}
+        />
+        <pointLight position={[0, 40, 0]} intensity={2} color="#00ffff" distance={100} />
+
+        {/* --- ENVIRONMENT --- */}
+        <Stars radius={150} depth={50} count={5000} factor={6} saturation={0} fade speed={1} />
+        <Sparkles count={100} scale={8} size={2} speed={0.5} color="#00ffff" />
+        <ProceduralTerrain />
+
+        {/* --- SCENE OBJECTS --- */}
+        <DistrictRenderer
+          districts={districts}
+          selectedDistrict={selectedDistrict}
+          onDistrictSelect={handleDistrictSelect}
+          isCalibrationMode={isCalibrationMode}
+          heldDistrictId={heldDistrictId}
+          onSetHeldDistrict={handleSetHeldDistrict}
+        />
+        <FlyingShips setShipRefs={(refs) => (shipRefs.current = refs)} isPaused={isDetailView} />
+        <PatrollingCore
+          ref={patrollingCoreRef}
+          isSelected={selectedDistrict?.id === 'oracle-ai'}
+          onSelect={() => handleDistrictSelect(districts.find(d => d.id === 'oracle-ai') || null)}
+          isFocused={isDetailView && selectedDistrict?.id === 'oracle-ai'}
+          onAccessChat={() => setIsOracleModalOpen(true)}
+        />
+        
+        {/* --- CONTROLS & HELPERS --- */}
+        <CameraRig
+          selectedDistrict={selectedDistrict}
+          isAnimating={isAnimatingCamera}
+          onAnimationFinish={() => setIsAnimatingCamera(false)}
+          pov={pov}
+          targetShipRef={playerShipRef}
+          isCalibrationMode={isCalibrationMode}
+          patrollingCoreRef={patrollingCoreRef}
+        />
+        <OrbitControls
+          enabled={orbitControlsEnabled}
+          maxPolarAngle={Math.PI / 2.1}
+          minDistance={30}
+          maxDistance={300}
+        />
+        {isCalibrationMode && (
+          <>
+            <CalibrationGrid />
+            <BuildModeController
+              districts={districts}
+              setDistricts={setDistricts}
+              heldDistrictId={heldDistrictId}
+              onPlaceDistrict={() => handleSetHeldDistrict(null)}
+              gridSize={250}
+              gridDivisions={25}
             />
-            <ProjectSelectionPanel
-                isOpen={isPanelOpen}
-                district={selectedDistrict}
-                onClose={handleGoHome}
-            />
-            <QuickNavMenu
-                isOpen={isNavMenuOpen}
-                onClose={() => setIsNavMenuOpen(false)}
-                districts={districts.filter(d => d.type === 'major')}
-                onSelectDistrict={(d) => {
-                    setIsNavMenuOpen(false);
-                    handleSelectDistrict(d);
-                }}
-            />
-             <OracleModal
-                isOpen={isOracleModalOpen}
-                onClose={() => setIsOracleModalOpen(false)}
-                onActionTriggered={handleOracleAction}
-            />
-            <ContactHubModal
-                isOpen={isContactModalOpen}
-                onClose={() => setIsContactModalOpen(false)}
-            />
-            <ExportLayoutModal
-                isOpen={isExportModalOpen}
-                onClose={() => setIsExportModalOpen(false)}
-                jsonData={exportedLayout}
-            />
-             <GameLobbyPanel 
-                isOpen={isLobbyOpen}
-                onClose={() => setIsLobbyOpen(false)}
-                onLaunch={() => {
-                    setIsLobbyOpen(false);
-                    setIsGameActive(true);
-                }}
-            />
-        </>
-    );
+          </>
+        )}
+        
+        {/* --- POST-PROCESSING --- */}
+        <EffectComposer>
+          <Bloom luminanceThreshold={0.4} intensity={0.6} levels={9} mipmapBlur />
+          <Vignette eskil={false} offset={0.1} darkness={1.1} />
+        </EffectComposer>
+      </Canvas>
+      
+      {/* --- UI OVERLAYS --- */}
+      <HUD
+        selectedDistrict={selectedDistrict}
+        onGoHome={handleGoHome}
+        onToggleNavMenu={() => setIsNavMenuOpen(true)}
+        isDetailViewActive={isDetailView}
+        pov={pov}
+        onSetPov={setPov}
+        isCalibrationMode={isCalibrationMode}
+        onToggleCalibrationMode={handleToggleCalibration}
+        onExportLayout={handleExportLayout}
+        heldDistrictId={heldDistrictId}
+        onCancelMove={() => handleSetHeldDistrict(null)}
+        onSelectOracle={() => handleDistrictSelect(districts.find(d => d.id === 'oracle-ai') || null)}
+      />
+      <QuickNavMenu
+        isOpen={isNavMenuOpen}
+        onClose={() => setIsNavMenuOpen(false)}
+        onSelectDistrict={(d) => {
+          handleDistrictSelect(d);
+          setIsNavMenuOpen(false);
+        }}
+        districts={districts.filter(d => d.type === 'major')}
+      />
+      <ProjectSelectionPanel
+        isOpen={isProjectPanelOpen}
+        onClose={handleClosePanels}
+        district={selectedDistrict}
+      />
+      <ContactHubModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
+      />
+      <OracleModal
+        isOpen={isOracleModalOpen}
+        onClose={() => setIsOracleModalOpen(false)}
+        onActionTriggered={(action) => {
+          const target = districts.find(d => d.id === action.targetId);
+          if (target) handleDistrictSelect(target);
+          setIsOracleModalOpen(false);
+        }}
+      />
+      <ExportLayoutModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        jsonData={exportedJson}
+      />
+      <GameLobbyPanel
+        isOpen={isGameLobbyOpen}
+        onLaunch={() => {
+          setIsGameLobbyOpen(false);
+          setIsGameActive(true);
+        }}
+        onClose={() => setIsGameLobbyOpen(false)}
+      />
+    </>
+  );
 };
