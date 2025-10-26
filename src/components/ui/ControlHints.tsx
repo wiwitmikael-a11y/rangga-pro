@@ -1,5 +1,9 @@
 import React from 'react';
 
+interface ControlHintsProps {
+    isTouchDevice: boolean;
+}
+
 const styles: { [key: string]: React.CSSProperties } = {
     container: {
         position: 'fixed',
@@ -25,7 +29,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     }
 };
 
-export const ControlHints: React.FC = () => {
+export const ControlHints: React.FC<ControlHintsProps> = ({ isTouchDevice }) => {
+    const hintText = isTouchDevice
+        ? "[ONE-FINGER DRAG TO ROTATE]   [PINCH TO ZOOM]"
+        : "[DRAG TO ROTATE]   [SCROLL TO ZOOM]";
+
     return (
         <>
             <style>{`
@@ -40,7 +48,7 @@ export const ControlHints: React.FC = () => {
                 }
             `}</style>
             <div className="hint-container" style={styles.container}>
-                <p style={styles.text}>[DRAG TO ROTATE] &nbsp;&nbsp; [SCROLL TO ZOOM]</p>
+                <p style={styles.text}>{hintText}</p>
             </div>
         </>
     );

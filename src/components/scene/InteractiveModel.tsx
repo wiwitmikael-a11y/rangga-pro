@@ -1,5 +1,5 @@
-import React, { Suspense, useLayoutEffect, useMemo, useRef, useCallback } from 'react';
-import { useGLTF, Text } from '@react-three/drei';
+import React, { Suspense, useLayoutEffect, useMemo, useRef, useCallback, useState } from 'react';
+import { useGLTF, Text, Torus } from '@react-three/drei';
 import * as THREE from 'three';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
 import { CityDistrict } from '../../types';
@@ -100,14 +100,18 @@ function Model({ url, scale, isHeld, onPointerOver, onPointerOut, onPointerDown,
 export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, isSelected, onSelect, isCalibrationMode, isHeld, onSetHeld }) => {
   const groupRef = useRef<THREE.Group>(null!);
   
-  // --- NEW: Logic for quick and intentional long press ---
-  const longPressTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // --- NEW: State and refs for hold-to-select interaction ---
+  const [holdProgress, setHoldProgress] = useState(0);
+  const isHoldingRef = useRef(false);
+  const animationFrameRef = useRef<number>();
+  const HOLD_DURATION = 750;
   
-  const clearLongPress = useCallback(() => {
-    if (longPressTimeout.current) {
-        clearTimeout(longPressTimeout.current);
-        longPressTimeout.current = null;
+  const cancelHold = useCallback(() => {
+    isHoldingRef.current = false;
+    if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
     }
+    setHoldProgress(0);
   }, []);
   
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
@@ -118,28 +122,45 @@ export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, is
 
   const handlePointerOut = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
-    clearLongPress(); // Cancel press if user drags out
+    cancelHold(); // Cancel press if user drags out
     document.body.style.cursor = 'auto';
   };
   
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
-    clearLongPress();
 
     if (isCalibrationMode) {
       onSetHeld(district.id);
       return;
     }
     
-    // Start a timer for the long press action
-    longPressTimeout.current = setTimeout(() => {
-        onSelect(district);
-    }, 250); // 250ms for a quick, intentional hold
+    isHoldingRef.current = true;
+    const startTime = performance.now();
+    
+    const animateHold = (currentTime: number) => {
+        if (!isHoldingRef.current) {
+            cancelHold();
+            return;
+        }
+        
+        const elapsedTime = currentTime - startTime;
+        const progress = Math.min(elapsedTime / HOLD_DURATION, 1);
+        setHoldProgress(progress);
+
+        if (progress >= 1) {
+            onSelect(district);
+            cancelHold();
+        } else {
+            animationFrameRef.current = requestAnimationFrame(animateHold);
+        }
+    };
+    
+    animationFrameRef.current = requestAnimationFrame(animateHold);
   };
 
   const handlePointerUp = (e: ThreeEvent<PointerEvent>) => {
       e.stopPropagation();
-      clearLongPress(); // Cancel the timer if released before 250ms
+      cancelHold();
   };
 
 
@@ -178,14 +199,29 @@ export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, is
                 onPointerUp={handlePointerUp}
             />
         </Suspense>
-        <HolographicDistrictLabel 
-            district={district} 
-            isSelected={isSelected} 
-            onSelect={onSelect} 
-            isCalibrationMode={isCalibrationMode}
-            isHeld={isHeld}
-            onSetHeld={onSetHeld}
-        />
+        {/* The label is wrapped to disable its pointer events in normal mode, preventing conflicting interactions. */}
+        <group pointerEvents={isCalibrationMode ? 'auto' : 'none'}>
+            <HolographicDistrictLabel 
+                district={district} 
+                isSelected={isSelected} 
+                onSelect={onSelect} 
+                isCalibrationMode={isCalibrationMode}
+                isHeld={isHeld}
+                onSetHeld={onSetHeld}
+            />
+        </group>
+        {/* Render the gauge here, controlled by this component's state, positioned over the label */}
+        {holdProgress > 0 && !isCalibrationMode && (
+            <group position={[0, 15, 0.2]}>
+                <Torus args={[16, 0.5, 16, 100, Math.PI * 2 * holdProgress]} rotation={[0, 0, Math.PI / 2]}>
+                    <meshStandardMaterial color="cyan" emissive="cyan" emissiveIntensity={3} toneMapped={false} side={THREE.DoubleSide}/>
+                </Torus>
+                <Text fontSize={2} color="white" anchorX="center" anchorY="middle">
+                    HOLD
+                    <meshStandardMaterial emissive={'white'} emissiveIntensity={2} toneMapped={false} />
+                </Text>
+            </group>
+        )}
     </group>
   );
 };

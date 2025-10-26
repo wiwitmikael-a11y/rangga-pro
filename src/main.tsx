@@ -1,4 +1,4 @@
-import React, { useState, Suspense, useCallback, useEffect } from 'react';
+import React, { useState, Suspense, useCallback, useEffect, useMemo } from 'react';
 import ReactDOM from 'react-dom/client';
 import { useProgress } from '@react-three/drei';
 import { Experience3D } from './components/Experience3D';
@@ -12,6 +12,9 @@ const MainApp: React.FC = () => {
   const [hasShownHints, setHasShownHints] = useState(false);
 
   const isLoaded = progress >= 100;
+
+  // NEW: Detect if the user is on a touch-enabled device
+  const isTouchDevice = useMemo(() => 'ontouchstart' in window || navigator.maxTouchPoints > 0, []);
 
   useEffect(() => {
     // When loading is complete, transition to the start screen.
@@ -66,7 +69,7 @@ const MainApp: React.FC = () => {
       )}
       
       {/* Control hints are shown once the experience starts for the first time */}
-      {hasShownHints && <ControlHints />}
+      {hasShownHints && <ControlHints isTouchDevice={isTouchDevice} />}
     </>
   );
 };

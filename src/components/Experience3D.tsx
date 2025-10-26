@@ -91,7 +91,7 @@ export const Experience3D: React.FC = () => {
         if (pov === 'main' && !isDetailViewActive && !isCalibrationMode) {
             setIsAutoRotating(true);
         }
-    }, 5000);
+    }, 60000); // Waktu idle ditingkatkan menjadi 60 detik
   }, [pov, isDetailViewActive, isCalibrationMode]);
 
   const handleInteractionStart = useCallback(() => {

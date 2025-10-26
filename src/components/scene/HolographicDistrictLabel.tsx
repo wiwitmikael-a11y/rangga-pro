@@ -1,6 +1,6 @@
 import React, { useRef, useState, useMemo, useCallback } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
-import { Text, Billboard, RoundedBox } from '@react-three/drei';
+import { Text, Billboard, RoundedBox, Torus } from '@react-three/drei';
 import * as THREE from 'three';
 import { CityDistrict } from '../../types';
 
@@ -67,20 +67,24 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
   const [isHovered, setIsHovered] = useState(false);
   const glowIntensityRef = useRef(1.0);
   
-  // --- NEW: Logic for quick and intentional long press ---
-  const longPressTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const clearLongPress = useCallback(() => {
-    if (longPressTimeout.current) {
-      clearTimeout(longPressTimeout.current);
-      longPressTimeout.current = null;
-    }
-  }, []);
+  // --- NEW: State and refs for hold-to-select interaction ---
+  const [holdProgress, setHoldProgress] = useState(0);
+  const isHoldingRef = useRef(false);
+  const animationFrameRef = useRef<number>();
+  const HOLD_DURATION = 750; // ms
 
   // Uniforms for the shader material, memoized for performance
   const borderUniforms = useMemo(() => ({
     time: { value: 0 },
   }), []);
+  
+  const cancelHold = useCallback(() => {
+    isHoldingRef.current = false;
+    if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+    }
+    setHoldProgress(0);
+  }, []);
 
   useFrame(({ clock }, delta) => {
     if (!groupRef.current) return;
@@ -105,29 +109,46 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
 
   const handlePointerOut = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
-    clearLongPress(); // Cancel press if user drags out
+    cancelHold(); // Cancel press if user drags out
     setIsHovered(false);
     document.body.style.cursor = 'auto';
   };
   
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
-    clearLongPress();
 
     if (isCalibrationMode) {
       onSetHeld(district.id);
       return;
     }
     
-    // Start a timer for the long press action
-    longPressTimeout.current = setTimeout(() => {
-      onSelect(district);
-    }, 250); // 250ms for a quick, intentional hold
+    isHoldingRef.current = true;
+    const startTime = performance.now();
+    
+    const animateHold = (currentTime: number) => {
+        if (!isHoldingRef.current) {
+            cancelHold();
+            return;
+        }
+        
+        const elapsedTime = currentTime - startTime;
+        const progress = Math.min(elapsedTime / HOLD_DURATION, 1);
+        setHoldProgress(progress);
+
+        if (progress >= 1) {
+            onSelect(district);
+            cancelHold();
+        } else {
+            animationFrameRef.current = requestAnimationFrame(animateHold);
+        }
+    };
+    
+    animationFrameRef.current = requestAnimationFrame(animateHold);
   };
 
   const handlePointerUp = (e: ThreeEvent<PointerEvent>) => {
       e.stopPropagation();
-      clearLongPress(); // Cancel the timer if released before 250ms
+      cancelHold();
   };
   
   return (
@@ -193,6 +214,30 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
         >
           {district.description}
         </Text>
+        
+        {/* Hold-to-select Gauge */}
+        {holdProgress > 0 && !isCalibrationMode && (
+            <group position={[0, 0, 0.2]}>
+                <Torus args={[16, 0.5, 16, 100, Math.PI * 2 * holdProgress]} rotation={[0, 0, Math.PI / 2]}>
+                    <meshStandardMaterial
+                        color="cyan"
+                        emissive="cyan"
+                        emissiveIntensity={3}
+                        toneMapped={false}
+                        side={THREE.DoubleSide}
+                    />
+                </Torus>
+                <Text
+                    fontSize={2}
+                    color="white"
+                    anchorX="center"
+                    anchorY="middle"
+                >
+                    HOLD
+                    <meshStandardMaterial emissive={'white'} emissiveIntensity={2} toneMapped={false} />
+                </Text>
+            </group>
+        )}
       </group>
     </Billboard>
   );
