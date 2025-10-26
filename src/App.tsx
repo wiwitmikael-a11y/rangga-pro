@@ -1,6 +1,9 @@
 import React, { useState, useCallback, Suspense, useEffect } from 'react';
 
-import { Experience3D } from './components/Experience3D';
+// CRITICAL FIX: Lazy load the heavy 3D component.
+// This prevents its code from being parsed and executed on initial load,
+// which was the root cause of the "total black screen" crash.
+const Experience3D = React.lazy(() => import('./components/Experience3D'));
 import { StartScreen } from './components/ui/StartScreen';
 import { ControlHints } from './components/ui/ControlHints';
 import { LoaderUI } from './components/ui/Loader'; 
@@ -11,8 +14,8 @@ const App: React.FC = () => {
   const [progress, setProgress] = useState(0);
 
   // --- Simulated Loading Effect ---
-  // This provides a reliable loading screen while assets are pre-fetched in the background.
-  // It guarantees the user sees feedback immediately, preventing the "black screen" crash.
+  // This provides a reliable loading screen while assets are pre-fetched by the browser in the background.
+  // It guarantees the user sees feedback immediately.
   useEffect(() => {
     if (appState === 'loading') {
       const totalDuration = 3500; // 3.5 seconds simulated loading time
@@ -28,7 +31,6 @@ const App: React.FC = () => {
         if (elapsed < totalDuration) {
           animationFrameId = requestAnimationFrame(animate);
         } else {
-          // Wait for one more frame to ensure 100% is displayed before transitioning
           setTimeout(() => setAppState('start'), 100);
         }
       };
@@ -43,7 +45,6 @@ const App: React.FC = () => {
     // This timeout matches the 1.5s hydraulic gate animation duration.
     setTimeout(() => {
       setAppState('experience');
-      // Show hints only on the very first entry.
       if (!sessionStorage.getItem('hasShownHints')) {
         setHasShownHints(true);
         sessionStorage.setItem('hasShownHints', 'true');
@@ -52,16 +53,10 @@ const App: React.FC = () => {
   }, []);
 
   const showStartScreen = appState === 'start' || appState === 'entering';
-  // CRITICAL FIX: Only mount the heavy 3D experience when it's time to show it.
   const shouldMountExperience = appState === 'entering' || appState === 'experience';
 
   return (
     <>
-      {/* 
-        The asset preloader has been removed as it was the likely cause of the startup crash.
-        Assets will now be loaded just-in-time when the Experience3D component is mounted.
-      */}
-
       {appState === 'loading' && <LoaderUI progress={progress} />}
 
       {showStartScreen && (
@@ -72,16 +67,15 @@ const App: React.FC = () => {
       )}
       
       {/* 
-        The <main> and <Experience3D> components are now only mounted when needed.
-        This is the core fix for the "total black screen" crash, as it prevents
-        heavy WebGL initialization from happening too early.
+        The Experience3D component is now lazy-loaded and wrapped in Suspense.
+        It will only be requested and rendered when shouldMountExperience becomes true.
       */}
       {shouldMountExperience && (
           <main style={{
               width: '100vw',
               height: '100vh',
               backgroundColor: 'var(--background-color)',
-              opacity: appState === 'experience' ? 1 : 0, // Fade in the canvas
+              opacity: appState === 'experience' ? 1 : 0,
               transition: 'opacity 1.5s ease-in-out',
             }}>
             <Suspense fallback={null}>

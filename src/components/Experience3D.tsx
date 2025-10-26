@@ -10,7 +10,7 @@ import { FlyingShips, shipsData } from './scene/FlyingShips';
 import { DistrictRenderer } from './scene/DistrictRenderer';
 import { portfolioData } from '../constants';
 import type { CityDistrict } from '../types';
-import { CameraRig } from './CameraRig';
+import { CameraRig } from '../CameraRig';
 import { HUD } from './ui/HUD';
 import { ProceduralTerrain } from './scene/ProceduralTerrain';
 import HolographicInfoPanel from './scene/HolographicInfoPanel';
@@ -32,7 +32,7 @@ const sunPosition: [number, number, number] = [100, 2, -100]; // Lower sun for a
 const sunColor = '#ffd0b3'; // Warmer light
 const INITIAL_CAMERA_POSITION: [number, number, number] = [0, 100, 250];
 
-export const Experience3D: React.FC = () => {
+const Experience3D: React.FC = () => {
   const [districts, setDistricts] = useState<CityDistrict[]>(portfolioData);
   const [selectedDistrict, setSelectedDistrict] = useState<CityDistrict | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -397,3 +397,5 @@ export const Experience3D: React.FC = () => {
     </>
   );
 };
+
+export default Experience3D;
