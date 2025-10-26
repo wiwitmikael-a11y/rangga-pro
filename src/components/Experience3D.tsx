@@ -1,5 +1,5 @@
 import React, { useState, useCallback, Suspense, useMemo, useRef, useEffect } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Sky } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { EffectComposer, Noise, ChromaticAberration } from '@react-three/postprocessing';
@@ -49,6 +49,14 @@ export const Experience3D: React.FC = () => {
 
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const isPaused = isCalibrationMode;
+
+  // Panggil update() pada setiap frame untuk mengaktifkan redaman (damping)
+  // Ini menciptakan pengalaman kontrol yang lebih halus dan lebih premium.
+  useFrame(() => {
+    if (controlsRef.current) {
+      controlsRef.current.update();
+    }
+  });
 
   const navDistricts = useMemo(() => {
     const majorDistricts = districts.filter(d => d.type === 'major');
@@ -123,20 +131,23 @@ export const Experience3D: React.FC = () => {
       // Ketika animasi ke distrik selesai, tampilkan panel kontennya.
       setShowContentPanel(true);
 
-      // FIX: Sinkronkan target OrbitControls dengan titik fokus kamera yang baru.
-      // Ini mencegah "snap" yang mengganggu saat pengguna berinteraksi dengan kamera
-      // setelah animasi terprogram selesai.
+      // FIX: Sinkronkan target OrbitControls dan panggil update() secara eksplisit.
+      // Ini secara instan menyetel ulang pivot kontrol, sepenuhnya menghilangkan "camera fighting"
+      // dan memastikan transisi yang mulus ke kontrol pengguna.
       if (controlsRef.current && selectedDistrict.cameraFocus) {
         const { lookAt } = selectedDistrict.cameraFocus;
         controlsRef.current.target.set(lookAt[0], lookAt[1], lookAt[2]);
+        controlsRef.current.update();
       }
     } else if (pov === 'main' && !isCalibrationMode) {
       // Saat kembali ke tinjauan umum, reset timer idle.
       resetIdleTimer();
 
-      // FIX: Reset target OrbitControls ke posisi tinjauan umum default.
+      // FIX: Reset target OrbitControls ke default dan panggil update()
+      // untuk memastikan konsistensi.
       if (controlsRef.current) {
         controlsRef.current.target.set(0, 5, 0);
+        controlsRef.current.update();
       }
     }
   }, [selectedDistrict, pov, isCalibrationMode, resetIdleTimer]);
@@ -301,6 +312,8 @@ export const Experience3D: React.FC = () => {
         <OrbitControls
             ref={controlsRef}
             enabled={pov === 'main' && !isAnimating && !isNavMenuOpen && !showContentPanel && !infoPanelItem && !heldDistrictId}
+            enableDamping={true}
+            dampingFactor={0.05}
             minDistance={20}
             maxDistance={300}
             maxPolarAngle={isCalibrationMode ? Math.PI / 2.05 : Math.PI / 2.2}
