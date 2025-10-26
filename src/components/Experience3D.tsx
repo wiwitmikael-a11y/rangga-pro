@@ -343,6 +343,8 @@ export const Experience3D: React.FC = () => {
         <OrbitControls
             ref={controlsRef}
             enabled={pov === 'main' && shipControlMode === 'follow' && !isAnimating && !isNavMenuOpen && !showContentPanel && !infoPanelItem && !heldDistrictId}
+            enableDamping
+            dampingFactor={0.05}
             minDistance={20}
             maxDistance={300}
             maxPolarAngle={isCalibrationMode ? Math.PI / 2.05 : Math.PI / 2.2}

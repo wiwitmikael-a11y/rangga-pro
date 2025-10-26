@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { CityDistrict } from '../types';
 import { OVERVIEW_CAMERA_POSITION } from '../constants';
 import type { ShipType } from './scene/FlyingShips';
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 
 interface CameraRigProps {
   selectedDistrict: CityDistrict | null;
@@ -39,9 +40,16 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
   isAnimatingRef.current = isAnimating;
 
   useFrame((state, delta) => {
+    // --- NEW: Smooth OrbitControls Damping ---
+    // Diperlukan agar prop `enableDamping` pada OrbitControls berfungsi.
+    // Ini menghaluskan gerakan kamera yang dikontrol pengguna.
+    const controls = state.controls as OrbitControlsImpl;
+    if (controls?.enabled) {
+      controls.update();
+    }
+    
     let hasTarget = false;
-    // Kecepatan lerp yang disesuaikan untuk transisi yang lebih mulus
-    let lerpSpeed = 3.0;
+    let dampingSpeed = 4.0; // Kecepatan damping default untuk animasi
 
     // --- Penentuan Target Berbasis State ---
     if (isAnimating) {
@@ -71,7 +79,7 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
         }
     } else if (pov === 'ship' && targetShipRef?.current) {
         // Kita dalam mode mengikuti terus-menerus (bukan animasi sekali jalan)
-        lerpSpeed = 4.0; // Kecepatan mengikuti yang responsif
+        dampingSpeed = 6.0; // Kecepatan mengikuti yang lebih responsif
         const ship = targetShipRef.current;
         const shipType = (ship.userData.shipType as ShipType) || 'default';
         const offset = shipCamOffsets[shipType];
@@ -85,12 +93,14 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
 
     // --- Logika Animasi ---
     if (hasTarget) {
-      const lerpFactor = Math.min(delta * lerpSpeed, 1); // Batasi untuk mencegah overshoot pada frame yang lambat
-      state.camera.position.lerp(targetPosition, lerpFactor);
+      // --- NEW: Peredaman eksponensial yang tidak bergantung pada frame-rate ---
+      // Ini menciptakan efek ease-in dan ease-out yang halus untuk gerakan kamera.
+      const dampFactor = 1.0 - Math.exp(-dampingSpeed * delta);
+      state.camera.position.lerp(targetPosition, dampFactor);
 
       const tempCamera = state.camera.clone();
       tempCamera.lookAt(targetLookAt);
-      state.camera.quaternion.slerp(tempCamera.quaternion, lerpFactor);
+      state.camera.quaternion.slerp(tempCamera.quaternion, dampFactor);
       
       // Periksa apakah animasi sekali jalan telah selesai.
       if (isAnimatingRef.current) {
