@@ -1,10 +1,7 @@
 import React, { useState, useCallback, Suspense, useMemo, useRef, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
-// FIX: Import 'useGLTF' to resolve 'Cannot find name 'useGLTF'' error.
 import { OrbitControls, Sky } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
-import { EffectComposer, Noise, ChromaticAberration } from '@react-three/postprocessing';
-import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
 
 import { CityModel } from './scene/CityModel';
@@ -298,13 +295,6 @@ export const Experience3D: React.FC = () => {
             position={sunPosition}
             intensity={1.5}
             color={sunColor}
-            shadow-mapSize-width={2048}
-            shadow-mapSize-height={2048}
-            shadow-camera-far={500}
-            shadow-camera-left={-200}
-            shadow-camera-right={200}
-            shadow-camera-top={200}
-            shadow-camera-bottom={-200}
           />
           <Sky sunPosition={sunPosition} distance={1000} />
           <CityModel />
@@ -343,11 +333,6 @@ export const Experience3D: React.FC = () => {
           )}
 
           {isGameActive && <AegisProtocolGame onExit={handleExitGame} playerSpawnPosition={playerSpawnPosition.current} />}
-          
-          <EffectComposer disableNormalPass>
-            <Noise opacity={0.03} />
-            <ChromaticAberration blendFunction={BlendFunction.NORMAL} offset={new THREE.Vector2(0.001, 0.001)} radialModulation={false} modulationOffset={0.0} />
-          </EffectComposer>
           
           <CameraRig
             selectedDistrict={selectedDistrict}
