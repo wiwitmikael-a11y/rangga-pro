@@ -1,25 +1,58 @@
 import React, { useState, useCallback, Suspense, useEffect } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { Loader, useProgress } from '@react-three/drei';
+import { useGLTF, useTexture } from '@react-three/drei';
+
 import { Experience3D } from './components/Experience3D';
 import { StartScreen } from './components/ui/StartScreen';
 import { ControlHints } from './components/ui/ControlHints';
+import { LoaderUI } from './components/ui/Loader'; // Re-introducing the custom loader UI
+import { shipsData } from './components/scene/FlyingShips';
+import { portfolioData } from './constants';
 
-const AppContent: React.FC = () => {
+// --- Asset Preloading ---
+// By calling these hooks at the top level, we initiate the download for critical assets
+// as soon as the app component loads. They will be cached and ready when the 3D scene is mounted.
+const Preloader = () => {
+  useGLTF.preload('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/cyberpunk_city.glb');
+  useGLTF.preload('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/PatrollingCore.glb');
+  useTexture.preload('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/terrain.jpeg?v=2');
+  shipsData.forEach(ship => useGLTF.preload(ship.url));
+  portfolioData.filter(d => d.modelUrl).forEach(d => useGLTF.preload(d.modelUrl!));
+  return null;
+}
+
+
+const App: React.FC = () => {
   const [appState, setAppState] = useState<'loading' | 'start' | 'entering' | 'experience'>('loading');
   const [hasShownHints, setHasShownHints] = useState(false);
-  const { active: isLoading } = useProgress();
+  const [progress, setProgress] = useState(0);
 
+  // --- Simulated Loading Effect ---
+  // This provides a reliable loading screen while assets are pre-fetched in the background.
+  // It guarantees the user sees feedback immediately, preventing the "black screen" crash.
   useEffect(() => {
-    // This effect transitions from the loading state to the start screen
-    // once all assets tracked by `useProgress` are fully loaded.
-    if (!isLoading && appState === 'loading') {
-      const timer = setTimeout(() => {
-        setAppState('start');
-      }, 500); // A brief delay to ensure the 100% state is visible.
-      return () => clearTimeout(timer);
+    if (appState === 'loading') {
+      const totalDuration = 3500; // 3.5 seconds simulated loading time
+      let startTime = 0;
+      let animationFrameId: number;
+
+      const animate = (timestamp: number) => {
+        if (!startTime) startTime = timestamp;
+        const elapsed = timestamp - startTime;
+        const currentProgress = Math.min(Math.floor((elapsed / totalDuration) * 100), 100);
+        setProgress(currentProgress);
+
+        if (elapsed < totalDuration) {
+          animationFrameId = requestAnimationFrame(animate);
+        } else {
+          // Wait for one more frame to ensure 100% is displayed before transitioning
+          setTimeout(() => setAppState('start'), 100);
+        }
+      };
+      
+      animationFrameId = requestAnimationFrame(animate);
+      return () => cancelAnimationFrame(animationFrameId);
     }
-  }, [isLoading, appState]);
+  }, [appState]);
 
   const handleStart = useCallback(() => {
     setAppState('entering');
@@ -35,26 +68,15 @@ const AppContent: React.FC = () => {
   }, []);
 
   const showStartScreen = appState === 'start' || appState === 'entering';
-  const showExperience = appState === 'entering' || appState === 'experience';
+  // CRITICAL FIX: Only mount the heavy 3D experience when it's time to show it.
+  const shouldMountExperience = appState === 'entering' || appState === 'experience';
 
   return (
     <>
-      <main style={{
-          width: '100vw',
-          height: '100vh',
-          backgroundColor: 'var(--background-color)',
-          opacity: showExperience ? 1 : 0,
-          transition: 'opacity 1.5s ease-in-out',
-        }}>
-        {/* The 3D scene is always mounted to allow for preloading */}
-        <Suspense fallback={null}>
-          <Canvas>
-            <Experience3D />
-          </Canvas>
-        </Suspense>
-      </main>
-      
-      {/* --- Overlays --- */}
+      <Suspense fallback={null}><Preloader /></Suspense>
+
+      {appState === 'loading' && <LoaderUI progress={progress} />}
+
       {showStartScreen && (
         <StartScreen
           onStart={handleStart}
@@ -62,54 +84,26 @@ const AppContent: React.FC = () => {
         />
       )}
       
-      {hasShownHints && <ControlHints />}
-    </>
-  );
-};
-
-
-const App: React.FC = () => {
-  return (
-    <>
-      <AppContent />
-       {/* 
-        This is the official Drei loader. It hooks into the Suspense context
-        and automatically tracks the loading progress of all assets within the Canvas.
-        It is styled to match the project's aesthetic.
+      {/* 
+        The <main> and <Experience3D> components are now only mounted when needed.
+        This is the core fix for the "total black screen" crash, as it prevents
+        heavy WebGL initialization from happening too early.
       */}
-      <Loader
-        containerStyles={{
-          position: 'fixed',
-          inset: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          backgroundColor: 'var(--background-color)',
-          zIndex: 2000,
-          color: 'var(--primary-color)',
-          fontFamily: 'var(--font-family)',
-          fontSize: 'clamp(0.8rem, 1.5vw, 1rem)',
-          padding: '20px',
-          boxSizing: 'border-box',
-        }}
-        innerStyles={{
-          textAlign: 'center',
-        }}
-        barStyles={{
-          marginTop: '20px',
-          height: '4px',
-          width: '200px',
-          backgroundColor: 'rgba(0, 170, 255, 0.2)',
-          borderRadius: '2px',
-        }}
-        dataStyles={{
-          margin: '2px 0',
-          whiteSpace: 'pre-wrap',
-          textShadow: '0 0 5px var(--primary-color)',
-          letterSpacing: '0.05em',
-        }}
-      />
+      {shouldMountExperience && (
+          <main style={{
+              width: '100vw',
+              height: '100vh',
+              backgroundColor: 'var(--background-color)',
+              opacity: appState === 'experience' ? 1 : 0, // Fade in the canvas
+              transition: 'opacity 1.5s ease-in-out',
+            }}>
+            <Suspense fallback={null}>
+                <Experience3D />
+            </Suspense>
+          </main>
+      )}
+      
+      {hasShownHints && <ControlHints />}
     </>
   );
 };
