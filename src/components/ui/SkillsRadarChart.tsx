@@ -3,13 +3,15 @@ import { SkillCategory } from '../../types';
 
 interface SkillsRadarChartProps {
   skills: SkillCategory[];
-  activeCategory: SkillCategory | null;
+  selectedCategory: SkillCategory | null;
+  hoveredCategory: SkillCategory | null;
+  onCategorySelect: (category: SkillCategory) => void;
   onCategoryHover: (category: SkillCategory | null) => void;
 }
 
-const CHART_SIZE = 400;
+const CHART_SIZE = 250;
 const CHART_CENTER = CHART_SIZE / 2;
-const MAX_RADIUS = CHART_CENTER * 0.8;
+const MAX_RADIUS = CHART_CENTER * 0.75;
 
 // Define a vibrant, game-like color palette for each category
 const CATEGORY_COLORS = [
@@ -21,7 +23,7 @@ const CATEGORY_COLORS = [
   '#9370db', // Medium Purple - Arts
 ];
 
-export const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ skills, activeCategory, onCategoryHover }) => {
+export const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ skills, selectedCategory, hoveredCategory, onCategorySelect, onCategoryHover }) => {
   const numAxes = skills.length;
 
   const dataPoints = skills.map((cat, i) => {
@@ -40,8 +42,8 @@ export const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ skills, acti
     return {
       x2: CHART_CENTER + MAX_RADIUS * Math.cos(angle),
       y2: CHART_CENTER + MAX_RADIUS * Math.sin(angle),
-      labelX: CHART_CENTER + (MAX_RADIUS + 35) * Math.cos(angle),
-      labelY: CHART_CENTER + (MAX_RADIUS + 35) * Math.sin(angle),
+      labelX: CHART_CENTER + (MAX_RADIUS + 25) * Math.cos(angle),
+      labelY: CHART_CENTER + (MAX_RADIUS + 25) * Math.sin(angle),
     };
   });
 
@@ -63,8 +65,8 @@ export const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ skills, acti
         .radar-label-bg { transition: all 0.2s ease; }
         
         .interactive-sector { cursor: pointer; }
-        .interactive-sector:hover .radar-label-group { transform: scale(1.1); }
-        .interactive-sector:hover .radar-label-bg { opacity: 0.5; }
+        .interactive-sector.hovered .radar-label-group { transform: scale(1.1); }
+        .interactive-sector.hovered .radar-label-bg { opacity: 0.5; }
 
         .radar-data-slice { opacity: 0; transform-origin: ${CHART_CENTER}px ${CHART_CENTER}px; transform: scale(0.8); animation: fade-in 0.8s ease 0.5s forwards; transition: opacity 0.3s; }
         .radar-active .radar-data-slice { animation: pulse-glow 2s infinite; }
@@ -86,14 +88,14 @@ export const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ skills, acti
         {/* Data Polygon Slices */}
         {dataPoints.map((point, i) => {
             const prevPoint = dataPoints[(i - 1 + numAxes) % numAxes];
-            const isActive = activeCategory?.category === skills[i].category;
+            const isSelected = selectedCategory?.category === skills[i].category;
             const slicePoints = `${CHART_CENTER},${CHART_CENTER} ${prevPoint.x},${prevPoint.y} ${point.x},${point.y}`;
             return (
                 <polygon
                     key={`slice-${i}`}
                     points={slicePoints}
                     fill={CATEGORY_COLORS[i % CATEGORY_COLORS.length]}
-                    fillOpacity={isActive ? 0.4 : 0.2}
+                    fillOpacity={isSelected ? 0.4 : 0.2}
                     className="radar-data-slice"
                     style={{
                         animationDelay: `${0.5 + i * 0.1}s`,
@@ -107,21 +109,22 @@ export const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ skills, acti
         {axes.map((axis, i) => {
             const category = skills[i];
             const color = CATEGORY_COLORS[i % CATEGORY_COLORS.length];
-            const isActive = activeCategory?.category === category.category;
+            const isSelected = selectedCategory?.category === category.category;
+            const isHovered = hoveredCategory?.category === category.category;
 
-            const labelWidth = 110;
-            const labelHeight = 28;
+            const labelWidth = 80;
+            const labelHeight = 22;
             
             return (
                 <g 
                     key={`axis-${i}`} 
-                    className={`interactive-sector ${isActive ? 'radar-active' : ''}`}
+                    className={`interactive-sector ${isSelected ? 'radar-active' : ''} ${isHovered ? 'hovered' : ''}`}
                     onMouseEnter={() => onCategoryHover(category)} 
                     onMouseLeave={() => onCategoryHover(null)}
-                    onClick={() => onCategoryHover(category)}
+                    onClick={() => onCategorySelect(category)}
                 >
                     {/* Axis Line */}
-                    <line x1={CHART_CENTER} y1={CHART_CENTER} x2={axis.x2} y2={axis.y2} stroke={color} strokeOpacity={isActive ? 1 : 0.5} strokeWidth={isActive ? 2 : 1} className="radar-axis" style={{ animationDelay: `${i * 0.1}s` }} />
+                    <line x1={CHART_CENTER} y1={CHART_CENTER} x2={axis.x2} y2={axis.y2} stroke={color} strokeOpacity={isSelected ? 1 : 0.5} strokeWidth={isSelected ? 1.5 : 1} className="radar-axis" style={{ animationDelay: `${i * 0.1}s` }} />
 
                     {/* Label Button */}
                     <g className="radar-label-group" style={{ animationDelay: `${0.5 + i * 0.1}s` }}>
@@ -130,25 +133,25 @@ export const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ skills, acti
                             y={axis.labelY - labelHeight / 2}
                             width={labelWidth}
                             height={labelHeight}
-                            rx="5"
-                            ry="5"
+                            rx="4"
+                            ry="4"
                             fill={color}
-                            fillOpacity={isActive ? 0.3 : 0.15}
+                            fillOpacity={isSelected ? 0.3 : 0.15}
                             stroke={color}
                             strokeWidth="1"
-                            strokeOpacity={isActive ? 0.8 : 0.4}
+                            strokeOpacity={isSelected ? 0.8 : 0.4}
                             className="radar-label-bg"
                         />
                         <text
                             x={axis.labelX}
                             y={axis.labelY}
-                            fill={isActive ? '#ffffff' : color}
-                            fontSize="11"
+                            fill={isSelected ? '#ffffff' : color}
+                            fontSize="9"
                             fontWeight="700"
                             textAnchor="middle"
                             dominantBaseline="middle"
                             fontFamily="var(--font-family)"
-                            style={{ textShadow: isActive ? '0 0 5px #ffffff' : 'none' }}
+                            style={{ textShadow: isSelected ? '0 0 5px #ffffff' : 'none' }}
                         >
                             {category.category.toUpperCase()}
                         </text>

@@ -120,12 +120,17 @@
         to { background-position: 0 100%; }
       }
       
-      /* --- Contact Hub Floating Labels --- */
-      .contact-hub-modal .input-group {
+      /* --- Contact Hub Floating Labels & Form Layout --- */
+      .contact-grid .input-group {
         position: relative;
         margin-bottom: 25px;
       }
-      .contact-hub-modal .form-input {
+      .contact-grid .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      .contact-grid .form-input {
         width: 100%;
         background: rgba(0,0,0,0.3);
         border: 1px solid rgba(0, 170, 255, 0.3);
@@ -139,12 +144,12 @@
         -moz-appearance: none; /* Remove default appearance for selects on Firefox */
         appearance: none; /* Standard property */
       }
-      .contact-hub-modal .form-input:focus {
+      .contact-grid .form-input:focus {
         outline: none;
         border-color: var(--primary-color);
         box-shadow: 0 0 8px rgba(0, 225, 255, 0.3);
       }
-      .contact-hub-modal .form-label {
+      .contact-grid .form-label {
         position: absolute;
         left: 12px;
         top: 12px;
@@ -154,27 +159,51 @@
         background: rgb(8, 20, 42); /* Match form panel background for clean overlap */
         padding: 0 4px;
       }
-      .contact-hub-modal .form-input:focus + .form-label,
-      .contact-hub-modal .form-input:not(:placeholder-shown) + .form-label {
+      .contact-grid .form-input:focus + .form-label,
+      .contact-grid .form-input:not(:placeholder-shown) + .form-label {
         top: -10px;
         left: 8px;
         font-size: 0.8rem;
         color: var(--primary-color);
       }
       /* Special handling for select as it doesn't use placeholder */
-      .contact-hub-modal .input-group select.form-input + .form-label {
+      .contact-grid .input-group select.form-input + .form-label {
         top: -10px;
         left: 8px;
         font-size: 0.8rem;
         color: var(--primary-color);
       }
-      .contact-hub-modal .input-group select.form-input {
+      .contact-grid .input-group select.form-input {
         background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2300aaff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
         background-repeat: no-repeat;
         background-position: right 12px center;
         background-size: 1em;
       }
+      /* --- New Form Validation Styles --- */
+      .contact-grid .form-input.input-error {
+        border-color: #ff4444;
+        box-shadow: 0 0 8px rgba(255, 68, 68, 0.4);
+      }
+      .contact-grid .error-message {
+        color: #ff6b6b;
+        font-size: 0.75rem;
+        padding-top: 4px;
+        display: block;
+        position: absolute;
+        bottom: -20px;
+        left: 4px;
+      }
       /* End Contact Hub Styles */
+
+      /* --- Image Modal Styles --- */
+      @keyframes fadeInModal {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes zoomInModal {
+        from { transform: scale(0.9); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+      }
 
 
       /* --- Tablet Breakpoint --- */
@@ -313,19 +342,23 @@
         }
 
         /* --- Contact Hub Modal Optimizations --- */
-        .contact-hub-modal .contact-grid {
+        .contact-grid {
           grid-template-columns: 1fr !important;
           display: flex !important;
           flex-direction: column !important;
           background: transparent !important;
           gap: 0 !important;
         }
-        .contact-hub-modal .contact-links-panel {
+        .contact-grid .form-row {
+          grid-template-columns: 1fr !important;
+          gap: 0 !important;
+        }
+        .contact-grid .contact-links-panel {
           border-bottom: 1px solid rgba(0, 170, 255, 0.2);
           padding: 20px !important;
           padding-top: 0 !important;
         }
-        .contact-hub-modal .form-panel {
+        .contact-grid .form-panel {
           padding: 20px !important;
         }
 

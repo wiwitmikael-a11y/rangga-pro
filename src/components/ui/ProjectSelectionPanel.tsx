@@ -1,4 +1,4 @@
-import React, { useState, useCallback, FormEvent } from 'react';
+import React, { useState, useCallback, FormEvent, useEffect } from 'react';
 import type { CityDistrict, PortfolioSubItem, SkillCategory } from '../../types';
 import { SkillsRadarChart } from './SkillsRadarChart';
 import { skillsData, professionalSummary } from '../../constants';
@@ -109,7 +109,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   instagramPrompt: { margin: '0 0 25px 0', color: '#ccc', fontSize: '1rem' },
   instagramVisitButton: { width: '100%', background: 'rgba(0, 170, 255, 0.2)', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', padding: '12px 25px', fontSize: '1rem', fontFamily: 'inherit', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', transition: 'all 0.3s ease', textShadow: '0 0 5px var(--primary-color)', borderRadius: '5px' },
 
-  contactGrid: { display: 'grid', gridTemplateColumns: '1fr 1.5fr', width: '100%', height: '100%', flexGrow: 1 },
+  contactGrid: { display: 'grid', gridTemplateColumns: '1fr 2fr', width: '100%', height: '100%', flexGrow: 1 },
   contactLinksPanel: { padding: '25px', background: 'rgba(8, 20, 42, 0.8)', overflowY: 'auto' },
   contactFormPanel: { padding: '25px', background: 'rgba(8, 20, 42, 0.8)', overflowY: 'auto' },
   contactPanelTitle: { color: '#fff', marginTop: 0, marginBottom: '10px', fontSize: '1.2rem', textTransform: 'uppercase', letterSpacing: '0.05em' },
@@ -118,13 +118,61 @@ const styles: { [key: string]: React.CSSProperties } = {
   contactSubmitButton: { width: '100%', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', padding: '12px', fontSize: '1rem', fontFamily: 'inherit', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', transition: 'all 0.3s ease', textShadow: '0 0 5px var(--primary-color)', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '5px' },
   contactStatusConsole: { marginTop: '15px', padding: '8px 12px', background: 'rgba(0,0,0,0.5)', borderRadius: '4px', border: '1px solid #333', color: '#888', fontFamily: 'monospace', fontSize: '0.8rem', textAlign: 'center', transition: 'all 0.3s ease' },
   // --- END: Styles for re-integrated content ---
+
+  // --- START: Styles for Image Maximization Modal ---
+  imageModalOverlay: {
+    position: 'fixed',
+    inset: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    backdropFilter: 'blur(10px)',
+    zIndex: 51,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    animation: 'fadeInModal 0.3s ease',
+  },
+  imageModalContent: {
+    position: 'relative',
+    width: 'auto',
+    height: 'auto',
+    maxWidth: '90vw',
+    maxHeight: '90vh',
+    display: 'flex',
+  },
+  maximizedImage: {
+    maxWidth: '100%',
+    maxHeight: '100%',
+    objectFit: 'contain',
+    borderRadius: '10px',
+    boxShadow: '0 0 30px rgba(0, 255, 255, 0.5)',
+    animation: 'zoomInModal 0.3s ease',
+  },
+  imageModalCloseButton: {
+    position: 'absolute',
+    top: '-15px',
+    right: '-15px',
+    background: 'rgba(0, 20, 40, 0.8)',
+    border: '1px solid #ff9900',
+    color: '#ff9900',
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    cursor: 'pointer',
+    fontSize: '1.8rem',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    lineHeight: 1,
+    transition: 'all 0.2s',
+  },
+  // --- END: Styles for Image Maximization Modal ---
 };
 
 
 // --- START: Re-integrated Content Components ---
 
-const StrategicAnalysisPanel: React.FC<{ activeCategory: SkillCategory | null }> = ({ activeCategory }) => {
-  const data = activeCategory || { category: 'Professional Synopsis', description: professionalSummary, skills: [], keyMetrics: [] };
+const StrategicAnalysisPanel: React.FC<{ category: SkillCategory | null }> = ({ category }) => {
+  const data = category || { category: 'Professional Synopsis', description: professionalSummary, skills: [], keyMetrics: [] };
   return (
     <div key={data.category} style={styles.analysisPanel} className="analysis-panel">
       <h3 style={styles.analysisTitle}>{data.category}</h3>
@@ -163,26 +211,70 @@ const InstagramPanelContent: React.FC = () => {
 };
 
 const ContactPanelContent: React.FC = () => {
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [inquiry, setInquiry] = useState('Project Proposal / Collaboration');
-    const [message, setMessage] = useState('');
+    type FormFields = { name: string; email: string; inquiry: string; message: string };
+    const [formData, setFormData] = useState<FormFields>({ name: '', email: '', inquiry: 'Project Proposal / Collaboration', message: '' });
+    const [errors, setErrors] = useState<Partial<Record<keyof FormFields, string>>>({});
     const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+    const [isFormValid, setIsFormValid] = useState(false);
+
+    const validateField = (name: keyof FormFields, value: string): string => {
+        if (!value.trim()) return 'Field is required.';
+        if (name === 'email' && !/^\S+@\S+\.\S+$/.test(value)) return 'Invalid email address format.';
+        return '';
+    };
+    
+    useEffect(() => {
+        const formValues = Object.values(formData);
+        const errorValues = Object.values(errors);
+        const hasNoErrors = errorValues.every(e => !e);
+        // FIX: Add type guard for `v` before calling .trim() to resolve "Property 'trim' does not exist on type 'unknown'" error.
+        // TypeScript can sometimes infer `unknown` for values from `Object.values`.
+        const allFieldsFilled = formValues.every(v => typeof v === 'string' && v.trim() !== '');
+        setIsFormValid(hasNoErrors && allFieldsFilled);
+    }, [formData, errors]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value } = e.target as { name: keyof FormFields, value: string };
+        setFormData(prev => ({ ...prev, [name]: value }));
+        if (errors[name]) {
+            setErrors(prev => ({ ...prev, [name]: '' }));
+        }
+    };
+    
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target as { name: keyof FormFields, value: string };
+        const error = validateField(name, value);
+        setErrors(prev => ({...prev, [name]: error }));
+    };
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
-        if (!name || !email || !message) {
+        
+        let validationErrors: Partial<Record<keyof FormFields, string>> = {};
+        let isValid = true;
+        (Object.keys(formData) as Array<keyof FormFields>).forEach(key => {
+            const error = validateField(key, formData[key]);
+            if (error) {
+                validationErrors[key] = error;
+                isValid = false;
+            }
+        });
+
+        setErrors(validationErrors);
+
+        if (!isValid) {
             setStatus('error');
             setTimeout(() => setStatus('idle'), 2000);
             return;
         }
+
         setStatus('sending');
-        console.log("Simulating email transmission:", { name, email, inquiry, message, to: "ragestr4k@gmail.com" });
+        console.log("Simulating email transmission:", { ...formData, to: "ragestr4k@gmail.com" });
         setTimeout(() => {
             setStatus('success');
             setTimeout(() => {
                 setStatus('idle');
-                setName(''); setEmail(''); setMessage(''); setInquiry('Project Proposal / Collaboration');
+                setFormData({ name: '', email: '', inquiry: 'Project Proposal / Collaboration', message: '' });
             }, 3000);
         }, 1500);
     };
@@ -217,14 +309,16 @@ const ContactPanelContent: React.FC = () => {
                 <a href="https://youtube.com/@ruangranggamusicchannel5536" target="_blank" rel="noopener noreferrer" style={styles.contactLinkButton} className="link-button"><YouTubeIcon /> <span>Music Channel</span></a>
                 <a href="https://calendly.com/" target="_blank" rel="noopener noreferrer" style={styles.contactLinkButton} className="link-button"><CalendarIcon /> <span>Schedule a Meeting</span></a>
             </div>
-            <form style={styles.contactFormPanel} className="form-panel" onSubmit={handleSubmit}>
+            <form style={styles.contactFormPanel} className="form-panel" onSubmit={handleSubmit} noValidate>
                 <h3 style={styles.contactPanelTitle}>Encrypted Comms</h3>
                 <p style={styles.contactPanelDescription}>Utilize this secure channel to transmit encrypted proposals, technical inquiries, or general intelligence.</p>
-                <div className="input-group"><input type="text" id="name" value={name} onChange={(e) => setName(e.target.value)} required className="form-input" placeholder=" " /><label htmlFor="name" className="form-label">Name / Organization</label></div>
-                <div className="input-group"><input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="form-input" placeholder=" " /><label htmlFor="email" className="form-label">Email Address</label></div>
-                <div className="input-group"><select id="inquiry" value={inquiry} onChange={(e) => setInquiry(e.target.value)} required className="form-input"><option>Project Proposal / Collaboration</option><option>Technical Consultation</option><option>Career Opportunity / Recruitment</option><option>General Inquiry / Feedback</option></select><label htmlFor="inquiry" className="form-label">Inquiry Type</label></div>
-                <div className="input-group"><textarea id="message" value={message} onChange={(e) => setMessage(e.target.value)} required className="form-input" rows={4} placeholder=" "></textarea><label htmlFor="message" className="form-label">Your message...</label></div>
-                <button type="submit" style={{...styles.contactSubmitButton, ...submitButtonInfo, animation: submitButtonInfo.animation || 'none' }} disabled={status !== 'idle'}>{submitButtonInfo.text}</button>
+                <div className="form-row">
+                    <div className="input-group"><input type="text" id="name" name="name" value={formData.name} onChange={handleChange} onBlur={handleBlur} required className={`form-input ${errors.name ? 'input-error' : ''}`} placeholder=" " /><label htmlFor="name" className="form-label">Name / Organization</label>{errors.name && <span className="error-message">{errors.name}</span>}</div>
+                    <div className="input-group"><input type="email" id="email" name="email" value={formData.email} onChange={handleChange} onBlur={handleBlur} required className={`form-input ${errors.email ? 'input-error' : ''}`} placeholder=" " /><label htmlFor="email" className="form-label">Email Address</label>{errors.email && <span className="error-message">{errors.email}</span>}</div>
+                </div>
+                <div className="input-group"><select id="inquiry" name="inquiry" value={formData.inquiry} onChange={handleChange} required className="form-input"><option>Project Proposal / Collaboration</option><option>Technical Consultation</option><option>Career Opportunity / Recruitment</option><option>General Inquiry / Feedback</option></select><label htmlFor="inquiry" className="form-label">Inquiry Type</label></div>
+                <div className="input-group"><textarea id="message" name="message" value={formData.message} onChange={handleChange} onBlur={handleBlur} required className={`form-input ${errors.message ? 'input-error' : ''}`} rows={4} placeholder=" "></textarea><label htmlFor="message" className="form-label">Your message...</label>{errors.message && <span className="error-message">{errors.message}</span>}</div>
+                <button type="submit" style={{...styles.contactSubmitButton, ...submitButtonInfo, animation: submitButtonInfo.animation || 'none' }} disabled={!isFormValid || status !== 'idle'}>{submitButtonInfo.text}</button>
                 <div style={{ ...styles.contactStatusConsole, color: statusInfo.color, borderColor: statusInfo.color }}>{statusInfo.text}</div>
             </form>
         </div>
@@ -234,8 +328,10 @@ const ContactPanelContent: React.FC = () => {
 
 
 export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ isOpen, district, onClose, onProjectSelect }) => {
-  const [activeCategory, setActiveCategory] = useState<SkillCategory | null>(null);
+  const [hoveredCategory, setHoveredCategory] = useState<SkillCategory | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<SkillCategory | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [maximizedImageUrl, setMaximizedImageUrl] = useState<string | null>(null);
 
   const projects = district?.subItems || [];
   const activeProject = projects.length > 0 ? projects[currentIndex] : null;
@@ -245,7 +341,7 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
   }, [projects.length]);
 
   const handleNext = useCallback(() => {
-    setCurrentIndex(prev => (prev === projects.length - 1 ? 0 : prev + 1));
+    setCurrentIndex(prev => (prev === projects.length - 1 ? 0 : prev - 1));
   }, [projects.length]);
   
   const containerStyle: React.CSSProperties = { ...styles.container, opacity: isOpen ? 1 : 0, transform: isOpen ? 'translateY(0)' : 'translateY(100vh)', pointerEvents: isOpen ? 'auto' : 'none', userSelect: 'auto' };
@@ -263,10 +359,18 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
     if (isSkillsMatrix) {
       return (
         <>
-          <p style={styles.instructions}>[SELECT A COMPETENCY CORE FOR ANALYSIS]</p>
+          <p style={styles.instructions}>[CLICK A COMPETENCY CORE FOR ANALYSIS]</p>
           <div style={styles.competencyLayout} className="competency-layout">
-            <div style={styles.chartContainer} className="chart-container"><SkillsRadarChart skills={skillsData} activeCategory={activeCategory} onCategoryHover={setActiveCategory} /></div>
-            <StrategicAnalysisPanel activeCategory={activeCategory} />
+            <div style={styles.chartContainer} className="chart-container">
+              <SkillsRadarChart 
+                skills={skillsData} 
+                selectedCategory={selectedCategory}
+                hoveredCategory={hoveredCategory} 
+                onCategorySelect={setSelectedCategory} 
+                onCategoryHover={setHoveredCategory} 
+              />
+            </div>
+            <StrategicAnalysisPanel category={selectedCategory} />
           </div>
         </>
       );
@@ -294,12 +398,21 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
                     opacity: isVisible ? 1 - distance * 0.4 : 0,
                     zIndex: projects.length - distance,
                     pointerEvents: isVisible ? 'auto' : 'none',
-                    cursor: offset === 0 ? 'pointer' : 'default',
                     filter: `grayscale(${distance * 50}%) blur(${distance * 1}px)`,
                   };
                   return (
                     <div key={item.id} style={cardStyle} className="carousel-card" onClick={() => (offset === 0 ? onProjectSelect(item) : setCurrentIndex(index))}>
-                      <img src={item.imageUrl} alt={item.title} style={{...styles.cardImage, opacity: offset === 0 ? 0.9 : 0.5 }} />
+                      <img 
+                        src={item.imageUrl} 
+                        alt={item.title} 
+                        style={{...styles.cardImage, opacity: offset === 0 ? 0.9 : 0.5, cursor: offset === 0 ? 'pointer' : 'default' }}
+                        onClick={(e) => {
+                            if (offset === 0) {
+                                e.stopPropagation();
+                                setMaximizedImageUrl(item.imageUrl || null);
+                            }
+                        }}
+                      />
                       <div style={styles.cardContent}>
                          {offset === 0 && <h3 style={styles.cardTitle}>{item.title}</h3>}
                       </div>
@@ -345,6 +458,15 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
         {renderContent()}
 
       </div>
+
+      {maximizedImageUrl && (
+          <div style={styles.imageModalOverlay} onClick={() => setMaximizedImageUrl(null)}>
+              <div style={styles.imageModalContent} onClick={(e) => e.stopPropagation()}>
+                  <img src={maximizedImageUrl} style={styles.maximizedImage} alt="Maximized project view" />
+                  <button style={styles.imageModalCloseButton} onClick={() => setMaximizedImageUrl(null)}>&times;</button>
+              </div>
+          </div>
+      )}
     </>
   );
 };

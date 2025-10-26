@@ -60,6 +60,8 @@ export const Experience3D: React.FC = () => {
 
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const isPaused = isCalibrationMode;
+  
+  const isAnyPanelOpen = showContentPanel || isNavMenuOpen;
 
   const navDistricts = useMemo(() => {
     const majorDistricts = districts.filter(d => d.type === 'major');
@@ -364,6 +366,7 @@ export const Experience3D: React.FC = () => {
           onToggleShipControl={handleToggleShipControl}
           isTouchDevice={isTouchDevice}
           onShipTouchInputChange={setShipTouchInputs}
+          isAnyPanelOpen={isAnyPanelOpen}
       />
 
       {isNavMenuOpen && (

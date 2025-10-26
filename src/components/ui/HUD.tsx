@@ -12,6 +12,7 @@ interface HUDProps {
   onToggleShipControl: () => void;
   isTouchDevice: boolean;
   onShipTouchInputChange: (input: ShipInputState) => void;
+  isAnyPanelOpen: boolean;
 }
 
 // --- SVG Icons ---
@@ -146,7 +147,7 @@ const VirtualControls: React.FC<VirtualControlsProps> = ({ onInputChange }) => {
                 
                 active.nub.style.transform = `translate(${newX}px, ${newY}px)`;
                 
-                inputs.current.turn = -newX / halfSize;
+                inputs.current.turn = newX / halfSize;
                 inputs.current.forward = -newY / halfSize;
 
             } else { // Sliders
@@ -252,6 +253,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     left: '50%',
     transform: 'translateX(-50%)',
     zIndex: 100,
+    transition: 'opacity 0.4s ease, transform 0.4s ease',
   },
   hudButton: {
     background: 'rgba(0, 20, 40, 0.7)',
@@ -288,11 +290,11 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   visible: {
     opacity: 1,
-    transform: 'translateY(0)',
+    transform: 'translate(-50%, 0)',
   },
   hiddenBottom: {
     opacity: 0,
-    transform: 'translateY(20px)',
+    transform: 'translate(-50%, 60px)',
     pointerEvents: 'none',
   },
   dangerButton: {
@@ -364,7 +366,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
 };
 
-export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleNavMenu, pov, onSetPov, isCalibrationMode, heldDistrictId, shipControlMode, onToggleShipControl, isTouchDevice, onShipTouchInputChange }) => {
+export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleNavMenu, pov, onSetPov, isCalibrationMode, heldDistrictId, shipControlMode, onToggleShipControl, isTouchDevice, onShipTouchInputChange, isAnyPanelOpen }) => {
 
   const breadcrumb = useMemo(() => {
     if (heldDistrictId) return `RAGETOPIA > /ARCHITECT_MODE/MOVING...`;
@@ -375,6 +377,11 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
   }, [selectedDistrict, isCalibrationMode, heldDistrictId, shipControlMode]);
   
   const isManualMode = shipControlMode === 'manual';
+  
+  const bottomCenterContainerStyle = {
+      ...styles.bottomCenterContainer,
+      ...(isAnyPanelOpen ? styles.hiddenBottom : styles.visible)
+  };
 
   return (
     <>
@@ -393,7 +400,7 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
           <p style={styles.breadcrumbText}>{breadcrumb}</p>
       </div>
 
-      <div style={styles.bottomCenterContainer} className="bottom-center-container">
+      <div style={bottomCenterContainerStyle} className="bottom-center-container">
         <button
           onClick={onToggleNavMenu}
           style={{
