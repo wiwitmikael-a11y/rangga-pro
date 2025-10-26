@@ -1,6 +1,5 @@
 import React, { useState, Suspense, useCallback, useEffect } from 'react';
 import { useProgress } from '@react-three/drei';
-// FIX: Update import to a named export
 import { Experience3D } from './components/Experience3D';
 import { Loader } from './components/ui/Loader';
 import { StartScreen } from './components/ui/StartScreen';

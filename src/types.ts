@@ -1,89 +1,75 @@
+// import { Vector3 } from 'three'; // Unused import
 
-// FIX: Define CityDistrictId to resolve circular dependency.
-export type CityDistrictId =
-  | 'nexus-core'
-  | 'aegis-command'
-  | 'skills-matrix'
-  | 'visual-archives'
-  | 'ai-labs'
-  | 'contact-hub'
-  | 'oracle-ai';
+export type PerformanceTier = 'PERFORMANCE' | 'BALANCED' | 'QUALITY';
 
-export interface CameraFocus {
+export interface CameraFocusPoint {
   pos: [number, number, number];
   lookAt: [number, number, number];
 }
 
 export interface PortfolioSubItem {
-    id: string;
-    title: string;
-    description: string;
-    imageUrl?: string;
-    position: [number, number, number];
+  id: string;
+  title: string;
+  description: string;
+  imageUrl?: string; // Tautan ke gambar thumbnail proyek
+  position: [number, number, number]; // Posisi relatif terhadap distrik induk
 }
 
 export interface CityDistrict {
-  id: CityDistrictId;
+  id: string;
   title: string;
   description: string;
   position: [number, number, number];
   type: 'major' | 'minor';
-  height?: number;
-  cameraFocus?: CameraFocus;
-  modelUrl?: string;
-  modelScale?: number;
+  height?: number; // Untuk bangunan generik
   subItems?: PortfolioSubItem[];
-  isLocked?: boolean;
-  isDirty?: boolean; // Used for architect mode
+  cameraFocus?: CameraFocusPoint; // Posisi & target kamera unik
+  modelUrl?: string; // URL ke model GLB untuk distrik ini
+  modelScale?: number; // Skala untuk model GLB
+  isDirty?: boolean; // Flag to track if the district has been moved by the user
 }
 
+// --- New Types for Skills Radar Chart ---
 export interface Skill {
   name: string;
-  level: number; // 0-100
+  level: number; // A value from 0 to 100
 }
 
 export interface SkillCategory {
   category: string;
-  description: string;
+  description: string; // Narrative description for the category
   skills: Skill[];
-  keyMetrics: string[];
+  keyMetrics: string[]; // Concrete achievements for the category
 }
 
-// --- Oracle AI Advanced Types ---
-
-export interface OracleActionLink {
-  type: 'navigate';
-  targetId: CityDistrictId;
-  en: { label: string; };
-  id: { label:string; };
-}
+// --- Types for Oracle AI Gimmick Engine V2 ---
 
 export interface OracleGimmickContent {
   keywords: string[];
-  fullAnswer: string[];
-  contextualAnswer: string[];
+  fullAnswer: string[]; // Array for variation
+  contextualAnswer: string[]; // Array for variation when topic is revisited
   followUpQuestions?: string[];
-  actionLink?: OracleActionLink;
 }
 
 export interface OracleGimmick {
-  gimmickId: string;
-  id: OracleGimmickContent;
-  en: OracleGimmickContent;
+    // FIX: Renamed 'id' to 'gimmickId' to resolve the "Duplicate identifier" error. The 'id' property is reserved for Indonesian language content.
+    gimmickId: string; // e.g., 'bri-experience'
+    en: OracleGimmickContent;
+    id: OracleGimmickContent;
 }
 
 export interface OracleResponse {
-  text: string;
-  gimmickId: string | null;
-  followUpQuestions?: string[];
-  actionLink?: OracleActionLink;
+    answer: string;
+    followUpQuestions: string[];
+    gimmickId: string | null; // Used to track conversation state
+}
+
+export interface FallbackContent {
+  answer: string;
+  followUpQuestions: string[];
 }
 
 export interface FallbackResponses {
-    en: string[];
-    id: string[];
-    moderation: {
-        en: string[];
-        id: string[];
-    }
+  en: FallbackContent;
+  id: FallbackContent;
 }

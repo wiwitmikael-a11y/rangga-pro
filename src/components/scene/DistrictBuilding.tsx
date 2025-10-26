@@ -1,81 +1,105 @@
-import React, { useRef, useState, useMemo } from 'react';
+// FIX: Remove the triple-slash directive for @react-three/fiber types.
+
+import React, { useState, useRef, useMemo } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
-import { Box, Text } from '@react-three/drei';
 import * as THREE from 'three';
 import { CityDistrict } from '../../types';
+import { Text } from '@react-three/drei';
 
 interface DistrictBuildingProps {
   district: CityDistrict;
-  onSelect: ((district: CityDistrict) => void) | undefined;
-  isSelected: boolean;
-  isUnlocked: boolean;
+  onSelect?: (district: CityDistrict) => void;
+  isSelected?: boolean;
+  isUnlocked?: boolean;
 }
 
-const DistrictBuilding: React.FC<DistrictBuildingProps> = ({ district, onSelect, isSelected }) => {
+const UNLOCKED_COLOR = new THREE.Color('#005577');
+const HOVER_COLOR = new THREE.Color('#00aaff');
+const SELECTED_COLOR = new THREE.Color('#00ffff');
+const LOCKED_COLOR = new THREE.Color('#333333');
+
+const DistrictBuilding: React.FC<DistrictBuildingProps> = ({
+  district,
+  onSelect,
+  isSelected,
+  isUnlocked = true,
+}) => {
   const meshRef = useRef<THREE.Mesh>(null!);
   const [isHovered, setIsHovered] = useState(false);
+  
+  const height = district.height || 20;
 
-  const height = district.height || Math.random() * 40 + 20;
+  const targetColor = useMemo(() => {
+    if (!isUnlocked) return LOCKED_COLOR;
+    if (isSelected) return SELECTED_COLOR;
+    if (isHovered) return HOVER_COLOR;
+    return UNLOCKED_COLOR;
+  }, [isSelected, isHovered, isUnlocked]);
 
-  const emissiveColor = useMemo(() => new THREE.Color(isSelected ? '#00ffff' : (isHovered ? '#ffffff' : '#0055aa')), [isSelected, isHovered]);
+  const emissiveIntensityTarget = isSelected ? 1.5 : isHovered ? 1 : 0.5;
+  const targetY = isSelected ? Math.sin(Date.now() * 0.002) * 0.5 : 0;
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     if (meshRef.current) {
-        // Simple pulsing effect
-      const material = meshRef.current.material as THREE.MeshStandardMaterial;
-      material.emissiveIntensity = THREE.MathUtils.lerp(material.emissiveIntensity, isSelected || isHovered ? 2 : 0.5, 0.1);
+        const material = meshRef.current.material as THREE.MeshStandardMaterial;
+        material.emissiveIntensity = THREE.MathUtils.lerp(material.emissiveIntensity, emissiveIntensityTarget, delta * 5);
+        material.color.lerp(targetColor, delta * 8);
+        material.emissive.copy(material.color);
+        meshRef.current.position.y = THREE.MathUtils.lerp(meshRef.current.position.y, targetY, delta * 5);
     }
   });
 
+  const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
+    e.stopPropagation();
+    if (onSelect) { // Only allow hover effects if the item is selectable
+      setIsHovered(true);
+      document.body.style.cursor = 'pointer';
+    }
+  };
+
+  const handlePointerOut = (e: ThreeEvent<PointerEvent>) => {
+    e.stopPropagation();
+    setIsHovered(false);
+    document.body.style.cursor = 'auto';
+  };
+  
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
     if (onSelect) {
       onSelect(district);
     }
   };
-  
-  const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
-    e.stopPropagation();
-    setIsHovered(true);
-    if(onSelect) document.body.style.cursor = 'pointer';
-  };
-  
-  const handlePointerOut = (e: ThreeEvent<PointerEvent>) => {
-    e.stopPropagation();
-    setIsHovered(false);
-    document.body.style.cursor = 'auto';
-  };
 
   return (
     <group position={district.position}>
-      <Box
-        ref={meshRef}
-        args={[10, height, 10]}
-        position-y={height / 2}
-        onClick={onSelect ? handleClick : undefined}
-        onPointerOver={onSelect ? handlePointerOver : undefined}
-        onPointerOut={onSelect ? handlePointerOut : undefined}
-      >
-        <meshStandardMaterial
-          color="#050810"
-          metalness={0.8}
-          roughness={0.3}
-          emissive={emissiveColor}
-          toneMapped={false}
-        />
-      </Box>
-       <Text
-        position={[0, height + 5, 0]}
-        fontSize={1.5}
-        color="#aaa"
-        anchorX="center"
-        anchorY="middle"
-        maxWidth={15}
-        textAlign="center"
-        visible={isHovered}
-      >
-        {district.title}
-      </Text>
+        <mesh
+            ref={meshRef}
+            castShadow
+            receiveShadow
+            onClick={onSelect ? handleClick : undefined}
+            onPointerOver={handlePointerOver}
+            onPointerOut={handlePointerOut}
+        >
+            <boxGeometry args={[8, height, 8]} />
+            <meshStandardMaterial
+                transparent
+                opacity={isUnlocked ? 0.7 : 0.3}
+                wireframe={!isUnlocked}
+                metalness={0.8}
+                roughness={0.2}
+            />
+        </mesh>
+        {!isUnlocked && (
+            <Text
+                position={[0, height / 2 + 2, 0]}
+                fontSize={2}
+                color="#ff4444"
+                anchorX="center"
+                anchorY="middle"
+            >
+                ?
+            </Text>
+        )}
     </group>
   );
 };

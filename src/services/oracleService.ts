@@ -1,62 +1,49 @@
+import { oracleGimmicks, curatedOracleQuestions, fallbackResponses } from '../constants';
+import type { OracleResponse } from '../types';
 
-import { oracleGimmicks, fallbackResponses, blockedKeywords } from '../constants';
-import type { OracleResponse, OracleGimmick } from '../types';
+/**
+ * A stateful, bilingual, gimmick-based oracle that provides pre-defined answers.
+ * It simulates an intelligent conversation by tracking discussed topics, detecting language,
+ * and providing varied, contextual responses without any external API calls.
+ * @param {string} query The user's question.
+ * @param {Set<string>} discussedTopics A set of gimmick IDs that have already been discussed.
+ * @returns {Promise<OracleResponse>} An object containing the response and metadata.
+ */
+export const askOracle = async (query: string, discussedTopics: Set<string>): Promise<OracleResponse> => {
+    const lowerCaseQuery = query.toLowerCase().trim();
 
-// Simple language detection
-const isIndonesian = (query: string): boolean => {
-    // Check for common Indonesian interrogative words or context
-    const indonesianRegex = /\b(apa|siapa|di mana|mengapa|bagaimana|jelaskan|tentang|pengalaman|proyek|anda|kamu)\b/i;
-    return indonesianRegex.test(query);
-};
+    // Simple language detection heuristic by checking for common Indonesian question words.
+    const isIndonesianQuery = /\b(apa|siapa|bagaimana|jelaskan|di mana|tentang|pengalaman|anda)\b/.test(lowerCaseQuery);
+    const lang: ('id' | 'en') = isIndonesianQuery ? 'id' : 'en';
 
-// Function to get a random item from an array
-const getRandom = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
-
-export const askOracle = (query: string, discussedTopics: Set<string>): OracleResponse => {
-    const lowerCaseQuery = query.toLowerCase();
-    
-    // 1. Content Moderation
-    const hasBlockedKeyword = blockedKeywords.some(keyword => lowerCaseQuery.includes(keyword));
-    if (hasBlockedKeyword) {
-        const lang = isIndonesian(lowerCaseQuery) ? 'id' : 'en';
-        return {
-            text: getRandom(fallbackResponses.moderation[lang]),
-            gimmickId: null,
-        };
-    }
-
-    // 2. Language Detection
-    const lang: 'id' | 'en' = isIndonesian(lowerCaseQuery) ? 'id' : 'en';
-
-    // 3. Gimmick Matching
-    let matchedGimmick: OracleGimmick | null = null;
+    // Search through gimmicks based on detected language.
     for (const gimmick of oracleGimmicks) {
-        const keywords = gimmick[lang].keywords;
-        if (keywords.some(keyword => lowerCaseQuery.includes(keyword))) {
-            matchedGimmick = gimmick;
-            break;
+        const content = gimmick[lang];
+        for (const keyword of content.keywords) {
+            if (lowerCaseQuery.includes(keyword)) {
+                // FIX: Use 'gimmickId' to access the unique identifier, as 'id' was renamed to resolve type conflicts.
+                const isTopicDiscussed = discussedTopics.has(gimmick.gimmickId);
+                const answerArray = isTopicDiscussed ? content.contextualAnswer : content.fullAnswer;
+                
+                // Pick a random answer variation to make the AI feel more dynamic.
+                const randomAnswer = answerArray[Math.floor(Math.random() * answerArray.length)];
+
+                return {
+                    answer: randomAnswer,
+                    followUpQuestions: content.followUpQuestions || [],
+                    // FIX: Return 'gimmickId' as the identifier.
+                    gimmickId: gimmick.gimmickId
+                };
+            }
         }
     }
 
-    // 4. Response Generation
-    if (matchedGimmick) {
-        const hasBeenDiscussed = discussedTopics.has(matchedGimmick.gimmickId);
-        const content = matchedGimmick[lang];
-
-        const answerArray = hasBeenDiscussed ? content.contextualAnswer : content.fullAnswer;
-        const text = getRandom(answerArray);
-
-        return {
-            text,
-            gimmickId: matchedGimmick.gimmickId,
-            followUpQuestions: content.followUpQuestions,
-            actionLink: content.actionLink,
-        };
-    }
-
-    // 5. Fallback Response
+    // If no keyword match is found, return a polite fallback message with curated questions
+    // in the detected language to guide the user back to relevant topics.
+    const fallbackContent = fallbackResponses[lang];
     return {
-        text: getRandom(fallbackResponses[lang]),
-        gimmickId: null,
+        answer: fallbackContent.answer,
+        followUpQuestions: fallbackContent.followUpQuestions,
+        gimmickId: null
     };
 };

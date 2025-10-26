@@ -1,90 +1,165 @@
-
-import React, { useRef, useState, useLayoutEffect, useMemo } from 'react';
-import { useFrame, ThreeEvent } from '@react-three/fiber';
-import { useGLTF } from '@react-three/drei';
+import React, { Suspense, useLayoutEffect, useMemo, useRef, useCallback } from 'react';
+import { useGLTF, Text } from '@react-three/drei';
 import * as THREE from 'three';
+import { useFrame, ThreeEvent } from '@react-three/fiber';
 import { CityDistrict } from '../../types';
-import { portfolioData as initialPortfolioData } from '../../constants';
+import HolographicDistrictLabel from './HolographicDistrictLabel';
 
 interface InteractiveModelProps {
   district: CityDistrict;
-  onSelect: (district: CityDistrict) => void;
   isSelected: boolean;
+  onSelect: (district: CityDistrict) => void;
   isCalibrationMode: boolean;
   isHeld: boolean;
   onSetHeld: (id: string | null) => void;
 }
 
-export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, onSelect, isSelected, isCalibrationMode, isHeld, onSetHeld }) => {
-  const groupRef = useRef<THREE.Group>(null!);
-  const [isHovered, setIsHovered] = useState(false);
-  const { scene } = useGLTF(district.modelUrl!);
-  const clonedScene = useMemo(() => scene.clone(), [scene]);
+interface ModelProps {
+  url: string;
+  scale: number;
+  isHeld: boolean;
+  onPointerDown: (e: ThreeEvent<PointerEvent>) => void;
+  onPointerOver: (e: ThreeEvent<PointerEvent>) => void;
+  onPointerOut: (e: ThreeEvent<PointerEvent>) => void;
+}
 
-  const emissiveMaterials = useRef<THREE.MeshStandardMaterial[]>([]);
+function Model({ url, scale, isHeld, onPointerOver, onPointerOut, onPointerDown }: ModelProps) {
+  const { scene } = useGLTF(url);
+  const clonedScene = useMemo(() => scene.clone(), [scene]);
+  const originalEmissives = useRef<{ [uuid: string]: THREE.Color }>({});
+  const hoverColor = useMemo(() => new THREE.Color('cyan'), []);
+  const heldColor = useMemo(() => new THREE.Color('gold'), []);
 
   useLayoutEffect(() => {
-    const materials: THREE.MeshStandardMaterial[] = [];
-    clonedScene.traverse((child) => {
-      if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial) {
-        if (child.material.emissive && child.material.emissive.getHex() > 0) {
-           materials.push(child.material);
-        }
+    const emissives: { [uuid: string]: THREE.Color } = {};
+    clonedScene.traverse((child: any) => {
+      child.castShadow = true;
+      child.receiveShadow = true;
+      if (child.isMesh && child.material.isMeshStandardMaterial) {
+        emissives[child.uuid] = child.material.emissive.clone();
       }
     });
-    emissiveMaterials.current = materials;
+    originalEmissives.current = emissives;
+  }, [clonedScene]);
+  
+  const applyEmissive = useCallback((color: THREE.Color, intensity: number) => {
+    clonedScene.traverse((child: any) => {
+        if (child.isMesh && child.material.isMeshStandardMaterial) {
+            child.material.emissive.copy(color);
+            child.material.emissiveIntensity = intensity;
+        }
+    });
   }, [clonedScene]);
 
-  useFrame((_, delta) => {
-    if (!groupRef.current) return;
-
-    const targetScale = isHeld ? district.modelScale! * 1.1 : district.modelScale!;
-    groupRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), delta * 5);
-    
-    const targetIntensity = isSelected || isHovered ? 2.5 : 1.0;
-    emissiveMaterials.current.forEach(mat => {
-        mat.emissiveIntensity = THREE.MathUtils.lerp(mat.emissiveIntensity, targetIntensity, delta * 5);
+  const resetEmissive = useCallback(() => {
+      clonedScene.traverse((child: any) => {
+        if (child.isMesh && child.material.isMeshStandardMaterial && originalEmissives.current[child.uuid]) {
+            child.material.emissive.copy(originalEmissives.current[child.uuid]);
+            child.material.emissiveIntensity = 1; 
+        }
     });
-  });
+  }, [clonedScene]);
 
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
+    onPointerOver(e);
+    if (!isHeld) applyEmissive(hoverColor, 0.5);
+  };
+  
+  const handlePointerOut = (e: ThreeEvent<PointerEvent>) => {
+    onPointerOut(e);
+    if (!isHeld) resetEmissive();
+  };
+
+  useFrame(() => {
+      if(isHeld) {
+        applyEmissive(heldColor, 1.2);
+      } else {
+         // If not held, reset emissive. This ensures it reverts correctly after being released.
+         // This check prevents conflicting with the hover effect.
+         const isHovered = (document.body.style.cursor === 'pointer' || document.body.style.cursor === 'grab');
+         if(!isHovered) {
+             resetEmissive();
+         }
+      }
+  });
+
+
+  return (
+    <primitive
+      object={clonedScene}
+      scale={scale}
+      onPointerOver={handlePointerOver}
+      onPointerOut={handlePointerOut}
+      onPointerDown={onPointerDown}
+    />
+  );
+}
+
+export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, isSelected, onSelect, isCalibrationMode, isHeld, onSetHeld }) => {
+  const groupRef = useRef<THREE.Group>(null!);
+  
+  const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
-    setIsHovered(true);
-    document.body.style.cursor = isCalibrationMode ? 'grab' : 'pointer';
+    if (isCalibrationMode) document.body.style.cursor = 'grab';
+    else document.body.style.cursor = 'pointer';
   };
 
   const handlePointerOut = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
-    setIsHovered(false);
     document.body.style.cursor = 'auto';
   };
-
+  
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     if (isCalibrationMode) {
       onSetHeld(district.id);
-      document.body.style.cursor = 'grabbing';
     } else {
       onSelect(district);
     }
   };
 
+  useFrame((_, delta) => {
+      if (groupRef.current) {
+          if (isHeld) {
+            // If held, the position is controlled by BuildModeController, so we just add a visual lift
+            const targetY = district.position[1] + 5;
+            groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, targetY, delta * 8);
+            groupRef.current.position.x = district.position[0];
+            groupRef.current.position.z = district.position[2];
+
+          } else {
+            // Normal behavior: hover bobbing or returning to base position
+            const targetY = isSelected ? Math.sin(Date.now() * 0.001) * 0.5 : 0;
+            const finalPos = new THREE.Vector3(...district.position);
+            finalPos.y += targetY;
+            groupRef.current.position.lerp(finalPos, delta * 4);
+          }
+      }
+  });
+
+
   return (
-    <group
-      ref={groupRef}
-      position={district.position}
-      onPointerOver={handlePointerOver}
-      onPointerOut={handlePointerOut}
-      onPointerDown={handlePointerDown}
-    >
-      <primitive object={clonedScene} scale={district.modelScale} />
+    <group ref={groupRef} position={district.position}>
+        <Suspense fallback={
+            <Text color="cyan" anchorX="center" anchorY="middle">Loading...</Text>
+        }>
+            <Model 
+                url={district.modelUrl!} 
+                scale={district.modelScale || 1}
+                isHeld={isHeld}
+                onPointerOver={handlePointerOver}
+                onPointerOut={handlePointerOut}
+                onPointerDown={handlePointerDown}
+            />
+        </Suspense>
+        <HolographicDistrictLabel 
+            district={district} 
+            isSelected={isSelected} 
+            onSelect={onSelect} 
+            isCalibrationMode={isCalibrationMode}
+            isHeld={isHeld}
+            onSetHeld={onSetHeld}
+        />
     </group>
   );
 };
-
-// Preload all major district models
-initialPortfolioData.forEach(district => {
-  if (district.type === 'major' && district.modelUrl) {
-    useGLTF.preload(district.modelUrl);
-  }
-});
