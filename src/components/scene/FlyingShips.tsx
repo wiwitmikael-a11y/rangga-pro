@@ -2,7 +2,7 @@ import React, { useMemo, useRef, Suspense, forwardRef, useImperativeHandle, useE
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
-import { portfolioData, FLIGHT_AREA_SIZE } from '../../constants';
+import { portfolioData, FLIGHT_RADIUS } from '../../constants';
 import { ShipInputState } from '../../types';
 
 const GITHUB_MODEL_URL_BASE = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/';
@@ -12,6 +12,21 @@ const FLIGHT_ALTITUDE_MAX = 60;
 const FLIGHT_SPEED = 12;
 const TURN_SPEED = 1.5;
 
+// --- Physics Constants for Manual Control ---
+const ACCELERATION = 20.0;
+const MAX_SPEED = 40.0;
+const TURN_RATE = 2.0;
+const ROLL_RATE = 2.5;
+const VERTICAL_SPEED = 10.0;
+const DRAG = 0.97;
+const CITY_CORE_RADIUS = 60; // Area with dense buildings for collision avoidance
+const MIN_CITY_ALTITUDE = 40; // Minimum safe altitude over the city core
+const TERRAIN_COLLISION_Y = -3.0; // Y-level for ground collision
+const BORDER_PUSHBACK_FORCE = 0.1;
+const COLLISION_BOUNCE_FORCE = 0.5;
+
+
+// --- Recalibrated Landing Zones ---
 const ROOFTOP_LANDING_SPOTS: THREE.Vector3[] = [
   new THREE.Vector3(15, 28, -20),
   new THREE.Vector3(-30, 35, 10),
@@ -27,10 +42,11 @@ const TERRAIN_LANDING_SPOTS: THREE.Vector3[] = [
     new THREE.Vector3(20, -5.0, -80),
     new THREE.Vector3(-30, -5.0, 80),
     new THREE.Vector3(0, -5.0, 0),
-    new THREE.Vector3(100, -5.0, 100), // Add corner spots
-    new THREE.Vector3(-100, -5.0, -100),
-    new THREE.Vector3(100, -5.0, -100),
-    new THREE.Vector3(-100, -5.0, 100),
+    // More central spots, avoiding far map edges
+    new THREE.Vector3(50, -5.0, 50),
+    new THREE.Vector3(-60, -5.0, -60),
+    new THREE.Vector3(80, -5.0, 20),
+    new THREE.Vector3(-20, -5.0, -70),
 ];
 
 // Create landing spots from major districts, normalizing their Y-position to ground level.
@@ -74,14 +90,6 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isP
 
   const wasManual = useRef(false);
   const velocity = useRef(new THREE.Vector3());
-
-  // Physics constants for manual control
-  const ACCELERATION = 20.0;
-  const MAX_SPEED = 40.0;
-  const TURN_RATE = 2.0;
-  const ROLL_RATE = 2.5;
-  const VERTICAL_SPEED = 10.0;
-  const DRAG = 0.97;
   
   const shipState = useRef({
     state: 'LANDED' as ShipState,
@@ -95,16 +103,21 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isP
   const tempLookAtObject = useMemo(() => new THREE.Object3D(), []);
 
   const getNewFlightTarget = () => {
+    // Bias distribution towards the center for more activity over the city
+    const radius = Math.sqrt(Math.random()) * FLIGHT_RADIUS;
+    const angle = Math.random() * 2 * Math.PI;
+
     return new THREE.Vector3(
-      (Math.random() - 0.5) * FLIGHT_AREA_SIZE,
+      Math.cos(angle) * radius,
       FLIGHT_ALTITUDE_MIN + Math.random() * (FLIGHT_ALTITUDE_MAX - FLIGHT_ALTITUDE_MIN),
-      (Math.random() - 0.5) * FLIGHT_AREA_SIZE
+      Math.sin(angle) * radius
     );
   };
   
   useFrame(({ clock }, delta) => {
     if (!groupRef.current || isPaused) return;
 
+    // --- Manual Control Logic ---
     if (isUnderManualControl && manualInputs) {
         const ship = groupRef.current;
         
@@ -124,9 +137,36 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isP
             velocity.current.normalize().multiplyScalar(MAX_SPEED);
         }
 
-        // 5. Update position
+        // 5. Update position based on velocity
         ship.position.add(velocity.current.clone().multiplyScalar(delta));
 
+        // --- NEW: Boundary and Collision Handling for Manual Flight ---
+        const pos = ship.position;
+        const vel = velocity.current;
+        const distanceFromCenter = Math.sqrt(pos.x * pos.x + pos.z * pos.z);
+
+        // A. Map Boundary (Soft Wall)
+        if (distanceFromCenter > FLIGHT_RADIUS) {
+            const pushbackFactor = (distanceFromCenter - FLIGHT_RADIUS) * BORDER_PUSHBACK_FORCE;
+            vel.x -= pos.x / distanceFromCenter * pushbackFactor;
+            vel.z -= pos.z / distanceFromCenter * pushbackFactor;
+            // Also clamp position to prevent extreme overshoot
+            pos.x = (pos.x / distanceFromCenter) * FLIGHT_RADIUS;
+            pos.z = (pos.z / distanceFromCenter) * FLIGHT_RADIUS;
+        }
+
+        // B. Terrain Collision (Floor)
+        if (pos.y < TERRAIN_COLLISION_Y) {
+            pos.y = TERRAIN_COLLISION_Y;
+            if (vel.y < 0) vel.y *= -COLLISION_BOUNCE_FORCE; // Bounce
+        }
+        
+        // C. City Building Collision (Simplified No-Fly Zone)
+        if (distanceFromCenter < CITY_CORE_RADIUS && pos.y < MIN_CITY_ALTITUDE) {
+            pos.y = MIN_CITY_ALTITUDE;
+            if (vel.y < 0) vel.y *= -COLLISION_BOUNCE_FORCE; // Bounce up
+        }
+        
         // 6. Turning (Yaw) & Rolling
         const yaw = manualInputs.turn * TURN_RATE * delta;
         const roll = manualInputs.roll * ROLL_RATE * delta;
@@ -166,13 +206,6 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isP
 
     switch (shipState.current.state) {
       case 'FLYING':
-        // Geofencing: If ship flies too far, gently guide it back.
-        const boundary = FLIGHT_AREA_SIZE / 2;
-        if (Math.abs(currentPos.x) > boundary || Math.abs(currentPos.z) > boundary) {
-            const centerPoint = new THREE.Vector3(0, currentPos.y, 0);
-            shipState.current.targetPosition.lerp(centerPoint, 0.05); // Nudge target towards center
-        }
-
         if (currentPos.distanceTo(targetPos) < 5 || shipState.current.timer <= 0) {
           if (Math.random() < 0.5) { // Increased chance to land and visit a spot
             shipState.current.state = 'DESCENDING';

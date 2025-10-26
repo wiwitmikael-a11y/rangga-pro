@@ -9,7 +9,7 @@ interface SkillsRadarChartProps {
   onCategoryHover: (category: SkillCategory | null) => void;
 }
 
-const CHART_SIZE = 250;
+const CHART_SIZE = 180; // Ukuran chart diperkecil dari 220
 const CHART_CENTER = CHART_SIZE / 2;
 const MAX_RADIUS = CHART_CENTER * 0.75;
 
@@ -42,8 +42,8 @@ export const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ skills, sele
     return {
       x2: CHART_CENTER + MAX_RADIUS * Math.cos(angle),
       y2: CHART_CENTER + MAX_RADIUS * Math.sin(angle),
-      labelX: CHART_CENTER + (MAX_RADIUS + 25) * Math.cos(angle),
-      labelY: CHART_CENTER + (MAX_RADIUS + 25) * Math.sin(angle),
+      labelX: CHART_CENTER + (MAX_RADIUS + 20) * Math.cos(angle), // Jarak label disesuaikan
+      labelY: CHART_CENTER + (MAX_RADIUS + 20) * Math.sin(angle),
     };
   });
 
@@ -112,8 +112,8 @@ export const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ skills, sele
             const isSelected = selectedCategory?.category === category.category;
             const isHovered = hoveredCategory?.category === category.category;
 
-            const labelWidth = 80;
-            const labelHeight = 22;
+            const labelWidth = 60; // Lebar box diperkecil
+            const labelHeight = 15; // Tinggi box diperkecil
             
             return (
                 <g 
@@ -133,8 +133,8 @@ export const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ skills, sele
                             y={axis.labelY - labelHeight / 2}
                             width={labelWidth}
                             height={labelHeight}
-                            rx="4"
-                            ry="4"
+                            rx="3" // Radius disesuaikan
+                            ry="3"
                             fill={color}
                             fillOpacity={isSelected ? 0.3 : 0.15}
                             stroke={color}
@@ -146,7 +146,7 @@ export const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ skills, sele
                             x={axis.labelX}
                             y={axis.labelY}
                             fill={isSelected ? '#ffffff' : color}
-                            fontSize="9"
+                            fontSize="5.5" // Font diperkecil secara drastis
                             fontWeight="700"
                             textAnchor="middle"
                             dominantBaseline="middle"

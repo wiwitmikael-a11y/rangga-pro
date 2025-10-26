@@ -70,7 +70,7 @@ export const skillsData: SkillCategory[] = [
 
 // --- Global Scene Constants ---
 export const OVERVIEW_CAMERA_POSITION = new THREE.Vector3(0, 100, 250);
-export const FLIGHT_AREA_SIZE = 240;
+export const FLIGHT_RADIUS = 120; // Replaces FLIGHT_AREA_SIZE for circular flight path
 
 
 // Data portofolio telah diisi dengan konten mock yang relevan dan gambar dari CDN.
