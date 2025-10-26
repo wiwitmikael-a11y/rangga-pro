@@ -93,125 +93,168 @@ interface VirtualControlsProps {
 const VIRTUAL_CONTROLS_BOTTOM_OFFSET = '90px'; // Dinaikkan untuk mencegah tumpang tindih dengan tombol HUD
 
 const VirtualControls: React.FC<VirtualControlsProps> = ({ onInputChange }) => {
-    const moveStickRef = useRef<HTMLDivElement>(null);
-    const ascendSliderRef = useRef<HTMLDivElement>(null);
-    const rollSliderRef = useRef<HTMLDivElement>(null);
     const moveNubRef = useRef<HTMLDivElement>(null);
     const ascendNubRef = useRef<HTMLDivElement>(null);
     const rollNubRef = useRef<HTMLDivElement>(null);
+    
+    // Refs to the control elements themselves to attach listeners directly
+    const moveBaseRef = useRef<HTMLDivElement>(null);
+    const ascendBaseRef = useRef<HTMLDivElement>(null);
+    const rollBaseRef = useRef<HTMLDivElement>(null);
 
     const inputs = useRef<ShipInputState>({ forward: 0, turn: 0, ascend: 0, roll: 0 });
-    const activeTouches = useRef<{ [id: number]: { control: 'move' | 'ascend' | 'roll'; element: HTMLDivElement; nub: HTMLDivElement } }>({});
+    const activePointers = useRef<{ [key: number]: 'move' | 'ascend' | 'roll' }>({});
 
     const updateParent = useCallback(() => {
         onInputChange({ ...inputs.current });
     }, [onInputChange]);
+    
+    const handlePointerDown = useCallback((e: PointerEvent) => {
+        const target = e.currentTarget as HTMLDivElement;
+        const control = target.dataset.control as 'move' | 'ascend' | 'roll';
+        
+        if (!control || Object.values(activePointers.current).includes(control)) return;
 
-    const handleTouchStart = useCallback((e: TouchEvent) => {
-        for (const touch of Array.from(e.changedTouches)) {
-            const x = touch.clientX;
-            const y = touch.clientY;
-            
-            const moveRect = moveStickRef.current?.getBoundingClientRect();
-            const ascendRect = ascendSliderRef.current?.getBoundingClientRect();
-            const rollRect = rollSliderRef.current?.getBoundingClientRect();
-
-            if (moveRect && x > moveRect.left && x < moveRect.right && y > moveRect.top && y < moveRect.bottom) {
-                activeTouches.current[touch.identifier] = { control: 'move', element: moveStickRef.current!, nub: moveNubRef.current! };
-            } else if (ascendRect && x > ascendRect.left && x < ascendRect.right && y > ascendRect.top && y < ascendRect.bottom) {
-                activeTouches.current[touch.identifier] = { control: 'ascend', element: ascendSliderRef.current!, nub: ascendNubRef.current! };
-            } else if (rollRect && x > rollRect.left && x < rollRect.right && y > rollRect.top && y < rollRect.bottom) {
-                activeTouches.current[touch.identifier] = { control: 'roll', element: rollSliderRef.current!, nub: rollNubRef.current! };
-            }
-        }
-        handleTouchMove(e);
+        target.setPointerCapture(e.pointerId);
+        activePointers.current[e.pointerId] = control;
     }, []);
 
-    const handleTouchMove = useCallback((e: TouchEvent) => {
-        e.preventDefault();
-        for (const touch of Array.from(e.changedTouches)) {
-            const active = activeTouches.current[touch.identifier];
-            if (!active) continue;
+    const handlePointerMove = useCallback((e: PointerEvent) => {
+        const control = activePointers.current[e.pointerId];
+        if (!control) return;
 
-            const rect = active.element.getBoundingClientRect();
+        let element;
+        if (control === 'move') element = moveBaseRef.current;
+        if (control === 'ascend') element = ascendBaseRef.current;
+        if (control === 'roll') element = rollBaseRef.current;
+        
+        if (!element) return;
+        
+        const rect = element.getBoundingClientRect();
+        
+        if (control === 'move') {
+            const size = rect.width;
+            const halfSize = size / 2;
+            const dx = e.clientX - (rect.left + halfSize);
+            const dy = e.clientY - (rect.top + halfSize);
             
-            if (active.control === 'move') {
-                const size = rect.width;
-                const halfSize = size / 2;
-                const dx = touch.clientX - (rect.left + halfSize);
-                const dy = touch.clientY - (rect.top + halfSize);
-                
-                const distance = Math.min(halfSize, Math.sqrt(dx * dx + dy * dy));
-                const angle = Math.atan2(dy, dx);
+            const distance = Math.min(halfSize, Math.sqrt(dx * dx + dy * dy));
+            const angle = Math.atan2(dy, dx);
 
-                const newX = distance * Math.cos(angle);
-                const newY = distance * Math.sin(angle);
-                
-                active.nub.style.transform = `translate(${newX}px, ${newY}px)`;
-                
-                inputs.current.turn = newX / halfSize;
-                inputs.current.forward = -newY / halfSize;
+            const newX = distance * Math.cos(angle);
+            const newY = distance * Math.sin(angle);
+            
+            if (moveNubRef.current) moveNubRef.current.style.transform = `translate(${newX}px, ${newY}px)`;
+            
+            inputs.current.turn = newX / halfSize;
+            inputs.current.forward = -newY / halfSize;
 
-            } else { // Sliders
-                const size = rect.height;
-                const halfSize = size / 2;
-                const y = Math.max(0, Math.min(size, touch.clientY - rect.top));
-                
-                const value = -((y / size) * 2 - 1); // Range -1 (bottom) to 1 (top)
-                
-                active.nub.style.transform = `translateY(${y - halfSize}px)`;
+        } else { // Sliders
+            const size = rect.height;
+            const halfSize = size / 2;
+            const y = Math.max(0, Math.min(size, e.clientY - rect.top));
+            
+            const value = -((y / size) * 2 - 1); // Range -1 (bottom) to 1 (top)
+            
+            const nubRef = control === 'ascend' ? ascendNubRef : rollNubRef;
+            if (nubRef.current) nubRef.current.style.transform = `translateY(${y - halfSize}px)`;
 
-                if(active.control === 'ascend') inputs.current.ascend = value;
-                if(active.control === 'roll') inputs.current.roll = -value; // Invert for intuitive feel
-            }
+            if(control === 'ascend') inputs.current.ascend = value;
+            if(control === 'roll') inputs.current.roll = -value; // Invert for intuitive feel
         }
         updateParent();
     }, [updateParent]);
 
-    const handleTouchEnd = useCallback((e: TouchEvent) => {
-        for (const touch of Array.from(e.changedTouches)) {
-            const active = activeTouches.current[touch.identifier];
-            if (active) {
-                if(active.control === 'move') {
-                    inputs.current.forward = 0;
-                    inputs.current.turn = 0;
-                    active.nub.style.transform = `translate(0px, 0px)`;
-                } else {
-                    if (active.control === 'ascend') inputs.current.ascend = 0;
-                    if (active.control === 'roll') inputs.current.roll = 0;
-                    active.nub.style.transform = `translateY(0px)`;
-                }
-                delete activeTouches.current[touch.identifier];
-            }
+    const handlePointerUp = useCallback((e: PointerEvent) => {
+        const control = activePointers.current[e.pointerId];
+        if (!control) return;
+
+        const target = e.currentTarget as HTMLDivElement;
+        target.releasePointerCapture(e.pointerId);
+        delete activePointers.current[e.pointerId];
+
+        if (control === 'move') {
+            inputs.current.forward = 0;
+            inputs.current.turn = 0;
+            if (moveNubRef.current) moveNubRef.current.style.transform = `translate(0px, 0px)`;
+        } else {
+            if (control === 'ascend') inputs.current.ascend = 0;
+            if (control === 'roll') inputs.current.roll = 0;
+            const nubRef = control === 'ascend' ? ascendNubRef : rollNubRef;
+            if (nubRef.current) nubRef.current.style.transform = `translateY(0px)`;
         }
         updateParent();
     }, [updateParent]);
     
     useEffect(() => {
-        const options = { passive: false };
-        window.addEventListener('touchstart', handleTouchStart, options);
-        window.addEventListener('touchmove', handleTouchMove, options);
-        window.addEventListener('touchend', handleTouchEnd, options);
-        window.addEventListener('touchcancel', handleTouchEnd, options);
+        const moveEl = moveBaseRef.current;
+        const ascendEl = ascendBaseRef.current;
+        const rollEl = rollBaseRef.current;
+
+        const listenerOptions = { passive: false };
+
+        moveEl?.addEventListener('pointerdown', handlePointerDown, listenerOptions);
+        moveEl?.addEventListener('pointermove', handlePointerMove, listenerOptions);
+        moveEl?.addEventListener('pointerup', handlePointerUp, listenerOptions);
+        moveEl?.addEventListener('pointercancel', handlePointerUp, listenerOptions);
+
+        ascendEl?.addEventListener('pointerdown', handlePointerDown, listenerOptions);
+        ascendEl?.addEventListener('pointermove', handlePointerMove, listenerOptions);
+        ascendEl?.addEventListener('pointerup', handlePointerUp, listenerOptions);
+        ascendEl?.addEventListener('pointercancel', handlePointerUp, listenerOptions);
         
+        rollEl?.addEventListener('pointerdown', handlePointerDown, listenerOptions);
+        rollEl?.addEventListener('pointermove', handlePointerMove, listenerOptions);
+        rollEl?.addEventListener('pointerup', handlePointerUp, listenerOptions);
+        rollEl?.addEventListener('pointercancel', handlePointerUp, listenerOptions);
+
         return () => {
-            window.removeEventListener('touchstart', handleTouchStart);
-            window.removeEventListener('touchmove', handleTouchMove);
-            window.removeEventListener('touchend', handleTouchEnd);
-            window.removeEventListener('touchcancel', handleTouchEnd);
+            moveEl?.removeEventListener('pointerdown', handlePointerDown);
+            moveEl?.removeEventListener('pointermove', handlePointerMove);
+            moveEl?.removeEventListener('pointerup', handlePointerUp);
+            moveEl?.removeEventListener('pointercancel', handlePointerUp);
+
+            ascendEl?.removeEventListener('pointerdown', handlePointerDown);
+            ascendEl?.removeEventListener('pointermove', handlePointerMove);
+            ascendEl?.removeEventListener('pointerup', handlePointerUp);
+            ascendEl?.removeEventListener('pointercancel', handlePointerUp);
+            
+            rollEl?.removeEventListener('pointerdown', handlePointerDown);
+            rollEl?.removeEventListener('pointermove', handlePointerMove);
+            rollEl?.removeEventListener('pointerup', handlePointerUp);
+            rollEl?.removeEventListener('pointercancel', handlePointerUp);
         };
-    }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
+    }, [handlePointerDown, handlePointerMove, handlePointerUp]);
+
 
     return (
         <div style={styles.virtualControlsContainer}>
-            <div ref={moveStickRef} style={{...styles.joystickBase, left: '20px', bottom: VIRTUAL_CONTROLS_BOTTOM_OFFSET}}>
+            <div 
+                ref={moveBaseRef}
+                data-control="move"
+                style={{...styles.joystickBase, left: '20px', bottom: VIRTUAL_CONTROLS_BOTTOM_OFFSET}}
+            >
+                <div style={styles.joystickTrack} />
+                <div style={{...styles.joystickTrack, transform: 'rotate(90deg)'}} />
                 <div ref={moveNubRef} style={styles.joystickNub} />
             </div>
-            <div ref={ascendSliderRef} style={{...styles.sliderBase, right: '80px', bottom: VIRTUAL_CONTROLS_BOTTOM_OFFSET}}>
+            <div 
+                ref={ascendBaseRef}
+                data-control="ascend"
+                style={{...styles.sliderBase, right: '80px', bottom: VIRTUAL_CONTROLS_BOTTOM_OFFSET}}
+            >
+                <div style={styles.sliderTrack} />
                 <div ref={ascendNubRef} style={styles.sliderNub} />
+                <span style={{...styles.controlLabel, bottom: '-20px'}}>ALTITUDE</span>
             </div>
-             <div ref={rollSliderRef} style={{...styles.sliderBase, right: '20px', bottom: VIRTUAL_CONTROLS_BOTTOM_OFFSET}}>
+             <div 
+                ref={rollBaseRef}
+                data-control="roll"
+                style={{...styles.sliderBase, right: '20px', bottom: VIRTUAL_CONTROLS_BOTTOM_OFFSET}}
+             >
+                <div style={styles.sliderTrack} />
                 <div ref={rollNubRef} style={styles.sliderNub} />
+                <span style={{...styles.controlLabel, bottom: '-20px'}}>ROLL</span>
             </div>
         </div>
     );
@@ -356,6 +399,36 @@ const styles: { [key: string]: React.CSSProperties } = {
     left: 'calc(50% - 20px)',
     transition: 'transform 0.1s linear',
   },
+  controlLabel: {
+    position: 'absolute',
+    width: '100%',
+    textAlign: 'center',
+    color: 'rgba(0, 170, 255, 0.6)',
+    fontFamily: 'var(--font-family)',
+    fontSize: '0.6rem',
+    fontWeight: 'bold',
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase',
+    pointerEvents: 'none',
+  },
+  joystickTrack: {
+    position: 'absolute',
+    top: '50%',
+    left: '10%',
+    width: '80%',
+    height: '1px',
+    backgroundColor: 'rgba(0, 170, 255, 0.2)',
+    transform: 'translateY(-50%)',
+  },
+  sliderTrack: {
+    position: 'absolute',
+    left: '50%',
+    top: '10%',
+    width: '1px',
+    height: '80%',
+    backgroundColor: 'rgba(0, 170, 255, 0.2)',
+    transform: 'translateX(-50%)',
+  },
   buttonWrapper: {
     display: 'flex',
     flexDirection: 'column',
@@ -389,9 +462,11 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
   
   const isManualMode = shipControlMode === 'manual';
   
+  const isNavButtonHidden = isAnyPanelOpen || pov === 'ship';
+
   const bottomCenterContainerStyle = {
       ...styles.bottomCenterContainer,
-      ...(isAnyPanelOpen ? styles.hiddenBottom : styles.visible)
+      ...(isNavButtonHidden ? styles.hiddenBottom : styles.visible)
   };
 
   return (
