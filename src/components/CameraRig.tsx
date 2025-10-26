@@ -18,10 +18,12 @@ const OVERVIEW_LOOK_AT = new THREE.Vector3(0, 0, 0);
 
 export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimationFinish, isAnimating, pov, targetShipRef }) => {
   const shipCam = useMemo(() => ({
-    offset: new THREE.Vector3(0, 1.5, -4.5), // Posisi kamera di 'punggung' kapal, lebih dekat dan imersif
+    // UPDATE: Kamera dinaikkan 2 level (1.5 -> 3.5), dimajukan 2 level (-4.5 -> -2.5)
+    offset: new THREE.Vector3(0, 3.5, -2.5), 
     idealPosition: new THREE.Vector3(),
     idealLookAt: new THREE.Vector3(),
-    forwardVector: new THREE.Vector3(0, 0, 15),
+    // UPDATE: Kamera dibuat menengadah ke bawah 1 level (y: 0 -> -1)
+    forwardVector: new THREE.Vector3(0, -1, 15),
   }), []);
   
   const isAnimatingRef = React.useRef(isAnimating);
