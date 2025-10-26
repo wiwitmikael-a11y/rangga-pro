@@ -43,7 +43,7 @@ const MainApp: React.FC = () => {
       <main style={{ 
           width: '100vw', 
           height: '100vh', 
-          backgroundColor: '#5e3a1f',
+          backgroundColor: 'var(--background-color)',
           // Fade in the canvas for a smooth transition once the experience starts
           opacity: showExperience ? 1 : 0,
           transition: 'opacity 1.5s ease-in-out',
