@@ -54,7 +54,8 @@ export const Experience3D: React.FC = () => {
   const [isCalibrationMode, setIsCalibrationMode] = useState(false);
   const [heldDistrictId, setHeldDistrictId] = useState<string | null>(null);
 
-  const controlsRef = useRef<any>();
+  // FIX: Provide an explicit `null` initial value to `useRef` to resolve potential type inference issues.
+  const controlsRef = useRef<any>(null);
   const playerShipRef = useRef<THREE.Group>(null);
   
   // --- HOOKS ---

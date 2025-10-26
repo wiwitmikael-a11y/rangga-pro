@@ -43,7 +43,9 @@ export const useCopterControls = (shipRef: React.RefObject<THREE.Group>, enabled
     };
     
     const handleClick = () => {
-        gl.domElement.requestPointerLock().catch(err => console.error("Pointer lock failed:", err));
+        // FIX: The `requestPointerLock()` method returns `void`, not a `Promise`.
+        // The `.catch()` method cannot be called on it.
+        gl.domElement.requestPointerLock();
     };
 
     document.addEventListener('mousemove', handleMouseMove);
