@@ -1,7 +1,13 @@
 
-import type { Vector3 } from 'three';
-
-export type CityDistrictId = 'nexus-core' | 'aegis-command' | 'skills-matrix' | 'visual-archives' | 'ai-labs' | 'contact-hub' | 'oracle-ai';
+// FIX: Define CityDistrictId to resolve circular dependency.
+export type CityDistrictId =
+  | 'nexus-core'
+  | 'aegis-command'
+  | 'skills-matrix'
+  | 'visual-archives'
+  | 'ai-labs'
+  | 'contact-hub'
+  | 'oracle-ai';
 
 export interface CameraFocus {
   pos: [number, number, number];

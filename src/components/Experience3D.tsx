@@ -1,13 +1,14 @@
 
 import React, { useState, useCallback, useRef, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Stars, Effects } from '@react-three/drei';
+import { OrbitControls, Stars } from '@react-three/drei';
 import * as THREE from 'three';
+import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { CityDistrict, OracleActionLink } from '../types';
 import { portfolioData } from '../constants';
 import { CameraRig } from '../components/CameraRig';
 import { DistrictRenderer } from './scene/DistrictRenderer';
-import { FlyingShips, ShipData, shipsData } from './scene/FlyingShips';
+import { FlyingShips } from './scene/FlyingShips';
 import { PatrollingCore } from './scene/PatrollingCore';
 import { ProceduralTerrain } from './scene/ProceduralTerrain';
 import { HUD } from './ui/HUD';
@@ -189,9 +190,14 @@ export const Experience3D: React.FC = () => {
                         </>
                     )}
                     
-                    <Effects disableGamma>
-                        <unrealBloomPass threshold={0.5} strength={0.3} radius={0.5} />
-                    </Effects>
+                    <EffectComposer disableNormalPass>
+                        <Bloom 
+                            luminanceThreshold={0.5} 
+                            intensity={0.3} 
+                            luminanceSmoothing={0.5} 
+                            mipmapBlur 
+                        />
+                    </EffectComposer>
                 </Suspense>
                 <OrbitControls
                     enablePan={!isDetailView}

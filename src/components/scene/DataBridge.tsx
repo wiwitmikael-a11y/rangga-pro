@@ -30,8 +30,9 @@ export const DataBridge: React.FC<DataBridgeProps> = ({ start, end, isActive }) 
 
   // Animate the material to create a flowing energy effect
   useFrame((_, delta) => {
-    if (lineRef.current && lineRef.current.material instanceof THREE.LineDashedMaterial) {
-      const material = lineRef.current.material as THREE.LineDashedMaterial;
+    if (lineRef.current) {
+      // FIX: Cast to 'any' to resolve TypeScript error for dashOffset property
+      const material = lineRef.current.material as any;
       // Animate the dash offset to create a moving effect
       const speed = isActive ? 12 : 3;
       material.dashOffset -= delta * speed;

@@ -1,7 +1,6 @@
 
-
 import React, { useState, useCallback, useRef } from 'react';
-import type { CityDistrict, PortfolioSubItem, SkillCategory } from '../../types';
+import type { CityDistrict, SkillCategory } from '../../types';
 import { SkillsRadarChart } from './SkillsRadarChart';
 import { skillsData, professionalSummary } from '../../constants';
 
