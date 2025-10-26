@@ -67,8 +67,12 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
       state.camera.quaternion.slerp(tempCamera.quaternion, lerpFactor);
       
       if (isAnimatingRef.current) {
-        const posReached = state.camera.position.distanceTo(targetPosition) < 0.1;
-        const rotReached = state.camera.quaternion.angleTo(tempCamera.quaternion) < 0.01;
+        // BUG FIX: Relaxation of animation completion thresholds.
+        // The previous values (0.1 for pos, 0.01 for rot) were too strict,
+        // causing the animation to get stuck in an infinite loop, which
+        // locked user controls and prevented content panels from appearing.
+        const posReached = state.camera.position.distanceTo(targetPosition) < 0.5;
+        const rotReached = state.camera.quaternion.angleTo(tempCamera.quaternion) < 0.05;
 
         if (posReached && rotReached) {
             state.camera.position.copy(targetPosition);
