@@ -44,7 +44,6 @@ export const Experience3D: React.FC = () => {
   
   // Build Mode State
   const [heldDistrictId, setHeldDistrictId] = useState<string | null>(null);
-  const [originalHeldDistrictPosition, setOriginalHeldDistrictPosition] = useState<[number, number, number] | null>(null);
   const [isExportModalOpen] = useState(false); // Setter removed as it's no longer used
   const [exportedLayoutJson] = useState(''); // Setter removed as it's no longer used
 
@@ -203,17 +202,14 @@ export const Experience3D: React.FC = () => {
         const district = districts.find(d => d.id === id);
         if (district) {
             setHeldDistrictId(id);
-            setOriginalHeldDistrictPosition(district.position);
         }
     } else {
         setHeldDistrictId(null);
-        setOriginalHeldDistrictPosition(null);
     }
   }, [districts]);
 
   const handlePlaceDistrict = useCallback(() => {
       setHeldDistrictId(null);
-      setOriginalHeldDistrictPosition(null);
   }, []);
 
 
