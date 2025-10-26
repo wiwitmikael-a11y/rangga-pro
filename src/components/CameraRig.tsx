@@ -21,7 +21,7 @@ const CALIBRATION_POSITION = new THREE.Vector3(0, 200, 1); // Tampilan top-down 
 
 export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimationFinish, isAnimating, pov, targetShipRef, isCalibrationMode }) => {
   const shipCam = useMemo(() => ({
-    offset: new THREE.Vector3(0, 12, -15),
+    offset: new THREE.Vector3(0, 12, -8),
     idealPosition: new THREE.Vector3(),
     idealLookAt: new THREE.Vector3(),
     forwardVector: new THREE.Vector3(0, 0, 15),
