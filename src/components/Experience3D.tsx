@@ -262,6 +262,7 @@ export const Experience3D: React.FC = () => {
           depth: false,
         }}
         dpr={[1, 1.5]}
+        onDoubleClick={(e) => e.stopPropagation()}
       >
         <Suspense fallback={null}>
             <>

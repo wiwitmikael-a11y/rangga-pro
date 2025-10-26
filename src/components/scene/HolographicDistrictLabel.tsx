@@ -1,6 +1,6 @@
 import React, { useRef, useState, useMemo, useCallback } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
-import { Text, Billboard, RoundedBox, Torus } from '@react-three/drei';
+import { Text, Billboard, RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 import { CityDistrict } from '../../types';
 
@@ -218,26 +218,40 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
         
         {/* Hold-to-select Gauge */}
         {holdProgress > 0 && !isCalibrationMode && (
-            <group position={[0, 0, 0.2]}>
-                <Torus args={[16, 0.5, 16, 100, Math.PI * 2 * holdProgress]} rotation={[0, 0, Math.PI / 2]}>
-                    <meshStandardMaterial
-                        color="cyan"
-                        emissive="cyan"
-                        emissiveIntensity={3}
-                        toneMapped={false}
-                        side={THREE.DoubleSide}
-                    />
-                </Torus>
-                <Text
-                    fontSize={2}
-                    color="white"
-                    anchorX="center"
-                    anchorY="middle"
-                >
-                    HOLD
-                    <meshStandardMaterial emissive={'white'} emissiveIntensity={2} toneMapped={false} />
-                </Text>
-            </group>
+          <group position={[0, 7.5, 0.2]}>
+            <Text
+                position={[0, 2.5, 0]} // Positioned above the bar
+                fontSize={2}
+                color="white"
+                anchorX="center"
+                anchorY="middle"
+            >
+                HOLD
+                <meshStandardMaterial emissive={'white'} emissiveIntensity={2} toneMapped={false} />
+            </Text>
+            {/* Gauge Background */}
+            <RoundedBox args={[28, 1.5, 0.2]} radius={0.5}>
+                <meshStandardMaterial
+                    color="#000000"
+                    transparent
+                    opacity={0.5}
+                />
+            </RoundedBox>
+            {/* Gauge Fill */}
+            <RoundedBox
+                args={[28, 1.5, 0.2]}
+                radius={0.5}
+                position={[-14 * (1 - holdProgress), 0, 0.1]}
+                scale={[holdProgress, 1, 1]}
+            >
+                <meshStandardMaterial
+                    color="#ff9900" // Orange
+                    emissive="#ff9900"
+                    emissiveIntensity={2}
+                    toneMapped={false}
+                />
+            </RoundedBox>
+          </group>
         )}
       </group>
     </Billboard>
