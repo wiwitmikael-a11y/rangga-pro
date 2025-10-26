@@ -1,21 +1,160 @@
-<script type="importmap">
-{
-  "imports": {
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "path": "https://aistudiocdn.com/path@^0.12.7",
-    "vite": "https://aistudiocdn.com/vite@^7.1.12",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.27.0",
-    "url": "https://aistudiocdn.com/url@^0.11.4",
-    "three": "https://aistudiocdn.com/three@^0.180.0",
-    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.0",
-    "simplex-noise": "https://aistudiocdn.com/simplex-noise@^4.0.3",
-    "@react-three/drei": "https://aistudiocdn.com/@react-three/drei@^10.7.6",
-    "@react-three/fiber": "https://aistudiocdn.com/@react-three/fiber@^9.4.0",
-    "three-stdlib": "https://aistudiocdn.com/three-stdlib@^2.36.0"
-  }
-}
-</script>
-full contents of index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌆</text></svg>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>rangga.pro - Ragetopia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&family=Michroma&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --primary-color: #00ffff;
+        --secondary-color: #ff9900;
+        --background-color: #050810;
+        --font-family: 'Exo 2', sans-serif;
+        --title-font-family: 'Michroma', sans-serif;
+      }
+
+      body {
+        margin: 0;
+        background-color: var(--background-color);
+        color: white;
+        font-family: var(--font-family);
+        overflow: hidden;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      .blinking-cursor {
+        animation: blinking-cursor-animation 1s step-end infinite;
+      }
+
+      @keyframes blinking-cursor-animation {
+        50% { opacity: 0; }
+      }
+      
+      .hex-btn {
+        clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+        transition: transform 0.2s ease, background-color 0.2s ease;
+      }
+
+      .panel-enter {
+        animation: panel-enter-animation 0.5s cubic-bezier(0.2, 1, 0.2, 1) forwards;
+      }
+      
+      @keyframes panel-enter-animation {
+        from { transform: translateY(100%); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+
+      .responsive-modal {
+        max-height: 95vh;
+        overflow-y: auto;
+      }
+      @media (max-width: 900px) {
+        .contact-grid { grid-template-columns: 1fr !important; }
+        .contact-links-panel { border-bottom: 1px solid rgba(0, 170, 255, 0.2); }
+        .competency-layout { flex-direction: column !important; }
+        .chart-container { flex-basis: auto !important; }
+        .carousel-viewport { height: 380px !important; }
+        .carousel-card { width: 280px !important; height: 350px !important; }
+        .carousel-nav-button { top: calc(50% - 50px) !important; }
+      }
+
+      /* Form Input styles */
+      .input-group { position: relative; margin-bottom: 20px; }
+      .form-input { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(0, 170, 255, 0.3); color: #fff; padding: 12px; border-radius: 4px; font-size: 1rem; transition: border-color 0.2s; }
+      .form-input:focus { border-color: var(--primary-color); outline: none; }
+      .form-label { position: absolute; left: 12px; top: 12px; color: #aaa; pointer-events: none; transition: all 0.2s; }
+      .form-input:focus + .form-label, .form-input:not(:placeholder-shown) + .form-label { top: -8px; left: 8px; font-size: 0.8rem; color: var(--primary-color); background: var(--background-color); padding: 0 4px; }
+      textarea.form-input { resize: vertical; }
+
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar { width: 8px; }
+      ::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+      ::-webkit-scrollbar-thumb { background: rgba(0, 170, 255, 0.4); border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: rgba(0, 170, 255, 0.7); }
+
+      /* --- Hydraulic Gate CSS --- */
+      .gate-panel {
+        position: fixed;
+        left: 0;
+        width: 100%;
+        height: 50vh;
+        background-color: var(--background-color);
+        z-index: 1001;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+      .gate-top { top: 0; }
+      .gate-bottom { bottom: 0; }
+
+      .gate-top.exiting { animation: gate-top-exit 1.5s cubic-bezier(0.6, 0.04, 0.98, 0.335) forwards; }
+      .gate-bottom.exiting { animation: gate-bottom-exit 1.5s cubic-bezier(0.6, 0.04, 0.98, 0.335) forwards; }
+
+      @keyframes gate-top-exit { to { transform: translateY(-100%); } }
+      @keyframes gate-bottom-exit { to { transform: translateY(100%); } }
+
+      .gate-edge {
+        position: absolute;
+        width: 100%;
+        height: 30px; /* Thickness of the gate edge */
+        background: #1a1a1a;
+        display: flex;
+        align-items: center;
+      }
+      .gate-top .gate-edge { bottom: 0; }
+      .gate-bottom .gate-edge { top: 0; }
+      
+      /* Gear teeth effect with danger stripes */
+      .gate-edge::before {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: repeating-linear-gradient(
+          45deg,
+          #ff9900,
+          #ff9900 15px,
+          #000000 15px,
+          #000000 30px
+        );
+        animation: stripe-scroll 1s linear infinite;
+      }
+       @keyframes stripe-scroll {
+          0% { background-position: 0 0; }
+          100% { background-position: 42.42px 0; } /* sqrt(2) * 30px */
+       }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="importmap">
+    {
+      "imports": {
+        "react/": "https://aistudiocdn.com/react@^19.2.0/",
+        "react": "https://aistudiocdn.com/react@^19.2.0",
+        "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0",
+        "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+        "path": "https://aistudiocdn.com/path@^0.12.7",
+        "vite": "https://aistudiocdn.com/vite@^7.1.12",
+        "@google/genai": "https://aistudiocdn.com/@google/genai@^1.27.0",
+        "url": "https://aistudiocdn.com/url@^0.11.4",
+        "three": "https://aistudiocdn.com/three@^0.180.0",
+        "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.0",
+        "simplex-noise": "https://aistudiocdn.com/simplex-noise@^4.0.3",
+        "@react-three/drei": "https://aistudiocdn.com/@react-three/drei@^10.7.6",
+        "@react-three/fiber": "https://aistudiocdn.com/@react-three/fiber@^9.4.0",
+        "three-stdlib": "https://aistudiocdn.com/three-stdlib@^2.36.0"
+      }
+    }
+    </script>
+    <script type="module" src="/index.tsx"></script>
+</body>
+</html>

@@ -24,13 +24,13 @@ const MainApp: React.FC = () => {
 
   const handleStart = useCallback(() => {
     setAppState('entering');
-    // This timeout should match the fade-out transition duration on the StartScreen.
+    // This timeout should match the hydraulic gate animation duration.
     setTimeout(() => {
       setAppState('experience');
       if (!hasShownHints) {
         setHasShownHints(true);
       }
-    }, 1000);
+    }, 1500); // Increased timeout to match gate animation
   }, [hasShownHints]);
 
   const showStartScreen = appState === 'start' || appState === 'entering';
@@ -57,7 +57,7 @@ const MainApp: React.FC = () => {
       {/* Loader is visible only during the 'loading' state */}
       {appState === 'loading' && <Loader progress={progress} />}
 
-      {/* StartScreen is visible during 'start' and fades out during 'entering' */}
+      {/* StartScreen is visible during 'start' and animates out during 'entering' */}
       {showStartScreen && (
         <StartScreen
           onStart={handleStart}
