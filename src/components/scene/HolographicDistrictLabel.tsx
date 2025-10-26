@@ -11,6 +11,7 @@ interface HolographicDistrictLabelProps {
   isCalibrationMode: boolean;
   isHeld: boolean;
   onSetHeld: (id: string | null) => void;
+  pointerEventsEnabled?: boolean;
 }
 
 // --- Shader code for the animated borders ---
@@ -62,7 +63,7 @@ const dangerBorderFragmentShader = `
 // Define futuristic cyan color palette for high contrast
 const DESC_CYAN = '#afeeee'; // Pale turquoise for description
 
-const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ district, onSelect, isSelected, isCalibrationMode, isHeld, onSetHeld }) => {
+const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ district, onSelect, isSelected, isCalibrationMode, isHeld, onSetHeld, pointerEventsEnabled = true }) => {
   const groupRef = useRef<THREE.Group>(null!);
   const [isHovered, setIsHovered] = useState(false);
   const glowIntensityRef = useRef(1.0);
@@ -155,10 +156,10 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
     <Billboard position={[0, 15, 0]}>
       <group
         ref={groupRef}
-        onPointerOver={handlePointerOver}
-        onPointerOut={handlePointerOut}
-        onPointerDown={handlePointerDown}
-        onPointerUp={handlePointerUp}
+        onPointerOver={pointerEventsEnabled ? handlePointerOver : undefined}
+        onPointerOut={pointerEventsEnabled ? handlePointerOut : undefined}
+        onPointerDown={pointerEventsEnabled ? handlePointerDown : undefined}
+        onPointerUp={pointerEventsEnabled ? handlePointerUp : undefined}
       >
         {/* Animated Border - uses danger zone shader for all labels */}
         <mesh position-z={-0.09}>

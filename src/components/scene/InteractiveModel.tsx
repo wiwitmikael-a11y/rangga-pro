@@ -200,16 +200,15 @@ export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, is
             />
         </Suspense>
         {/* The label is wrapped to disable its pointer events in normal mode, preventing conflicting interactions. */}
-        <group pointerEvents={isCalibrationMode ? 'auto' : 'none'}>
-            <HolographicDistrictLabel 
-                district={district} 
-                isSelected={isSelected} 
-                onSelect={onSelect} 
-                isCalibrationMode={isCalibrationMode}
-                isHeld={isHeld}
-                onSetHeld={onSetHeld}
-            />
-        </group>
+        <HolographicDistrictLabel 
+            district={district} 
+            isSelected={isSelected} 
+            onSelect={onSelect} 
+            isCalibrationMode={isCalibrationMode}
+            isHeld={isHeld}
+            onSetHeld={onSetHeld}
+            pointerEventsEnabled={isCalibrationMode}
+        />
         {/* Render the gauge here, controlled by this component's state, positioned over the label */}
         {holdProgress > 0 && !isCalibrationMode && (
             <group position={[0, 15, 0.2]}>
