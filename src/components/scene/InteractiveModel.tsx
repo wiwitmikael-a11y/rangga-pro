@@ -1,4 +1,4 @@
-import React, { Suspense, useLayoutEffect, useMemo, useRef } from 'react';
+import React, { Suspense, useLayoutEffect, useMemo, useRef, useCallback } from 'react';
 import { useGLTF, Text } from '@react-three/drei';
 import * as THREE from 'three';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
@@ -9,21 +9,26 @@ interface InteractiveModelProps {
   district: CityDistrict;
   isSelected: boolean;
   onSelect: (district: CityDistrict) => void;
+  isCalibrationMode: boolean;
+  isHeld: boolean;
+  onSetHeld: (id: string | null) => void;
 }
 
 interface ModelProps {
   url: string;
   scale: number;
+  isHeld: boolean;
   onPointerDown: (e: ThreeEvent<PointerEvent>) => void;
   onPointerOver: (e: ThreeEvent<PointerEvent>) => void;
   onPointerOut: (e: ThreeEvent<PointerEvent>) => void;
 }
 
-function Model({ url, scale, onPointerOver, onPointerOut, onPointerDown }: ModelProps) {
+function Model({ url, scale, isHeld, onPointerOver, onPointerOut, onPointerDown }: ModelProps) {
   const { scene } = useGLTF(url);
   const clonedScene = useMemo(() => scene.clone(), [scene]);
   const originalEmissives = useRef<{ [uuid: string]: THREE.Color }>({});
   const hoverColor = useMemo(() => new THREE.Color('cyan'), []);
+  const heldColor = useMemo(() => new THREE.Color('gold'), []);
 
   useLayoutEffect(() => {
     const emissives: { [uuid: string]: THREE.Color } = {};
@@ -37,25 +42,47 @@ function Model({ url, scale, onPointerOver, onPointerOut, onPointerDown }: Model
     originalEmissives.current = emissives;
   }, [clonedScene]);
   
-  const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
-    onPointerOver(e);
+  const applyEmissive = useCallback((color: THREE.Color, intensity: number) => {
     clonedScene.traverse((child: any) => {
         if (child.isMesh && child.material.isMeshStandardMaterial) {
-            child.material.emissive.copy(hoverColor);
-            child.material.emissiveIntensity = 0.5;
+            child.material.emissive.copy(color);
+            child.material.emissiveIntensity = intensity;
         }
     });
-  };
-  
-  const handlePointerOut = (e: ThreeEvent<PointerEvent>) => {
-    onPointerOut(e);
-    clonedScene.traverse((child: any) => {
+  }, [clonedScene]);
+
+  const resetEmissive = useCallback(() => {
+      clonedScene.traverse((child: any) => {
         if (child.isMesh && child.material.isMeshStandardMaterial && originalEmissives.current[child.uuid]) {
             child.material.emissive.copy(originalEmissives.current[child.uuid]);
             child.material.emissiveIntensity = 1; 
         }
     });
+  }, [clonedScene]);
+
+  const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
+    onPointerOver(e);
+    if (!isHeld) applyEmissive(hoverColor, 0.5);
   };
+  
+  const handlePointerOut = (e: ThreeEvent<PointerEvent>) => {
+    onPointerOut(e);
+    if (!isHeld) resetEmissive();
+  };
+
+  useFrame(() => {
+      if(isHeld) {
+        applyEmissive(heldColor, 1.2);
+      } else {
+         // If not held, reset emissive. This ensures it reverts correctly after being released.
+         // This check prevents conflicting with the hover effect.
+         const isHovered = (document.body.style.cursor === 'pointer' || document.body.style.cursor === 'grab');
+         if(!isHovered) {
+             resetEmissive();
+         }
+      }
+  });
+
 
   return (
     <primitive
@@ -68,12 +95,13 @@ function Model({ url, scale, onPointerOver, onPointerOut, onPointerDown }: Model
   );
 }
 
-export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, isSelected, onSelect }) => {
+export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, isSelected, onSelect, isCalibrationMode, isHeld, onSetHeld }) => {
   const groupRef = useRef<THREE.Group>(null!);
   
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
-    document.body.style.cursor = 'pointer';
+    if (isCalibrationMode) document.body.style.cursor = 'grab';
+    else document.body.style.cursor = 'pointer';
   };
 
   const handlePointerOut = (e: ThreeEvent<PointerEvent>) => {
@@ -83,17 +111,32 @@ export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, is
   
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
-    onSelect(district);
+    if (isCalibrationMode) {
+      onSetHeld(district.id);
+    } else {
+      onSelect(district);
+    }
   };
 
   useFrame((_, delta) => {
       if (groupRef.current) {
-        const targetY = isSelected ? Math.sin(Date.now() * 0.001) * 0.5 : 0;
-        const finalPos = new THREE.Vector3(...district.position);
-        finalPos.y += targetY;
-        groupRef.current.position.lerp(finalPos, delta * 4);
+          if (isHeld) {
+            // If held, the position is controlled by BuildModeController, so we just add a visual lift
+            const targetY = district.position[1] + 5;
+            groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, targetY, delta * 8);
+            groupRef.current.position.x = district.position[0];
+            groupRef.current.position.z = district.position[2];
+
+          } else {
+            // Normal behavior: hover bobbing or returning to base position
+            const targetY = isSelected ? Math.sin(Date.now() * 0.001) * 0.5 : 0;
+            const finalPos = new THREE.Vector3(...district.position);
+            finalPos.y += targetY;
+            groupRef.current.position.lerp(finalPos, delta * 4);
+          }
       }
   });
+
 
   return (
     <group ref={groupRef} position={district.position}>
@@ -103,6 +146,7 @@ export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, is
             <Model 
                 url={district.modelUrl!} 
                 scale={district.modelScale || 1}
+                isHeld={isHeld}
                 onPointerOver={handlePointerOver}
                 onPointerOut={handlePointerOut}
                 onPointerDown={handlePointerDown}
@@ -112,6 +156,9 @@ export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, is
             district={district} 
             isSelected={isSelected} 
             onSelect={onSelect} 
+            isCalibrationMode={isCalibrationMode}
+            isHeld={isHeld}
+            onSetHeld={onSetHeld}
         />
     </group>
   );

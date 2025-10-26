@@ -26,6 +26,7 @@ export interface CityDistrict {
   cameraFocus?: CameraFocusPoint; // Posisi & target kamera unik
   modelUrl?: string; // URL ke model GLB untuk distrik ini
   modelScale?: number; // Skala untuk model GLB
+  isDirty?: boolean; // Flag to track if the district has been moved by the user
 }
 
 // --- New Types for Skills Radar Chart ---

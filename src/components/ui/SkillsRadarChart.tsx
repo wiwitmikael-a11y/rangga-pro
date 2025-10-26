@@ -5,13 +5,11 @@ interface SkillsRadarChartProps {
   skills: SkillCategory[];
   activeCategory: SkillCategory | null;
   onCategoryHover: (category: SkillCategory | null) => void;
-  clickedCategory: SkillCategory | null;
-  onCategoryClick: (category: SkillCategory | null) => void;
 }
 
 const CHART_SIZE = 400;
 const CHART_CENTER = CHART_SIZE / 2;
-const MAX_RADIUS = CHART_CENTER * 0.4; // Ukuran diperkecil separuhnya
+const MAX_RADIUS = CHART_CENTER * 0.8;
 
 // Define a vibrant, game-like color palette for each category
 const CATEGORY_COLORS = [
@@ -23,7 +21,7 @@ const CATEGORY_COLORS = [
   '#9370db', // Medium Purple - Arts
 ];
 
-export const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ skills, activeCategory, onCategoryHover, clickedCategory, onCategoryClick }) => {
+export const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ skills, activeCategory, onCategoryHover }) => {
   const numAxes = skills.length;
 
   const dataPoints = skills.map((cat, i) => {
@@ -42,8 +40,8 @@ export const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ skills, acti
     return {
       x2: CHART_CENTER + MAX_RADIUS * Math.cos(angle),
       y2: CHART_CENTER + MAX_RADIUS * Math.sin(angle),
-      labelX: CHART_CENTER + (MAX_RADIUS + 40) * Math.cos(angle),
-      labelY: CHART_CENTER + (MAX_RADIUS + 40) * Math.sin(angle),
+      labelX: CHART_CENTER + (MAX_RADIUS + 35) * Math.cos(angle),
+      labelY: CHART_CENTER + (MAX_RADIUS + 35) * Math.sin(angle),
     };
   });
 
@@ -88,7 +86,7 @@ export const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ skills, acti
         {/* Data Polygon Slices */}
         {dataPoints.map((point, i) => {
             const prevPoint = dataPoints[(i - 1 + numAxes) % numAxes];
-            const isActive = clickedCategory?.category === skills[i].category || (!clickedCategory && activeCategory?.category === skills[i].category);
+            const isActive = activeCategory?.category === skills[i].category;
             const slicePoints = `${CHART_CENTER},${CHART_CENTER} ${prevPoint.x},${prevPoint.y} ${point.x},${point.y}`;
             return (
                 <polygon
@@ -109,12 +107,10 @@ export const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ skills, acti
         {axes.map((axis, i) => {
             const category = skills[i];
             const color = CATEGORY_COLORS[i % CATEGORY_COLORS.length];
-            const isHovered = activeCategory?.category === category.category;
-            const isClicked = clickedCategory?.category === category.category;
-            const isActive = isClicked || (!clickedCategory && isHovered);
+            const isActive = activeCategory?.category === category.category;
 
-            const labelWidth = 100;
-            const labelHeight = 26;
+            const labelWidth = 110;
+            const labelHeight = 28;
             
             return (
                 <g 
@@ -122,7 +118,7 @@ export const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ skills, acti
                     className={`interactive-sector ${isActive ? 'radar-active' : ''}`}
                     onMouseEnter={() => onCategoryHover(category)} 
                     onMouseLeave={() => onCategoryHover(null)}
-                    onClick={() => onCategoryClick(category)}
+                    onClick={() => onCategoryHover(category)}
                 >
                     {/* Axis Line */}
                     <line x1={CHART_CENTER} y1={CHART_CENTER} x2={axis.x2} y2={axis.y2} stroke={color} strokeOpacity={isActive ? 1 : 0.5} strokeWidth={isActive ? 2 : 1} className="radar-axis" style={{ animationDelay: `${i * 0.1}s` }} />
@@ -147,7 +143,7 @@ export const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ skills, acti
                             x={axis.labelX}
                             y={axis.labelY}
                             fill={isActive ? '#ffffff' : color}
-                            fontSize="10"
+                            fontSize="11"
                             fontWeight="700"
                             textAnchor="middle"
                             dominantBaseline="middle"

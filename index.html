@@ -47,6 +47,16 @@
         box-shadow: 0 5px 15px rgba(0, 225, 255, 0.3) !important;
         background: rgba(0, 100, 150, 0.4) !important;
       }
+      .project-card {
+        transition: all 0.3s ease;
+        border-left: 3px solid transparent;
+      }
+      .project-card:hover {
+        transform: translateY(-5px);
+        background: rgba(0, 100, 150, 0.3);
+        border-left-color: var(--primary-color);
+        box-shadow: 0 8px 20px rgba(0, 225, 255, 0.2);
+      }
 
       @keyframes pulse-glow {
         0% { 
@@ -62,74 +72,286 @@
           transform: scale(1);
         }
       }
+      @keyframes card-fade-in {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
       
       /* UI Panel Entry Animation */
+      @keyframes scanline-in {
+        0% {
+          transform: translateY(100%) scaleY(2.5);
+          opacity: 0;
+        }
+        50% {
+          transform: translateY(-10%) scaleY(0.9);
+          opacity: 0.7;
+        }
+        100% {
+          transform: translateY(0) scaleY(1);
+          opacity: 1;
+        }
+      }
+
       .panel-enter {
+        /* Apply the thematic scanline animation */
         animation: scanline-in 0.5s cubic-bezier(0.2, 1, 0.2, 1) forwards;
       }
+
       .panel-enter::before {
         content: '';
         position: absolute;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: linear-gradient(to bottom, rgba(0, 255, 255, 0.2) 0%, rgba(0, 255, 255, 0) 3px);
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          to bottom,
+          rgba(0, 255, 255, 0.2) 0%,
+          rgba(0, 255, 255, 0) 3px
+        );
         background-size: 100% 3px;
         animation: scanline-scroll 0.3s linear forwards;
         pointer-events: none;
       }
-      @keyframes scanline-in { 0% { transform: translateY(100%) scaleY(2.5); opacity: 0; } 50% { transform: translateY(-10%) scaleY(0.9); opacity: 0.7; } 100% { transform: translateY(0) scaleY(1); opacity: 1; } }
-      @keyframes scanline-scroll { from { background-position: 0 -3px; } to { background-position: 0 100%; } }
+
+      @keyframes scanline-scroll {
+        from { background-position: 0 -3px; }
+        to { background-position: 0 100%; }
+      }
       
       /* --- Contact Hub Floating Labels --- */
-      .input-group { position: relative; margin-bottom: 25px; }
-      .form-input { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(0, 170, 255, 0.3); color: #fff; padding: 12px; border-radius: 4px; font-size: 1rem; box-sizing: border-box; transition: border-color 0.2s ease; -webkit-appearance: none; -moz-appearance: none; appearance: none; }
-      .form-input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 8px rgba(0, 225, 255, 0.3); }
-      .form-label { position: absolute; left: 12px; top: 12px; color: #88a7a6; pointer-events: none; transition: all 0.2s ease; background: rgb(8, 20, 42); padding: 0 4px; }
-      .form-input:focus + .form-label, .form-input:not(:placeholder-shown) + .form-label { top: -10px; left: 8px; font-size: 0.8rem; color: var(--primary-color); }
-      .input-group select.form-input + .form-label { top: -10px; left: 8px; font-size: 0.8rem; color: var(--primary-color); }
-      .input-group select.form-input { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2300aaff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 12px center; background-size: 1em; }
-      
-      /* --- 3D Carousel Styles --- */
-      .carousel-viewport { width: 100%; height: 400px; position: relative; display: flex; justify-content: center; align-items: center; perspective: 2000px; }
-      .carousel-card { position: absolute; width: 300px; height: 380px; transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.6s ease, filter 0.6s ease; border-radius: 10px; overflow: hidden; display: flex; flexDirection: 'column'; user-select: 'none'; transform: rotateY(calc(var(--offset) * 25deg)) translateX(calc(var(--offset) * 180px)) translateZ(calc(var(--abs-offset) * -120px)) scale(calc(1 - var(--abs-offset) * 0.15)); opacity: calc(1 - var(--abs-offset) * 0.4); z-index: calc(100 - var(--abs-offset)); filter: grayscale(calc(var(--abs-offset) * 50%)) blur(calc(var(--abs-offset) * 1px)); }
-      .carousel-card-image { width: 100%; height: 220px; object-fit: cover; display: block; opacity: calc(1 - var(--abs-offset) * 0.5); }
-      .carousel-card-content { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; background: rgba(5, 15, 30, 0.5); }
-      .carousel-card-title { margin: 0 0 10px 0; color: #fff; font-size: 1.1rem; }
+      .contact-hub-modal .input-group {
+        position: relative;
+        margin-bottom: 25px;
+      }
+      .contact-hub-modal .form-input {
+        width: 100%;
+        background: rgba(0,0,0,0.3);
+        border: 1px solid rgba(0, 170, 255, 0.3);
+        color: #fff;
+        padding: 12px;
+        border-radius: 4px;
+        font-size: 1rem;
+        box-sizing: border-box;
+        transition: border-color 0.2s ease;
+        -webkit-appearance: none; /* Remove default appearance for selects on Safari */
+        -moz-appearance: none; /* Remove default appearance for selects on Firefox */
+        appearance: none; /* Standard property */
+      }
+      .contact-hub-modal .form-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 8px rgba(0, 225, 255, 0.3);
+      }
+      .contact-hub-modal .form-label {
+        position: absolute;
+        left: 12px;
+        top: 12px;
+        color: #88a7a6;
+        pointer-events: none;
+        transition: all 0.2s ease;
+        background: rgb(8, 20, 42); /* Match form panel background for clean overlap */
+        padding: 0 4px;
+      }
+      .contact-hub-modal .form-input:focus + .form-label,
+      .contact-hub-modal .form-input:not(:placeholder-shown) + .form-label {
+        top: -10px;
+        left: 8px;
+        font-size: 0.8rem;
+        color: var(--primary-color);
+      }
+      /* Special handling for select as it doesn't use placeholder */
+      .contact-hub-modal .input-group select.form-input + .form-label {
+        top: -10px;
+        left: 8px;
+        font-size: 0.8rem;
+        color: var(--primary-color);
+      }
+      .contact-hub-modal .input-group select.form-input {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2300aaff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 1em;
+      }
+      /* End Contact Hub Styles */
+
 
       /* --- Tablet Breakpoint --- */
       @media (max-width: 1024px) {
-        .responsive-modal { width: 80vw !important; max-width: 600px !important; }
-        .project-selection-panel { width: 90vw !important; max-width: none !important; height: 80vh !important; max-height: 700px !important; }
-        .quick-nav-container { width: 90% !important; max-width: 700px !important; }
-        .project-selection-panel .competency-layout { flex-direction: column !important; }
+        .responsive-modal {
+          width: 80vw !important;
+          max-width: 600px !important;
+        }
+        .project-selection-panel {
+          width: 90vw !important;
+          max-width: none !important;
+          height: 80vh !important;
+          max-height: 700px !important;
+        }
+        .quick-nav-container {
+          width: 90% !important;
+          max-width: 700px !important;
+        }
       }
+
 
       /* --- Mobile Breakpoint (768px and below) --- */
       @media (max-width: 768px) {
-        :root { font-size: 14px; }
-        .breadcrumb-container { top: 10px !important; left: 10px !important; right: 10px !important; width: auto !important; transform: none !important; font-size: 0.8rem !important; text-align: center; padding: 6px 10px !important; }
-        .bottom-left-container { bottom: 15px !important; left: 15px !important; gap: 8px !important; }
-        .bottom-left-container .hud-button { width: 40px; height: 40px; }
-        .bottom-center-container { bottom: 15px !important; }
-        .bottom-center-container .hex-btn { width: 55px; height: 55px; }
-        .quick-nav-container { width: 100% !important; max-width: 100% !important; bottom: 0 !important; left: 0 !important; transform: none !important; border-radius: 20px 20px 0 0 !important; padding: 30px 20px 20px 20px !important; max-height: 70vh; overflow-y: auto; }
-        .quick-nav-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
-        .nav-button:hover { transform: none !important; border-left-color: var(--primary-color) !important; }
-        .nav-button { padding: 15px !important; }
-        .responsive-modal { width: 100vw !important; max-width: 100vw !important; height: auto !important; max-height: 80vh !important; top: auto !important; bottom: 0 !important; left: 0 !important; transform: translateY(0) !important; border-radius: 20px 20px 0 0 !important; padding: 30px 20px 20px 20px !important; overflow-y: auto !important; }
-        .project-selection-panel { width: 100% !important; height: 90vh !important; max-height: 90vh !important; bottom: 0 !important; left: 0 !important; transform: none !important; border-radius: 20px 20px 0 0 !important; padding: 25px 10px !important; }
-        .project-selection-panel .carousel-viewport { height: 300px !important; perspective: 1000px !important; }
-        .project-selection-panel .carousel-card { width: 200px !important; height: 250px !important; }
-        .project-selection-panel .carousel-nav-button { width: 35px; height: 35px; }
-        .project-selection-panel .competency-layout { flex-direction: column !important; gap: 20px !important; overflow: auto !important; padding-bottom: 20px; }
-        .project-selection-panel .chart-container { flex-basis: auto !important; min-height: 300px; max-width: 100%; padding: 10px 0; }
-        .project-selection-panel .analysis-panel { overflow-y: visible !important; padding: 15px !important; }
-        .contact-grid { grid-template-columns: 1fr !important; display: flex !important; flex-direction: column !important; background: transparent !important; gap: 0 !important; }
-        .contact-links-panel { border-bottom: 1px solid rgba(0, 170, 255, 0.2); padding: 20px !important; padding-top: 0 !important; }
-        .form-panel { padding: 20px !important; }
-        .holographic-info-panel-html { width: 90vw !important; max-width: 400px !important; height: auto !important; max-height: 70vh !important; overflow-y: auto !important; font-size: 14px; }
-        .holographic-info-panel-html > div > div { padding: 20px !important; }
-        .holographic-info-panel-html h2 { font-size: 1.5rem !important; }
-        .holographic-info-panel-html h3 { font-size: 0.9rem !important; }
+        /* --- Global Font & Layout Adjustments --- */
+        :root {
+          font-size: 14px; /* Adjust base font size for smaller screens */
+        }
+
+        /* --- HUD Optimizations --- */
+        .breadcrumb-container {
+          top: 10px !important;
+          left: 10px !important;
+          right: 10px !important;
+          width: auto !important;
+          transform: none !important;
+          font-size: 0.8rem !important;
+          text-align: center;
+          padding: 6px 10px !important;
+        }
+
+        .bottom-left-container {
+          bottom: 15px !important;
+          left: 15px !important;
+          gap: 8px !important;
+        }
+        .bottom-left-container .hud-button {
+          width: 40px;
+          height: 40px;
+        }
+
+        .bottom-center-container {
+          bottom: 15px !important;
+        }
+        .bottom-center-container .hex-btn {
+          width: 55px;
+          height: 55px;
+        }
+
+        /* --- QuickNavMenu as Bottom Sheet --- */
+        .quick-nav-container {
+          width: 100% !important;
+          max-width: 100% !important;
+          bottom: 0 !important;
+          left: 0 !important;
+          transform: none !important;
+          border-radius: 20px 20px 0 0 !important;
+          padding: 30px 20px 20px 20px !important;
+          max-height: 70vh;
+          overflow-y: auto;
+        }
+        .quick-nav-grid {
+          grid-template-columns: 1fr !important;
+          gap: 10px !important;
+        }
+        .nav-button:hover {
+          transform: none !important;
+          border-left-color: var(--primary-color) !important;
+        }
+        .nav-button {
+          padding: 15px !important;
+        }
+
+        /* --- Generic Modal to Bottom Sheet Conversion --- */
+        .responsive-modal {
+          width: 100vw !important;
+          max-width: 100vw !important;
+          height: auto !important;
+          max-height: 80vh !important;
+          top: auto !important;
+          bottom: 0 !important;
+          left: 0 !important;
+          transform: translateY(0) !important;
+          border-radius: 20px 20px 0 0 !important;
+          padding: 30px 20px 20px 20px !important;
+          overflow-y: auto !important;
+        }
+
+        /* --- Project Selection Panel Optimizations --- */
+        .project-selection-panel {
+          width: 100% !important;
+          height: 90vh !important;
+          max-height: 90vh !important;
+          bottom: 0 !important;
+          left: 0 !important;
+          transform: none !important;
+          border-radius: 20px 20px 0 0 !important;
+          padding: 25px 10px !important;
+        }
+        .project-selection-panel .carousel-viewport {
+          height: 300px !important;
+          perspective: 1000px !important;
+        }
+        .project-selection-panel .carousel-card {
+            width: 200px !important;
+            height: 250px !important;
+        }
+        .project-selection-panel .carousel-nav-button {
+            width: 35px;
+            height: 35px;
+        }
+        .project-selection-panel .competency-layout {
+          flex-direction: column !important;
+          gap: 20px !important;
+          overflow: auto !important; /* Allow layout to scroll if content exceeds viewport */
+          padding-bottom: 20px;
+        }
+        .project-selection-panel .chart-container {
+          flex-basis: auto !important;
+          min-height: 300px; /* Ensure space for chart */
+          max-width: 100%;
+          padding: 10px 0;
+        }
+        .project-selection-panel .analysis-panel {
+          overflow-y: visible !important; /* Let parent scroll */
+          padding: 15px !important;
+        }
+
+        /* --- Contact Hub Modal Optimizations --- */
+        .contact-hub-modal .contact-grid {
+          grid-template-columns: 1fr !important;
+          display: flex !important;
+          flex-direction: column !important;
+          background: transparent !important;
+          gap: 0 !important;
+        }
+        .contact-hub-modal .contact-links-panel {
+          border-bottom: 1px solid rgba(0, 170, 255, 0.2);
+          padding: 20px !important;
+          padding-top: 0 !important;
+        }
+        .contact-hub-modal .form-panel {
+          padding: 20px !important;
+        }
+
+        /* --- Holographic Info Panel (3D HTML) --- */
+        .holographic-info-panel-html {
+          width: 90vw !important;
+          max-width: 400px !important;
+          height: auto !important;
+          max-height: 70vh !important;
+          overflow-y: auto !important;
+          font-size: 14px;
+        }
+        .holographic-info-panel-html > div > div { /* Target the inner wrapper */
+          padding: 20px !important;
+        }
+        .holographic-info-panel-html h2 {
+          font-size: 1.5rem !important;
+        }
+        .holographic-info-panel-html h3 {
+          font-size: 0.9rem !important;
+        }
+
+        /* --- Export Modal --- */
+        .export-layout-modal textarea {
+          min-height: 200px;
+        }
       }
     </style>
   </head>

@@ -1,8 +1,7 @@
-import React, { useState, useCallback, FormEvent, useEffect } from 'react';
+import React, { useState, useCallback, FormEvent } from 'react';
 import type { CityDistrict, PortfolioSubItem, SkillCategory } from '../../types';
 import { SkillsRadarChart } from './SkillsRadarChart';
 import { skillsData, professionalSummary } from '../../constants';
-import { Lightbox } from './Lightbox';
 
 interface ProjectSelectionPanelProps {
   isOpen: boolean;
@@ -75,8 +74,8 @@ const styles: { [key: string]: React.CSSProperties } = {
   closeButton: { background: 'transparent', border: '1px solid rgba(255, 153, 0, 0.7)', color: '#ff9900', width: '35px', height: '35px', borderRadius: '50%', cursor: 'pointer', fontSize: '1.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center', lineHeight: 1, transition: 'all 0.2s' },
   
   // Competency Core (Radar Chart) styles
-  competencyLayout: { display: 'flex', flexGrow: 1, gap: '20px', minHeight: 0, overflow: 'hidden' },
-  chartContainer: { display: 'flex', justifyContent: 'center', alignItems: 'center', flexShrink: 0 },
+  competencyLayout: { display: 'flex', flexDirection: 'row', flexGrow: 1, gap: '20px', minHeight: 0, overflow: 'hidden' },
+  chartContainer: { display: 'flex', justifyContent: 'center', alignItems: 'center', flexShrink: 0, flexBasis: '400px' },
   analysisPanel: { flexGrow: 1, minHeight: 0, padding: '20px', background: 'rgba(0, 0, 0, 0.2)', borderRadius: '10px', border: '1px solid rgba(0, 170, 255, 0.2)', animation: 'fadeInDetails 0.5s ease', overflowY: 'auto' },
   analysisTitle: { color: '#ffffff', margin: '0 0 10px 0', fontSize: '1.2rem', textTransform: 'uppercase', letterSpacing: '0.1em' },
   analysisDescription: { color: '#ccc', margin: '0 0 20px 0', lineHeight: 1.6, fontSize: '0.9rem' },
@@ -90,32 +89,42 @@ const styles: { [key: string]: React.CSSProperties } = {
   skillBar: { height: '6px', background: 'rgba(0, 170, 255, 0.1)', borderRadius: '3px', width: '100%' },
   skillBarFill: { height: '100%', background: 'var(--primary-color)', borderRadius: '3px', boxShadow: '0 0 8px var(--primary-color)' },
 
-  contentBody: { flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', position: 'relative', width: '100%' },
+  // Carousel & Placeholder Styles
+  contentBody: { flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', position: 'relative' },
+  carouselViewport: { width: '100%', height: '400px', position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', perspective: '2000px', WebkitPerspective: '2000px' },
+  carouselCard: { ...glassmorphism, position: 'absolute', width: '300px', height: '380px', transition: 'transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.6s ease, filter 0.6s ease', borderRadius: '10px', overflow: 'hidden', display: 'flex', flexDirection: 'column', userSelect: 'none' },
+  cardImage: { width: '100%', height: '220px', objectFit: 'cover', display: 'block' },
+  cardContent: { padding: '15px', flexGrow: 1, display: 'flex', flexDirection: 'column', background: 'rgba(5, 15, 30, 0.5)' },
+  cardTitle: { margin: '0 0 10px 0', color: '#fff', fontSize: '1.1rem' },
   infoPanel: { textAlign: 'center', padding: '15px 0 0 0', maxWidth: '700px', width: '100%', animation: 'fadeInDetails 0.5s ease forwards' },
   infoTitle: { margin: '0 0 5px 0', color: 'var(--primary-color)', fontSize: '1.4rem', textShadow: '0 0 8px var(--primary-color)' },
   infoDescription: { margin: 0, color: '#ccc', fontSize: '0.9rem', lineHeight: 1.5 },
   placeholder: { color: '#88a7a6', fontStyle: 'italic' },
   navButton: { position: 'absolute', top: 'calc(50% - 70px)', transform: 'translateY(-50%)', zIndex: 100, background: 'rgba(0, 20, 40, 0.7)', backdropFilter: 'blur(5px)', border: '1px solid rgba(0, 170, 255, 0.5)', color: 'var(--primary-color)', width: '44px', height: '44px', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', transition: 'all 0.2s ease-in-out', fontSize: '1.5rem' },
 
+  // --- START: Styles for re-integrated content ---
   integratedContentContainer: { width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', animation: 'fadeInDetails 0.5s ease forwards', overflowY: 'auto' },
   instagramPanel: { ...glassmorphism, padding: '40px', borderRadius: '15px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' },
   instagramUsername: { margin: '10px 0', color: 'var(--primary-color)', fontSize: '1.8rem', textShadow: '0 0 8px var(--primary-color)' },
   instagramPrompt: { margin: '0 0 25px 0', color: '#ccc', fontSize: '1rem' },
   instagramVisitButton: { width: '100%', background: 'rgba(0, 170, 255, 0.2)', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', padding: '12px 25px', fontSize: '1rem', fontFamily: 'inherit', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', transition: 'all 0.3s ease', textShadow: '0 0 5px var(--primary-color)', borderRadius: '5px' },
 
-  contactGrid: { display: 'grid', gridTemplateColumns: '1fr 1.5fr', width: '100%', flexGrow: 1, gap: '1px', background: 'rgba(0, 170, 255, 0.2)', overflow: 'hidden' },
-  contactLinksPanel: { padding: '25px', background: 'rgb(8, 20, 42)', overflowY: 'auto' },
-  contactFormPanel: { padding: '25px', background: 'rgb(8, 20, 42)', overflowY: 'auto' },
+  contactGrid: { display: 'grid', gridTemplateColumns: '1fr 1.5fr', width: '100%', height: '100%', flexGrow: 1 },
+  contactLinksPanel: { padding: '25px', background: 'rgba(8, 20, 42, 0.8)', overflowY: 'auto' },
+  contactFormPanel: { padding: '25px', background: 'rgba(8, 20, 42, 0.8)', overflowY: 'auto' },
   contactPanelTitle: { color: '#fff', marginTop: 0, marginBottom: '10px', fontSize: '1.2rem', textTransform: 'uppercase', letterSpacing: '0.05em' },
   contactPanelDescription: { color: '#aaa', marginTop: 0, marginBottom: '25px', fontSize: '0.9rem', lineHeight: 1.5 },
   contactLinkButton: { ...glassmorphism, display: 'flex', alignItems: 'center', gap: '15px', padding: '12px 15px', color: '#cceeff', textDecoration: 'none', borderRadius: '5px', marginBottom: '10px', transition: 'all 0.3s ease', borderLeft: '3px solid transparent' },
   contactSubmitButton: { width: '100%', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', padding: '12px', fontSize: '1rem', fontFamily: 'inherit', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', transition: 'all 0.3s ease', textShadow: '0 0 5px var(--primary-color)', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '5px' },
   contactStatusConsole: { marginTop: '15px', padding: '8px 12px', background: 'rgba(0,0,0,0.5)', borderRadius: '4px', border: '1px solid #333', color: '#888', fontFamily: 'monospace', fontSize: '0.8rem', textAlign: 'center', transition: 'all 0.3s ease' },
+  // --- END: Styles for re-integrated content ---
 };
 
 
-const StrategicAnalysisPanel: React.FC<{ activeCategory: SkillCategory | null, clickedCategory: SkillCategory | null }> = ({ activeCategory, clickedCategory }) => {
-  const data = clickedCategory || activeCategory || { category: 'Professional Synopsis', description: professionalSummary, skills: [], keyMetrics: [] };
+// --- START: Re-integrated Content Components ---
+
+const StrategicAnalysisPanel: React.FC<{ activeCategory: SkillCategory | null }> = ({ activeCategory }) => {
+  const data = activeCategory || { category: 'Professional Synopsis', description: professionalSummary, skills: [], keyMetrics: [] };
   return (
     <div key={data.category} style={styles.analysisPanel} className="analysis-panel">
       <h3 style={styles.analysisTitle}>{data.category}</h3>
@@ -221,10 +230,15 @@ const ContactPanelContent: React.FC = () => {
         </div>
     );
 };
+// --- END: Re-integrated Content Components ---
 
-const ProjectCarouselContent: React.FC<{ district: CityDistrict, onImageClick: (url: string) => void }> = ({ district, onImageClick }) => {
+
+export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ isOpen, district, onClose, onProjectSelect }) => {
+  const [activeCategory, setActiveCategory] = useState<SkillCategory | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const projects = district.subItems || [];
+
+  const projects = district?.subItems || [];
+  const activeProject = projects.length > 0 ? projects[currentIndex] : null;
 
   const handlePrev = useCallback(() => {
     setCurrentIndex(prev => (prev === 0 ? projects.length - 1 : prev - 1));
@@ -234,76 +248,6 @@ const ProjectCarouselContent: React.FC<{ district: CityDistrict, onImageClick: (
     setCurrentIndex(prev => (prev === projects.length - 1 ? 0 : prev + 1));
   }, [projects.length]);
   
-  useEffect(() => {
-    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
-        if (event.key === 'ArrowLeft') handlePrev();
-        if (event.key === 'ArrowRight') handleNext();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handlePrev, handleNext]);
-
-  const activeProject = projects.length > 0 ? projects[currentIndex] : null;
-
-  return (
-    <div style={styles.contentBody}>
-      {projects.length > 0 ? (
-        <>
-          <div className="carousel-viewport">
-            {projects.map((item, index) => {
-              const offset = index - currentIndex;
-              return (
-                <div key={item.id} className="carousel-card"
-                  style={{
-                    '--offset': offset,
-                    '--abs-offset': Math.abs(offset),
-                    'pointerEvents': Math.abs(offset) > 2 ? 'none' : 'auto',
-                    cursor: offset === 0 ? 'pointer' : 'default',
-                  } as React.CSSProperties}
-                  onClick={() => (offset === 0 && item.imageUrl ? onImageClick(item.imageUrl) : setCurrentIndex(index))}
-                >
-                  <img src={item.imageUrl} alt={item.title} className="carousel-card-image" />
-                  <div className="carousel-card-content">
-                    {offset === 0 && <h3 className="carousel-card-title">{item.title}</h3>}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          {activeProject && (
-            <div key={activeProject.id} style={styles.infoPanel}>
-              <h3 style={styles.infoTitle}>{activeProject.title}</h3>
-              <p style={styles.infoDescription}>{activeProject.description}</p>
-            </div>
-          )}
-          <button onClick={handlePrev} style={{...styles.navButton, left: '20px'}} className="carousel-nav-button" aria-label="Previous Project">&#8249;</button>
-          <button onClick={handleNext} style={{...styles.navButton, right: '20px'}} className="carousel-nav-button" aria-label="Next Project">&#8250;</button>
-        </>
-      ) : (
-        <p style={styles.placeholder}>[No project data available for this sector]</p>
-      )}
-    </div>
-  );
-};
-
-
-export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ isOpen, district, onClose }) => {
-  const [hoveredCategory, setHoveredCategory] = useState<SkillCategory | null>(null);
-  const [clickedCategory, setClickedCategory] = useState<SkillCategory | null>(null);
-  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
-
-  const handleCategoryClick = (category: SkillCategory | null) => {
-    // If clicking the same category, deselect it. Otherwise, select the new one.
-    setClickedCategory(prev => prev?.category === category?.category ? null : category);
-  };
-  
-  const handlePanelClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    // If the click is on the panel itself (and not a child), clear the selection.
-    if (e.target === e.currentTarget) {
-        setClickedCategory(null);
-    }
-  };
-
   const containerStyle: React.CSSProperties = { ...styles.container, opacity: isOpen ? 1 : 0, transform: isOpen ? 'translateY(0)' : 'translateY(100vh)', pointerEvents: isOpen ? 'auto' : 'none', userSelect: 'auto' };
   const overlayStyle: React.CSSProperties = { ...styles.overlay, opacity: isOpen ? 1 : 0, pointerEvents: isOpen ? 'auto' : 'none' };
   
@@ -314,22 +258,15 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
   const isNexusCore = district.id === 'nexus-core';
   const isProjectDistrict = !isSkillsMatrix && !isContactHub && !isNexusCore;
 
+
   const renderContent = () => {
     if (isSkillsMatrix) {
       return (
         <>
           <p style={styles.instructions}>[SELECT A COMPETENCY CORE FOR ANALYSIS]</p>
-          <div style={styles.competencyLayout} className="competency-layout" onClick={handlePanelClick}>
-            <div style={styles.chartContainer} className="chart-container">
-              <SkillsRadarChart 
-                skills={skillsData} 
-                activeCategory={hoveredCategory} 
-                onCategoryHover={setHoveredCategory}
-                clickedCategory={clickedCategory}
-                onCategoryClick={handleCategoryClick}
-              />
-            </div>
-            <StrategicAnalysisPanel activeCategory={hoveredCategory} clickedCategory={clickedCategory} />
+          <div style={styles.competencyLayout} className="competency-layout">
+            <div style={styles.chartContainer} className="chart-container"><SkillsRadarChart skills={skillsData} activeCategory={activeCategory} onCategoryHover={setActiveCategory} /></div>
+            <StrategicAnalysisPanel activeCategory={activeCategory} />
           </div>
         </>
       );
@@ -341,7 +278,49 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
       return <InstagramPanelContent />;
     }
     if (isProjectDistrict) {
-      return <ProjectCarouselContent district={district} onImageClick={setLightboxImage} />;
+      return (
+        <div style={styles.contentBody}>
+          {projects.length > 0 ? (
+            <>
+              <div style={styles.carouselViewport} className="carousel-viewport">
+                {projects.map((item, index) => {
+                  const offset = index - currentIndex;
+                  const distance = Math.abs(offset);
+                  const isVisible = distance < 3;
+                  const cardSpacing = 180;
+                  const cardStyle: React.CSSProperties = {
+                    ...styles.carouselCard,
+                    transform: `rotateY(${offset * 25}deg) translateX(${offset * cardSpacing}px) translateZ(${-distance * 120}px) scale(${1 - distance * 0.15})`,
+                    opacity: isVisible ? 1 - distance * 0.4 : 0,
+                    zIndex: projects.length - distance,
+                    pointerEvents: isVisible ? 'auto' : 'none',
+                    cursor: offset === 0 ? 'pointer' : 'default',
+                    filter: `grayscale(${distance * 50}%) blur(${distance * 1}px)`,
+                  };
+                  return (
+                    <div key={item.id} style={cardStyle} className="carousel-card" onClick={() => (offset === 0 ? onProjectSelect(item) : setCurrentIndex(index))}>
+                      <img src={item.imageUrl} alt={item.title} style={{...styles.cardImage, opacity: offset === 0 ? 0.9 : 0.5 }} />
+                      <div style={styles.cardContent}>
+                         {offset === 0 && <h3 style={styles.cardTitle}>{item.title}</h3>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {activeProject && (
+                <div key={activeProject.id} style={styles.infoPanel}>
+                  <h3 style={styles.infoTitle}>{activeProject.title}</h3>
+                  <p style={styles.infoDescription}>{activeProject.description}</p>
+                </div>
+              )}
+              <button onClick={handlePrev} style={{...styles.navButton, left: '20px'}} className="carousel-nav-button" aria-label="Previous Project">&#8249;</button>
+              <button onClick={handleNext} style={{...styles.navButton, right: '20px'}} className="carousel-nav-button" aria-label="Next Project">&#8250;</button>
+            </>
+          ) : (
+            <p style={styles.placeholder}>[No project data available for this sector]</p>
+          )}
+        </div>
+      );
     }
     return null;
   };
@@ -366,9 +345,6 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
         {renderContent()}
 
       </div>
-      {lightboxImage && (
-        <Lightbox imageUrl={lightboxImage} onClose={() => setLightboxImage(null)} />
-      )}
     </>
   );
 };
