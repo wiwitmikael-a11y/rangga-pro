@@ -1,46 +1,39 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, Suspense, useEffect } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { useProgress } from '@react-three/drei';
 
-// Dikembalikan ke impor langsung sesuai permintaan pengguna untuk memulihkan perilaku stabil sebelumnya.
 import Experience3D from './components/Experience3D';
 import { StartScreen } from './components/ui/StartScreen';
 import { ControlHints } from './components/ui/ControlHints';
 import { LoaderUI } from './components/ui/Loader'; 
+
+// Helper component to bridge the progress from inside the Canvas to the App state
+const LoadingManager: React.FC<{ onProgress: (p: number) => void, onLoaded: () => void }> = ({ onProgress, onLoaded }) => {
+  const { active, progress } = useProgress();
+  
+  useEffect(() => {
+    onProgress(progress);
+    if (!active) {
+      // Use a small timeout to ensure the final 100% is visible and transition is smooth
+      setTimeout(onLoaded, 300);
+    }
+  }, [active, progress, onProgress, onLoaded]);
+
+  return null; // This component doesn't render anything itself
+};
 
 const App: React.FC = () => {
   const [appState, setAppState] = useState<'loading' | 'start' | 'entering' | 'experience'>('loading');
   const [hasShownHints, setHasShownHints] = useState(false);
   const [progress, setProgress] = useState(0);
 
-  // --- Efek Pemuatan Simulasi ---
-  // Ini memberikan layar pemuatan yang andal sementara aset diambil di latar belakang.
-  // Menjamin pengguna melihat umpan balik segera.
-  useEffect(() => {
-    if (appState === 'loading') {
-      const totalDuration = 3500; // Waktu pemuatan simulasi 3.5 detik
-      let startTime = 0;
-      let animationFrameId: number;
-
-      const animate = (timestamp: number) => {
-        if (!startTime) startTime = timestamp;
-        const elapsed = timestamp - startTime;
-        const currentProgress = Math.min(Math.floor((elapsed / totalDuration) * 100), 100);
-        setProgress(currentProgress);
-
-        if (elapsed < totalDuration) {
-          animationFrameId = requestAnimationFrame(animate);
-        } else {
-          setTimeout(() => setAppState('start'), 100);
-        }
-      };
-      
-      animationFrameId = requestAnimationFrame(animate);
-      return () => cancelAnimationFrame(animationFrameId);
-    }
-  }, [appState]);
-
+  const handleAssetsLoaded = useCallback(() => {
+    setAppState('start');
+  }, []);
+  
   const handleStart = useCallback(() => {
     setAppState('entering');
-    // Timeout ini cocok dengan durasi animasi gerbang hidrolik 1.5 detik.
+    // This timeout matches the 1.5s hydraulic gate animation duration
     setTimeout(() => {
       setAppState('experience');
       if (!sessionStorage.getItem('hasShownHints')) {
@@ -51,11 +44,13 @@ const App: React.FC = () => {
   }, []);
 
   const showStartScreen = appState === 'start' || appState === 'entering';
-  const shouldMountExperience = appState === 'entering' || appState === 'experience';
+  // The 3D experience is always in the DOM after the initial load to prevent re-loading assets.
+  // Its visibility is controlled by the appState.
+  const isExperienceVisible = appState === 'experience';
 
   return (
     <>
-      {appState === 'loading' && <LoaderUI progress={progress} />}
+      {appState === 'loading' && <LoaderUI progress={Math.round(progress)} />}
 
       {showStartScreen && (
         <StartScreen
@@ -65,20 +60,32 @@ const App: React.FC = () => {
       )}
       
       {/* 
-        Merender komponen Experience3D secara langsung. Ini memastikan semua asetnya
-        dimuat saat komponen dipasang, sesuai dengan perilaku stabil sebelumnya.
+        The main container for the 3D experience.
+        It's mounted immediately but kept hidden during the loading and start screens.
+        This ensures assets are loaded in the background and ready for a seamless transition.
       */}
-      {shouldMountExperience && (
-          <main style={{
-              width: '100vw',
-              height: '100vh',
-              backgroundColor: 'var(--background-color)',
-              opacity: appState === 'experience' ? 1 : 0,
-              transition: 'opacity 1.5s ease-in-out',
-            }}>
+      <main style={{
+          position: 'fixed',
+          inset: 0,
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: 'var(--background-color)',
+          // Control visibility and fade-in via opacity
+          opacity: isExperienceVisible ? 1 : 0,
+          // Hide from mouse events when not visible to prevent interference
+          pointerEvents: isExperienceVisible ? 'auto' : 'none',
+          transition: 'opacity 1.5s ease-in-out',
+        }}>
+        <Canvas>
+          <Suspense fallback={null}>
             <Experience3D />
-          </main>
-      )}
+          </Suspense>
+          {/* This component hooks into the loader and reports progress back up to the App */}
+          {appState === 'loading' && (
+            <LoadingManager onProgress={setProgress} onLoaded={handleAssetsLoaded} />
+          )}
+        </Canvas>
+      </main>
       
       {hasShownHints && <ControlHints />}
     </>

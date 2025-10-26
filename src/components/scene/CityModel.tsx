@@ -3,7 +3,6 @@
 import React, { useLayoutEffect, useMemo, useRef } from 'react';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
-import { useFrame } from '@react-three/fiber';
 
 export const CityModel: React.FC = React.memo(() => {
   const { scene } = useGLTF('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/cyberpunk_city.glb');
@@ -32,14 +31,6 @@ export const CityModel: React.FC = React.memo(() => {
     emissiveMaterials.current = materials;
   }, [clonedScene]);
   
-  useFrame(({ clock }) => {
-    const pulse = Math.sin(clock.getElapsedTime() * 2) * 0.5 + 0.5; // Varies between 0 and 1
-    emissiveMaterials.current.forEach(material => {
-      // Modulate intensity for a living city effect
-      material.emissiveIntensity = 1.5 + pulse * 2;
-    });
-  });
-
   return <primitive object={clonedScene} position={[0, -5, 0]} scale={15} />;
 });
 

@@ -5,7 +5,6 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 
 import { CityModel } from './scene/CityModel';
-import Rain from './scene/Rain';
 import { FlyingShips, shipsData } from './scene/FlyingShips';
 import { DistrictRenderer } from './scene/DistrictRenderer';
 import { portfolioData } from '../constants';
@@ -285,21 +284,30 @@ const Experience3D: React.FC = () => {
       <Canvas
         camera={{ position: INITIAL_CAMERA_POSITION, fov: 50, near: 0.5, far: 1000 }}
         gl={{ antialias: true, powerPreference: 'high-performance' }}
+        shadows
         onPointerDown={handleInteractionStart}
         onPointerUp={handleInteractionEnd}
         onWheel={handleInteractionStart}
       >
         <Suspense fallback={null}>
+          <Sky sunPosition={sunPosition} />
           <ambientLight intensity={0.2} color={sunColor} />
           <directionalLight
+            castShadow
             position={sunPosition}
             intensity={1.5}
             color={sunColor}
+            shadow-mapSize-width={2048}
+            shadow-mapSize-height={2048}
+            shadow-camera-far={500}
+            shadow-camera-left={-200}
+            shadow-camera-right={200}
+            shadow-camera-top={200}
+            shadow-camera-bottom={-200}
           />
-          <Sky sunPosition={sunPosition} distance={1000} />
+
           <CityModel />
           <ProceduralTerrain onDeselect={handleGoHome} />
-          <Rain count={5000} />
           <FlyingShips setShipRefs={setShipRefs} isPaused={isPaused} />
           <DistrictRenderer
             districts={districts}
