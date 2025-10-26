@@ -79,7 +79,7 @@
       ::-webkit-scrollbar-thumb { background: rgba(0, 170, 255, 0.4); border-radius: 4px; }
       ::-webkit-scrollbar-thumb:hover { background: rgba(0, 170, 255, 0.7); }
 
-      /* --- Hydraulic Gate CSS --- */
+      /* --- Simplified Hydraulic Gate CSS --- */
       .gate-panel {
         position: fixed;
         left: 0;
@@ -104,33 +104,16 @@
       .gate-edge {
         position: absolute;
         width: 100%;
-        height: 30px; /* Thickness of the gate edge */
+        height: 10px; /* Thickness of the gate edge */
         background: #1a1a1a;
-        display: flex;
-        align-items: center;
+        /* Replaced complex animated stripes with a simple, high-contrast border */
+        border-top: 3px solid var(--secondary-color);
+        border-bottom: 3px solid var(--secondary-color);
+        box-shadow: 0 0 10px var(--secondary-color);
       }
       .gate-top .gate-edge { bottom: 0; }
       .gate-bottom .gate-edge { top: 0; }
       
-      /* Gear teeth effect with danger stripes */
-      .gate-edge::before {
-        content: '';
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        background: repeating-linear-gradient(
-          45deg,
-          #ff9900,
-          #ff9900 15px,
-          #000000 15px,
-          #000000 30px
-        );
-        animation: stripe-scroll 1s linear infinite;
-      }
-       @keyframes stripe-scroll {
-          0% { background-position: 0 0; }
-          100% { background-position: 42.42px 0; } /* sqrt(2) * 30px */
-       }
     </style>
 </head>
 <body>

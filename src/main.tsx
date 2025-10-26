@@ -1,76 +1,6 @@
-import React, { useState, Suspense, useCallback, useEffect } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { useProgress } from '@react-three/drei';
-import { Experience3D } from './components/Experience3D';
-import { Loader } from './components/ui/Loader';
-import { StartScreen } from './components/ui/StartScreen';
-import { ControlHints } from './components/ui/ControlHints';
-
-const MainApp: React.FC = () => {
-  const { progress } = useProgress();
-  const [appState, setAppState] = useState<'loading' | 'start' | 'entering' | 'experience'>('loading');
-  const [hasShownHints, setHasShownHints] = useState(false);
-
-  const isLoaded = progress >= 100;
-
-  useEffect(() => {
-    // When loading is complete, transition to the start screen.
-    if (appState === 'loading' && isLoaded) {
-       // A small delay prevents a jarring flash if loading is very fast.
-      const timer = setTimeout(() => setAppState('start'), 500);
-      return () => clearTimeout(timer);
-    }
-  }, [appState, isLoaded]);
-
-  const handleStart = useCallback(() => {
-    setAppState('entering');
-    // This timeout should match the hydraulic gate animation duration.
-    setTimeout(() => {
-      setAppState('experience');
-      if (!hasShownHints) {
-        setHasShownHints(true);
-      }
-    }, 1500); // Increased timeout to match gate animation
-  }, [hasShownHints]);
-
-  const showStartScreen = appState === 'start' || appState === 'entering';
-  const showExperience = appState === 'entering' || appState === 'experience';
-
-  return (
-    <>
-      {/* The 3D experience is always mounted so assets can be loaded by Suspense.
-          UI Overlays like the Loader and StartScreen will cover it initially. */}
-      <main style={{ 
-          width: '100vw', 
-          height: '100vh', 
-          backgroundColor: 'var(--background-color)',
-          // Fade in the canvas for a smooth transition once the experience starts
-          opacity: showExperience ? 1 : 0,
-          transition: 'opacity 1.5s ease-in-out',
-        }}>
-        <Suspense fallback={null}>
-          <Experience3D />
-        </Suspense>
-      </main>
-
-      {/* --- Overlays --- */}
-      {/* Loader is visible only during the 'loading' state */}
-      {appState === 'loading' && <Loader progress={progress} />}
-
-      {/* StartScreen is visible during 'start' and animates out during 'entering' */}
-      {showStartScreen && (
-        <StartScreen
-          onStart={handleStart}
-          isExiting={appState === 'entering'}
-        />
-      )}
-      
-      {/* Control hints are shown once the experience starts for the first time */}
-      {hasShownHints && <ControlHints />}
-    </>
-  );
-};
-
+import App from './App';
 
 const rootElement = document.getElementById('root');
 
@@ -82,6 +12,6 @@ const root = ReactDOM.createRoot(rootElement);
 
 root.render(
   <React.StrictMode>
-    <MainApp />
+    <App />
   </React.StrictMode>
 );
