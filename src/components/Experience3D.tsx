@@ -10,7 +10,7 @@ import { FlyingShips, shipsData } from './scene/FlyingShips';
 import { DistrictRenderer } from './scene/DistrictRenderer';
 import { portfolioData } from '../constants';
 import type { CityDistrict } from '../types';
-import { CameraRig } from '../CameraRig';
+import { CameraRig } from './CameraRig';
 import { HUD } from './ui/HUD';
 import { ProceduralTerrain } from './scene/ProceduralTerrain';
 import HolographicInfoPanel from './scene/HolographicInfoPanel';
