@@ -1,104 +1,95 @@
-import React, { useMemo } from 'react';
-import { ThreeEvent } from '@react-three/fiber';
+import React, { useMemo, useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { useTexture } from '@react-three/drei';
 import { createNoise2D } from 'simplex-noise';
 
-interface ProceduralTerrainProps {
-    onDeselect: () => void;
-}
+const noise2D = createNoise2D();
 
-const TERRAIN_TEXTURE_URL = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/terrain.jpeg?v=2';
+const terrainVertexShader = `
+  uniform float time;
+  varying float vHeight;
+  varying vec3 vPosition;
 
-export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(({ onDeselect }) => {
+  void main() {
+    vPosition = position;
+    vec3 pos = position;
     
-    const terrainTexture = useTexture(TERRAIN_TEXTURE_URL);
+    // Animate the terrain slightly
+    float pulse = sin(time * 0.1 + pos.x * 0.1) * 0.1;
+    pos.z += pulse;
+    vHeight = pos.z;
 
-    useMemo(() => {
-        terrainTexture.wrapS = terrainTexture.wrapT = THREE.RepeatWrapping;
-        terrainTexture.repeat.set(25, 25);
-        terrainTexture.anisotropy = 16;
-    }, [terrainTexture]);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+  }
+`;
 
-    const geometry = useMemo(() => {
-        const planeGeo = new THREE.PlaneGeometry(500, 500, 200, 200);
-        const noise = createNoise2D();
-        const positions = planeGeo.attributes.position;
+const terrainFragmentShader = `
+  uniform float time;
+  varying float vHeight;
+  varying vec3 vPosition;
 
-        // Define zones for the terrain shape
-        const cityRadius = 90; // The completely flat central area
-        const moatStartRadius = 100; // Where the concave dip begins
-        const moatEndRadius = 120;   // Where the dip reaches its lowest point
-        const noisyTerrainStartRadius = 140; // Where the bumpy terrain begins to rise
-        const moatDepth = 4;    // How deep the concave moat is
-        const noiseFactor = 0.015;
-        const noiseHeightMultiplier = 8;
-        const globalCurvatureFactor = 0.0002;
+  void main() {
+    vec3 color = vec3(0.01, 0.02, 0.05); // Dark blue base
+    
+    // Grid lines
+    float grid = 0.0;
+    grid += step(0.98, sin(vPosition.x * 0.5));
+    grid += step(0.98, sin(vPosition.y * 0.5));
+    grid = clamp(grid, 0.0, 1.0);
+    
+    color = mix(color, vec3(0.0, 0.5, 0.8), grid * 0.2); // Faint grid lines
 
-        for (let i = 0; i < positions.count; i++) {
-            const x = positions.getX(i);
-            const z = positions.getY(i); // In a plane, Y corresponds to the world Z-axis after rotation
-            const distanceFromCenter = Math.sqrt(x * x + z * z);
-            
-            let height = 0;
-            const rawNoiseHeight = noise(x * noiseFactor, z * noiseFactor) * noiseHeightMultiplier;
+    // Energy pulse from center
+    float dist = length(vPosition.xy);
+    float pulse = sin(dist * 0.1 - time * 0.5);
+    pulse = smoothstep(0.9, 1.0, pulse);
+    color += vec3(0.0, 0.2, 0.3) * pulse;
 
-            if (distanceFromCenter <= cityRadius) {
-                // Flat city center
-                height = 0;
-            } else if (distanceFromCenter <= moatStartRadius) {
-                // Smoothstep from flat to start of moat dip
-                const t = (distanceFromCenter - cityRadius) / (moatStartRadius - cityRadius);
-                height = THREE.MathUtils.lerp(0, -moatDepth * 0.2, THREE.MathUtils.smoothstep(t, 0, 1));
-            } else if (distanceFromCenter <= moatEndRadius) {
-                // The main concave "moat"
-                const t = (distanceFromCenter - moatStartRadius) / (moatEndRadius - moatStartRadius);
-                height = THREE.MathUtils.lerp(-moatDepth * 0.2, -moatDepth, t * t); // Ease-in curve
-            } else if (distanceFromCenter <= noisyTerrainStartRadius) {
-                // Transition from moat bottom to the start of the noisy terrain
-                const t = (distanceFromCenter - moatEndRadius) / (noisyTerrainStartRadius - moatEndRadius);
-                height = THREE.MathUtils.lerp(-moatDepth, rawNoiseHeight, 1 - (1-t)*(1-t)); // Ease-out curve
-            } else {
-                // Fully noisy outer terrain
-                height = rawNoiseHeight;
-            }
-            
-            const curveOffset = distanceFromCenter * distanceFromCenter * globalCurvatureFactor;
-            
-            positions.setZ(i, height - curveOffset);
-        }
-        
-        planeGeo.computeVertexNormals();
-        return planeGeo;
-    }, []);
+    gl_FragColor = vec4(color, 1.0);
+  }
+`;
 
-    const handleClick = (e: ThreeEvent<MouseEvent>) => {
-        e.stopPropagation();
-        onDeselect();
-    };
+export const ProceduralTerrain: React.FC = () => {
+  const meshRef = useRef<THREE.Mesh>(null!);
 
-    return (
-        <group position={[0, -5.5, 0]}>
-            <mesh
-                rotation={[-Math.PI / 2, 0, 0]}
-                onClick={handleClick}
-                receiveShadow
-                geometry={geometry}
-            >
-                <meshStandardMaterial
-                    map={terrainTexture}
-                    normalMap={terrainTexture} 
-                    normalScale={new THREE.Vector2(1.0, 1.0)}
-                    displacementMap={terrainTexture}
-                    displacementScale={0.4}
-                    aoMap={terrainTexture}
-                    aoMapIntensity={0.5}
-                    metalness={0.2}
-                    roughness={0.8}
-                />
-            </mesh>
-        </group>
-    );
-});
+  const geometry = useMemo(() => {
+    const planeSize = 300;
+    const segments = 100;
+    const geom = new THREE.PlaneGeometry(planeSize, planeSize, segments, segments);
+    const pos = geom.attributes.position;
 
-useTexture.preload(TERRAIN_TEXTURE_URL);
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i);
+      const y = pos.getY(i);
+      
+      const noise1 = noise2D(x * 0.01, y * 0.01) * 3; // Large scale features
+      const noise2 = noise2D(x * 0.05, y * 0.05) * 1; // Medium scale features
+      const noise3 = noise2D(x * 0.2, y * 0.2) * 0.2; // Small details
+      
+      const height = noise1 + noise2 + noise3;
+      pos.setZ(i, height - 5); // Center the terrain lower
+    }
+
+    geom.computeVertexNormals();
+    return geom;
+  }, []);
+
+  const uniforms = useMemo(() => ({
+    time: { value: 0 },
+  }), []);
+
+  useFrame(({ clock }) => {
+    uniforms.time.value = clock.getElapsedTime();
+  });
+
+  return (
+    <mesh ref={meshRef} geometry={geometry} rotation-x={-Math.PI / 2} receiveShadow>
+      <shaderMaterial
+        uniforms={uniforms}
+        vertexShader={terrainVertexShader}
+        fragmentShader={terrainFragmentShader}
+        wireframe={false}
+      />
+    </mesh>
+  );
+};
