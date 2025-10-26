@@ -249,6 +249,15 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '15px',
     zIndex: 100,
   },
+  bottomRightContainer: {
+    position: 'fixed',
+    bottom: '20px',
+    right: '20px',
+    display: 'flex',
+    alignItems: 'flex-end',
+    gap: '15px',
+    zIndex: 100,
+  },
   bottomCenterContainer: {
     position: 'fixed',
     bottom: '20px',
@@ -300,8 +309,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     pointerEvents: 'none',
   },
   dangerButton: {
-    borderColor: '#ff6347',
-    color: '#ff6347',
+    borderColor: '#ff9900',
+    color: '#ff9900',
   },
   virtualControlsContainer: {
     position: 'fixed',
@@ -396,6 +405,11 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
         .hud-button.active, .hud-button:active {
             transform: scale(0.95);
         }
+        .hud-button.danger-button:hover {
+            background-color: rgba(255, 153, 0, 0.2);
+            border-color: #ff9900;
+            color: #ff9900;
+        }
       `}</style>
       
       <div style={styles.breadcrumbContainer} className="breadcrumb-container">
@@ -449,22 +463,41 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
               </span>
           </div>
 
-          {pov === 'ship' && (
+          {pov === 'ship' && shipControlMode === 'follow' && (
             <div style={styles.buttonWrapper}>
                 <button
                     onClick={onToggleShipControl}
                     style={styles.hudButton}
                     className="hud-button"
-                    aria-label={shipControlMode === 'follow' ? 'Take Manual Control' : 'Engage Autopilot'}
+                    aria-label="Take Manual Control"
                 >
-                    {shipControlMode === 'follow' ? <PilotIcon /> : <AutopilotIcon />}
+                    <PilotIcon />
                 </button>
                 <span style={{...styles.buttonLabel, color: '#fff'}}>
-                    {shipControlMode === 'follow' ? 'Manual' : 'Autopilot'}
+                    Manual
                 </span>
             </div>
           )}
       </div>
+
+      {pov === 'ship' && shipControlMode === 'manual' && (
+        <div style={styles.bottomRightContainer}>
+            <div style={styles.buttonWrapper}>
+                <button
+                    onClick={onToggleShipControl}
+                    style={{...styles.hudButton, ...styles.dangerButton}}
+                    className="hud-button danger-button"
+                    aria-label="Engage Autopilot"
+                >
+                    <AutopilotIcon />
+                </button>
+                <span style={{...styles.buttonLabel, color: '#ff9900'}}>
+                    Exit Pilot
+                </span>
+            </div>
+        </div>
+      )}
+
 
       {!isTouchDevice && <ControlHints isManual={isManualMode} />}
       {isTouchDevice && isManualMode && <VirtualControls onInputChange={onShipTouchInputChange} />}
