@@ -1,8 +1,8 @@
-// FIX: Remove the triple-slash directive for @react-three/fiber types.
 
 import React, { useLayoutEffect, useMemo, useRef } from 'react';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
+import { useFrame } from '@react-three/fiber';
 
 export const CityModel: React.FC = React.memo(() => {
   const { scene } = useGLTF('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/cyberpunk_city.glb');
@@ -19,10 +19,9 @@ export const CityModel: React.FC = React.memo(() => {
         if (child.material instanceof THREE.MeshStandardMaterial) {
           child.material.metalness = 0.7;
           child.material.roughness = 0.4;
-          // Aktifkan emisi pada material tertentu untuk cahaya kota
+          // Enable emission on specific materials for city lights
           if (child.material.name.includes('light') || child.material.name.includes('emissive')) {
             child.material.emissive = child.material.color;
-            child.material.emissiveIntensity = 2;
             materials.push(child.material);
           }
         }
@@ -31,8 +30,16 @@ export const CityModel: React.FC = React.memo(() => {
     emissiveMaterials.current = materials;
   }, [clonedScene]);
   
+  // Animate the pulse of the city lights
+  useFrame(({ clock }) => {
+    const pulse = Math.sin(clock.getElapsedTime() * 2) * 0.5 + 1.5; // Creates a value that oscillates between 1 and 2
+    emissiveMaterials.current.forEach(material => {
+      material.emissiveIntensity = pulse;
+    });
+  });
+
   return <primitive object={clonedScene} position={[0, -5, 0]} scale={15} />;
 });
 
-// Preload model untuk memastikan tersedia saat dibutuhkan
+// Preload model to ensure it's available when needed
 useGLTF.preload('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/cyberpunk_city.glb');

@@ -1,5 +1,3 @@
-
-
 import React, { useState, useCallback, useRef } from 'react';
 import type { CityDistrict, SkillCategory } from '../../types';
 import { SkillsRadarChart } from './SkillsRadarChart';

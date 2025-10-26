@@ -1,6 +1,5 @@
 import React from 'react';
 import type { CityDistrict } from '../../types';
-import DistrictBuilding from './DistrictBuilding';
 import HolographicDistrictLabel from './HolographicDistrictLabel';
 import { HolographicProjector } from './HolographicProjector';
 import { InteractiveModel } from './InteractiveModel';
@@ -68,17 +67,8 @@ export const DistrictRenderer: React.FC<DistrictRendererProps> = ({
             </group>
           );
         }
-
-        // Render generic buildings for minor/ambient districts
-        return (
-          <DistrictBuilding
-            key={district.id}
-            district={district}
-            onSelect={undefined} // Minor buildings aren't selectable
-            isUnlocked={true}
-            isSelected={false}
-          />
-        );
+        // Minor districts are not rendered in this version to simplify the scene
+        return null;
       })}
     </group>
   );

@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, Suspense, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { useProgress } from '@react-three/drei';
@@ -13,7 +14,7 @@ const LoadingManager: React.FC<{ onProgress: (p: number) => void, onLoaded: () =
   
   useEffect(() => {
     onProgress(progress);
-    if (!active) {
+    if (!active && progress === 100) {
       // Use a small timeout to ensure the final 100% is visible and transition is smooth
       setTimeout(onLoaded, 300);
     }
@@ -28,8 +29,11 @@ const App: React.FC = () => {
   const [progress, setProgress] = useState(0);
 
   const handleAssetsLoaded = useCallback(() => {
-    setAppState('start');
-  }, []);
+    // This check prevents the state from being set to 'start' prematurely
+    if (progress >= 100) {
+        setAppState('start');
+    }
+  }, [progress]);
   
   const handleStart = useCallback(() => {
     setAppState('entering');
@@ -77,13 +81,9 @@ const App: React.FC = () => {
           transition: 'opacity 1.5s ease-in-out',
         }}>
         <Canvas>
-          <Suspense fallback={null}>
+          <Suspense fallback={<LoadingManager onProgress={setProgress} onLoaded={handleAssetsLoaded} />}>
             <Experience3D />
           </Suspense>
-          {/* This component hooks into the loader and reports progress back up to the App */}
-          {appState === 'loading' && (
-            <LoadingManager onProgress={setProgress} onLoaded={handleAssetsLoaded} />
-          )}
         </Canvas>
       </main>
       

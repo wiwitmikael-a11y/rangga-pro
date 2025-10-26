@@ -124,6 +124,12 @@ export const QuickNavMenu: React.FC<QuickNavMenuProps> = ({ isOpen, onClose, onS
           0% { background-position: 0 0; }
           100% { background-position: 56.5px 0; }
         }
+        .nav-button:hover {
+          transform: translateY(-3px);
+          border-left-color: var(--primary-color) !important;
+          box-shadow: 0 5px 15px rgba(0, 225, 255, 0.2);
+          background: rgba(0, 100, 150, 0.4);
+        }
       `}</style>
       <div style={overlayStyle} onClick={handleClose} />
       <div style={containerStyle} className={`quick-nav-container ${isOpen ? 'panel-enter' : ''}`}>

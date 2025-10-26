@@ -1,5 +1,5 @@
+
 import React, { useState, useCallback, Suspense, useMemo, useRef, useEffect } from 'react';
-import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Sky } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
@@ -29,7 +29,6 @@ import { OracleModal } from './ui/OracleModal';
 // Define the sun's position for a sunset glow near the horizon
 const sunPosition: [number, number, number] = [100, 2, -100]; // Lower sun for a more dramatic sunset
 const sunColor = '#ffd0b3'; // Warmer light
-const INITIAL_CAMERA_POSITION: [number, number, number] = [0, 100, 250];
 
 const Experience3D: React.FC = () => {
   const [districts, setDistricts] = useState<CityDistrict[]>(portfolioData);
@@ -281,14 +280,6 @@ const Experience3D: React.FC = () => {
 
   return (
     <>
-      <Canvas
-        camera={{ position: INITIAL_CAMERA_POSITION, fov: 50, near: 0.5, far: 1000 }}
-        gl={{ antialias: true, powerPreference: 'high-performance' }}
-        shadows
-        onPointerDown={handleInteractionStart}
-        onPointerUp={handleInteractionEnd}
-        onWheel={handleInteractionStart}
-      >
         <Suspense fallback={null}>
           <Sky sunPosition={sunPosition} />
           <ambientLight intensity={0.2} color={sunColor} />
@@ -371,7 +362,6 @@ const Experience3D: React.FC = () => {
           )}
 
         </Suspense>
-      </Canvas>
       
       {/* --- Overlays --- */}
       {!isGameActive && (

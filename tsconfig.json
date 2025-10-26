@@ -28,9 +28,5 @@
     }
   },
   "include": ["src"],
-  "exclude": [
-    "src/CameraRig.tsx",
-    "src/vite.config.ts"
-  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

@@ -80,6 +80,8 @@ export const LoaderUI: React.FC<LoaderUIProps> = ({ progress }) => {
         }
     }, [progress]);
 
+    if (!isVisible) return null;
+
     return (
         <div style={{...styles.container, opacity: isVisible ? 1 : 0}}>
             <div style={styles.inner}>

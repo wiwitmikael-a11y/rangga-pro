@@ -5,15 +5,15 @@ import { fileURLToPath } from 'url'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: './', // Pastikan path aset relatif untuk build yang benar.
+  base: './', // Ensure relative asset paths for correct builds.
   plugins: [react()],
   resolve: {
     alias: {
-      // __dirname tidak tersedia di ES Modules, gunakan import.meta.url sebagai gantinya.
+      // FIX: `__dirname` is not available in ES modules. Use `import.meta.url` to get the current directory path.
       '@': path.resolve(path.dirname(fileURLToPath(import.meta.url)), './src'),
     },
   },
   build: {
-    chunkSizeWarningLimit: 1000, // Tingkatkan batas peringatan ukuran chunk untuk scene 3D
+    chunkSizeWarningLimit: 1000, // Increase chunk size warning limit for 3D scenes
   },
 })
