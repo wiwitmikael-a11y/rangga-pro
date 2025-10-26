@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import type { CityDistrict, PortfolioSubItem, SkillCategory } from '../../types';
 import { skillsData, professionalSummary } from '../../constants';
 import { SkillsRadarChart } from './SkillsRadarChart';
@@ -37,7 +37,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     flexDirection: 'column',
     boxShadow: '0 0 40px rgba(0, 170, 255, 0.3)',
     userSelect: 'auto',
-    overflowY: 'auto',
+    overflow: 'hidden', // Prevent main panel from scrolling
   },
   header: {
     display: 'flex',
@@ -71,31 +71,42 @@ const styles: { [key: string]: React.CSSProperties } = {
   content: {
     flexGrow: 1,
     padding: '20px 0',
-    overflowY: 'auto',
+    overflow: 'hidden', // Let inner content handle scrolling
+    display: 'flex',
+    flexDirection: 'column',
   },
 };
 
 const CompetencyCoreContent: React.FC = () => {
-    const [activeCategory, setActiveCategory] = useState<SkillCategory | null>(skillsData[0]);
-    const [selectedCategory, setSelectedCategory] = useState<SkillCategory>(skillsData[0]);
+    const [hoveredCategory, setHoveredCategory] = useState<SkillCategory | null>(null);
+    const [clickedCategory, setClickedCategory] = useState<SkillCategory | null>(null);
 
-    const displayCategory = activeCategory || selectedCategory;
+    const activeCategory = hoveredCategory || clickedCategory || skillsData[0];
+
+    const handleClick = useCallback((category: SkillCategory) => {
+        // If the same category is clicked again, deselect it. Otherwise, select the new one.
+        setClickedCategory(prev => (prev?.category === category.category ? null : category));
+    }, []);
+
+    const handleOutsideClick = useCallback(() => {
+        setClickedCategory(null);
+    }, []);
 
     return (
-        <div className="competency-core-content">
-            <div className="left-panel">
+        <div className="competency-layout" onClick={handleOutsideClick}>
+            <div className="chart-container">
                 <SkillsRadarChart 
                     skills={skillsData} 
                     activeCategory={activeCategory}
-                    onCategoryHover={setActiveCategory}
-                    onCategoryClick={setSelectedCategory}
+                    onCategoryHover={setHoveredCategory}
+                    onCategoryClick={handleClick}
                 />
             </div>
-            <div className="right-panel">
-                <h3 className="category-title">{displayCategory.category}</h3>
-                <p className="category-description">{displayCategory.description}</p>
+            <div className="analysis-panel">
+                <h3 className="category-title">{activeCategory.category}</h3>
+                <p className="category-description">{activeCategory.description}</p>
                 <ul className="key-metrics-list">
-                    {displayCategory.keyMetrics.map(metric => <li key={metric}>{metric}</li>)}
+                    {activeCategory.keyMetrics.map(metric => <li key={metric}>{metric}</li>)}
                 </ul>
                 <div className="summary-box">
                     <h4>PROFESSIONAL SYNOPSIS</h4>
@@ -106,35 +117,144 @@ const CompetencyCoreContent: React.FC = () => {
     );
 };
 
-const ContactContent: React.FC = () => (
-    <div className="contact-content">
-        <h2>ESTABLISH CONNECTION</h2>
-        <p>Open for collaborations, strategic consulting, and challenging engineering roles.</p>
-        <div className="contact-links">
-            <a href="mailto:ranggaputrah@gmail.com" className="contact-button">Email</a>
-            <a href="https://linkedin.com/in/rangga-putra-hardianto" target="_blank" rel="noopener noreferrer" className="contact-button">LinkedIn</a>
-            <a href="https://github.com/wiwitmikael-a11y" target="_blank" rel="noopener noreferrer" className="contact-button">GitHub</a>
-            <a href="https://instagram.com/rangga.p.h" target="_blank" rel="noopener noreferrer" className="contact-button">Instagram</a>
+const ContactContent: React.FC = () => {
+    const [formState, setFormState] = useState({ name: '', email: '', subject: 'collaboration', message: '' });
+    const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+    const [progress, setProgress] = useState(0);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        setFormState({ ...formState, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setStatus('sending');
+        setProgress(0);
+        
+        const interval = setInterval(() => {
+            setProgress(prev => Math.min(prev + 10, 100));
+        }, 150);
+
+        setTimeout(() => {
+            clearInterval(interval);
+            // Simulate API response
+            if (formState.name && formState.email && formState.message) {
+                setStatus('success');
+            } else {
+                setStatus('error');
+            }
+            setTimeout(() => setStatus('idle'), 4000);
+        }, 1500);
+    };
+
+    const statusMessages = {
+        success: 'CONNECTION ESTABLISHED. Await response protocol.',
+        error: 'TRANSMISSION FAILED. Check input fields and retry.',
+        sending: `SENDING... [${'='.repeat(progress / 10)}>${' '.repeat(10 - progress / 10)}]`,
+    };
+
+    return (
+        <div className="contact-hub-modal">
+            <div className="contact-grid">
+                <div className="contact-links-panel">
+                    <h2>CONNECTION PROTOCOLS</h2>
+                    <p>Open for collaborations, strategic consulting, and challenging engineering roles.</p>
+                    <div className="contact-links">
+                        <a href="mailto:ranggaputrah@gmail.com" className="contact-button">Email</a>
+                        <a href="https://linkedin.com/in/rangga-putra-hardianto" target="_blank" rel="noopener noreferrer" className="contact-button">LinkedIn</a>
+                        <a href="https://github.com/wiwitmikael-a11y" target="_blank" rel="noopener noreferrer" className="contact-button">GitHub</a>
+                        <a href="https://calendly.com/ranggaputrah" target="_blank" rel="noopener noreferrer" className="contact-button">Schedule a Meeting</a>
+                    </div>
+                </div>
+                <div className="form-panel">
+                    <h2>DIRECT TRANSMISSION</h2>
+                    <form onSubmit={handleSubmit} noValidate>
+                        <div className="input-group">
+                            <input type="text" id="name" name="name" className="form-input" placeholder=" " value={formState.name} onChange={handleChange} required />
+                            <label htmlFor="name" className="form-label">Name / Alias</label>
+                        </div>
+                        <div className="input-group">
+                            <input type="email" id="email" name="email" className="form-input" placeholder=" " value={formState.email} onChange={handleChange} required />
+                            <label htmlFor="email" className="form-label">Return Address (Email)</label>
+                        </div>
+                        <div className="input-group">
+                            <select id="subject" name="subject" className="form-input" value={formState.subject} onChange={handleChange}>
+                                <option value="collaboration">Collaboration Inquiry</option>
+                                <option value="consulting">Strategic Consulting</option>
+                                <option value="employment">Employment Opportunity</option>
+                                <option value="other">General Message</option>
+                            </select>
+                            <label htmlFor="subject" className="form-label">Subject</label>
+                        </div>
+                        <div className="input-group">
+                            <textarea id="message" name="message" rows={4} className="form-input" placeholder=" " value={formState.message} onChange={handleChange} required></textarea>
+                            <label htmlFor="message" className="form-label">Message</label>
+                        </div>
+                        <div className="form-footer">
+                           <div className={`status-message status-${status}`}>
+                                {status !== 'idle' && (statusMessages[status] || '')}
+                           </div>
+                           <button type="submit" className="submit-button" disabled={status === 'sending'}>
+                                {status === 'sending' ? 'TRANSMITTING...' : 'SEND MESSAGE'}
+                           </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
-const ProjectCard: React.FC<{item: PortfolioSubItem, onClick: () => void}> = ({ item, onClick }) => (
-    <div className="project-card" onClick={onClick}>
-        <img src={item.imageUrl} alt={item.title} className="project-image" />
-        <div className="project-info">
-            <h4>{item.title}</h4>
-            <p>{item.description}</p>
+const ProjectCarouselContent: React.FC<{ district: CityDistrict; onCardClick: (item: PortfolioSubItem) => void }> = ({ district, onCardClick }) => {
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const items = district.subItems || [];
+
+    const goToNext = useCallback(() => {
+        setCurrentIndex(prev => (prev + 1) % items.length);
+    }, [items.length]);
+
+    const goToPrev = useCallback(() => {
+        setCurrentIndex(prev => (prev - 1 + items.length) % items.length);
+    }, [items.length]);
+    
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'ArrowRight') goToNext();
+            if (e.key === 'ArrowLeft') goToPrev();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [goToNext, goToPrev]);
+
+    if (!items.length) return <p>No projects in this district.</p>;
+
+    return (
+        <div className="carousel-container">
+            <div className="carousel-viewport">
+                <div 
+                    className="carousel-track" 
+                    style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+                >
+                    {items.map((item, index) => (
+                        <div 
+                            key={item.id} 
+                            className={`carousel-card ${index === currentIndex ? 'active' : ''}`}
+                            onClick={() => index === currentIndex && onCardClick(item)}
+                        >
+                            <img src={item.imageUrl} alt={item.title} className="carousel-image" />
+                            <div className="carousel-info">
+                                <h4>{item.title}</h4>
+                                <p>{item.description}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+            <button onClick={goToPrev} className="carousel-nav-button prev" aria-label="Previous Project">&lt;</button>
+            <button onClick={goToNext} className="carousel-nav-button next" aria-label="Next Project">&gt;</button>
         </div>
-    </div>
-);
-
-const ProjectGridContent: React.FC<{district: CityDistrict, onCardClick: (item: PortfolioSubItem) => void}> = ({ district, onCardClick }) => (
-    <div className="project-grid">
-        {district.subItems?.map(item => <ProjectCard key={item.id} item={item} onClick={() => onCardClick(item)} />)}
-    </div>
-);
-
+    );
+};
 
 export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ isOpen, district, onClose, onProjectSelect }) => {
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
@@ -176,7 +296,7 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
         case 'contact':
             return <ContactContent />;
         default:
-            return <ProjectGridContent district={district} onCardClick={handleProjectClick} />;
+            return <ProjectCarouselContent district={district} onCardClick={handleProjectClick} />;
     }
   };
 
