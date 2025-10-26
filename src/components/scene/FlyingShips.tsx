@@ -1,5 +1,5 @@
 import React, { useRef, useMemo, useState, useEffect } from 'react';
-import { useGLTF } from '@drei';
+import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -57,7 +57,6 @@ const Ship: React.FC<{ curve: THREE.CatmullRomCurve3 }> = ({ curve }) => {
 
         // Make the ship look ahead along the curve's tangent
         const tangent = curve.getTangentAt(t).normalize();
-        const up = new THREE.Vector3(0, 1, 0);
         const quaternion = new THREE.Quaternion();
         quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), tangent);
         shipRef.current.quaternion.slerp(quaternion, delta * 2); // Use slerp for smoother rotation
