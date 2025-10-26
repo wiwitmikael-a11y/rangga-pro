@@ -26,7 +26,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     position: 'fixed',
     top: '50%',
     left: '50%',
-    transform: 'translate(-50%, -50%)',
     width: '90%',
     maxWidth: '700px',
     maxHeight: '80vh',
@@ -37,7 +36,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     flexDirection: 'column',
     boxShadow: '0 0 40px rgba(0, 170, 255, 0.3)',
-    userSelect: 'auto',
+    userSelect: 'auto', // Enable text selection within this panel
     transition: 'opacity 0.3s ease, transform 0.3s ease',
   },
   dangerStripes: { position: 'absolute', top: '0', left: '0', width: '100%', height: '10px', background: 'repeating-linear-gradient(45deg, #ff9900, #ff9900 20px, #000000 20px, #000000 40px)', animation: 'stripe-scroll 1s linear infinite', borderBottom: '2px solid #ff9900', borderTopLeftRadius: '15px', borderTopRightRadius: '15px' },
@@ -107,12 +106,12 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
 };
 
-export const ExportLayoutModal: React.FC<ExportLayoutModalProps> = React.memo(({ isOpen, onClose, jsonData }) => {
+export const ExportLayoutModal: React.FC<ExportLayoutModalProps> = ({ isOpen, onClose, jsonData }) => {
     const [copyButtonText, setCopyButtonText] = useState('Copy to Clipboard');
 
     useEffect(() => {
         if (isOpen) {
-            setCopyButtonText('Copy to Clipboard');
+            setCopyButtonText('Copy to Clipboard'); // Reset button text when modal opens
         }
     }, [isOpen]);
 
@@ -126,8 +125,21 @@ export const ExportLayoutModal: React.FC<ExportLayoutModalProps> = React.memo(({
         });
     };
     
-    if (!isOpen) return null;
+    const containerStyle: React.CSSProperties = {
+      ...styles.container,
+      opacity: isOpen ? 1 : 0,
+      transform: isOpen ? 'translate(-50%, -50%) scale(1)' : 'translate(-50%, -50%) scale(0.95)',
+      pointerEvents: isOpen ? 'auto' : 'none',
+    };
 
+    const overlayStyle: React.CSSProperties = {
+      ...styles.overlay,
+      opacity: isOpen ? 1 : 0,
+      pointerEvents: isOpen ? 'auto' : 'none',
+    };
+
+    // The component is always rendered, but its visibility is controlled by styles,
+    // allowing for enter and exit animations.
     return (
       <>
         <style>{`
@@ -136,11 +148,11 @@ export const ExportLayoutModal: React.FC<ExportLayoutModalProps> = React.memo(({
             100% { background-position: 56.5px 0; }
           }
         `}</style>
-        <div style={styles.overlay} onClick={onClose} />
+        <div style={overlayStyle} onClick={onClose} />
         <div 
-          style={styles.container} 
+          style={containerStyle} 
           className={`export-layout-modal responsive-modal ${isOpen ? 'panel-enter' : ''}`}
-          onContextMenu={(e) => e.stopPropagation()}
+          onContextMenu={(e) => e.stopPropagation()} // Allow right-click menu
         >
           <div style={styles.dangerStripes} />
           <div style={styles.header}>
@@ -161,4 +173,4 @@ export const ExportLayoutModal: React.FC<ExportLayoutModalProps> = React.memo(({
         </div>
       </>
     );
-});
+};

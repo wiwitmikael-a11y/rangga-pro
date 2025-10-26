@@ -1,161 +1,48 @@
-import React, { useState, useCallback, Suspense, useEffect, useMemo, useRef } from 'react';
-import { Canvas } from '@react-three/fiber';
+import React, { useState, Suspense, useCallback, useEffect } from 'react';
 import { useProgress } from '@react-three/drei';
-import * as THREE from 'three';
-
-import Experience3D from './components/Experience3D';
+import { Experience3D } from './components/Experience3D';
+import { Loader } from './components/ui/Loader';
 import { StartScreen } from './components/ui/StartScreen';
-import { LoaderUI } from './components/ui/Loader';
-import { UIController } from './components/ui/UIController';
-import { useAppState } from './hooks/useAppState';
-import { useBuildMode } from './hooks/useBuildMode';
-import { useGameManager } from './hooks/useGameManager';
-
-// Helper component to bridge the progress from inside the Canvas to the App state
-const LoadingManager: React.FC<{ onProgress: (p: number) => void, onLoaded: () => void }> = ({ onProgress, onLoaded }) => {
-  const { active, progress } = useProgress();
-  
-  useEffect(() => {
-    onProgress(progress);
-    if (!active && progress === 100) {
-      setTimeout(onLoaded, 300); // Smooth transition
-    }
-  }, [active, progress, onProgress, onLoaded]);
-
-  return null;
-};
 
 const App: React.FC = () => {
-  const [appStatus, setAppStatus] = useState<'loading' | 'start' | 'entering' | 'experience'>('loading');
-  const [progress, setProgress] = useState(0);
-  
-  const shipRefs = useRef<React.RefObject<THREE.Group>[]>([]);
-  const hasShownHintsInitially = !!sessionStorage.getItem('hasShownHints');
+  const { progress } = useProgress();
+  const [appState, setAppState] = useState<'loading' | 'start' | 'entering' | 'experience'>('loading');
 
-  // Centralized state for the Oracle's position to eliminate race conditions
-  const [oraclePosition, setOraclePosition] = useState(new THREE.Vector3(0, 35, 0));
-  const handleOraclePositionUpdate = useCallback((position: THREE.Vector3) => {
-      setOraclePosition(position);
-  }, []);
+  const isLoaded = progress >= 100;
 
-  // All state management logic is now centralized here
-  const {
-    appState,
-    handleDistrictSelect,
-    handleGoHome,
-    handleAnimationFinish,
-    handleInteractionStart,
-    handleInteractionEnd,
-    handleAccessOracleChat,
-    setPov,
-    handleSetShipRefs,
-  } = useAppState(shipRefs, hasShownHintsInitially);
+  useEffect(() => {
+    if (appState === 'loading' && isLoaded) {
+      setAppState('start');
+    }
+  }, [appState, isLoaded]);
 
-  const {
-    buildState,
-    handleToggleCalibrationMode,
-    handleSetHeldDistrict,
-    handlePlaceDistrict,
-    handleCancelMove,
-    handleExportLayout,
-    setDistricts,
-    setIsExportModalOpen,
-  } = useBuildMode(handleGoHome, handleInteractionEnd);
-
-  const {
-    gameState,
-    handleLaunchGame,
-    handleExitGame,
-  } = useGameManager(handleGoHome);
-
-  const navDistricts = useMemo(() => {
-    const majorDistricts = buildState.districts.filter(d => d.type === 'major');
-    const nexusCore = majorDistricts.find(d => d.id === 'nexus-core');
-    return nexusCore
-      ? [nexusCore, ...majorDistricts.filter(d => d.id !== 'nexus-core')]
-      : majorDistricts;
-  }, [buildState.districts]);
-
-
-  const handleAssetsLoaded = useCallback(() => {
-    setAppStatus('start');
-  }, []);
-  
   const handleStart = useCallback(() => {
-    setAppStatus('entering');
+    setAppState('entering');
+    // Unmount StartScreen setelah transisi fade-out selesai
     setTimeout(() => {
-      setAppStatus('experience');
-    }, 1500); // Matches hydraulic gate animation
+      setAppState('experience');
+    }, 1000);
   }, []);
 
-  const showStartScreen = appStatus === 'start' || appStatus === 'entering';
-  const isExperienceVisible = appStatus === 'experience';
+  const showStartScreen = appState === 'start' || appState === 'entering';
+  const showExperience = appState === 'entering' || appState === 'experience';
 
   return (
     <>
-      {appStatus === 'loading' && <LoaderUI progress={Math.round(progress)} />}
+      <main style={{ width: '100vw', height: '100vh', backgroundColor: '#050810' }}>
+        <Suspense fallback={null}>
+          {showExperience && <Experience3D />}
+        </Suspense>
+      </main>
+
+      {appState === 'loading' && <Loader progress={progress} />}
 
       {showStartScreen && (
         <StartScreen
           onStart={handleStart}
-          isExiting={appStatus === 'entering'}
+          isExiting={appState === 'entering'}
         />
       )}
-      
-      <main style={{
-          position: 'fixed',
-          inset: 0,
-          opacity: isExperienceVisible ? 1 : 0,
-          pointerEvents: isExperienceVisible ? 'auto' : 'none',
-          transition: 'opacity 1.5s ease-in-out',
-        }}>
-        <Canvas
-            frameloop="demand"
-            shadows
-        >
-          <Suspense fallback={<LoadingManager onProgress={setProgress} onLoaded={handleAssetsLoaded} />}>
-            <Experience3D 
-              appState={appState}
-              buildState={buildState}
-              gameState={gameState}
-              oraclePosition={oraclePosition} // Pass stable position state down
-              handlers={{
-                setDistricts,
-                handleDistrictSelect,
-                handleGoHome,
-                handleAnimationFinish,
-                handleInteractionStart,
-                handleInteractionEnd,
-                handleAccessOracleChat,
-                handleSetShipRefs,
-                handleSetHeldDistrict,
-                handlePlaceDistrict,
-                handleExitGame,
-                onOraclePositionUpdate: handleOraclePositionUpdate, // Pass updater down
-              }}
-            />
-          </Suspense>
-        </Canvas>
-        
-        {/* UI CONTROLLER IS NOW A SIBLING TO CANVAS, NOT A CHILD */}
-        <UIController
-            appState={appState}
-            buildState={buildState}
-            gameState={gameState}
-            navDistricts={navDistricts}
-            handlers={{
-              onDistrictSelect: handleDistrictSelect,
-              onGoHome: handleGoHome,
-              onSetPov: setPov,
-              onToggleCalibrationMode: handleToggleCalibrationMode,
-              onExportLayout: handleExportLayout,
-              onCancelMove: handleCancelMove,
-              onLaunchGame: handleLaunchGame,
-              onExitGame: handleExitGame,
-              onCloseExportModal: () => setIsExportModalOpen(false),
-            }}
-          />
-      </main>
     </>
   );
 };

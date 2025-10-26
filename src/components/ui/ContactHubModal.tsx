@@ -60,12 +60,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     formPanel: { padding: '25px', background: 'rgba(8, 20, 42, 0.8)' },
     panelTitle: { color: '#fff', marginTop: 0, marginBottom: '10px', fontSize: '1.2rem', textTransform: 'uppercase', letterSpacing: '0.05em' },
     panelDescription: { color: '#aaa', marginTop: 0, marginBottom: '25px', fontSize: '0.9rem', lineHeight: 1.5 },
-    linkButton: { ...glassmorphism, display: 'flex', alignItems: 'center', gap: '15px', padding: '12px 15px', color: '#cceeff', textDecoration: 'none', borderRadius: '5px', marginBottom: '10px', transition: 'all 0.3s ease', borderLeft: '3px solid transparent', width: '100%' },
+    linkButton: { ...glassmorphism, display: 'flex', alignItems: 'center', gap: '15px', padding: '12px 15px', color: '#cceeff', textDecoration: 'none', borderRadius: '5px', marginBottom: '10px', transition: 'all 0.3s ease', borderLeft: '3px solid transparent' },
     submitButton: { width: '100%', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', padding: '12px', fontSize: '1rem', fontFamily: 'inherit', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', transition: 'all 0.3s ease', textShadow: '0 0 5px var(--primary-color)', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '5px' },
     statusConsole: { marginTop: '15px', padding: '8px 12px', background: 'rgba(0,0,0,0.5)', borderRadius: '4px', border: '1px solid #333', color: '#888', fontFamily: 'monospace', fontSize: '0.8rem', textAlign: 'center', transition: 'all 0.3s ease' },
 };
 
-export const ContactHubModal: React.FC<ContactHubModalProps> = React.memo(({ isOpen, onClose }) => {
+export const ContactHubModal: React.FC<ContactHubModalProps> = ({ isOpen, onClose }) => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [inquiry, setInquiry] = useState('Project Proposal / Collaboration');
@@ -92,8 +92,19 @@ export const ContactHubModal: React.FC<ContactHubModalProps> = React.memo(({ isO
             }, 3000);
         }, 1500);
     };
-    
-    if (!isOpen) return null;
+
+    const containerStyle: React.CSSProperties = {
+      ...styles.container,
+      opacity: isOpen ? 1 : 0,
+      transform: isOpen ? 'translate(-50%, -50%) scale(1)' : 'translate(-50%, -50%) scale(0.95)',
+      pointerEvents: isOpen ? 'auto' : 'none',
+    };
+
+    const overlayStyle: React.CSSProperties = {
+        ...styles.overlay,
+        opacity: isOpen ? 1 : 0,
+        pointerEvents: isOpen ? 'auto' : 'none',
+    };
 
     const getStatusInfo = () => {
         switch (status) {
@@ -133,8 +144,8 @@ export const ContactHubModal: React.FC<ContactHubModalProps> = React.memo(({ isO
                     background: rgba(0, 100, 150, 0.4);
                 }
             `}</style>
-            <div style={styles.overlay} onClick={onClose} />
-            <div style={styles.container} className={`contact-hub-modal responsive-modal ${isOpen ? 'panel-enter' : ''}`} onContextMenu={(e) => e.stopPropagation()}>
+            <div style={overlayStyle} onClick={onClose} />
+            <div style={containerStyle} className={`contact-hub-modal responsive-modal ${isOpen ? 'panel-enter' : ''}`} onContextMenu={(e) => e.stopPropagation()}>
                 <div style={styles.dangerStripes} />
                 <div style={styles.header}>
                     <h2 style={styles.title}>CONTACT HUB</h2>
@@ -195,4 +206,4 @@ export const ContactHubModal: React.FC<ContactHubModalProps> = React.memo(({ isO
             </div>
         </>
     );
-});
+};

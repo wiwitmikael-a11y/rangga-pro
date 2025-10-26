@@ -1,4 +1,4 @@
-import type { CityDistrict, SkillCategory, OracleGimmick } from './types';
+import type { CityDistrict, SkillCategory } from './types';
 
 // A high-level professional synopsis for the default view in the Competency Core.
 export const professionalSummary = `A rare hybrid professional with 15+ years of parallel experience in strategic leadership and deep technology. Proven ability to architect complex digital solutions, lead high-performance teams in the financial sector, and direct award-winning creative projects. A unique blend of an executive, an engineer, and a creative visionary.`;
@@ -39,8 +39,8 @@ export const skillsData: SkillCategory[] = [
     category: 'Blockchain',
     description: '5 years of deep engagement in the Web3 ecosystem. Expertise in on-chain data intelligence, DeFi protocol analysis, and secure smart contract development.',
     skills: [
-      { name: 'Smart Contracts (Solidity)', level: 85 },
       { name: 'On-Chain Intelligence', level: 90 },
+      { name: 'Smart Contracts (Solidity)', level: 85 },
       { name: 'Decentralized Applications', level: 88 },
     ],
     keyMetrics: ['5+ Years in Web3', 'DeFi Protocol Analyst', 'On-Chain Intelligence'],
@@ -49,77 +49,22 @@ export const skillsData: SkillCategory[] = [
     category: 'Creative Tech',
     description: 'Two decades of experience in visual technology. A master of the full creative pipeline, from award-winning videography and advanced 3D modeling to compelling brand-focused graphic design.',
     skills: [
-      { name: 'Creative/Art Direction', level: 90 },
+      { name: 'Graphic Design & Branding', level: 98 },
       { name: 'Videography & VFX', level: 95 },
       { name: '3D Modeling & Rendering', level: 85 },
     ],
-    keyMetrics: ['20 Years Creative Exp.', 'Advanced 3D Modeling', 'VFX & Post-Production'],
+    keyMetrics: ['20 Years Design Exp.', 'Advanced 3D Modeling', 'VFX & Post-Production'],
   },
-   {
+  {
     category: 'Arts & Media',
     description: 'A fusion of technical skill and pure creativity. An accomplished, nationally-awarded photographer and songwriter with a proven eye for powerful, narrative-driven visual and auditory storytelling.',
     skills: [
-      { name: 'Generative Music & Songwriting', level: 88 },
       { name: 'Photography (National Champion)', level: 95 },
+      { name: 'Creative/Art Direction', level: 90 },
       { name: 'Music Composition', level: 85 },
     ],
-    keyMetrics: ['National Photo Champion', 'AI Music Architect', 'Art Direction'],
+    keyMetrics: ['National Photo Champion', 'Published Songwriter', 'Art Direction'],
   },
-];
-
-export const curatedOracleQuestions: string[] = [
-    "What is your core philosophy?",
-    "Tell me about your background.",
-    "Show me your AI projects.",
-    "What makes you a unique candidate?",
-];
-
-export const oracleGimmicks: OracleGimmick[] = [
-    {
-        keywords: ["who are you", "tell me about yourself", "summary", "rangga prayoga hermawan", "rangga", "rangga prayoga", "@rangga.p.h", "background", "what is your core philosophy"],
-        answer: "Saya adalah seorang arsitek digital yang beroperasi dengan sebuah 'Fusionist Advantage'. Visi saya adalah membangun masa depan digital di mana teknologi tidak hanya canggih, tetapi juga bijaksana dan terhubung secara intrinsik dengan hasil bisnis yang nyata. Ini bukanlah filosofi teoretis; ini adalah hasil dari rekam jejak 15 tahun yang unik.",
-        followUpQuestions: ["Explain the 'Fusionist Advantage'.", "How does your 15 years in finance shape your tech approach?"]
-    },
-    {
-        keywords: ["fusionist advantage", "what makes you unique", "unique candidate", "strength", "strongest", "best skill", "kekuatan"],
-        answer: "Itu adalah kemampuan untuk mensintesis dua dunia yang jarang bertemu. [Dunia 1]: 15 tahun di garis depan sektor keuangan sebagai Kepala Unit BRI, mengelola P&L dan memahami 'ground-truth' tentang bagaimana pasar dan bisnis nyata beroperasi. [Dunia 2]: 15+ tahun secara paralel merancang dan membangun solusi teknologi yang kompleks. Keunggulan fusi ini memungkinkan saya untuk tidak hanya membangun apa yang 'mungkin' secara teknis, tetapi membangun apa yang 'penting' secara strategis.",
-        followUpQuestions: ["Give me a concrete example from your BRI experience.", "Show me an AI project built on this principle."]
-    },
-    {
-        keywords: ["bri", "bank", "financial", "leadership", "head of unit", "kepala unit", "concrete example"],
-        answer: "Di BRI, saya berevolusi menjadi Kepala Unit, di mana saya bertanggung jawab penuh atas P&L dan pertumbuhan pasar. [Situasi]: Saya berhadapan langsung dengan ribuan nasabah UMKM, petani, dan nelayan. Saya tidak membaca laporan tentang mereka; saya menganalisis risiko mereka, menyetujui pinjaman mereka, dan memahami tantangan mereka. [Hasil]: Wawasan mendalam tentang ekonomi riil ini adalah 'alpha' saya. Ini memastikan setiap baris kode yang saya tulis hari ini memiliki tujuan bisnis yang jelas dan berempati pada pengguna akhir.",
-        followUpQuestions: ["How do you apply that market insight to AI?", "What was your most significant innovation at BRI?"]
-    },
-    {
-        keywords: ["ai", "gemini", "agent", "machine learning", "airora", "desain.fun", "artificial intelligence", "ai projects"],
-        answer: "Saya menerapkan wawasan pasar saya untuk membangun AI yang praktis. [Produk Live]: Saya mendirikan `desain.fun`, platform yang menyediakan tools AI untuk UMKM Indonesia—pasar yang saya pahami secara mendalam—guna memberdayakan mereka dalam branding dan pengembangan bisnis. [R&D]: Saya juga memimpin riset untuk 'Project AIRORA', sebuah AI kustom yang fokus pada penalaran otonom. Ini bukan tentang AI demi AI; ini tentang membangun sistem cerdas yang memecahkan masalah nyata.",
-        followUpQuestions: ["Tell me about your full-spectrum creativity.", "What is the tech stack for this portfolio (Ragetopia)?"]
-    },
-    {
-        keywords: ["creative", "creativity", "art", "music", "songwriting", "photography", "award", "champion", "video", "live streaming", "innovation at bri"],
-        answer: "Kreativitas adalah benang merahnya. [Visual]: Saya adalah juara nasional fotografi 'BRIght On' dan kompetisi video, membuktikan kemampuan menghasilkan visual A-list. [Inovasi Teknis]: Saya merancang mekanisme live streaming broadcast-level untuk event nasional BRI. [Sintesis Tertinggi]: Saat ini, saya membangun proyek yang memadukan bakat sebagai penulis lagu dengan AI generatif musik. Tujuannya adalah menciptakan musik siap publish. Ini adalah bukti utama filosofi fusi saya: mengorkestrasi keahlian teknis (AI Engineering), kreativitas manusia (musik), dan produksi (visual 2D/3D) menjadi satu produk jadi.",
-        followUpQuestions: ["Explain your Web3 and blockchain expertise.", "Why should we hire you?"]
-    },
-    {
-        keywords: ["blockchain", "web3", "defi", "on-chain", "solana", "bsc"],
-        answer: "Keahlian Web3 saya bersifat praktis dan berorientasi pada arsitektur. Dengan pengalaman mendalam di ekosistem high-throughput seperti Solana dan EVM (BSC), saya telah berulang kali merancang dan men-deploy proyek token DeFi dan dApps. Ini mencakup seluruh siklus hidup: dari tokenomics dan arsitektur smart contract hingga strategi likuiditas pasca-peluncuran. Saya melihat blockchain sebagai lapisan infrastruktur baru untuk model bisnis yang transparan dan efisien.",
-        followUpQuestions: ["What was the biggest challenge in building Ragetopia?", "What is your vision for the future?"]
-    },
-    {
-        keywords: ["ragetopia", "portfolio", "tech stack", "three.js", "webgl", "how did you build this", "challenge"],
-        answer: "Ragetopia adalah demonstrasi live dari filosofi saya. Dibangun dengan React, TypeScript, dan Three.js (via React-Three-Fiber), ini adalah bukti keahlian dalam rendering real-time, optimisasi WebGL, dan desain UI/UX yang imersif. Tantangan terbesarnya adalah menyeimbangkan kompleksitas visual dengan performa yang lancar, sebuah metafora untuk pekerjaan saya: menyeimbangkan visi besar dengan eksekusi yang solid dan efisien.",
-        followUpQuestions: ["What is your vision for the future?", "Why should we hire you?"]
-    },
-     {
-        keywords: ["vision", "future", "goals"],
-        answer: "Visi saya adalah memimpin pengembangan antarmuka generasi berikutnya, di mana batas antara dunia digital dan fisik semakin kabur. Saya percaya masa depan interaksi manusia-komputer ada pada lingkungan 3D yang cerdas, personal, dan didukung oleh AI. Tujuan saya adalah berada di garis depan, merancang platform-platform ini dan menciptakan cara-cara baru bagi bisnis untuk terhubung dengan pelanggan mereka secara lebih mendalam.",
-        followUpQuestions: ["That's a bold vision. Why should we hire you to lead it?"]
-    },
-    {
-        keywords: ["hire you", "why you", "value"],
-        answer: "Karena saya adalah seorang 'force multiplier'. Anda tidak sekadar merekrut seorang engineer, pemimpin, atau direktur kreatif. Anda mengintegrasikan seorang mitra strategis yang dapat memahami tantangan bisnis Anda dari perspektif seorang eksekutif, merancang solusi teknis dari kacamata seorang arsitek, dan memastikan produk akhir memikat pasar dari intuisi seorang kreator. Saya menjembatani kesenjangan kritis antara dewan direksi, tim R&D, dan pengguna akhir. Saya mengubah visi menjadi nilai.",
-        followUpQuestions: [] // The final, powerful closing statement.
-    }
 ];
 
 
@@ -152,7 +97,7 @@ export const portfolioData: CityDistrict[] = [
   {
     "id": "aegis-command",
     "title": "Aegis Command",
-    "description": "Launch Threat Neutralization Mini-Game",
+    "description": "Launch Threat Neutralization Protocol",
     "position": [
       -50,
       -11,
@@ -173,17 +118,6 @@ export const portfolioData: CityDistrict[] = [
         -60
       ]
     }
-  },
-  {
-    "id": "oracle-ai",
-    "title": "Oracle AI",
-    "description": "Converse with the Gemini-powered City AI",
-    "position": [0, 35, 0], // This will be dynamically updated by the PatrollingCore
-    "type": "major",
-    "cameraFocus": {
-      pos: [0, 45, 60],
-      lookAt: [0, 35, 0],
-    },
   },
   {
     "id": "nova-forge",

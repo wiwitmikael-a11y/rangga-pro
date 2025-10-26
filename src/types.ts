@@ -41,15 +41,3 @@ export interface SkillCategory {
   skills: Skill[];
   keyMetrics: string[]; // Concrete achievements for the category
 }
-
-// --- New Types for Oracle AI Gimmick Engine ---
-export interface OracleGimmick {
-  keywords: string[];
-  answer: string;
-  followUpQuestions?: string[];
-}
-
-export interface OracleResponse {
-    answer: string;
-    followUpQuestions: string[];
-}

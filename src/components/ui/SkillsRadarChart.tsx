@@ -21,21 +21,6 @@ const CATEGORY_COLORS = [
   '#9370db', // Medium Purple - Arts
 ];
 
-const getLabelLines = (categoryName: string): string[] => {
-    const upperName = categoryName.toUpperCase();
-    if (upperName.length > 12) {
-      if (upperName.includes(' & ')) {
-        const parts = upperName.split(' & ');
-        return [parts[0] + ' &', parts[1]];
-      }
-      if (upperName.includes(' ')) {
-        const firstSpace = upperName.indexOf(' ');
-        return [upperName.substring(0, firstSpace), upperName.substring(firstSpace + 1)];
-      }
-    }
-    return [upperName];
-};
-
 export const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ skills, activeCategory, onCategoryHover }) => {
   const numAxes = skills.length;
 
@@ -55,8 +40,8 @@ export const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ skills, acti
     return {
       x2: CHART_CENTER + MAX_RADIUS * Math.cos(angle),
       y2: CHART_CENTER + MAX_RADIUS * Math.sin(angle),
-      labelX: CHART_CENTER + (MAX_RADIUS + 40) * Math.cos(angle),
-      labelY: CHART_CENTER + (MAX_RADIUS + 40) * Math.sin(angle),
+      labelX: CHART_CENTER + (MAX_RADIUS + 35) * Math.cos(angle),
+      labelY: CHART_CENTER + (MAX_RADIUS + 35) * Math.sin(angle),
     };
   });
 
@@ -123,10 +108,9 @@ export const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ skills, acti
             const category = skills[i];
             const color = CATEGORY_COLORS[i % CATEGORY_COLORS.length];
             const isActive = activeCategory?.category === category.category;
-            const labelLines = getLabelLines(category.category);
 
             const labelWidth = 110;
-            const labelHeight = labelLines.length > 1 ? 34 : 28;
+            const labelHeight = 28;
             
             return (
                 <g 
@@ -166,14 +150,7 @@ export const SkillsRadarChart: React.FC<SkillsRadarChartProps> = ({ skills, acti
                             fontFamily="var(--font-family)"
                             style={{ textShadow: isActive ? '0 0 5px #ffffff' : 'none' }}
                         >
-                            {labelLines.length === 1 ? (
-                                labelLines[0]
-                            ) : (
-                                <>
-                                    <tspan x={axis.labelX} dy="-0.6em">{labelLines[0]}</tspan>
-                                    <tspan x={axis.labelX} dy="1.2em">{labelLines[1]}</tspan>
-                                </>
-                            )}
+                            {category.category.toUpperCase()}
                         </text>
                     </g>
                 </g>

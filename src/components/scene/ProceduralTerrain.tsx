@@ -21,8 +21,7 @@ export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(({
     }, [terrainTexture]);
 
     const geometry = useMemo(() => {
-        // Reduced segments from 200x200 to 128x128 for a significant performance boost.
-        const planeGeo = new THREE.PlaneGeometry(500, 500, 128, 128);
+        const planeGeo = new THREE.PlaneGeometry(500, 500, 200, 200);
         const noise = createNoise2D();
         const positions = planeGeo.attributes.position;
 

@@ -1,100 +1,84 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 
-interface LoaderUIProps {
+interface LoaderProps {
   progress: number;
 }
 
-const loadingMessages = [
-  "DECRYPTING DATA STREAMS...",
-  "CALIBRATING NEURAL INTERFACE...",
-  "LOADING GEOSCAPE DATA...",
-  "ESTABLISHING SECURE LINK...",
-  "AUTHENTICATING PROTOCOLS...",
-  "COMPILING SHADER KERNELS..."
-];
-
 const styles: { [key: string]: React.CSSProperties } = {
-  container: {
-    position: 'fixed',
-    inset: 0,
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'var(--background-color)',
-    zIndex: 2000,
-    color: 'var(--primary-color)',
-    fontFamily: 'var(--font-family)',
-    fontSize: 'clamp(0.8rem, 1.5vw, 1rem)',
-    padding: '20px',
-    boxSizing: 'border-box',
-    transition: 'opacity 0.5s ease-out',
-  },
-  inner: {
-    textAlign: 'center',
-  },
-  bar: {
-    marginTop: '20px',
-    height: '4px',
-    width: '200px',
-    backgroundColor: 'rgba(0, 170, 255, 0.2)',
-    borderRadius: '2px',
-    overflow: 'hidden',
-  },
-  barFill: {
-      height: '100%',
-      backgroundColor: 'var(--primary-color)',
-      borderRadius: '2px',
-      transition: 'width 0.2s ease-out',
-      boxShadow: '0 0 8px var(--primary-color)',
-  },
-  data: {
-    margin: '2px 0',
-    minHeight: '20px',
-    whiteSpace: 'pre-wrap',
-    textShadow: '0 0 5px var(--primary-color)',
-    letterSpacing: '0.05em',
-  },
+    container: {
+        position: 'fixed',
+        inset: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'black',
+        zIndex: 2000,
+        color: 'var(--primary-color)',
+        fontFamily: 'var(--font-family)',
+        fontSize: 'clamp(0.8rem, 1.5vw, 1rem)',
+        padding: '20px',
+        boxSizing: 'border-box',
+        animation: 'fadeIn 0.5s ease-out',
+    },
+    scanlineEffect: {
+        position: 'absolute',
+        inset: 0,
+        pointerEvents: 'none',
+        background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0) 100%)',
+        backgroundSize: '100% 4px',
+        opacity: 0.1,
+        zIndex: 1,
+    },
+    content: {
+      textAlign: 'center',
+    },
+    title: {
+      textShadow: '0 0 5px var(--primary-color)',
+      letterSpacing: '0.1em',
+      margin: '0 0 10px 0',
+      textTransform: 'uppercase',
+    },
+    text: {
+        margin: '2px 0',
+        whiteSpace: 'pre-wrap',
+        textShadow: '0 0 5px var(--primary-color)',
+        letterSpacing: '0.05em',
+    },
+    progressBarContainer: {
+      marginTop: '20px',
+    },
+    cursor: {
+        animation: 'blink 1s step-end infinite',
+        marginLeft: '2px',
+        fontSize: '1.2em',
+    }
 };
 
-export const LoaderUI: React.FC<LoaderUIProps> = ({ progress }) => {
-    const [currentMessage, setCurrentMessage] = useState(loadingMessages[0]);
-    const [isVisible, setIsVisible] = useState(true);
+export const Loader: React.FC<LoaderProps> = React.memo(({ progress }) => {
 
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setCurrentMessage(prev => {
-                const currentIndex = loadingMessages.indexOf(prev);
-                const nextIndex = (currentIndex + 1) % loadingMessages.length;
-                return loadingMessages[nextIndex];
-            });
-        }, 800);
-        return () => clearInterval(interval);
-    }, []);
-    
-    useEffect(() => {
-        if (progress >= 100) {
-            // Start fading out when loading is complete
-            const timer = setTimeout(() => setIsVisible(false), 300);
-            return () => clearTimeout(timer);
-        }
+    const progressBar = useMemo(() => {
+        const barWidth = 40;
+        const filledWidth = Math.floor((progress / 100) * barWidth);
+        const bar = `[${'█'.repeat(filledWidth)}${'-'.repeat(barWidth - filledWidth)}]`;
+        return `${bar} ${Math.round(progress)}%`;
     }, [progress]);
 
-    if (!isVisible) return null;
-
     return (
-        <div style={{...styles.container, opacity: isVisible ? 1 : 0}}>
-            <div style={styles.inner}>
-                <p style={styles.data}>
-                    {currentMessage}<span className="blinking-cursor">_</span>
-                </p>
-                 <p style={styles.data}>
-                    {progress}%
-                </p>
-                <div style={styles.bar}>
-                    <div style={{...styles.barFill, width: `${progress}%`}} />
+        <div style={styles.container}>
+            <div style={styles.scanlineEffect} />
+            <div style={styles.content}>
+                <h2 style={styles.title}>ACCESSING RAGETOPIA</h2>
+                <p style={styles.text}>DECRYPTING DATA STREAMS...</p>
+                <div style={styles.progressBarContainer}>
+                  <pre style={styles.text}>{progressBar}</pre>
                 </div>
+                <span style={styles.cursor}>_</span>
             </div>
+            <style>{`
+                @keyframes blink { 50% { opacity: 0; } }
+                @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+            `}</style>
         </div>
     );
-};
+});

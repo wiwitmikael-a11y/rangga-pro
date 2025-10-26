@@ -1,5 +1,6 @@
 import React from 'react';
 import type { CityDistrict } from '../../types';
+import DistrictBuilding from './DistrictBuilding';
 import HolographicDistrictLabel from './HolographicDistrictLabel';
 import { HolographicProjector } from './HolographicProjector';
 import { InteractiveModel } from './InteractiveModel';
@@ -25,9 +26,6 @@ export const DistrictRenderer: React.FC<DistrictRendererProps> = ({
   return (
     <group>
       {districts.map((district) => {
-        // The Oracle AI is rendered as a separate interactive component, not here.
-        if (district.id === 'oracle-ai') return null;
-
         const isSelected = selectedDistrict?.id === district.id;
         const isHeld = heldDistrictId === district.id;
 
@@ -58,17 +56,22 @@ export const DistrictRenderer: React.FC<DistrictRendererProps> = ({
                 </group>
               )}
               {district.id !== 'nexus-core' && (
-                <DataBridge 
-                  start={district.position} 
-                  end={[0, 5, 0]} 
-                  isActive={isSelected}
-                />
+                <DataBridge start={district.position} end={[0, 5, 0]} />
               )}
             </group>
           );
         }
-        // Minor districts are not rendered in this version to simplify the scene
-        return null;
+
+        // Render generic buildings for minor/ambient districts
+        return (
+          <DistrictBuilding
+            key={district.id}
+            district={district}
+            onSelect={undefined} // Minor buildings aren't selectable
+            isUnlocked={true}
+            isSelected={false}
+          />
+        );
       })}
     </group>
   );
