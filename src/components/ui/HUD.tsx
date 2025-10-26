@@ -37,6 +37,7 @@ interface HUDProps {
   onExportLayout: () => void;
   heldDistrictId: string | null;
   onCancelMove: () => void;
+  onSelectOracle: () => void;
 }
 
 // --- SVG Icons ---
@@ -70,6 +71,15 @@ const GridIcon: React.FC = () => (
         <path d="M9 3v18"></path>
         <path d="M15 3v18"></path>
     </svg>
+);
+
+const OracleIcon: React.FC = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 2a10 10 0 1 0 10 10" />
+    <path d="M12 12a4 4 0 1 0 4-4" />
+    <path d="M12 12a6 6 0 1 0 6-6" />
+    <path d="M12 12a8 8 0 1 0 8-8" />
+  </svg>
 );
 
 const ExportIcon: React.FC = () => (
@@ -177,11 +187,12 @@ const styles: { [key: string]: React.CSSProperties } = {
   }
 };
 
-export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, onToggleNavMenu, isDetailViewActive, pov, onSetPov, isCalibrationMode, onToggleCalibrationMode, onExportLayout, heldDistrictId, onCancelMove }) => {
+export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome, onToggleNavMenu, isDetailViewActive, pov, onSetPov, isCalibrationMode, onToggleCalibrationMode, onExportLayout, heldDistrictId, onCancelMove, onSelectOracle }) => {
 
   const breadcrumb = useMemo(() => {
     if (heldDistrictId) return `RAGETOPIA:/ARCHITECT_MODE$ execute --move ${heldDistrictId}`;
     if (selectedDistrict?.id === 'aegis-command') return 'RAGETOPIA:/AEGIS_COMMAND$ engage --protocol';
+    if (selectedDistrict?.id === 'oracle-ai') return 'RAGETOPIA:/$ establish --link ORACLE_AI';
     if (selectedDistrict) return `RAGETOPIA:/DISTRICTS$ cd ${selectedDistrict.id.toUpperCase()}`;
     if (isCalibrationMode) return `RAGETOPIA:/$ enter --architect_mode`;
     return 'RAGETOPIA:/$';
@@ -255,6 +266,15 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onGoHome,
             aria-label="Back to City Overview"
           >
             {homeButtonIcon}
+          </button>
+           <button
+            onClick={onSelectOracle}
+            style={{...styles.hudButton, ...(selectedDistrict?.id === 'oracle-ai' ? styles.activePov : {}), ...styles.visible}}
+            className="hud-button"
+            aria-label="Contact Oracle AI"
+            disabled={isCalibrationMode}
+            >
+            <OracleIcon />
           </button>
           <button
             onClick={onToggleCalibrationMode}

@@ -26,6 +26,9 @@ export const DistrictRenderer: React.FC<DistrictRendererProps> = ({
   return (
     <group>
       {districts.map((district) => {
+        // The Oracle AI is rendered as a separate interactive component, not here.
+        if (district.id === 'oracle-ai') return null;
+
         const isSelected = selectedDistrict?.id === district.id;
         const isHeld = heldDistrictId === district.id;
 

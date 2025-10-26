@@ -12,6 +12,9 @@ const FLIGHT_ALTITUDE_MAX = 60;
 const FLIGHT_SPEED = 12;
 const TURN_SPEED = 1.5;
 
+const CITY_CENTER_SPAWN = new THREE.Vector3(0, 25, 0); // Titik awal terpusat untuk semua kapal
+const BREAKOUT_RADIUS = 60; // Seberapa jauh kapal terbang dari pusat sebelum patroli normal
+
 const ROOFTOP_LANDING_SPOTS: THREE.Vector3[] = [
   new THREE.Vector3(15, 28, -20),
   new THREE.Vector3(-30, 35, 10),
@@ -41,7 +44,7 @@ const DISTRICT_LANDING_SPOTS: THREE.Vector3[] = portfolioData
 // Combine all possible landing spots into one comprehensive list.
 const ALL_LANDING_SPOTS = [...ROOFTOP_LANDING_SPOTS, ...TERRAIN_LANDING_SPOTS, ...DISTRICT_LANDING_SPOTS];
 
-type ShipState = 'FLYING' | 'DESCENDING' | 'LANDED' | 'ASCENDING';
+type ShipState = 'INITIAL_EMERGE' | 'FLYING' | 'DESCENDING' | 'LANDED' | 'ASCENDING';
 
 export type ShipType = 'transport' | 'fighter' | 'copter';
 
@@ -55,9 +58,11 @@ export interface ShipData {
 
 interface ShipProps extends ShipData {
   isPaused?: boolean;
+  shipIndex: number;
+  totalShips: number;
 }
 
-const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isPaused }, ref) => {
+const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isPaused, shipIndex, totalShips }, ref) => {
   const groupRef = useRef<THREE.Group>(null!);
   useImperativeHandle(ref, () => groupRef.current, []);
 
@@ -65,7 +70,7 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isP
   const clonedScene = useMemo(() => scene.clone(), [scene]);
   
   const shipState = useRef({
-    state: 'FLYING' as ShipState,
+    state: 'INITIAL_EMERGE' as ShipState,
     targetPosition: new THREE.Vector3(),
     finalLandingPosition: new THREE.Vector3().set(0, -1000, 0), // Initialized out of bounds
     timer: Math.random() * 10 + 5,
@@ -87,9 +92,18 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isP
     if (!groupRef.current || isPaused) return;
     
     if (!shipState.current.isInitialized && clock.elapsedTime > initialDelay) {
-        const initialPos = getNewFlightTarget();
-        groupRef.current.position.copy(initialPos);
-        shipState.current.targetPosition.copy(getNewFlightTarget());
+        groupRef.current.position.copy(CITY_CENTER_SPAWN);
+        
+        // Hitung target breakout unik untuk penyebaran radial
+        const angle = (shipIndex / totalShips) * Math.PI * 2;
+        const breakoutTarget = new THREE.Vector3(
+            Math.cos(angle) * BREAKOUT_RADIUS,
+            FLIGHT_ALTITUDE_MIN + Math.random() * (FLIGHT_ALTITUDE_MAX - FLIGHT_ALTITUDE_MIN),
+            Math.sin(angle) * BREAKOUT_RADIUS
+        );
+        shipState.current.targetPosition.copy(breakoutTarget);
+        
+        groupRef.current.lookAt(breakoutTarget);
         shipState.current.isInitialized = true;
         groupRef.current.visible = true;
     }
@@ -101,6 +115,14 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isP
     const targetPos = shipState.current.targetPosition;
 
     switch (shipState.current.state) {
+      case 'INITIAL_EMERGE':
+        if (currentPos.distanceTo(targetPos) < 5) {
+            shipState.current.state = 'FLYING';
+            shipState.current.targetPosition.copy(getNewFlightTarget());
+            shipState.current.timer = Math.random() * 15 + 10;
+        }
+        break;
+      
       case 'FLYING':
         if (currentPos.distanceTo(targetPos) < 5 || shipState.current.timer <= 0) {
           if (Math.random() < 0.5) { // Increased chance to land and visit a spot
@@ -169,7 +191,23 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isP
 
       tempLookAtObject.position.copy(currentPos);
       tempLookAtObject.lookAt(lookAtTarget);
+      
+      // -- Realistic Flight Dynamics --
+      // 1. Pitch based on vertical movement
+      const pitchAngle = THREE.MathUtils.clamp(direction.y * 0.4, -0.5, 0.5);
+      const pitchQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitchAngle);
+
+      // 2. Bank (roll) based on horizontal turning
+      const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(groupRef.current.quaternion);
+      const side = direction.clone().cross(forward);
+      const bankAngle = THREE.MathUtils.clamp(side.y * -2.5, -0.6, 0.6); // Negative to bank into the turn
+      const bankQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), bankAngle);
+      
+      // Combine base look-at rotation with pitch and bank
       tempQuaternion.copy(tempLookAtObject.quaternion);
+      tempQuaternion.multiply(pitchQuat);
+      tempQuaternion.multiply(bankQuat);
+
       groupRef.current.quaternion.slerp(tempQuaternion, delta * TURN_SPEED);
     }
   });
@@ -184,11 +222,11 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isP
 
 export const shipsData: ShipData[] = [
     { id: 'space_1', url: `${GITHUB_MODEL_URL_BASE}ship_space.glb`, scale: 0.45, initialDelay: 0, shipType: 'fighter' },
-    { id: 'space_2', url: `${GITHUB_MODEL_URL_BASE}ship_space.glb`, scale: 0.47, initialDelay: 5, shipType: 'fighter' },
-    { id: 'delorean_1', url: `${GITHUB_MODEL_URL_BASE}ship_delorean.glb`, scale: 0.6, initialDelay: 2, shipType: 'transport' },
-    { id: 'delorean_2', url: `${GITHUB_MODEL_URL_BASE}ship_delorean.glb`, scale: 0.55, initialDelay: 7, shipType: 'transport' },
-    { id: 'copter_1', url: `${GITHUB_MODEL_URL_BASE}ship_copter.glb`, scale: 0.05, initialDelay: 4, shipType: 'copter' },
-    { id: 'copter_2', url: `${GITHUB_MODEL_URL_BASE}ship_copter.glb`, scale: 0.055, initialDelay: 9, shipType: 'copter' },
+    { id: 'space_2', url: `${GITHUB_MODEL_URL_BASE}ship_space.glb`, scale: 0.47, initialDelay: 0.5, shipType: 'fighter' },
+    { id: 'delorean_1', url: `${GITHUB_MODEL_URL_BASE}ship_delorean.glb`, scale: 0.6, initialDelay: 0.2, shipType: 'transport' },
+    { id: 'delorean_2', url: `${GITHUB_MODEL_URL_BASE}ship_delorean.glb`, scale: 0.55, initialDelay: 0.7, shipType: 'transport' },
+    { id: 'copter_1', url: `${GITHUB_MODEL_URL_BASE}ship_copter.glb`, scale: 0.05, initialDelay: 0.4, shipType: 'copter' },
+    { id: 'copter_2', url: `${GITHUB_MODEL_URL_BASE}ship_copter.glb`, scale: 0.055, initialDelay: 0.9, shipType: 'copter' },
 ];
 
 interface FlyingShipsProps {
@@ -212,7 +250,14 @@ export const FlyingShips: React.FC<FlyingShipsProps> = React.memo(({ setShipRefs
   return (
     <Suspense fallback={null}>
       {shipsData.map((ship, i) => (
-        <Ship ref={shipRefs[i]} key={ship.id} {...ship} isPaused={isPaused} />
+        <Ship 
+          ref={shipRefs[i]} 
+          key={ship.id} 
+          {...ship} 
+          isPaused={isPaused}
+          shipIndex={i}
+          totalShips={shipsData.length}
+        />
       ))}
     </Suspense>
   );

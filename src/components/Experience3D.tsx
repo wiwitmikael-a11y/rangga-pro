@@ -1,6 +1,7 @@
 import React, { useState, useCallback, Suspense, useMemo, useRef, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Sky } from '@react-three/drei';
+// FIX: Import 'useGLTF' to resolve 'Cannot find name 'useGLTF'' error.
+import { OrbitControls, Sky, useGLTF } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { EffectComposer, Noise, ChromaticAberration } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
@@ -26,6 +27,7 @@ import { InstagramVisitModal } from './ui/InstagramVisitModal';
 import { ContactHubModal } from './ui/ContactHubModal';
 import { GameLobbyPanel } from './ui/GameLobbyPanel';
 import { AegisProtocolGame } from './game/AegisProtocolGame';
+import { OracleModal } from './ui/OracleModal';
 
 
 // Define the sun's position for a sunset glow near the horizon
@@ -42,6 +44,7 @@ export const Experience3D: React.FC = () => {
   const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
   const [showVisitModal, setShowVisitModal] = useState(false);
   const [isContactHubOpen, setIsContactHubOpen] = useState(false);
+  const [isOracleModalOpen, setIsOracleModalOpen] = useState(false);
   
   const [pov, setPov] = useState<'main' | 'ship'>('main');
   const [shipRefs, setShipRefs] = useState<React.RefObject<THREE.Group>[]>([]);
@@ -60,7 +63,8 @@ export const Experience3D: React.FC = () => {
   const [isGameLobbyOpen, setIsGameLobbyOpen] = useState(false);
   const [isGameActive, setIsGameActive] = useState(false);
   const playerSpawnPosition = useRef(new THREE.Vector3());
-
+  
+  const patrollingCoreRef = useRef<THREE.Group>(null);
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const isPaused = isCalibrationMode || isGameActive;
 
@@ -81,12 +85,13 @@ export const Experience3D: React.FC = () => {
     setIsAutoRotating(false);
     setIsContactHubOpen(false);
     setIsGameLobbyOpen(false);
+    setIsOracleModalOpen(false);
     
     setSelectedDistrict(districts.find(d => d.id === district.id) || null);
     setIsAnimating(true);
   }, [selectedDistrict, isAnimating, districts, isCalibrationMode]);
   
-  const isDetailViewActive = showProjects || !!infoPanelItem || !!selectedDistrict || isContactHubOpen || isGameLobbyOpen;
+  const isDetailViewActive = showProjects || !!infoPanelItem || !!selectedDistrict || isContactHubOpen || isGameLobbyOpen || isOracleModalOpen;
 
   const resetIdleTimer = useCallback(() => {
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
@@ -122,51 +127,146 @@ export const Experience3D: React.FC = () => {
         if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     };
   }, [resetIdleTimer]);
+  
+  const handleAnimationFinish = useCallback(() => {
+    setIsAnimating(false);
+
+    if (!selectedDistrict) {
+        setIsAutoRotating(true);
+        return;
+    }
+
+    if (selectedDistrict.id === 'oracle-ai') {
+        setIsOracleModalOpen(true);
+    } else if (selectedDistrict.subItems) {
+        setShowProjects(true);
+    } else if (selectedDistrict.id === 'nexus-core') {
+        setShowVisitModal(true);
+    } else if (selectedDistrict.id === 'contact') {
+        setIsContactHubOpen(true);
+    } else if (selectedDistrict.id === 'aegis-command') {
+        setIsGameLobbyOpen(true);
+    } else {
+        setInfoPanelItem(selectedDistrict);
+    }
+    resetIdleTimer();
+  }, [selectedDistrict, resetIdleTimer]);
 
   const handleGoHome = useCallback(() => {
-    setPov('main');
+    if (isCalibrationMode) return;
     setSelectedDistrict(null);
-    setIsAnimating(true);
     setShowProjects(false);
     setInfoPanelItem(null);
+    setIsAnimating(true);
+    setPov('main');
     setIsContactHubOpen(false);
     setShowVisitModal(false);
     setIsGameLobbyOpen(false);
-    setIsGameActive(false);
-    setTargetShipRef(null);
-    resetIdleTimer();
-  }, [resetIdleTimer]);
+    setIsOracleModalOpen(false);
+  }, [isCalibrationMode]);
 
-  const onAnimationFinish = useCallback(() => {
-    setIsAnimating(false);
-    if (selectedDistrict) {
-      if (selectedDistrict.id === 'nexus-core') {
-        setShowVisitModal(true);
-      } else if (selectedDistrict.id === 'contact') {
-        setIsContactHubOpen(true);
-      } else if (selectedDistrict.id === 'aegis-command') {
-        setIsGameLobbyOpen(true);
-      } else if (selectedDistrict.subItems && selectedDistrict.subItems.length > 0) {
-        setShowProjects(true);
+  const handleOpenNavMenu = useCallback(() => setIsNavMenuOpen(true), []);
+  const handleCloseNavMenu = useCallback(() => setIsNavMenuOpen(false), []);
+  const handleNavMenuSelect = useCallback((district: CityDistrict) => {
+      setIsNavMenuOpen(false);
+      setTimeout(() => handleDistrictSelect(district), 300);
+  }, [handleDistrictSelect]);
+
+  const handleTogglePov = useCallback(() => {
+    if (isCalibrationMode) return;
+    const newPov = pov === 'main' ? 'ship' : 'main';
+    if (newPov === 'ship') {
+      const nonCopterShips = shipRefs.filter(ref => {
+          const shipData = shipsData.find(s => s.id === (ref.current as any)?.userData?.id);
+          return shipData && shipData.shipType !== 'copter';
+      });
+
+      if (nonCopterShips.length > 0) {
+        const randomShip = nonCopterShips[Math.floor(Math.random() * nonCopterShips.length)];
+        setTargetShipRef(randomShip);
       } else {
-        setInfoPanelItem(selectedDistrict);
+        setTargetShipRef(null);
       }
-    } else if (pov === 'main' && !isCalibrationMode) {
+    } else {
+        handleGoHome();
+    }
+    setPov(newPov);
+    setIsAnimating(true);
+  }, [pov, shipRefs, handleGoHome, isCalibrationMode]);
+  
+  const handleSetPov = (newPov: 'main' | 'ship') => {
+    if (isCalibrationMode || pov === newPov) return;
+    handleTogglePov();
+  };
+
+  const handleToggleCalibrationMode = useCallback(() => {
+    const newMode = !isCalibrationMode;
+    if (newMode) {
+      handleGoHome();
+      setIsAutoRotating(false);
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    } else {
+      if (heldDistrictId) {
+        const originalPos = originalHeldDistrictPosition;
+        if(originalPos) {
+          setDistricts(prev => prev.map(d => d.id === heldDistrictId ? {...d, position: originalPos} : d));
+        }
+        setHeldDistrictId(null);
+        setOriginalHeldDistrictPosition(null);
+      }
       resetIdleTimer();
     }
-  }, [selectedDistrict, resetIdleTimer, pov, isCalibrationMode]);
+    setIsCalibrationMode(newMode);
+    setIsAnimating(true);
+  }, [isCalibrationMode, handleGoHome, resetIdleTimer, heldDistrictId, originalHeldDistrictPosition]);
+  
+  const handleSetHeldDistrict = useCallback((id: string | null) => {
+    if (id) {
+        const dist = districts.find(d => d.id === id);
+        if (dist) {
+            setOriginalHeldDistrictPosition(dist.position);
+            setHeldDistrictId(id);
+        }
+    }
+  }, [districts]);
+
+  const handlePlaceDistrict = useCallback(() => {
+    setHeldDistrictId(null);
+    setOriginalHeldDistrictPosition(null);
+    document.body.style.cursor = 'auto';
+  }, []);
+  
+  const handleCancelMove = useCallback(() => {
+    if (heldDistrictId && originalHeldDistrictPosition) {
+        setDistricts(prev => prev.map(d => d.id === heldDistrictId ? { ...d, position: originalHeldDistrictPosition } : d));
+    }
+    setHeldDistrictId(null);
+    setOriginalHeldDistrictPosition(null);
+    document.body.style.cursor = 'auto';
+  }, [heldDistrictId, originalHeldDistrictPosition]);
+
+  const handleExportLayout = useCallback(() => {
+    const dirtyDistricts = districts.filter(d => d.isDirty);
+    if (dirtyDistricts.length === 0) {
+      alert("No layout changes detected to export.");
+      return;
+    }
+    const simplifiedData = districts.map(({ isDirty, ...rest }) => rest);
+    const jsonString = JSON.stringify(simplifiedData, null, 2);
+    setExportedLayoutJson(jsonString);
+    setIsExportModalOpen(true);
+  }, [districts]);
 
   const handleLaunchGame = useCallback(() => {
-    const aegisDistrict = districts.find(d => d.id === 'aegis-command');
-    if (aegisDistrict) {
-        playerSpawnPosition.current.set(
-            aegisDistrict.position[0],
-            aegisDistrict.position[1] + 20,
-            aegisDistrict.position[2] + 20
-        );
-    }
-    setIsGameLobbyOpen(false);
-    setIsGameActive(true);
+      setIsGameLobbyOpen(false);
+      const aegisDistrict = districts.find(d => d.id === 'aegis-command');
+      if (aegisDistrict) {
+          const [x, y, z] = aegisDistrict.position;
+          playerSpawnPosition.current.set(x, y + 20, z);
+      } else {
+          playerSpawnPosition.current.set(-50, 40, -50);
+      }
+      setIsGameActive(true);
   }, [districts]);
 
   const handleExitGame = useCallback(() => {
@@ -175,282 +275,176 @@ export const Experience3D: React.FC = () => {
   }, [handleGoHome]);
 
 
-  const handleProjectClick = (item: PortfolioSubItem) => {
-    console.log('Project clicked:', item.title);
-  };
-  
-  const handlePanelClose = () => {
-      setInfoPanelItem(null);
-      resetIdleTimer();
-  };
-
-  const handleQuickNavSelect = (district: CityDistrict) => {
-    handleDistrictSelect(district);
-    setIsNavMenuOpen(false);
-  };
-  
-  const handleSetPov = (newPov: 'main' | 'ship') => {
-    if (isCalibrationMode) return;
-
-    if (newPov === 'ship' && pov === 'ship') {
-      if (shipRefs.length > 1) {
-        let newTargetIndex = -1;
-        let currentTargetIndex = shipRefs.findIndex(ref => ref === targetShipRef);
-
-        while (newTargetIndex === -1 || newTargetIndex === currentTargetIndex) {
-            newTargetIndex = Math.floor(Math.random() * shipRefs.length);
-        }
-        
-        setTargetShipRef(shipRefs[newTargetIndex]);
-        setIsAnimating(true);
-      }
-      return;
-    }
-
-    if (newPov === pov) return;
-
-    if (newPov === 'main') {
-      handleGoHome();
-    } else {
-      setIsAutoRotating(false);
-      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-      
-      if(selectedDistrict) {
-        setSelectedDistrict(null);
-        setShowProjects(false);
-        setInfoPanelItem(null);
-        setIsContactHubOpen(false);
-      }
-      
-      if (shipRefs.length > 0) {
-        const randomIndex = Math.floor(Math.random() * shipRefs.length);
-        setTargetShipRef(shipRefs[randomIndex]);
-      }
-      setPov('ship');
-      setIsAnimating(true);
-    }
-  };
-  
-  const handleToggleCalibrationMode = useCallback(() => {
-    setIsCalibrationMode(prev => {
-      const newMode = !prev;
-      if (newMode) {
-        setIsAnimating(true);
-        setIsAutoRotating(false);
-        if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-        if (isDetailViewActive) handleGoHome();
-        if (pov === 'ship') setPov('main');
-      } else {
-        if (heldDistrictId) {
-            const districtToReset = districts.find(d => d.id === heldDistrictId);
-            if(districtToReset && originalHeldDistrictPosition) {
-              setDistricts(prev => prev.map(d => d.id === heldDistrictId ? {...d, position: originalHeldDistrictPosition} : d));
-            }
-            setHeldDistrictId(null);
-            setOriginalHeldDistrictPosition(null);
-        }
-        handleGoHome();
-      }
-      return newMode;
-    });
-  }, [handleGoHome, isDetailViewActive, pov, heldDistrictId, districts, originalHeldDistrictPosition]);
-
-  const handleExportLayout = () => {
-    const layoutToExport = districts.map(d => {
-      const { isDirty, ...rest } = d;
-      return rest;
-    });
-    setExportedLayoutJson(JSON.stringify(layoutToExport, null, 2));
-    setIsExportModalOpen(true);
-  };
-  
-  const handleSetHeldDistrict = useCallback((id: string | null) => {
-    if (id) {
-        const district = districts.find(d => d.id === id);
-        if (district) {
-            setHeldDistrictId(id);
-            setOriginalHeldDistrictPosition(district.position);
-        }
-    } else {
-        setHeldDistrictId(null);
-        setOriginalHeldDistrictPosition(null);
-    }
-  }, [districts]);
-
-  const handleCancelMove = useCallback(() => {
-    if (heldDistrictId && originalHeldDistrictPosition) {
-        setDistricts(prev => prev.map(d => d.id === heldDistrictId ? {...d, position: originalHeldDistrictPosition} : d));
-        setHeldDistrictId(null);
-        setOriginalHeldDistrictPosition(null);
-    }
-  }, [heldDistrictId, originalHeldDistrictPosition]);
-
-  const handlePlaceDistrict = useCallback(() => {
-      setHeldDistrictId(null);
-      setOriginalHeldDistrictPosition(null);
-  }, []);
-
-
   return (
     <>
       <Canvas
+        camera={{ position: INITIAL_CAMERA_POSITION, fov: 50, near: 0.5, far: 1000 }}
         shadows
-        camera={{ position: INITIAL_CAMERA_POSITION, fov: 50, near: 0.1, far: 1000 }}
-        gl={{
-          powerPreference: 'high-performance',
-          antialias: false,
-          stencil: false,
-          depth: false,
-        }}
-        dpr={[1, 1.5]}
+        gl={{ antialias: true, powerPreference: 'high-performance' }}
+        onPointerDown={handleInteractionStart}
+        onPointerUp={handleInteractionEnd}
+        onWheel={handleInteractionStart}
       >
         <Suspense fallback={null}>
-          {!isGameActive ? (
-            <>
-              {/* The <Sky> component renders the background; fog has been removed for performance. */}
-              <Sky sunPosition={sunPosition} turbidity={20} rayleigh={1} mieCoefficient={0.005} mieDirectionalG={0.8} />
-              <ambientLight intensity={1.2} />
-              <directionalLight
-                position={sunPosition}
-                intensity={6.0}
-                color={sunColor}
-                castShadow
-                shadow-mapSize-width={4096}
-                shadow-mapSize-height={4096}
-                shadow-camera-far={500}
-                shadow-camera-left={-200}
-                shadow-camera-right={200}
-                shadow-camera-top={200}
-                shadow-camera-bottom={-200}
-              />
+          <fog attach="fog" args={['#050810', 100, 400]} />
+          <ambientLight intensity={0.2} color={sunColor} />
+          <directionalLight
+            position={sunPosition}
+            intensity={2.5}
+            color={sunColor}
+            castShadow
+            shadow-mapSize-width={2048}
+            shadow-mapSize-height={2048}
+            shadow-camera-far={500}
+            shadow-camera-left={-200}
+            shadow-camera-right={200}
+            shadow-camera-top={200}
+            shadow-camera-bottom={-200}
+          />
 
+          <Sky
+            sunPosition={sunPosition}
+            mieCoefficient={0.003}
+            mieDirectionalG={0.95}
+            rayleigh={0.2}
+            turbidity={10}
+          />
+          
+          {!isGameActive && (
+            <>
               <CityModel />
-              <Rain count={2500} />
-              <FlyingShips setShipRefs={setShipRefs} isPaused={isPaused} />
-              <PatrollingCore isPaused={isPaused} />
               <ProceduralTerrain onDeselect={handleGoHome} />
-              
-              <group position={[0, 5, 0]}>
-                <DistrictRenderer
-                  districts={districts}
-                  selectedDistrict={selectedDistrict}
-                  onDistrictSelect={handleDistrictSelect}
-                  isCalibrationMode={isCalibrationMode}
-                  heldDistrictId={heldDistrictId}
-                  onSetHeldDistrict={handleSetHeldDistrict}
-                />
-                {infoPanelItem && <HolographicInfoPanel district={infoPanelItem} onClose={handlePanelClose} />}
-              </group>
-              
-              {isCalibrationMode && <CalibrationGrid size={250} />}
-              {isCalibrationMode && (
-                  <BuildModeController
-                    districts={districts}
-                    setDistricts={setDistricts}
-                    heldDistrictId={heldDistrictId}
-                    onPlaceDistrict={handlePlaceDistrict}
-                    gridSize={250}
-                    gridDivisions={25}
-                  />
-                )}
-
-              <CameraRig 
-                selectedDistrict={selectedDistrict} 
-                onAnimationFinish={onAnimationFinish} 
-                isAnimating={isAnimating}
-                pov={pov}
-                targetShipRef={targetShipRef}
+              <Rain count={5000} />
+              <FlyingShips setShipRefs={setShipRefs} isPaused={isPaused} />
+              <DistrictRenderer
+                districts={districts}
+                selectedDistrict={selectedDistrict}
+                onDistrictSelect={handleDistrictSelect}
                 isCalibrationMode={isCalibrationMode}
+                heldDistrictId={heldDistrictId}
+                onSetHeldDistrict={handleSetHeldDistrict}
+              />
+              <PatrollingCore
+                  ref={patrollingCoreRef}
+                  isPaused={isPaused}
+                  isSelected={selectedDistrict?.id === 'oracle-ai'}
+                  onSelect={() => handleDistrictSelect(districts.find(d => d.id === 'oracle-ai')!)}
               />
 
-              <EffectComposer>
-                <Noise 
-                  premultiply 
-                  blendFunction={BlendFunction.ADD}
-                  opacity={0.07} 
-                />
-                <ChromaticAberration 
-                  offset={new THREE.Vector2(0.001, 0.001)}
-                  radialModulation={false}
-                  modulationOffset={0.15}
-                />
-              </EffectComposer>
-            </>
-          ) : (
-            <>
-              <AegisProtocolGame 
-                onExit={handleExitGame} 
-                playerSpawnPosition={playerSpawnPosition.current}
-              />
+              {infoPanelItem && (
+                <HolographicInfoPanel district={infoPanelItem} onClose={() => setInfoPanelItem(null)} />
+              )}
             </>
           )}
-        </Suspense>
 
+          {isGameActive && <AegisProtocolGame onExit={handleExitGame} playerSpawnPosition={playerSpawnPosition.current} />}
+
+        </Suspense>
+        
+        <CameraRig
+            selectedDistrict={selectedDistrict}
+            onAnimationFinish={handleAnimationFinish}
+            isAnimating={isAnimating}
+            pov={pov}
+            targetShipRef={targetShipRef}
+            isCalibrationMode={isCalibrationMode}
+            patrollingCoreRef={patrollingCoreRef}
+        />
+        
         <OrbitControls
             ref={controlsRef}
-            enabled={pov === 'main' && !isAnimating && !isNavMenuOpen && !showProjects && !infoPanelItem && !heldDistrictId && !isGameActive}
-            minDistance={20}
-            maxDistance={300}
-            maxPolarAngle={isCalibrationMode ? Math.PI / 2.05 : Math.PI / 2.2}
-            target={[0, 5, 0]}
-            autoRotate={isAutoRotating && !isCalibrationMode}
-            autoRotateSpeed={0.5}
-            onStart={handleInteractionStart}
-            onEnd={handleInteractionEnd}
+            enabled={pov === 'main' && !isAnimating && !isCalibrationMode && !isGameActive}
+            autoRotate={isAutoRotating}
+            autoRotateSpeed={0.3}
+            enablePan={!isCalibrationMode}
+            enableZoom={!isCalibrationMode}
+            minDistance={30}
+            maxDistance={isCalibrationMode ? 400 : 300}
+            minPolarAngle={isCalibrationMode ? 0 : Math.PI / 4}
+            maxPolarAngle={isCalibrationMode ? Math.PI / 2.1 : Math.PI / 2 - 0.1}
             onChange={handleControlsChange}
         />
-      </Canvas>
-      
-      {!isGameActive && (
-        <HUD 
-            selectedDistrict={selectedDistrict} 
-            onGoHome={handleGoHome}
-            onToggleNavMenu={() => setIsNavMenuOpen(!isNavMenuOpen)}
-            isDetailViewActive={isDetailViewActive}
-            pov={pov}
-            onSetPov={handleSetPov}
-            isCalibrationMode={isCalibrationMode}
-            onToggleCalibrationMode={handleToggleCalibrationMode}
-            onExportLayout={handleExportLayout}
-            heldDistrictId={heldDistrictId}
-            onCancelMove={handleCancelMove}
-        />
-      )}
 
-      {isNavMenuOpen && (
-          <QuickNavMenu 
+        {isCalibrationMode && <CalibrationGrid size={250} />}
+        {isCalibrationMode && heldDistrictId && (
+            <BuildModeController 
+                districts={districts}
+                setDistricts={setDistricts}
+                heldDistrictId={heldDistrictId}
+                onPlaceDistrict={handlePlaceDistrict}
+                gridSize={250}
+                gridDivisions={25}
+            />
+        )}
+        
+        <EffectComposer disableNormalPass>
+            <Noise opacity={0.08} blendFunction={BlendFunction.MULTIPLY} />
+            <ChromaticAberration
+              blendFunction={BlendFunction.NORMAL}
+              offset={new THREE.Vector2(0.0005, 0.0005)}
+            />
+        </EffectComposer>
+
+      </Canvas>
+
+      {!isGameActive && (
+        <>
+            <HUD
+              selectedDistrict={selectedDistrict}
+              onGoHome={handleGoHome}
+              onToggleNavMenu={handleOpenNavMenu}
+              isDetailViewActive={isDetailViewActive}
+              pov={pov}
+              onSetPov={handleSetPov}
+              isCalibrationMode={isCalibrationMode}
+              onToggleCalibrationMode={handleToggleCalibrationMode}
+              onExportLayout={handleExportLayout}
+              heldDistrictId={heldDistrictId}
+              onCancelMove={handleCancelMove}
+              onSelectOracle={() => handleDistrictSelect(districts.find(d => d.id === 'oracle-ai')!)}
+            />
+            <QuickNavMenu
               isOpen={isNavMenuOpen}
-              onClose={() => setIsNavMenuOpen(false)}
-              onSelectDistrict={handleQuickNavSelect}
+              onClose={handleCloseNavMenu}
+              onSelectDistrict={handleNavMenuSelect}
               districts={navDistricts}
-          />
-      )}
-       {showProjects && (
-          <ProjectSelectionPanel
+            />
+            <ProjectSelectionPanel
               isOpen={showProjects}
               district={selectedDistrict}
-              onClose={handleGoHome}
-              onProjectSelect={handleProjectClick}
-          />
+              onClose={() => setShowProjects(false)}
+              onProjectSelect={() => {}} // Placeholder for future functionality
+            />
+            <InstagramVisitModal
+              isOpen={showVisitModal}
+              onClose={() => setShowVisitModal(false)}
+            />
+             <ContactHubModal
+              isOpen={isContactHubOpen}
+              onClose={() => setIsContactHubOpen(false)}
+            />
+            <ExportLayoutModal
+              isOpen={isExportModalOpen}
+              onClose={() => setIsExportModalOpen(false)}
+              jsonData={exportedLayoutJson}
+            />
+            <GameLobbyPanel 
+              isOpen={isGameLobbyOpen}
+              onLaunch={handleLaunchGame}
+              onClose={() => setIsGameLobbyOpen(false)}
+            />
+             <OracleModal
+                isOpen={isOracleModalOpen}
+                onClose={handleGoHome}
+            />
+        </>
       )}
-      <ExportLayoutModal
-        isOpen={isExportModalOpen}
-        onClose={() => setIsExportModalOpen(false)}
-        jsonData={exportedLayoutJson}
-      />
-      <InstagramVisitModal
-        isOpen={showVisitModal}
-        onClose={() => setShowVisitModal(false)}
-      />
-      <ContactHubModal
-        isOpen={isContactHubOpen}
-        onClose={() => setIsContactHubOpen(false)}
-      />
-      <GameLobbyPanel
-        isOpen={isGameLobbyOpen}
-        onLaunch={handleLaunchGame}
-        onClose={handleGoHome}
-      />
+
     </>
   );
 };
+
+// Preload data for flying ships
+import { shipsData } from './scene/FlyingShips';
+const GITHUB_MODEL_URL_BASE = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/';
+shipsData.forEach(ship => useGLTF.preload(ship.url));
