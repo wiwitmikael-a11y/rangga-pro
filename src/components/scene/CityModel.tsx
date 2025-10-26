@@ -13,13 +13,27 @@ export const CityModel: React.FC = React.memo(() => {
 
   useLayoutEffect(() => {
     const materials: THREE.MeshStandardMaterial[] = [];
+    // --- FIX: Cache for cloned materials to prevent cross-contamination ---
+    // This ensures that modifying the city's materials doesn't affect other models
+    // that might share materials from the cache (like the DeLorean).
+    const materialCache: { [uuid: string]: THREE.Material } = {};
+
     clonedScene.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         child.castShadow = true;
         child.receiveShadow = true;
         if (child.material instanceof THREE.MeshStandardMaterial) {
+          
+          // --- FIX: Clone material if we haven't already ---
+          if (!materialCache[child.material.uuid]) {
+              materialCache[child.material.uuid] = child.material.clone();
+          }
+          child.material = materialCache[child.material.uuid] as THREE.MeshStandardMaterial;
+
+          // Now, modify the unique, cloned material
           child.material.metalness = 0.7;
           child.material.roughness = 0.4;
+
           // Aktifkan emisi pada material tertentu untuk cahaya kota
           if (child.material.name.includes('light') || child.material.name.includes('emissive')) {
             child.material.emissive = child.material.color;
