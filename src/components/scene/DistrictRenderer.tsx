@@ -1,4 +1,3 @@
-/// <reference types="@react-three/fiber" />
 import React from 'react';
 import type { CityDistrict } from '../../types';
 import DistrictBuilding from './DistrictBuilding';

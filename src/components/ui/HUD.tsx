@@ -110,6 +110,7 @@ const VirtualControls: React.FC<VirtualControlsProps> = ({ onInputChange }) => {
     }, [onInputChange]);
     
     const handlePointerDown = useCallback((e: PointerEvent) => {
+        e.preventDefault(); // Mencegah gestur default browser
         const target = e.currentTarget as HTMLDivElement;
         const control = target.dataset.control as 'move' | 'ascend' | 'roll';
         
@@ -122,6 +123,8 @@ const VirtualControls: React.FC<VirtualControlsProps> = ({ onInputChange }) => {
     const handlePointerMove = useCallback((e: PointerEvent) => {
         const control = activePointers.current[e.pointerId];
         if (!control) return;
+        
+        e.preventDefault(); // Mencegah gestur default saat menggeser
 
         let element;
         if (control === 'move') element = moveBaseRef.current;
@@ -369,6 +372,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '50%',
     border: '1px solid rgba(0, 170, 255, 0.3)',
     pointerEvents: 'auto',
+    touchAction: 'none',
   },
   joystickNub: {
     position: 'absolute',
@@ -388,6 +392,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '25px',
     border: '1px solid rgba(0, 170, 255, 0.3)',
     pointerEvents: 'auto',
+    touchAction: 'none',
   },
   sliderNub: {
     position: 'absolute',

@@ -1,4 +1,3 @@
-/// <reference types="@react-three/fiber" />
 import React, { useRef, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';

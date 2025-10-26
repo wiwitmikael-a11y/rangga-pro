@@ -1,4 +1,3 @@
-/// <reference types="@react-three/fiber" />
 import React from 'react';
 import { Grid } from '@react-three/drei';
 import * as THREE from 'three';
