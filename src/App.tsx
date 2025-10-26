@@ -1,9 +1,7 @@
-import React, { useState, useCallback, Suspense, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 
-// CRITICAL FIX: Lazy load the heavy 3D component.
-// This prevents its code from being parsed and executed on initial load,
-// which was the root cause of the "total black screen" crash.
-const Experience3D = React.lazy(() => import('./components/Experience3D'));
+// Dikembalikan ke impor langsung sesuai permintaan pengguna untuk memulihkan perilaku stabil sebelumnya.
+import Experience3D from './components/Experience3D';
 import { StartScreen } from './components/ui/StartScreen';
 import { ControlHints } from './components/ui/ControlHints';
 import { LoaderUI } from './components/ui/Loader'; 
@@ -13,12 +11,12 @@ const App: React.FC = () => {
   const [hasShownHints, setHasShownHints] = useState(false);
   const [progress, setProgress] = useState(0);
 
-  // --- Simulated Loading Effect ---
-  // This provides a reliable loading screen while assets are pre-fetched by the browser in the background.
-  // It guarantees the user sees feedback immediately.
+  // --- Efek Pemuatan Simulasi ---
+  // Ini memberikan layar pemuatan yang andal sementara aset diambil di latar belakang.
+  // Menjamin pengguna melihat umpan balik segera.
   useEffect(() => {
     if (appState === 'loading') {
-      const totalDuration = 3500; // 3.5 seconds simulated loading time
+      const totalDuration = 3500; // Waktu pemuatan simulasi 3.5 detik
       let startTime = 0;
       let animationFrameId: number;
 
@@ -42,7 +40,7 @@ const App: React.FC = () => {
 
   const handleStart = useCallback(() => {
     setAppState('entering');
-    // This timeout matches the 1.5s hydraulic gate animation duration.
+    // Timeout ini cocok dengan durasi animasi gerbang hidrolik 1.5 detik.
     setTimeout(() => {
       setAppState('experience');
       if (!sessionStorage.getItem('hasShownHints')) {
@@ -67,8 +65,8 @@ const App: React.FC = () => {
       )}
       
       {/* 
-        The Experience3D component is now lazy-loaded and wrapped in Suspense.
-        It will only be requested and rendered when shouldMountExperience becomes true.
+        Merender komponen Experience3D secara langsung. Ini memastikan semua asetnya
+        dimuat saat komponen dipasang, sesuai dengan perilaku stabil sebelumnya.
       */}
       {shouldMountExperience && (
           <main style={{
@@ -78,9 +76,7 @@ const App: React.FC = () => {
               opacity: appState === 'experience' ? 1 : 0,
               transition: 'opacity 1.5s ease-in-out',
             }}>
-            <Suspense fallback={null}>
-                <Experience3D />
-            </Suspense>
+            <Experience3D />
           </main>
       )}
       
