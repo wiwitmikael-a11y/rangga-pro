@@ -42,6 +42,7 @@ export const Experience3D: React.FC = () => {
   const [isAutoRotating, setIsAutoRotating] = useState(true);
   const [isCalibrationMode] = useState(false); // Setter removed as it's no longer used
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [lastCycledDistrictId, setLastCycledDistrictId] = useState<string | null>(null);
   
   const isTouchDevice = useMemo(() => 'ontouchstart' in window || navigator.maxTouchPoints > 0, []);
 
@@ -65,23 +66,41 @@ export const Experience3D: React.FC = () => {
 
   const navDistricts = useMemo(() => {
     const majorDistricts = districts.filter(d => d.type === 'major');
-    const nexusCore = majorDistricts.find(d => d.id === 'nexus-core');
-    return nexusCore
-      ? [nexusCore, ...majorDistricts.filter(d => d.id !== 'nexus-core')]
-      : majorDistricts;
+    const order: string[] = [
+      'skills-matrix',    // Core Matrix
+      'visual-arts',      // Visual Archiver
+      'nova-forge',       // AI Engineer Lab
+      'defi-data-vault',  // DeFi Vault
+      'contact',          // Contact Hub
+      'nexus-core',       // @rangga.p.h
+    ];
+    
+    // Create a copy to avoid mutating the original `majorDistricts` array if it's used elsewhere
+    return [...majorDistricts].sort((a, b) => {
+        let indexA = order.indexOf(a.id);
+        let indexB = order.indexOf(b.id);
+        
+        // If an item is not in the order list, treat its index as infinity so it goes to the end
+        if (indexA === -1) indexA = Infinity;
+        if (indexB === -1) indexB = Infinity;
+        
+        return indexA - indexB;
+    });
   }, [districts]);
 
   const handleDistrictSelect = useCallback((district: CityDistrict) => {
     if (isCalibrationMode) return;
-    if (district.id === selectedDistrict?.id && !isAnimating) return;
+    // Allow re-selecting if coming from a different view (like ship POV)
+    if (district.id === selectedDistrict?.id && !isAnimating && pov === 'main') return;
     
+    setPov('main'); // Ensure we are in the main camera view
     setShowContentPanel(false);
     setInfoPanelItem(null);
     setIsAutoRotating(false);
     
     setSelectedDistrict(districts.find(d => d.id === district.id) || null);
     setIsAnimating(true);
-  }, [selectedDistrict, isAnimating, districts, isCalibrationMode]);
+  }, [selectedDistrict, isAnimating, districts, isCalibrationMode, pov]);
   
   const isDetailViewActive = showContentPanel || !!infoPanelItem || !!selectedDistrict;
 
@@ -169,228 +188,201 @@ export const Experience3D: React.FC = () => {
     setIsNavMenuOpen(false);
   };
   
-  const handleSetPov = (newPov: 'main' | 'ship') => {
-    if (isCalibrationMode) return;
+  const handleOverviewCycle = useCallback(() => {
+    const majorDistricts = districts.filter(d => d.type === 'major');
+    if (majorDistricts.length === 0) return;
 
-    if (newPov === 'ship' && pov === 'ship') {
-      if (shipRefs.length > 1) {
-        let newTargetIndex = -1;
-        const currentTargetIndex = shipRefs.findIndex(ref => ref === targetShipRef);
+    // Determine the current district to avoid repeating it.
+    const currentDistrictId = selectedDistrict?.id || lastCycledDistrictId;
+    let availableDistricts = majorDistricts.filter(d => d.id !== currentDistrictId);
 
-        while (newTargetIndex === -1 || newTargetIndex === currentTargetIndex) {
-            newTargetIndex = Math.floor(Math.random() * shipRefs.length);
-        }
-        
-        setTargetShipRef(shipRefs[newTargetIndex]);
-        setIsAnimating(true);
-      }
-      return;
+    // If filtering leaves no options (e.g., only one district exists), use the full list.
+    if (availableDistricts.length === 0) {
+        availableDistricts = majorDistricts;
     }
 
-    if (newPov === pov) return;
+    const randomIndex = Math.floor(Math.random() * availableDistricts.length);
+    const nextDistrict = availableDistricts[randomIndex];
+    
+    setLastCycledDistrictId(nextDistrict.id);
+    handleDistrictSelect(nextDistrict);
+  }, [districts, selectedDistrict, handleDistrictSelect, lastCycledDistrictId]);
 
+  const handleSetPov = useCallback((newPov: 'main' | 'ship') => {
     if (newPov === 'main') {
-      setShipControlMode('follow');
-      setControlledShipId(null);
-      handleGoHome();
-    } else {
-      setIsAutoRotating(false);
-      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-      
-      if(selectedDistrict) {
+      handleOverviewCycle();
+    } else { // newPov is 'ship'
+        setPov('ship');
+        if (shipRefs.length > 0) {
+          const randomIndex = Math.floor(Math.random() * shipRefs.length);
+          setTargetShipRef(shipRefs[randomIndex]);
+        }
         setSelectedDistrict(null);
         setShowContentPanel(false);
         setInfoPanelItem(null);
-      }
-      
-      if (shipRefs.length > 0) {
-        const randomIndex = Math.floor(Math.random() * shipRefs.length);
-        setTargetShipRef(shipRefs[randomIndex]);
-      }
-      setPov('ship');
-      setIsAnimating(true);
+        setIsAnimating(true);
+        resetIdleTimer();
     }
-  };
-  
-  const handleToggleShipControl = useCallback(() => {
-    if (pov !== 'ship') return;
+  }, [handleOverviewCycle, shipRefs, resetIdleTimer]);
 
-    setShipControlMode((prev: ShipControlMode) => {
-      if (prev === 'follow') {
+  const handleShipControlToggle = () => {
+    if (shipControlMode === 'follow') {
+        setShipControlMode('manual');
         if (targetShipRef?.current) {
-          const targetNode = targetShipRef.current;
-          // Find ship data by matching the ref object
-          const shipIndex = shipRefs.findIndex(ref => ref.current === targetNode);
-          if (shipIndex !== -1) {
-            setControlledShipId(shipsData[shipIndex].id);
-            return 'manual';
-          }
-        }
-        return 'follow'; // Cannot switch if no target is found
-      } else {
-        setControlledShipId(null);
-        return 'follow';
-      }
-    });
-  }, [pov, targetShipRef, shipRefs]);
-  
-  const handleSetHeldDistrict = useCallback((id: string | null) => {
-    if (id) {
-        const district = districts.find(d => d.id === id);
-        if (district) {
-            setHeldDistrictId(id);
+            setControlledShipId(targetShipRef.current.uuid);
+        } else if (shipRefs.length > 0) {
+            const firstShipRef = shipRefs[0];
+            setTargetShipRef(firstShipRef);
+            setControlledShipId(firstShipRef.current?.uuid || null);
         }
     } else {
-        setHeldDistrictId(null);
+        setShipControlMode('follow');
+        setControlledShipId(null);
     }
-  }, [districts]);
+  };
 
-  const handlePlaceDistrict = useCallback(() => {
-      setHeldDistrictId(null);
-  }, []);
+  const handleShipTouchInputChange = (inputs: ShipInputState) => {
+    setShipTouchInputs(inputs);
+  };
+
+  const handleSetHeldDistrict = (id: string | null) => {
+    if (!isCalibrationMode) return;
+    setHeldDistrictId(id);
+    if(id) {
+      document.body.style.cursor = 'grabbing';
+    } else {
+      document.body.style.cursor = 'grab';
+    }
+  };
 
 
   return (
     <>
       <Canvas
         shadows
-        camera={{ position: OVERVIEW_CAMERA_POSITION.toArray(), fov: 50, near: 0.1, far: 1000 }}
-        gl={{
-          powerPreference: 'high-performance',
-          antialias: false,
-          stencil: false,
-          depth: false,
-        }}
-        dpr={[1, 1.5]}
-        onDoubleClick={(e) => e.stopPropagation()}
+        camera={{ position: OVERVIEW_CAMERA_POSITION, fov: 50 }}
+        gl={{ antialias: true, alpha: false }}
+        onPointerDown={handleInteractionStart}
+        onPointerUp={handleInteractionEnd}
       >
+        <fog attach="fog" args={['#050810', 50, 400]} />
+        <ambient_light intensity={0.5} />
+        <directionalLight
+          castShadow
+          position={sunPosition}
+          intensity={3}
+          shadow-mapSize-width={2048}
+          shadow-mapSize-height={2048}
+          shadow-camera-far={500}
+          shadow-camera-left={-200}
+          shadow-camera-right={200}
+          shadow-camera-top={200}
+          shadow-camera-bottom={-200}
+          color={sunColor}
+        />
+        <Sky sunPosition={sunPosition} />
+        
         <Suspense fallback={null}>
-            <>
-              {/* The <Sky> component renders the background; fog has been removed for performance. */}
-              <Sky sunPosition={sunPosition} turbidity={20} rayleigh={1} mieCoefficient={0.005} mieDirectionalG={0.8} />
-              <ambientLight intensity={1.2} />
-              <directionalLight
-                position={sunPosition}
-                intensity={6.0}
-                color={sunColor}
-                castShadow
-                shadow-mapSize-width={4096}
-                shadow-mapSize-height={4096}
-                shadow-camera-far={500}
-                shadow-camera-left={-200}
-                shadow-camera-right={200}
-                shadow-camera-top={200}
-                shadow-camera-bottom={-200}
-              />
-
-              <CityModel />
-              <FlyingShips 
-                setShipRefs={setShipRefs} 
-                isPaused={isPaused} 
-                controlledShipId={controlledShipId}
-                shipInputs={shipInputs}
-              />
-              <PatrollingCore isPaused={isPaused} />
-              <ProceduralTerrain />
-              
-              <group position={[0, 5, 0]}>
-                <DistrictRenderer
-                  districts={districts}
-                  selectedDistrict={selectedDistrict}
-                  onDistrictSelect={handleDistrictSelect}
-                  isCalibrationMode={isCalibrationMode}
-                  heldDistrictId={heldDistrictId}
-                  onSetHeldDistrict={handleSetHeldDistrict}
-                />
-                {infoPanelItem && <HolographicInfoPanel district={infoPanelItem} onClose={handlePanelClose} />}
-              </group>
-              
-              {isCalibrationMode && <CalibrationGrid size={250} />}
-              {isCalibrationMode && (
-                  <BuildModeController
-                    districts={districts}
-                    setDistricts={setDistricts}
-                    heldDistrictId={heldDistrictId}
-                    onPlaceDistrict={handlePlaceDistrict}
-                    gridSize={250}
-                    gridDivisions={25}
-                  />
-                )}
-
-              <CameraRig 
-                selectedDistrict={selectedDistrict} 
-                onAnimationFinish={onAnimationFinish} 
-                isAnimating={isAnimating}
-                pov={pov}
-                targetShipRef={targetShipRef}
-                isCalibrationMode={isCalibrationMode}
-              />
-
-              <EffectComposer>
-                <Noise 
-                  premultiply 
-                  blendFunction={BlendFunction.ADD}
-                  opacity={0.07} 
-                />
-                <ChromaticAberration 
-                  offset={new THREE.Vector2(0.001, 0.001)}
-                  radialModulation={false}
-                  modulationOffset={0.15}
-                />
-              </EffectComposer>
-            </>
+          <CityModel />
+          <ProceduralTerrain />
+          <DistrictRenderer
+            districts={districts}
+            selectedDistrict={selectedDistrict}
+            onDistrictSelect={handleDistrictSelect}
+            isCalibrationMode={isCalibrationMode}
+            heldDistrictId={heldDistrictId}
+            onSetHeldDistrict={handleSetHeldDistrict}
+          />
+          <FlyingShips
+            setShipRefs={setShipRefs}
+            isPaused={isPaused}
+            controlledShipId={controlledShipId}
+            shipInputs={shipInputs}
+          />
+          <PatrollingCore isPaused={isPaused} />
+          {isCalibrationMode && <CalibrationGrid size={250} />}
         </Suspense>
 
-        <OrbitControls
-            ref={controlsRef}
-            enabled={pov === 'main' && shipControlMode === 'follow' && !isAnimating && !isNavMenuOpen && !showContentPanel && !infoPanelItem && !heldDistrictId}
-            enableDamping
-            dampingFactor={0.05}
-            minDistance={20}
-            maxDistance={300}
-            maxPolarAngle={isCalibrationMode ? Math.PI / 2.05 : Math.PI / 2.2}
-            target={[0, 5, 0]}
-            autoRotate={isAutoRotating && !isCalibrationMode}
-            autoRotateSpeed={0.5}
-            onStart={handleInteractionStart}
-            onEnd={handleInteractionEnd}
-            onChange={handleControlsChange}
+        <CameraRig 
+            selectedDistrict={selectedDistrict} 
+            onAnimationFinish={onAnimationFinish}
+            isAnimating={isAnimating}
+            pov={pov}
+            targetShipRef={targetShipRef}
+            isCalibrationMode={isCalibrationMode}
         />
+        
+        {isCalibrationMode && (
+          <BuildModeController 
+            districts={districts}
+            setDistricts={setDistricts}
+            heldDistrictId={heldDistrictId}
+            onPlaceDistrict={() => handleSetHeldDistrict(null)}
+            gridSize={250}
+            gridDivisions={25}
+          />
+        )}
+        
+        <OrbitControls
+          ref={controlsRef}
+          enableDamping
+          dampingFactor={0.05}
+          enablePan={!isAnimating}
+          enableZoom={!isAnimating}
+          enableRotate={!isAnimating && pov === 'main'}
+          minDistance={10}
+          maxDistance={300}
+          maxPolarAngle={Math.PI / 2 - 0.05}
+          onChange={handleControlsChange}
+          autoRotate={isAutoRotating}
+          autoRotateSpeed={0.3}
+        />
+
+        <EffectComposer>
+            <Noise opacity={0.02} blendFunction={BlendFunction.MULTIPLY} />
+            <ChromaticAberration
+              blendFunction={BlendFunction.NORMAL}
+              offset={new THREE.Vector2(0.0005, 0.0005)}
+            />
+        </EffectComposer>
+
+        {infoPanelItem && (
+            <HolographicInfoPanel district={infoPanelItem} onClose={handlePanelClose} />
+        )}
       </Canvas>
       
+      {/* UI Layer */}
       <HUD 
-          selectedDistrict={selectedDistrict} 
-          onToggleNavMenu={() => setIsNavMenuOpen(!isNavMenuOpen)}
-          pov={pov}
-          onSetPov={handleSetPov}
-          isCalibrationMode={isCalibrationMode}
-          heldDistrictId={heldDistrictId}
-          shipControlMode={shipControlMode}
-          onToggleShipControl={handleToggleShipControl}
-          isTouchDevice={isTouchDevice}
-          onShipTouchInputChange={setShipTouchInputs}
-          isAnyPanelOpen={isAnyPanelOpen}
+        selectedDistrict={selectedDistrict}
+        onToggleNavMenu={() => setIsNavMenuOpen(prev => !prev)}
+        pov={pov}
+        onSetPov={handleSetPov}
+        isCalibrationMode={isCalibrationMode}
+        heldDistrictId={heldDistrictId}
+        shipControlMode={shipControlMode}
+        onToggleShipControl={handleShipControlToggle}
+        isTouchDevice={isTouchDevice}
+        onShipTouchInputChange={handleShipTouchInputChange}
+        isAnyPanelOpen={isAnyPanelOpen}
+      />
+      
+      <QuickNavMenu
+        isOpen={isNavMenuOpen}
+        onClose={() => setIsNavMenuOpen(false)}
+        onSelectDistrict={handleQuickNavSelect}
+        districts={navDistricts}
       />
 
-      {isNavMenuOpen && (
-          <QuickNavMenu 
-              isOpen={isNavMenuOpen}
-              onClose={() => setIsNavMenuOpen(false)}
-              onSelectDistrict={handleQuickNavSelect}
-              districts={navDistricts}
-          />
-      )}
-       {showContentPanel && (
-          <ProjectSelectionPanel
-              isOpen={showContentPanel}
-              district={selectedDistrict}
-              onClose={handleGoHome}
-              onProjectSelect={handleProjectClick}
-          />
-      )}
-      <ExportLayoutModal
+      <ProjectSelectionPanel 
+        isOpen={showContentPanel}
+        district={selectedDistrict}
+        onClose={handleGoHome}
+        onProjectSelect={handleProjectClick}
+      />
+      
+      <ExportLayoutModal 
         isOpen={isExportModalOpen}
-        onClose={() => { /* Modal cannot be opened, but this keeps it functional */ }}
+        onClose={() => { /* Logic to close */ }}
         jsonData={exportedLayoutJson}
       />
     </>

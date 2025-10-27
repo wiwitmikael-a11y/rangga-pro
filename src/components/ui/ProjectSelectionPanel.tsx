@@ -337,11 +337,11 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
   const activeProject = projects.length > 0 ? projects[currentIndex] : null;
 
   const handlePrev = useCallback(() => {
-    setCurrentIndex(prev => (prev === 0 ? projects.length - 1 : prev - 1));
-  }, [projects.length]);
+    setCurrentIndex(prev => Math.max(0, prev - 1));
+  }, []);
 
   const handleNext = useCallback(() => {
-    setCurrentIndex(prev => (prev === projects.length - 1 ? 0 : prev - 1));
+    setCurrentIndex(prev => Math.min(projects.length - 1, prev + 1));
   }, [projects.length]);
   
   const containerStyle: React.CSSProperties = { ...styles.container, opacity: isOpen ? 1 : 0, transform: isOpen ? 'translateY(0)' : 'translateY(100vh)', pointerEvents: isOpen ? 'auto' : 'none', userSelect: 'auto' };
@@ -382,6 +382,8 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
       return <InstagramPanelContent />;
     }
     if (isProjectDistrict) {
+      const canGoPrev = currentIndex > 0;
+      const canGoNext = currentIndex < projects.length - 1;
       return (
         <div style={styles.contentBody}>
           {projects.length > 0 ? (
@@ -426,8 +428,24 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
                   <p style={styles.infoDescription}>{activeProject.description}</p>
                 </div>
               )}
-              <button onClick={handlePrev} style={{...styles.navButton, left: '20px'}} className="carousel-nav-button" aria-label="Previous Project">&#8249;</button>
-              <button onClick={handleNext} style={{...styles.navButton, right: '20px'}} className="carousel-nav-button" aria-label="Next Project">&#8250;</button>
+              <button 
+                onClick={handlePrev} 
+                style={{...styles.navButton, left: '20px', opacity: canGoPrev ? 1 : 0.3 }} 
+                className="carousel-nav-button" 
+                aria-label="Previous Project"
+                disabled={!canGoPrev}
+              >
+                &#8249;
+              </button>
+              <button 
+                onClick={handleNext} 
+                style={{...styles.navButton, right: '20px', opacity: canGoNext ? 1 : 0.3 }} 
+                className="carousel-nav-button" 
+                aria-label="Next Project"
+                disabled={!canGoNext}
+              >
+                &#8250;
+              </button>
             </>
           ) : (
             <p style={styles.placeholder}>[No project data available for this sector]</p>
