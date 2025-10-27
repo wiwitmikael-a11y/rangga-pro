@@ -467,23 +467,23 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
   }, [selectedDistrict, isCalibrationMode, heldDistrictId, shipControlMode]);
   
   const isManualMode = shipControlMode === 'manual';
-
-  const bottomCenterContainerStyle = {
-    ...styles.bottomCenterContainer,
-    ...((isAnyPanelOpen || pov === 'ship') ? styles.hiddenBottom : styles.visible)
-  };
-
+  
+  const isNavButtonHidden = isAnyPanelOpen || pov === 'ship';
   const areSideButtonsHidden = isAnyPanelOpen || isCalibrationMode;
 
-  // By explicitly defining the visible and hidden states, we ensure the CSS transition
-  // has a clear target to animate back to, fixing the "stuck" hidden state issue.
-  const bottomLeftContainerStyle = {
-    ...styles.bottomLeftContainer,
-    opacity: areSideButtonsHidden ? 0 : 1,
-    transform: areSideButtonsHidden ? 'translateY(60px)' : 'translateY(0)',
-    pointerEvents: areSideButtonsHidden ? 'none' as const : 'auto',
+  const bottomCenterContainerStyle = {
+      ...styles.bottomCenterContainer,
+      ...(isNavButtonHidden ? styles.hiddenBottom : styles.visible)
   };
 
+  const bottomLeftContainerStyle = {
+      ...styles.bottomLeftContainer,
+      ...(areSideButtonsHidden && {
+        opacity: 0,
+        transform: 'translateY(60px)',
+        pointerEvents: 'none' as const,
+      }),
+  };
 
   return (
     <>

@@ -66,12 +66,12 @@ export const Experience3D: React.FC = () => {
   const navDistricts = useMemo(() => {
     const majorDistricts = districts.filter(d => d.type === 'major');
     const order: string[] = [
-      'skills-matrix',    // Core Matrix
-      'visual-arts',      // Visual Archiver
-      'nova-forge',       // AI Engineer Lab
-      'defi-data-vault',  // DeFi Vault
-      'contact',          // Contact Hub
-      'nexus-core',       // @rangga.p.h
+      'skills-matrix',
+      'visual-arts',
+      'nova-forge',
+      'defi-data-vault',
+      'contact',
+      'nexus-core',
     ];
     
     // Create a copy to avoid mutating the original `majorDistricts` array if it's used elsewhere
