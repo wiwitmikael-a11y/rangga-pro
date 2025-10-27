@@ -368,6 +368,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderColor: '#ff9900',
     color: '#ff9900',
   },
+  magentaButton: {
+    borderColor: '#ff00ff',
+    color: '#ff00ff',
+  },
   virtualControlsContainer: {
     position: 'fixed',
     inset: 0,
@@ -494,6 +498,16 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
       }),
   };
 
+  const bottomRightContainerStyle: React.CSSProperties = {
+      ...styles.bottomRightContainer,
+      transition: 'opacity 0.4s ease, transform 0.4s ease',
+      ...(areSideButtonsHidden && {
+        opacity: 0,
+        transform: 'translateY(60px)',
+        pointerEvents: 'none',
+      }),
+  };
+
   return (
     <>
       <style>{`
@@ -509,6 +523,11 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
             background-color: rgba(255, 153, 0, 0.2);
             border-color: #ff9900;
             color: #ff9900;
+        }
+        .hud-button.magenta-button:hover {
+            background-color: rgba(255, 0, 255, 0.2);
+            border-color: #ff00ff;
+            color: #ff00ff;
         }
       `}</style>
       
@@ -562,19 +581,6 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
                 Ship POV
               </span>
           </div>
-          <div style={styles.buttonWrapper}>
-              <button
-                onClick={onToggleHints}
-                style={styles.hudButton}
-                className="hud-button"
-                aria-label="Show Controls and Hints"
-              >
-                  <QuestionMarkIcon />
-              </button>
-              <span style={styles.buttonLabel}>
-                Hints
-              </span>
-          </div>
 
           {pov === 'ship' && shipControlMode === 'follow' && (
             <div style={styles.buttonWrapper}>
@@ -593,24 +599,36 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
           )}
       </div>
 
-      {pov === 'ship' && shipControlMode === 'manual' && (
-        <div style={styles.bottomRightContainer}>
-            <div style={styles.buttonWrapper}>
+      <div style={bottomRightContainerStyle}>
+          <div style={styles.buttonWrapper}>
                 <button
-                    onClick={onToggleShipControl}
-                    style={{...styles.hudButton, ...styles.dangerButton}}
-                    className="hud-button danger-button"
-                    aria-label="Engage Autopilot"
+                  onClick={onToggleHints}
+                  style={{...styles.hudButton, ...styles.magentaButton}}
+                  className="hud-button magenta-button"
+                  aria-label="Show Controls and Hints"
                 >
-                    <AutopilotIcon />
+                    <QuestionMarkIcon />
                 </button>
-                <span style={{...styles.buttonLabel, color: '#ff9900'}}>
-                    Exit Pilot
+                <span style={{...styles.buttonLabel, color: '#ff00ff'}}>
+                  Hints
                 </span>
             </div>
-        </div>
-      )}
-
+          {pov === 'ship' && shipControlMode === 'manual' && (
+              <div style={styles.buttonWrapper}>
+                  <button
+                      onClick={onToggleShipControl}
+                      style={{...styles.hudButton, ...styles.dangerButton}}
+                      className="hud-button danger-button"
+                      aria-label="Engage Autopilot"
+                  >
+                      <AutopilotIcon />
+                  </button>
+                  <span style={{...styles.buttonLabel, color: '#ff9900'}}>
+                      Exit Pilot
+                  </span>
+              </div>
+          )}
+      </div>
 
       {!isTouchDevice && <ControlHints isManual={isManualMode} />}
       {isTouchDevice && isManualMode && <VirtualControls onInputChange={onShipTouchInputChange} />}
