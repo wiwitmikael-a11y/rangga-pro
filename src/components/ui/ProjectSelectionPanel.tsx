@@ -107,431 +107,364 @@ const styles: { [key: string]: React.CSSProperties } = {
   instagramPanel: { ...glassmorphism, padding: '40px', borderRadius: '15px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' },
   instagramUsername: { margin: '10px 0', color: 'var(--primary-color)', fontSize: '1.8rem', textShadow: '0 0 8px var(--primary-color)' },
   instagramPrompt: { margin: '0 0 25px 0', color: '#ccc', fontSize: '1rem' },
-  instagramVisitButton: { width: '100%', background: 'rgba(0, 170, 255, 0.2)', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', padding: '12px 25px', fontSize: '1rem', fontFamily: 'inherit', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', transition: 'all 0.3s ease', textShadow: '0 0 5px var(--primary-color)', borderRadius: '5px' },
-
-  contactGrid: { display: 'grid', gridTemplateColumns: '1fr 2fr', width: '100%', height: '100%', flexGrow: 1 },
-  contactLinksPanel: { padding: '25px', background: 'rgba(8, 20, 42, 0.8)', overflowY: 'auto' },
-  contactFormPanel: { padding: '25px', background: 'rgba(8, 20, 42, 0.8)', overflowY: 'auto' },
-  contactPanelTitle: { color: '#fff', marginTop: 0, marginBottom: '10px', fontSize: '1.2rem', textTransform: 'uppercase', letterSpacing: '0.05em' },
-  contactPanelDescription: { color: '#aaa', marginTop: 0, marginBottom: '25px', fontSize: '0.9rem', lineHeight: 1.5 },
-  contactLinkButton: { ...glassmorphism, display: 'flex', alignItems: 'center', gap: '15px', padding: '12px 15px', color: '#cceeff', textDecoration: 'none', borderRadius: '5px', marginBottom: '10px', transition: 'all 0.3s ease', borderLeft: '3px solid transparent' },
-  contactSubmitButton: { width: '100%', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', padding: '12px', fontSize: '1rem', fontFamily: 'inherit', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', transition: 'all 0.3s ease', textShadow: '0 0 5px var(--primary-color)', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '5px' },
-  contactStatusConsole: { marginTop: '15px', padding: '8px 12px', background: 'rgba(0,0,0,0.5)', borderRadius: '4px', border: '1px solid #333', color: '#888', fontFamily: 'monospace', fontSize: '0.8rem', textAlign: 'center', transition: 'all 0.3s ease' },
-  formHint: {
-    fontSize: '0.75rem',
-    color: '#88a7a6',
-    margin: '5px 0 0 2px',
-    padding: 0,
-    fontStyle: 'italic',
-    textAlign: 'left',
-    lineHeight: '1.2',
-  },
+  instagramVisitButton: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: '1px solid rgba(0, 170, 255, 0.5)', color: 'var(--primary-color)', padding: '12px 25px', fontSize: '1rem', fontFamily: 'inherit', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', transition: 'all 0.3s ease', textShadow: '0 0 5px var(--primary-color)', borderRadius: '5px', textDecoration: 'none' },
+  
+  contactLayout: { display: 'grid', gridTemplateColumns: '3fr 2fr', flexGrow: 1, gap: '30px', minHeight: 0, overflow: 'hidden', background: 'rgba(0,0,0,0.2)', borderRadius: '10px', border: '1px solid rgba(0, 170, 255, 0.2)' },
+  formPanel: { padding: '30px', overflowY: 'auto' },
+  linksPanel: { padding: '30px', borderLeft: '1px solid rgba(0, 170, 255, 0.3)', display: 'flex', flexDirection: 'column' },
+  contactForm: { display: 'flex', flexDirection: 'column', height: '100%' },
+  formContent: { flexGrow: 1 },
+  linkButton: { display: 'flex', alignItems: 'center', gap: '15px', padding: '15px', borderRadius: '8px', textDecoration: 'none', color: '#ccc', transition: 'all 0.2s ease' },
+  linkButtonText: { display: 'flex', flexDirection: 'column' },
+  linkTitle: { margin: 0, color: '#fff', fontSize: '1rem' },
+  linkHandle: { margin: 0, fontSize: '0.8rem' },
+  transmitButton: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0, 170, 255, 0.2)', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', padding: '12px 25px', fontSize: '1rem', fontFamily: 'inherit', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', transition: 'all 0.3s ease', textShadow: '0 0 5px var(--primary-color)', borderRadius: '5px', alignSelf: 'flex-end', marginTop: 'auto' },
+  formStatus: { textAlign: 'center', marginTop: '10px', fontSize: '0.9rem', transition: 'opacity 0.3s ease' },
   // --- END: Styles for re-integrated content ---
-
-  // --- START: Styles for Image Maximization Modal ---
-  imageModalOverlay: {
-    position: 'fixed',
-    inset: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.85)',
-    backdropFilter: 'blur(10px)',
-    zIndex: 51,
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    animation: 'fadeInModal 0.3s ease',
-  },
-  imageModalContent: {
-    position: 'relative',
-    width: 'auto',
-    height: 'auto',
-    maxWidth: '90vw',
-    maxHeight: '90vh',
-    display: 'flex',
-  },
-  maximizedImage: {
-    maxWidth: '100%',
-    maxHeight: '100%',
-    objectFit: 'contain',
-    borderRadius: '10px',
-    boxShadow: '0 0 30px rgba(0, 255, 255, 0.5)',
-    animation: 'zoomInModal 0.3s ease',
-  },
-  imageModalCloseButton: {
-    position: 'absolute',
-    top: '-15px',
-    right: '-15px',
-    background: 'rgba(0, 20, 40, 0.8)',
-    border: '1px solid #ff9900',
-    color: '#ff9900',
-    width: '40px',
-    height: '40px',
-    borderRadius: '50%',
-    cursor: 'pointer',
-    fontSize: '1.8rem',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    lineHeight: 1,
-    transition: 'all 0.2s',
-  },
-  // --- END: Styles for Image Maximization Modal ---
 };
 
 
-// --- START: Re-integrated Content Components ---
+export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ isOpen, district, onClose, onProjectSelect }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState<SkillCategory | null>(skillsData[0]);
+  const [hoveredCategory, setHoveredCategory] = useState<SkillCategory | null>(null);
 
-const StrategicAnalysisPanel: React.FC<{ category: SkillCategory | null }> = ({ category }) => {
-  const data = category || { category: 'Professional Synopsis', description: professionalSummary, skills: [], keyMetrics: [] };
-  return (
-    <div key={data.category} style={styles.analysisPanel} className="analysis-panel">
-      <h3 style={styles.analysisTitle}>{data.category}</h3>
-      <p style={styles.analysisDescription}>{data.description}</p>
-      {data.keyMetrics && data.keyMetrics.length > 0 && (<>
-        <h4 style={styles.sectionHeader}>Impact Metrics</h4>
-        <div style={styles.metricsContainer}>{data.keyMetrics.map(metric => (<span key={metric} style={styles.metricTag}>{metric}</span>))}</div>
-      </>)}
-      {data.skills.length > 0 && (<>
-        <h4 style={styles.sectionHeader}>Key Proficiencies</h4>
-        <ul style={styles.skillsList}>{data.skills.map(skill => (<li key={skill.name} style={styles.skillItem}>
-          <div style={styles.skillLabel}><span>{skill.name}</span><span style={styles.skillPercent}>{skill.level}%</span></div>
-          <div style={styles.skillBar}><div style={{ ...styles.skillBarFill, width: `${skill.level}%` }} /></div>
-        </li>))}</ul>
-      </>)}
-    </div>
-  );
-};
-
-const InstagramPanelContent: React.FC = () => {
-  const handleVisit = () => {
-    window.open('https://www.instagram.com/rangga.p.h/', '_blank');
+  const containerStyle: React.CSSProperties = {
+    ...styles.container,
+    opacity: isOpen ? 1 : 0,
+    transform: isOpen ? 'translateY(0)' : 'translateY(100%)',
+    pointerEvents: isOpen ? 'auto' : 'none',
   };
-  return (
-    <div style={styles.integratedContentContainer}>
-      <div style={styles.instagramPanel}>
-        <InstagramIcon size={64} />
-        <h2 style={styles.instagramUsername}>@rangga.p.h</h2>
-        <p style={styles.instagramPrompt}>Visit External Profile?</p>
-        <button onClick={handleVisit} style={styles.instagramVisitButton}>
-          Proceed
-        </button>
+
+  const overlayStyle: React.CSSProperties = {
+    ...styles.overlay,
+    opacity: isOpen ? 1 : 0,
+    pointerEvents: isOpen ? 'auto' : 'none',
+  };
+  
+  const handleCategorySelect = useCallback((category: SkillCategory) => {
+    setSelectedCategory(category);
+  }, []);
+
+  const handleCategoryHover = useCallback((category: SkillCategory | null) => {
+    setHoveredCategory(category);
+  }, []);
+
+  const handleNav = (direction: 'next' | 'prev') => {
+    if (!district?.subItems) return;
+    const total = district.subItems.length;
+    setCurrentIndex(prev => (direction === 'next' ? (prev + 1) % total : (prev - 1 + total) % total));
+  };
+  
+  useEffect(() => {
+      if (isOpen) {
+          setCurrentIndex(0);
+          setSelectedCategory(skillsData[0]);
+          setHoveredCategory(null);
+      }
+  }, [isOpen]);
+
+  const CompetencyCore: React.FC = () => (
+    <>
+      <p style={styles.description}>{professionalSummary}</p>
+      <div style={styles.competencyLayout} className="competency-layout">
+        <div style={styles.chartContainer} className="chart-container">
+          <SkillsRadarChart 
+            skills={skillsData} 
+            selectedCategory={selectedCategory}
+            hoveredCategory={hoveredCategory}
+            onCategorySelect={handleCategorySelect}
+            onCategoryHover={handleCategoryHover}
+          />
+        </div>
+        {selectedCategory && (
+            <div style={styles.analysisPanel} className="analysis-panel">
+                <h3 style={styles.analysisTitle}>{selectedCategory.category}</h3>
+                <p style={styles.analysisDescription}>{selectedCategory.description}</p>
+                <div style={styles.metricsContainer}>
+                    {selectedCategory.keyMetrics.map(metric => (
+                        <span key={metric} style={styles.metricTag}>{metric}</span>
+                    ))}
+                </div>
+                <h4 style={styles.sectionHeader}>Key Skills</h4>
+                <ul style={styles.skillsList}>
+                    {selectedCategory.skills.map(skill => (
+                        <li key={skill.name} style={styles.skillItem}>
+                            <div style={styles.skillLabel}>
+                                <span>{skill.name}</span>
+                                <span style={styles.skillPercent}>{skill.level}%</span>
+                            </div>
+                            <div style={styles.skillBar}>
+                                <div style={{...styles.skillBarFill, width: `${skill.level}%`}}></div>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        )}
       </div>
-    </div>
+    </>
   );
-};
 
-const ContactPanelContent: React.FC = () => {
-    // FIX: Endpoint Formspree diperbarui ke ID yang benar untuk email tujuan.
-    const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mqkrrgby';
-    
-    type FormFields = { name: string; email: string; inquiry: string; message: string };
-    const [formData, setFormData] = useState<FormFields>({ name: '', email: '', inquiry: 'Project Proposal / Collaboration', message: '' });
-    const [errors, setErrors] = useState<Partial<Record<keyof FormFields, string>>>({});
-    const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
-    const [isFormValid, setIsFormValid] = useState(false);
+  const ContactForm: React.FC = () => {
+    const [status, setStatus] = useState('');
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
+    const [formData, setFormData] = useState({ name: '', email: '', subject: 'General Inquiry', message: '' });
 
-    const validateField = (name: keyof FormFields, value: string): string => {
-        if (!value.trim()) return 'Field is required.';
-        if (name === 'email' && !/^\S+@\S+\.\S+$/.test(value)) return 'Invalid email address format.';
-        return '';
+    const validate = () => {
+        const newErrors: { [key: string]: string } = {};
+        if (!formData.name.trim()) newErrors.name = 'Name is required';
+        if (!formData.email.trim()) {
+            newErrors.email = 'Email is required';
+        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+            newErrors.email = 'Email is invalid';
+        }
+        if (!formData.message.trim()) newErrors.message = 'Message is required';
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     };
-    
-    useEffect(() => {
-        const formValues = Object.values(formData);
-        const errorValues = Object.values(errors);
-        const hasNoErrors = errorValues.every(e => !e);
-        const allFieldsFilled = formValues.every(v => typeof v === 'string' && v.trim() !== '');
-        setIsFormValid(hasNoErrors && allFieldsFilled);
-    }, [formData, errors]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { name, value } = e.target as { name: keyof FormFields, value: string };
+        const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: '' }));
         }
     };
-    
-    const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target as { name: keyof FormFields, value: string };
-        const error = validateField(name, value);
-        setErrors(prev => ({...prev, [name]: error }));
-    };
 
-    const handleSubmit = async (e: FormEvent) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        
-        let validationErrors: Partial<Record<keyof FormFields, string>> = {};
-        let isValid = true;
-        (Object.keys(formData) as Array<keyof FormFields>).forEach(key => {
-            const error = validateField(key, formData[key]);
-            if (error) {
-                validationErrors[key] = error;
-                isValid = false;
-            }
-        });
-
-        setErrors(validationErrors);
-
-        if (!isValid) {
-            setStatus('error');
+        if (!validate()) {
+            setStatus('Please correct the errors before submitting.');
             return;
         }
 
-        setStatus('sending');
+        setStatus('TRANSMITTING...');
+        const form = e.target as HTMLFormElement;
+        const data = new FormData(form);
+        
         try {
-            const response = await fetch(FORMSPREE_ENDPOINT, {
-                method: 'POST',
-                body: new FormData(e.target as HTMLFormElement), // Use FormData for honeypot
-                headers: {
-                    'Accept': 'application/json'
-                }
+            const response = await fetch(form.action, {
+                method: form.method,
+                body: data,
+                headers: { 'Accept': 'application/json' }
             });
 
             if (response.ok) {
-                setStatus('success');
-                setFormData({ name: '', email: '', inquiry: 'Project Proposal / Collaboration', message: '' });
-                setTimeout(() => setStatus('idle'), 4000);
+                setStatus('SUCCESS! Connection established.');
+                form.reset();
+                setFormData({ name: '', email: '', subject: 'General Inquiry', message: '' });
+                setTimeout(() => setStatus(''), 5000);
             } else {
-                setStatus('error');
-                console.error("Form submission failed:", await response.json());
+                const responseData = await response.json();
+                if (responseData.errors) {
+                    const formspreeErrors = responseData.errors.map((error: any) => error.message).join(', ');
+                    setStatus(`TRANSMIT FAILED: ${formspreeErrors}`);
+                } else {
+                    setStatus('TRANSMIT FAILED. Please try again.');
+                }
             }
         } catch (error) {
-            setStatus('error');
-            console.error("An error occurred during form submission:", error);
+            setStatus('TRANSMIT FAILED. Network error.');
         }
     };
-
-    const getStatusInfo = () => {
-        switch (status) {
-            case 'sending': return { text: '[TRANSMITTING ENCRYPTED PACKET...]', color: '#ffa500' };
-            case 'success': return { text: '[TRANSMISSION SUCCESSFUL: ACKNOWLEDGED]', color: '#00ff7f' };
-            case 'error': return { text: '[ERROR: TRANSMISSION FAILED. PLEASE TRY AGAIN.]', color: '#ff4444' };
-            default: return { text: '[STATUS: AWAITING INPUT]', color: '#888' };
-        }
-    };
-    const statusInfo = getStatusInfo();
-
-    const getSubmitButtonInfo = () => {
-        switch (status) {
-            case 'sending': return { text: 'Transmitting...', background: 'rgba(255, 165, 0, 0.2)', borderColor: '#ffa500', color: '#ffa500', animation: 'pulse-orange 1.5s infinite' };
-            case 'success': return { text: 'Message Sent!', background: 'rgba(0, 255, 127, 0.2)', borderColor: '#00ff7f', color: '#00ff7f' };
-            case 'error': return { text: 'Submission Failed', background: 'rgba(255, 68, 68, 0.2)', borderColor: '#ff4444', color: '#ff4444' };
-            default: return { text: <><TransmitIcon /> Transmit Message</>, background: 'rgba(0, 170, 255, 0.2)', borderColor: 'var(--primary-color)', color: 'var(--primary-color)' };
-        }
-    };
-    const submitButtonInfo = getSubmitButtonInfo();
 
     return (
-        <div style={styles.contactGrid} className="contact-grid">
-            <div style={styles.contactLinksPanel} className="contact-links-panel">
-                <h3 style={styles.contactPanelTitle}>Synchronize Link</h3>
-                <p style={styles.contactPanelDescription}>Establish a direct link for real-time networking, strategic scheduling, or social grid access.</p>
-                <a href="https://www.instagram.com/rangga.p.h/" target="_blank" rel="noopener noreferrer" style={styles.contactLinkButton} className="link-button"><InstagramIcon /> <span>@rangga.p.h</span></a>
-                <a href="https://www.linkedin.com/in/rangga-prayoga-hermawan" target="_blank" rel="noopener noreferrer" style={styles.contactLinkButton} className="link-button"><LinkedInIcon /> <span>Professional Network</span></a>
-                <a href="https://youtube.com/@ruangranggamusicchannel5536" target="_blank" rel="noopener noreferrer" style={styles.contactLinkButton} className="link-button"><YouTubeIcon /> <span>Music Channel</span></a>
-                <a href="https://calendly.com/" target="_blank" rel="noopener noreferrer" style={styles.contactLinkButton} className="link-button"><CalendarIcon /> <span>Schedule a Meeting</span></a>
-            </div>
-            <form style={styles.contactFormPanel} className="form-panel" onSubmit={handleSubmit} noValidate>
-                <h3 style={styles.contactPanelTitle}>Encrypted Comms</h3>
-                <p style={styles.contactPanelDescription}>Utilize this secure channel to transmit encrypted proposals, technical inquiries, or general intelligence.</p>
-                <div className="form-row">
-                    <div className="input-group">
-                        <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} onBlur={handleBlur} required className={`form-input ${errors.name ? 'input-error' : ''}`} placeholder=" " />
-                        <label htmlFor="name" className="form-label">Name / Organization</label>
-                        {errors.name && <span className="error-message">{errors.name}</span>}
-                        <p style={styles.formHint}>Gunakan nama asli agar pengiriman valid.</p>
+        <div style={styles.contactLayout} onContextMenu={(e) => e.stopPropagation()}>
+            <div className="form-panel" style={styles.formPanel}>
+                <h3 style={styles.infoTitle}>Direct Transmission</h3>
+                <p style={styles.infoDescription}>Send a secure message. All fields are required for a successful connection.</p>
+                <form
+                    action="https://formspree.io/f/xgegqzkq"
+                    method="POST"
+                    onSubmit={handleSubmit}
+                    className="contact-grid"
+                    style={styles.contactForm}
+                    noValidate
+                >
+                    {/* Honeypot field for spam prevention. Wrapped in a visually hidden div to prevent browser autofill. */}
+                    <div style={{ display: 'none' }}>
+                        <label>
+                          Don't fill this out if you're human: <input name="_gotcha" />
+                        </label>
                     </div>
-                    <div className="input-group">
-                        <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} onBlur={handleBlur} required className={`form-input ${errors.email ? 'input-error' : ''}`} placeholder=" " />
-                        <label htmlFor="email" className="form-label">Email Address</label>
-                        {errors.email && <span className="error-message">{errors.email}</span>}
-                        <p style={styles.formHint}>Email asli diperlukan untuk mendapatkan balasan.</p>
-                    </div>
-                </div>
-                <div className="input-group"><select id="inquiry" name="inquiry" value={formData.inquiry} onChange={handleChange} required className="form-input"><option>Project Proposal / Collaboration</option><option>Technical Consultation</option><option>Career Opportunity / Recruitment</option><option>General Inquiry / Feedback</option></select><label htmlFor="inquiry" className="form-label">Inquiry Type</label></div>
-                <div className="input-group"><textarea id="message" name="message" value={formData.message} onChange={handleChange} onBlur={handleBlur} required className={`form-input ${errors.message ? 'input-error' : ''}`} rows={4} placeholder=" "></textarea><label htmlFor="message" className="form-label">Your message...</label>{errors.message && <span className="error-message">{errors.message}</span>}</div>
-                
-                {/* Honeypot field for spam prevention. It should be invisible to users. */}
-                <input 
-                  type="text" 
-                  name="_gotcha" 
-                  tabIndex={-1} 
-                  autoComplete="off" 
-                  style={{
-                    position: 'absolute',
-                    left: '-5000px',
-                    opacity: '0',
-                    pointerEvents: 'none',
-                  }} 
-                />
 
-                <button type="submit" style={{...styles.contactSubmitButton, ...submitButtonInfo, animation: submitButtonInfo.animation || 'none' }} disabled={!isFormValid || status === 'sending' || status === 'success'}>{submitButtonInfo.text}</button>
-                <div style={{ ...styles.contactStatusConsole, color: statusInfo.color, borderColor: statusInfo.color }}>{statusInfo.text}</div>
-            </form>
+                    <div style={{ ...styles.formContent, paddingTop: '20px' }}>
+                        <div className="form-row">
+                            <div className="input-group">
+                                <input type="text" id="name" name="name" className={`form-input ${errors.name ? 'input-error' : ''}`} placeholder=" " value={formData.name} onChange={handleChange} />
+                                <label htmlFor="name" className="form-label">Name / Alias</label>
+                                {errors.name && <span className="error-message">{errors.name}</span>}
+                            </div>
+                            <div className="input-group">
+                                <input type="email" id="email" name="email" className={`form-input ${errors.email ? 'input-error' : ''}`} placeholder=" " value={formData.email} onChange={handleChange} />
+                                <label htmlFor="email" className="form-label">Email Address</label>
+                                {errors.email && <span className="error-message">{errors.email}</span>}
+                            </div>
+                        </div>
+                        <div className="input-group">
+                            <select id="subject" name="subject" className="form-input" value={formData.subject} onChange={handleChange}>
+                                <option>General Inquiry</option>
+                                <option>Project Collaboration</option>
+                                <option>Technical Consultation</option>
+                                <option>Recruitment</option>
+                            </select>
+                            <label htmlFor="subject" className="form-label">Subject</label>
+                        </div>
+                        <div className="input-group" style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                            <textarea id="message" name="message" className={`form-input ${errors.message ? 'input-error' : ''}`} placeholder=" " style={{ flexGrow: 1, minHeight: '100px' }} value={formData.message} onChange={handleChange}></textarea>
+                            <label htmlFor="message" className="form-label">Message</label>
+                            {errors.message && <span className="error-message">{errors.message}</span>}
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginTop: '15px' }}>
+                        <p style={{...styles.formStatus, color: status.includes('FAILED') ? '#ff6b6b' : (status.includes('SUCCESS') ? '#20c997' : '#88a7a6'), flexGrow: 1, textAlign: 'left', margin: 0 }}>{status}</p>
+                        <button type="submit" style={styles.transmitButton} disabled={status === 'TRANSMITTING...'}>
+                            <TransmitIcon /> {status === 'TRANSMITTING...' ? 'SENDING...' : 'Transmit'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div className="links-panel" style={styles.linksPanel}>
+                <h3 style={styles.infoTitle}>Social & Professional Hubs</h3>
+                <p style={styles.infoDescription}>Connect through these platforms for professional networking or to view creative works.</p>
+                <a href="https://www.linkedin.com/in/ranggaprayoga/" target="_blank" rel="noopener noreferrer" style={styles.linkButton} className="project-card">
+                    <LinkedInIcon />
+                    <div style={styles.linkButtonText}>
+                        <span style={styles.linkTitle}>LinkedIn</span>
+                        <span style={styles.linkHandle}>in/ranggaprayoga</span>
+                    </div>
+                </a>
+                <a href="https://www.youtube.com/@ranggaprayoga" target="_blank" rel="noopener noreferrer" style={styles.linkButton} className="project-card">
+                    <YouTubeIcon />
+                    <div style={styles.linkButtonText}>
+                        <span style={styles.linkTitle}>YouTube</span>
+                        <span style={styles.linkHandle}>@ranggaprayoga</span>
+                    </div>
+                </a>
+                <a href="https://www.instagram.com/rangga.p.h" target="_blank" rel="noopener noreferrer" style={styles.linkButton} className="project-card">
+                    <InstagramIcon />
+                    <div style={styles.linkButtonText}>
+                        <span style={styles.linkTitle}>Instagram</span>
+                        <span style={styles.linkHandle}>@rangga.p.h</span>
+                    </div>
+                </a>
+                <a href="https://cal.com/ranggaprayoga" target="_blank" rel="noopener noreferrer" style={{ ...styles.linkButton, marginTop: 'auto' }} className="project-card">
+                    <CalendarIcon />
+                    <div style={styles.linkButtonText}>
+                        <span style={styles.linkTitle}>Schedule a Meeting</span>
+                        <span style={styles.linkHandle}>via Cal.com</span>
+                    </div>
+                </a>
+            </div>
         </div>
     );
-};
-// --- END: Re-integrated Content Components ---
-
-
-export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ isOpen, district, onClose, onProjectSelect }) => {
-  const [hoveredCategory, setHoveredCategory] = useState<SkillCategory | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<SkillCategory | null>(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [maximizedImageUrl, setMaximizedImageUrl] = useState<string | null>(null);
-
-  const projects = district?.subItems || [];
-  const activeProject = projects.length > 0 ? projects[currentIndex] : null;
-
-  const handlePrev = useCallback(() => {
-    setCurrentIndex(prev => Math.max(0, prev - 1));
-  }, []);
-
-  const handleNext = useCallback(() => {
-    setCurrentIndex(prev => Math.min(projects.length - 1, prev + 1));
-  }, [projects.length]);
+  };
   
-  const containerStyle: React.CSSProperties = { ...styles.container, opacity: isOpen ? 1 : 0, transform: isOpen ? 'translateY(0)' : 'translateY(100vh)', pointerEvents: isOpen ? 'auto' : 'none', userSelect: 'auto' };
-  const overlayStyle: React.CSSProperties = { ...styles.overlay, opacity: isOpen ? 1 : 0, pointerEvents: isOpen ? 'auto' : 'none' };
-  
-  if (!district) return null;
-
-  const isSkillsMatrix = district.id === 'skills-matrix';
-  const isContactHub = district.id === 'contact';
-  const isNexusCore = district.id === 'nexus-core';
-  const isProjectDistrict = !isSkillsMatrix && !isContactHub && !isNexusCore;
-
+  const IntegratedContent: React.FC = () => {
+    switch (district?.id) {
+        case 'visual-arts':
+            return (
+                <div style={styles.integratedContentContainer}>
+                    <div style={styles.instagramPanel}>
+                        <InstagramIcon size={64} />
+                        <h2 style={styles.instagramUsername}>@rangga.p.h</h2>
+                        <p style={styles.instagramPrompt}>This district hosts my creative and visual works. The primary gallery is located on Instagram.</p>
+                        <a href="https://www.instagram.com/rangga.p.h" target="_blank" rel="noopener noreferrer" style={styles.instagramVisitButton} className="project-card">
+                            Visit Gallery
+                        </a>
+                    </div>
+                </div>
+            );
+        case 'skills-matrix':
+            return <CompetencyCore />;
+        case 'contact':
+            return <ContactForm />;
+        default:
+            return null;
+    }
+  };
 
   const renderContent = () => {
-    if (isSkillsMatrix) {
-      return (
-        <>
-          <p style={styles.instructions}>[CLICK A COMPETENCY CORE FOR ANALYSIS]</p>
-          <div style={styles.competencyLayout} className="competency-layout">
-            <div style={styles.chartContainer} className="chart-container">
-              <SkillsRadarChart 
-                skills={skillsData} 
-                selectedCategory={selectedCategory}
-                hoveredCategory={hoveredCategory} 
-                onCategorySelect={setSelectedCategory} 
-                onCategoryHover={setHoveredCategory} 
-              />
-            </div>
-            <StrategicAnalysisPanel category={selectedCategory} />
-          </div>
-        </>
-      );
-    }
-    if (isContactHub) {
-      return <ContactPanelContent />;
-    }
-    if (isNexusCore) {
-      return <InstagramPanelContent />;
-    }
-    if (isProjectDistrict) {
-      const canGoPrev = currentIndex > 0;
-      const canGoNext = currentIndex < projects.length - 1;
+    if (!district) return null;
+    
+    if (district.subItems && district.subItems.length > 0) {
       return (
         <div style={styles.contentBody}>
-          {projects.length > 0 ? (
-            <>
-              <div style={styles.carouselViewport} className="carousel-viewport">
-                {projects.map((item, index) => {
-                  const offset = index - currentIndex;
-                  const distance = Math.abs(offset);
-                  const isVisible = distance < 3;
-                  const cardSpacing = 180;
-                  const cardStyle: React.CSSProperties = {
-                    ...styles.carouselCard,
-                    transform: `rotateY(${offset * 25}deg) translateX(${offset * cardSpacing}px) translateZ(${-distance * 120}px) scale(${1 - distance * 0.15})`,
-                    opacity: isVisible ? 1 - distance * 0.4 : 0,
-                    zIndex: projects.length - distance,
-                    pointerEvents: isVisible ? 'auto' : 'none',
-                    filter: `grayscale(${distance * 50}%) blur(${distance * 1}px)`,
-                  };
-                  return (
-                    <div key={item.id} style={cardStyle} className="carousel-card" onClick={() => (offset === 0 ? onProjectSelect(item) : setCurrentIndex(index))}>
-                      <img 
-                        src={item.imageUrl} 
-                        alt={item.title} 
-                        style={{...styles.cardImage, opacity: offset === 0 ? 0.9 : 0.5, cursor: offset === 0 ? 'pointer' : 'default' }}
-                        onClick={(e) => {
-                            if (offset === 0) {
-                                e.stopPropagation();
-                                setMaximizedImageUrl(item.imageUrl || null);
-                            }
-                        }}
-                      />
-                      <div style={styles.cardContent}>
-                         {offset === 0 && <h3 style={styles.cardTitle}>{item.title}</h3>}
-                      </div>
-                    </div>
-                  );
+            <div style={styles.infoPanel}>
+                <h3 style={styles.infoTitle}>{district.subItems[currentIndex].title}</h3>
+                <p style={styles.infoDescription}>{district.subItems[currentIndex].description}</p>
+            </div>
+            <div style={styles.carouselViewport}>
+                {district.subItems.map((item, index) => {
+                    const offset = index - currentIndex;
+                    const isVisible = Math.abs(offset) < 2;
+                    const scale = isVisible ? (offset === 0 ? 1 : 0.8) : 0.6;
+                    const xOffset = offset * 60; // Percentage
+                    const zOffset = Math.abs(offset) * -300;
+                    const opacity = isVisible ? (offset === 0 ? 1 : 0.5) : 0;
+                    const filter = offset === 0 ? 'brightness(1)' : 'brightness(0.6)';
+
+                    return (
+                        <div
+                            key={item.id}
+                            style={{
+                                ...styles.carouselCard,
+                                transform: `translateX(${xOffset}%) translateZ(${zOffset}px) scale(${scale})`,
+                                opacity: opacity,
+                                filter: filter,
+                                pointerEvents: offset === 0 ? 'auto' : 'none',
+                                cursor: 'pointer',
+                            }}
+                            onClick={() => onProjectSelect(item)}
+                        >
+                            <img src={item.imageUrl} alt={item.title} style={styles.cardImage} />
+                            <div style={styles.cardContent}>
+                                <h4 style={styles.cardTitle}>{item.title}</h4>
+                            </div>
+                        </div>
+                    );
                 })}
-              </div>
-              {activeProject && (
-                <div key={activeProject.id} style={styles.infoPanel}>
-                  <h3 style={styles.infoTitle}>{activeProject.title}</h3>
-                  <p style={styles.infoDescription}>{activeProject.description}</p>
-                </div>
-              )}
-              <button 
-                onClick={handlePrev} 
-                style={{...styles.navButton, left: '20px', opacity: canGoPrev ? 1 : 0.3 }} 
-                className="carousel-nav-button" 
-                aria-label="Previous Project"
-                disabled={!canGoPrev}
-              >
-                &#8249;
-              </button>
-              <button 
-                onClick={handleNext} 
-                style={{...styles.navButton, right: '20px', opacity: canGoNext ? 1 : 0.3 }} 
-                className="carousel-nav-button" 
-                aria-label="Next Project"
-                disabled={!canGoNext}
-              >
-                &#8250;
-              </button>
-            </>
-          ) : (
-            <p style={styles.placeholder}>[No project data available for this sector]</p>
-          )}
+            </div>
+            {district.subItems.length > 1 && (
+                <>
+                    <button onClick={() => handleNav('prev')} style={{...styles.navButton, left: '20px'}}>&lt;</button>
+                    <button onClick={() => handleNav('next')} style={{...styles.navButton, right: '20px'}}>&gt;</button>
+                </>
+            )}
         </div>
       );
     }
-    return null;
+    
+    const integratedComponent = IntegratedContent({});
+    if(integratedComponent) {
+        return integratedComponent;
+    }
+
+    return (
+      <div style={styles.contentBody}>
+        <p style={styles.placeholder}>[DATA STREAM EMPTY. AWAITING CONTENT MODULE.]</p>
+      </div>
+    );
   };
 
   return (
     <>
-      <style>{`
-        @keyframes stripe-scroll { 0% { background-position: 0 0; } 100% { background-position: 56.5px 0; } }
-        @keyframes fadeInDetails { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes pulse-orange { 0% { box-shadow: 0 0 5px rgba(255, 165, 0, 0.3); } 50% { box-shadow: 0 0 15px rgba(255, 165, 0, 0.7); } 100% { box-shadow: 0 0 5px rgba(255, 165, 0, 0.3); } }
-        .link-button:hover { transform: translateY(-3px); border-left-color: var(--primary-color) !important; box-shadow: 0 5px 15px rgba(0, 225, 255, 0.2); background: rgba(0, 100, 150, 0.4); }
-      `}</style>
       <div style={overlayStyle} onClick={onClose} />
-      <div style={containerStyle} className={`project-selection-panel responsive-modal ${isOpen ? 'panel-enter' : ''}`} onContextMenu={(e) => e.stopPropagation()}>
+      <div 
+        style={containerStyle} 
+        className={`project-selection-panel ${isOpen ? 'panel-enter' : ''}`}
+        onContextMenu={(e) => e.stopPropagation()} // Allow right-click menu
+      >
         <div style={styles.dangerStripes} />
         <div style={styles.header}>
-          <h2 style={styles.title}>{district.title}</h2>
-          <button onClick={onClose} style={styles.closeButton} aria-label="Back to Overview">&times;</button>
+          <h2 style={styles.title}>{district?.title}</h2>
+          <button onClick={onClose} style={styles.closeButton} aria-label="Close District Panel">&times;</button>
         </div>
-        <p style={styles.description}>{district.description}</p>
-        
         {renderContent()}
-
       </div>
-
-      {maximizedImageUrl && (
-          <div style={styles.imageModalOverlay} onClick={() => setMaximizedImageUrl(null)}>
-              <div style={styles.imageModalContent} onClick={(e) => e.stopPropagation()}>
-                  <img src={maximizedImageUrl} style={styles.maximizedImage} alt="Maximized project view" />
-                  <button style={styles.imageModalCloseButton} onClick={() => setMaximizedImageUrl(null)}>&times;</button>
-              </div>
-          </div>
-      )}
     </>
   );
 };
+
+export default ProjectSelectionPanel;
