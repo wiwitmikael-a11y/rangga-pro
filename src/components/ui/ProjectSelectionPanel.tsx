@@ -117,6 +117,15 @@ const styles: { [key: string]: React.CSSProperties } = {
   contactLinkButton: { ...glassmorphism, display: 'flex', alignItems: 'center', gap: '15px', padding: '12px 15px', color: '#cceeff', textDecoration: 'none', borderRadius: '5px', marginBottom: '10px', transition: 'all 0.3s ease', borderLeft: '3px solid transparent' },
   contactSubmitButton: { width: '100%', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', padding: '12px', fontSize: '1rem', fontFamily: 'inherit', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', transition: 'all 0.3s ease', textShadow: '0 0 5px var(--primary-color)', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '5px' },
   contactStatusConsole: { marginTop: '15px', padding: '8px 12px', background: 'rgba(0,0,0,0.5)', borderRadius: '4px', border: '1px solid #333', color: '#888', fontFamily: 'monospace', fontSize: '0.8rem', textAlign: 'center', transition: 'all 0.3s ease' },
+  formHint: {
+    fontSize: '0.75rem',
+    color: '#88a7a6',
+    margin: '5px 0 0 2px',
+    padding: 0,
+    fontStyle: 'italic',
+    textAlign: 'left',
+    lineHeight: '1.2',
+  },
   // --- END: Styles for re-integrated content ---
 
   // --- START: Styles for Image Maximization Modal ---
@@ -211,8 +220,8 @@ const InstagramPanelContent: React.FC = () => {
 };
 
 const ContactPanelContent: React.FC = () => {
-    // URL endpoint Formspree telah diperbarui dengan URL milik pengguna.
-    const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xwpwvzaa';
+    // FIX: Endpoint Formspree diperbarui ke ID yang benar untuk email tujuan.
+    const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mqkrrgby';
     
     type FormFields = { name: string; email: string; inquiry: string; message: string };
     const [formData, setFormData] = useState<FormFields>({ name: '', email: '', inquiry: 'Project Proposal / Collaboration', message: '' });
@@ -326,8 +335,18 @@ const ContactPanelContent: React.FC = () => {
                 <h3 style={styles.contactPanelTitle}>Encrypted Comms</h3>
                 <p style={styles.contactPanelDescription}>Utilize this secure channel to transmit encrypted proposals, technical inquiries, or general intelligence.</p>
                 <div className="form-row">
-                    <div className="input-group"><input type="text" id="name" name="name" value={formData.name} onChange={handleChange} onBlur={handleBlur} required className={`form-input ${errors.name ? 'input-error' : ''}`} placeholder=" " /><label htmlFor="name" className="form-label">Name / Organization</label>{errors.name && <span className="error-message">{errors.name}</span>}</div>
-                    <div className="input-group"><input type="email" id="email" name="email" value={formData.email} onChange={handleChange} onBlur={handleBlur} required className={`form-input ${errors.email ? 'input-error' : ''}`} placeholder=" " /><label htmlFor="email" className="form-label">Email Address</label>{errors.email && <span className="error-message">{errors.email}</span>}</div>
+                    <div className="input-group">
+                        <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} onBlur={handleBlur} required className={`form-input ${errors.name ? 'input-error' : ''}`} placeholder=" " />
+                        <label htmlFor="name" className="form-label">Name / Organization</label>
+                        {errors.name && <span className="error-message">{errors.name}</span>}
+                        <p style={styles.formHint}>Gunakan nama asli agar pengiriman valid.</p>
+                    </div>
+                    <div className="input-group">
+                        <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} onBlur={handleBlur} required className={`form-input ${errors.email ? 'input-error' : ''}`} placeholder=" " />
+                        <label htmlFor="email" className="form-label">Email Address</label>
+                        {errors.email && <span className="error-message">{errors.email}</span>}
+                        <p style={styles.formHint}>Email asli diperlukan untuk mendapatkan balasan.</p>
+                    </div>
                 </div>
                 <div className="input-group"><select id="inquiry" name="inquiry" value={formData.inquiry} onChange={handleChange} required className="form-input"><option>Project Proposal / Collaboration</option><option>Technical Consultation</option><option>Career Opportunity / Recruitment</option><option>General Inquiry / Feedback</option></select><label htmlFor="inquiry" className="form-label">Inquiry Type</label></div>
                 <div className="input-group"><textarea id="message" name="message" value={formData.message} onChange={handleChange} onBlur={handleBlur} required className={`form-input ${errors.message ? 'input-error' : ''}`} rows={4} placeholder=" "></textarea><label htmlFor="message" className="form-label">Your message...</label>{errors.message && <span className="error-message">{errors.message}</span>}</div>
