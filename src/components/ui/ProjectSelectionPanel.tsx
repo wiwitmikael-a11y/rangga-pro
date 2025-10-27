@@ -211,6 +211,9 @@ const InstagramPanelContent: React.FC = () => {
 };
 
 const ContactPanelContent: React.FC = () => {
+    // URL endpoint Formspree telah diperbarui dengan URL milik pengguna.
+    const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xwpwvzaa';
+    
     type FormFields = { name: string; email: string; inquiry: string; message: string };
     const [formData, setFormData] = useState<FormFields>({ name: '', email: '', inquiry: 'Project Proposal / Collaboration', message: '' });
     const [errors, setErrors] = useState<Partial<Record<keyof FormFields, string>>>({});
@@ -227,8 +230,6 @@ const ContactPanelContent: React.FC = () => {
         const formValues = Object.values(formData);
         const errorValues = Object.values(errors);
         const hasNoErrors = errorValues.every(e => !e);
-        // FIX: Add type guard for `v` before calling .trim() to resolve "Property 'trim' does not exist on type 'unknown'" error.
-        // TypeScript can sometimes infer `unknown` for values from `Object.values`.
         const allFieldsFilled = formValues.every(v => typeof v === 'string' && v.trim() !== '');
         setIsFormValid(hasNoErrors && allFieldsFilled);
     }, [formData, errors]);
@@ -247,7 +248,7 @@ const ContactPanelContent: React.FC = () => {
         setErrors(prev => ({...prev, [name]: error }));
     };
 
-    const handleSubmit = (e: FormEvent) => {
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         
         let validationErrors: Partial<Record<keyof FormFields, string>> = {};
@@ -264,26 +265,38 @@ const ContactPanelContent: React.FC = () => {
 
         if (!isValid) {
             setStatus('error');
-            setTimeout(() => setStatus('idle'), 2000);
             return;
         }
 
         setStatus('sending');
-        console.log("Simulating email transmission:", { ...formData, to: "ragestr4k@gmail.com" });
-        setTimeout(() => {
-            setStatus('success');
-            setTimeout(() => {
-                setStatus('idle');
+        try {
+            const response = await fetch(FORMSPREE_ENDPOINT, {
+                method: 'POST',
+                body: new FormData(e.target as HTMLFormElement), // Use FormData for honeypot
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                setStatus('success');
                 setFormData({ name: '', email: '', inquiry: 'Project Proposal / Collaboration', message: '' });
-            }, 3000);
-        }, 1500);
+                setTimeout(() => setStatus('idle'), 4000);
+            } else {
+                setStatus('error');
+                console.error("Form submission failed:", await response.json());
+            }
+        } catch (error) {
+            setStatus('error');
+            console.error("An error occurred during form submission:", error);
+        }
     };
 
     const getStatusInfo = () => {
         switch (status) {
             case 'sending': return { text: '[TRANSMITTING ENCRYPTED PACKET...]', color: '#ffa500' };
             case 'success': return { text: '[TRANSMISSION SUCCESSFUL: ACKNOWLEDGED]', color: '#00ff7f' };
-            case 'error': return { text: '[ERROR: INVALID FORM DATA. CHECK FIELDS.]', color: '#ff4444' };
+            case 'error': return { text: '[ERROR: TRANSMISSION FAILED. PLEASE TRY AGAIN.]', color: '#ff4444' };
             default: return { text: '[STATUS: AWAITING INPUT]', color: '#888' };
         }
     };
@@ -291,9 +304,9 @@ const ContactPanelContent: React.FC = () => {
 
     const getSubmitButtonInfo = () => {
         switch (status) {
-            case 'sending': return { text: 'Encrypting...', background: 'rgba(255, 165, 0, 0.2)', borderColor: '#ffa500', color: '#ffa500', animation: 'pulse-orange 1.5s infinite' };
-            case 'success': return { text: 'Transmission Complete', background: 'rgba(0, 255, 127, 0.2)', borderColor: '#00ff7f', color: '#00ff7f' };
-            case 'error': return { text: 'Transmission Error', background: 'rgba(255, 68, 68, 0.2)', borderColor: '#ff4444', color: '#ff4444' };
+            case 'sending': return { text: 'Transmitting...', background: 'rgba(255, 165, 0, 0.2)', borderColor: '#ffa500', color: '#ffa500', animation: 'pulse-orange 1.5s infinite' };
+            case 'success': return { text: 'Message Sent!', background: 'rgba(0, 255, 127, 0.2)', borderColor: '#00ff7f', color: '#00ff7f' };
+            case 'error': return { text: 'Submission Failed', background: 'rgba(255, 68, 68, 0.2)', borderColor: '#ff4444', color: '#ff4444' };
             default: return { text: <><TransmitIcon /> Transmit Message</>, background: 'rgba(0, 170, 255, 0.2)', borderColor: 'var(--primary-color)', color: 'var(--primary-color)' };
         }
     };
@@ -318,7 +331,22 @@ const ContactPanelContent: React.FC = () => {
                 </div>
                 <div className="input-group"><select id="inquiry" name="inquiry" value={formData.inquiry} onChange={handleChange} required className="form-input"><option>Project Proposal / Collaboration</option><option>Technical Consultation</option><option>Career Opportunity / Recruitment</option><option>General Inquiry / Feedback</option></select><label htmlFor="inquiry" className="form-label">Inquiry Type</label></div>
                 <div className="input-group"><textarea id="message" name="message" value={formData.message} onChange={handleChange} onBlur={handleBlur} required className={`form-input ${errors.message ? 'input-error' : ''}`} rows={4} placeholder=" "></textarea><label htmlFor="message" className="form-label">Your message...</label>{errors.message && <span className="error-message">{errors.message}</span>}</div>
-                <button type="submit" style={{...styles.contactSubmitButton, ...submitButtonInfo, animation: submitButtonInfo.animation || 'none' }} disabled={!isFormValid || status !== 'idle'}>{submitButtonInfo.text}</button>
+                
+                {/* Honeypot field for spam prevention. It should be invisible to users. */}
+                <input 
+                  type="text" 
+                  name="_gotcha" 
+                  tabIndex={-1} 
+                  autoComplete="off" 
+                  style={{
+                    position: 'absolute',
+                    left: '-5000px',
+                    opacity: '0',
+                    pointerEvents: 'none',
+                  }} 
+                />
+
+                <button type="submit" style={{...styles.contactSubmitButton, ...submitButtonInfo, animation: submitButtonInfo.animation || 'none' }} disabled={!isFormValid || status === 'sending' || status === 'success'}>{submitButtonInfo.text}</button>
                 <div style={{ ...styles.contactStatusConsole, color: statusInfo.color, borderColor: statusInfo.color }}>{statusInfo.text}</div>
             </form>
         </div>
