@@ -477,11 +477,12 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
 
   // By explicitly defining the visible and hidden states, we ensure the CSS transition
   // has a clear target to animate back to, fixing the "stuck" hidden state issue.
-  const bottomLeftContainerStyle = {
+  // FIXED: Explicitly type style object to resolve TypeScript error with 'pointerEvents'.
+  const bottomLeftContainerStyle: React.CSSProperties = {
     ...styles.bottomLeftContainer,
     opacity: areSideButtonsHidden ? 0 : 1,
     transform: areSideButtonsHidden ? 'translateY(60px)' : 'translateY(0)',
-    pointerEvents: areSideButtonsHidden ? 'none' as const : 'auto',
+    pointerEvents: areSideButtonsHidden ? 'none' : 'auto',
   };
 
 

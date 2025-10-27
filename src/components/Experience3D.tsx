@@ -7,7 +7,7 @@ import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
 
 import { CityModel } from './scene/CityModel';
-import { FlyingShips, shipsData } from './scene/FlyingShips';
+import { FlyingShips } from './scene/FlyingShips';
 import { DistrictRenderer } from './scene/DistrictRenderer';
 import { portfolioData, OVERVIEW_CAMERA_POSITION } from '../constants';
 import type { CityDistrict, PortfolioSubItem, ShipControlMode, ShipInputState } from '../types';
@@ -266,7 +266,7 @@ export const Experience3D: React.FC = () => {
         onPointerUp={handleInteractionEnd}
       >
         <fog attach="fog" args={['#050810', 50, 400]} />
-        <ambient_light intensity={0.5} />
+        <ambientLight intensity={0.5} />
         <directionalLight
           castShadow
           position={sunPosition}
@@ -343,6 +343,8 @@ export const Experience3D: React.FC = () => {
             <ChromaticAberration
               blendFunction={BlendFunction.NORMAL}
               offset={new THREE.Vector2(0.0005, 0.0005)}
+              radialModulation={false}
+              modulationOffset={0.0}
             />
         </EffectComposer>
 
