@@ -267,6 +267,13 @@ export const Experience3D: React.FC = () => {
       setHeldDistrictId(null);
   }, []);
 
+  const hintContext = useMemo(() => {
+    if (pov === 'ship') {
+      return shipControlMode === 'manual' ? 'shipManual' : 'shipFollow';
+    }
+    return 'overview';
+  }, [pov, shipControlMode]);
+
 
   return (
     <>
@@ -411,6 +418,7 @@ export const Experience3D: React.FC = () => {
         <HintsPanel 
           isOpen={isHintsOpen}
           onClose={() => setIsHintsOpen(false)}
+          context={hintContext}
         />
       )}
       <ExportLayoutModal

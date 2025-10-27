@@ -265,6 +265,21 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isP
       const direction = targetPos.clone().sub(currentPos).normalize();
       currentPos.add(direction.multiplyScalar(delta * speed));
       
+      // --- NEW: Boundary Enforcement for AI Ships ---
+      const distanceFromCenter = Math.sqrt(currentPos.x * currentPos.x + currentPos.z * currentPos.z);
+      if (distanceFromCenter > FLIGHT_RADIUS) {
+          // Clamp position to the edge of the flight radius to prevent escaping.
+          currentPos.x = (currentPos.x / distanceFromCenter) * FLIGHT_RADIUS;
+          currentPos.z = (currentPos.z / distanceFromCenter) * FLIGHT_RADIUS;
+
+          // Force a new target towards the center to make it turn around gracefully.
+          const newTarget = getNewFlightTarget();
+          // Bias the new target towards the opposite quadrant to encourage a turn, not a stop.
+          newTarget.x = Math.abs(newTarget.x) * (currentPos.x > 0 ? -1 : 1);
+          newTarget.z = Math.abs(newTarget.z) * (currentPos.z > 0 ? -1 : 1);
+          shipState.current.targetPosition.copy(newTarget);
+      }
+
       const lookAtTarget = targetPos.clone();
       if (shipState.current.state === 'ASCENDING' || shipState.current.state === 'DESCENDING') {
           // Keep the ship level during vertical movement

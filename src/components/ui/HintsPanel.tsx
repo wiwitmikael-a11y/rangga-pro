@@ -1,8 +1,12 @@
 import React from 'react';
+import { portfolioData } from '../../constants';
+
+type HintContext = 'overview' | 'shipFollow' | 'shipManual';
 
 interface HintsPanelProps {
   isOpen: boolean;
   onClose: () => void;
+  context: HintContext;
 }
 
 const glassmorphism: React.CSSProperties = {
@@ -112,7 +116,91 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
 };
 
-export const HintsPanel: React.FC<HintsPanelProps> = ({ isOpen, onClose }) => {
+const districtHints = portfolioData.filter(d => d.type === 'major').map(d => ({
+    id: d.id,
+    title: d.title,
+    description: `Contains: ${d.description}`
+}));
+
+const OverviewHints: React.FC = () => (
+    <>
+        <div style={styles.section}>
+            <h3 style={styles.sectionTitle}>Main View Controls</h3>
+            <ul style={styles.controlList}>
+                <li style={styles.controlItem}><span style={styles.controlKey}>Mouse Drag / 1-Finger</span><span style={styles.controlDescription}>Rotate the camera around the city.</span></li>
+                <li style={styles.controlItem}><span style={styles.controlKey}>Scroll / Pinch</span><span style={styles.controlDescription}>Zoom the camera in and out.</span></li>
+            </ul>
+        </div>
+        <div style={styles.section}>
+            <h3 style={styles.sectionTitle}>Interaction</h3>
+            <ul style={styles.controlList}>
+                <li style={styles.controlItem}><span style={styles.controlKey}>Press & Hold</span><span style={styles.controlDescription}>To select a district, press and hold on its 3D model or holographic label until the orange gauge fills up.</span></li>
+                <li style={styles.controlItem}><span style={styles.controlKey}>Click Image</span><span style={styles.controlDescription}>Inside a project panel, click on a project's image to view a larger version.</span></li>
+            </ul>
+        </div>
+        <div style={styles.section}>
+            <h3 style={styles.sectionTitle}>Districts Guide</h3>
+            <ul style={styles.controlList}>
+                {districtHints.map(hint => (
+                    <li key={hint.id} style={styles.controlItem}>
+                        <span style={{...styles.controlKey, minWidth: '180px'}}>{hint.title}</span>
+                        <span style={styles.controlDescription}>{hint.description}</span>
+                    </li>
+                ))}
+            </ul>
+        </div>
+        <div style={styles.section}>
+            <h3 style={styles.sectionTitle}>HUD (Heads-Up Display)</h3>
+            <ul style={styles.controlList}>
+                <li style={styles.controlItem}><span style={styles.controlKey}>Hexagon Button</span><span style={styles.controlDescription}>Opens the Quick Navigation menu to instantly travel to any major district.</span></li>
+                <li style={styles.controlItem}><span style={styles.controlKey}>Overview Button</span><span style={styles.controlDescription}>Returns the camera to the main city overview.</span></li>
+                <li style={styles.controlItem}><span style={styles.controlKey}>Ship POV Button</span><span style={styles.controlDescription}>Switches to a chase camera following a random ship. Click again to cycle to a different ship.</span></li>
+            </ul>
+        </div>
+    </>
+);
+
+const ShipFollowHints: React.FC = () => (
+    <div style={styles.section}>
+        <h3 style={styles.sectionTitle}>Ship Follow Camera</h3>
+        <ul style={styles.controlList}>
+            <li style={styles.controlItem}><span style={styles.controlKey}>Current Mode</span><span style={styles.controlDescription}>You are in a cinematic chase camera, following an autonomous ship on its patrol route.</span></li>
+            <li style={styles.controlItem}><span style={styles.controlKey}>Ship POV Button</span><span style={styles.controlDescription}>Click again to cycle to another random ship in the fleet.</span></li>
+            <li style={styles.controlItem}><span style={styles.controlKey}>Pilot Mode Button</span><span style={styles.controlDescription}>Click the orange button to take manual control of the currently followed ship and fly it yourself.</span></li>
+            <li style={styles.controlItem}><span style={styles.controlKey}>Overview Button</span><span style={styles.controlDescription}>Click to return to the main city overview camera.</span></li>
+        </ul>
+    </div>
+);
+
+const ShipManualHints: React.FC = () => (
+    <>
+        <div style={styles.section}>
+            <h3 style={styles.sectionTitle}>Manual Piloting (Keyboard)</h3>
+            <ul style={styles.controlList}>
+                <li style={styles.controlItem}><span style={styles.controlKey}>W / S / ↑ / ↓</span><span style={styles.controlDescription}>Accelerate / Decelerate.</span></li>
+                <li style={styles.controlItem}><span style={styles.controlKey}>A / D / ← / →</span><span style={styles.controlDescription}>Turn Left / Right.</span></li>
+                <li style={styles.controlItem}><span style={styles.controlKey}>Q / E</span><span style={styles.controlDescription}>Roll Left / Right.</span></li>
+                <li style={styles.controlItem}><span style={styles.controlKey}>Space / Shift</span><span style={styles.controlDescription}>Ascend / Descend.</span></li>
+            </ul>
+        </div>
+        <div style={styles.section}>
+            <h3 style={styles.sectionTitle}>Manual Piloting (Touchscreen)</h3>
+            <ul style={styles.controlList}>
+                <li style={styles.controlItem}><span style={styles.controlKey}>Left Joystick</span><span style={styles.controlDescription}>Controls forward/backward movement and turning.</span></li>
+                <li style={styles.controlItem}><span style={styles.controlKey}>Right Sliders</span><span style={styles.controlDescription}>Independently control vertical altitude (ascend/descend) and roll.</span></li>
+            </ul>
+        </div>
+        <div style={styles.section}>
+            <h3 style={styles.sectionTitle}>Exiting Pilot Mode</h3>
+            <ul style={styles.controlList}>
+                 <li style={styles.controlItem}><span style={styles.controlKey}>Exit Pilot Button</span><span style={styles.controlDescription}>Disengage manual control. The ship will return to its autonomous patrol route.</span></li>
+            </ul>
+        </div>
+    </>
+);
+
+
+export const HintsPanel: React.FC<HintsPanelProps> = ({ isOpen, onClose, context }) => {
     
     const containerStyle: React.CSSProperties = {
       ...styles.container,
@@ -127,6 +215,19 @@ export const HintsPanel: React.FC<HintsPanelProps> = ({ isOpen, onClose }) => {
       pointerEvents: isOpen ? 'auto' : 'none',
     };
 
+    const renderContent = () => {
+        switch (context) {
+            case 'overview':
+                return <OverviewHints />;
+            case 'shipFollow':
+                return <ShipFollowHints />;
+            case 'shipManual':
+                return <ShipManualHints />;
+            default:
+                return <OverviewHints />;
+        }
+    };
+
     return (
       <>
         <div style={overlayStyle} onClick={onClose} />
@@ -136,43 +237,7 @@ export const HintsPanel: React.FC<HintsPanelProps> = ({ isOpen, onClose }) => {
               <button onClick={onClose} style={styles.closeButton} aria-label="Close Hints">&times;</button>
           </div>
           <div style={styles.content}>
-            <div style={styles.section}>
-              <h3 style={styles.sectionTitle}>Main View</h3>
-              <ul style={styles.controlList}>
-                <li style={styles.controlItem}><span style={styles.controlKey}>Mouse Drag / 1-Finger</span><span style={styles.controlDescription}>Rotate the camera around the city.</span></li>
-                <li style={styles.controlItem}><span style={styles.controlKey}>Scroll / Pinch</span><span style={styles.controlDescription}>Zoom the camera in and out.</span></li>
-              </ul>
-            </div>
-
-            <div style={styles.section}>
-              <h3 style={styles.sectionTitle}>Interaction</h3>
-              <ul style={styles.controlList}>
-                <li style={styles.controlItem}><span style={styles.controlKey}>Press & Hold</span><span style={styles.controlDescription}>To select a district, press and hold on its 3D model or holographic label until the orange gauge fills up.</span></li>
-                 <li style={styles.controlItem}><span style={styles.controlKey}>Click Image</span><span style={styles.controlDescription}>Inside a project panel, click on a project's image to view a larger version.</span></li>
-              </ul>
-            </div>
-
-            <div style={styles.section}>
-              <h3 style={styles.sectionTitle}>HUD (Heads-Up Display)</h3>
-              <ul style={styles.controlList}>
-                <li style={styles.controlItem}><span style={styles.controlKey}>Hexagon Button</span><span style={styles.controlDescription}>Opens the Quick Navigation menu to instantly travel to any major district.</span></li>
-                <li style={styles.controlItem}><span style={styles.controlKey}>Overview Button</span><span style={styles.controlDescription}>Begins a cinematic tour of the city. Click again to jump to another random viewpoint.</span></li>
-                <li style={styles.controlItem}><span style={styles.controlKey}>Ship POV Button</span><span style={styles.controlDescription}>Switches to a chase camera following a random ship. Click again to cycle to a different ship.</span></li>
-              </ul>
-            </div>
-            
-            <div style={styles.section}>
-              <h3 style={styles.sectionTitle}>Manual Ship Piloting</h3>
-              <ul style={styles.controlList}>
-                <li style={styles.controlItem}><span style={styles.controlKey}>Pilot Mode Button</span><span style={styles.controlDescription}>While in 'Ship POV', click this orange button to take manual control of the currently followed ship.</span></li>
-                <li style={styles.controlItem}><span style={styles.controlKey}>W/S / ↑/↓</span><span style={styles.controlDescription}>Accelerate / Decelerate.</span></li>
-                <li style={styles.controlItem}><span style={styles.controlKey}>A/D / ←/→</span><span style={styles.controlDescription}>Turn Left / Right.</span></li>
-                <li style={styles.controlItem}><span style={styles.controlKey}>Q/E</span><span style={styles.controlDescription}>Roll Left / Right.</span></li>
-                <li style={styles.controlItem}><span style={styles.controlKey}>Space / Shift</span><span style={styles.controlDescription}>Ascend / Descend.</span></li>
-                <li style={styles.controlItem}><span style={styles.controlKey}>Touch Controls</span><span style={styles.controlDescription}>On mobile, use the left virtual joystick for movement and the right sliders for altitude and roll.</span></li>
-              </ul>
-            </div>
-
+            {renderContent()}
           </div>
         </div>
       </>
