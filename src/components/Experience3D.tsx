@@ -9,8 +9,8 @@ import * as THREE from 'three';
 import { CityModel } from './scene/CityModel';
 import { FlyingShips, shipsData } from './scene/FlyingShips';
 import { DistrictRenderer } from './scene/DistrictRenderer';
-import { portfolioData, OVERVIEW_CAMERA_POSITION } from '../constants';
-import type { CityDistrict, PortfolioSubItem, ShipControlMode, ShipInputState } from '../types';
+import { portfolioData, OVERVIEW_CAMERA_POSITION } from '../../constants';
+import type { CityDistrict, PortfolioSubItem, ShipControlMode, ShipInputState } from '../../types';
 import { CameraRig } from './CameraRig';
 import { HUD } from './ui/HUD';
 import { ProceduralTerrain } from './scene/ProceduralTerrain';
@@ -21,7 +21,8 @@ import { PatrollingCore } from './scene/PatrollingCore';
 import { CalibrationGrid } from './scene/CalibrationGrid';
 import { BuildModeController } from './scene/BuildModeController';
 import { ExportLayoutModal } from './ui/ExportLayoutModal';
-import { useShipControls } from '../hooks/useShipControls';
+import { useShipControls } from '../../hooks/useShipControls';
+import { HintsPanel } from './ui/HintsPanel';
 
 
 // Define the sun's position for a sunset glow near the horizon
@@ -35,6 +36,7 @@ export const Experience3D: React.FC = () => {
   const [showContentPanel, setShowContentPanel] = useState(false);
   const [infoPanelItem, setInfoPanelItem] = useState<CityDistrict | null>(null);
   const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
+  const [isHintsOpen, setIsHintsOpen] = useState(false);
   
   const [pov, setPov] = useState<'main' | 'ship'>('main');
   const [shipRefs, setShipRefs] = useState<React.RefObject<THREE.Group>[]>([]);
@@ -61,7 +63,7 @@ export const Experience3D: React.FC = () => {
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const isPaused = isCalibrationMode;
   
-  const isAnyPanelOpen = showContentPanel || isNavMenuOpen;
+  const isAnyPanelOpen = showContentPanel || isNavMenuOpen || isHintsOpen;
 
   const navDistricts = useMemo(() => {
     const majorDistricts = districts.filter(d => d.type === 'major');
@@ -359,7 +361,7 @@ export const Experience3D: React.FC = () => {
 
         <OrbitControls
             ref={controlsRef}
-            enabled={pov === 'main' && shipControlMode === 'follow' && !isAnimating && !isNavMenuOpen && !showContentPanel && !infoPanelItem && !heldDistrictId}
+            enabled={pov === 'main' && shipControlMode === 'follow' && !isAnimating && !isAnyPanelOpen}
             enableDamping
             dampingFactor={0.05}
             minDistance={20}
@@ -377,6 +379,7 @@ export const Experience3D: React.FC = () => {
       <HUD 
           selectedDistrict={selectedDistrict} 
           onToggleNavMenu={() => setIsNavMenuOpen(!isNavMenuOpen)}
+          onToggleHints={() => setIsHintsOpen(!isHintsOpen)}
           pov={pov}
           onSetPov={handleSetPov}
           isCalibrationMode={isCalibrationMode}
@@ -396,13 +399,19 @@ export const Experience3D: React.FC = () => {
               districts={navDistricts}
           />
       )}
-       {showContentPanel && (
+      {showContentPanel && (
           <ProjectSelectionPanel
               isOpen={showContentPanel}
               district={selectedDistrict}
               onClose={handleGoHome}
               onProjectSelect={handleProjectClick}
           />
+      )}
+      {isHintsOpen && (
+        <HintsPanel 
+          isOpen={isHintsOpen}
+          onClose={() => setIsHintsOpen(false)}
+        />
       )}
       <ExportLayoutModal
         isOpen={isExportModalOpen}

@@ -4,6 +4,7 @@ import type { CityDistrict, ShipInputState } from '../../types';
 interface HUDProps {
   selectedDistrict: CityDistrict | null;
   onToggleNavMenu: () => void;
+  onToggleHints: () => void;
   pov: 'main' | 'ship';
   onSetPov: (pov: 'main' | 'ship') => void;
   isCalibrationMode: boolean;
@@ -53,6 +54,14 @@ const AutopilotIcon: React.FC = () => (
     </svg>
 );
 
+const QuestionMarkIcon: React.FC = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+    </svg>
+);
+
 // --- New Control Hint and Virtual Joystick Components ---
 
 const ControlHints: React.FC<{isManual: boolean}> = ({ isManual }) => {
@@ -90,7 +99,7 @@ const ControlHints: React.FC<{isManual: boolean}> = ({ isManual }) => {
 interface VirtualControlsProps {
     onInputChange: (input: ShipInputState) => void;
 }
-const VIRTUAL_CONTROLS_BOTTOM_OFFSET = '90px'; // Dinaikkan untuk mencegah tumpang tindih dengan tombol HUD
+const VIRTUAL_CONTROLS_BOTTOM_OFFSET = '140px'; // Dinaikkan untuk mencegah tumpang tindih dengan tombol HUD
 
 const VirtualControls: React.FC<VirtualControlsProps> = ({ onInputChange }) => {
     const moveNubRef = useRef<HTMLDivElement>(null);
@@ -456,7 +465,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
 };
 
-export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleNavMenu, pov, onSetPov, isCalibrationMode, heldDistrictId, shipControlMode, onToggleShipControl, isTouchDevice, onShipTouchInputChange, isAnyPanelOpen }) => {
+export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleNavMenu, onToggleHints, pov, onSetPov, isCalibrationMode, heldDistrictId, shipControlMode, onToggleShipControl, isTouchDevice, onShipTouchInputChange, isAnyPanelOpen }) => {
 
   const breadcrumb = useMemo(() => {
     if (heldDistrictId) return `RAGETOPIA > /ARCHITECT_MODE/MOVING...`;
@@ -476,12 +485,12 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
       ...(isNavButtonHidden ? styles.hiddenBottom : styles.visible)
   };
 
-  const bottomLeftContainerStyle = {
+  const bottomLeftContainerStyle: React.CSSProperties = {
       ...styles.bottomLeftContainer,
       ...(areSideButtonsHidden && {
         opacity: 0,
         transform: 'translateY(60px)',
-        pointerEvents: 'none' as const,
+        pointerEvents: 'none',
       }),
   };
 
@@ -553,19 +562,32 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
                 Ship POV
               </span>
           </div>
+          <div style={styles.buttonWrapper}>
+              <button
+                onClick={onToggleHints}
+                style={styles.hudButton}
+                className="hud-button"
+                aria-label="Show Controls and Hints"
+              >
+                  <QuestionMarkIcon />
+              </button>
+              <span style={styles.buttonLabel}>
+                Hints
+              </span>
+          </div>
 
           {pov === 'ship' && shipControlMode === 'follow' && (
             <div style={styles.buttonWrapper}>
                 <button
                     onClick={onToggleShipControl}
-                    style={styles.hudButton}
-                    className="hud-button"
+                    style={{...styles.hudButton, ...styles.dangerButton}}
+                    className="hud-button danger-button"
                     aria-label="Take Manual Control"
                 >
                     <PilotIcon />
                 </button>
-                <span style={{...styles.buttonLabel, color: '#fff'}}>
-                    Manual
+                <span style={{...styles.buttonLabel, color: '#ff9900'}}>
+                    Pilot Mode
                 </span>
             </div>
           )}
