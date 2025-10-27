@@ -9,8 +9,8 @@ import * as THREE from 'three';
 import { CityModel } from './scene/CityModel';
 import { FlyingShips, shipsData } from './scene/FlyingShips';
 import { DistrictRenderer } from './scene/DistrictRenderer';
-import { portfolioData, OVERVIEW_CAMERA_POSITION } from '../../constants';
-import type { CityDistrict, PortfolioSubItem, ShipControlMode, ShipInputState } from '../../types';
+import { portfolioData, OVERVIEW_CAMERA_POSITION } from '../constants';
+import type { CityDistrict, PortfolioSubItem, ShipControlMode, ShipInputState } from '../types';
 import { CameraRig } from './CameraRig';
 import { HUD } from './ui/HUD';
 import { ProceduralTerrain } from './scene/ProceduralTerrain';
@@ -21,7 +21,7 @@ import { PatrollingCore } from './scene/PatrollingCore';
 import { CalibrationGrid } from './scene/CalibrationGrid';
 import { BuildModeController } from './scene/BuildModeController';
 import { ExportLayoutModal } from './ui/ExportLayoutModal';
-import { useShipControls } from '../../hooks/useShipControls';
+import { useShipControls } from '../hooks/useShipControls';
 import { HintsPanel } from './ui/HintsPanel';
 
 
