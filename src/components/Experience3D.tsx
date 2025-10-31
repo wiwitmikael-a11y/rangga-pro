@@ -10,7 +10,7 @@ import { CityModel } from './scene/CityModel';
 import { FlyingShips, shipsData } from './scene/FlyingShips';
 import { DistrictRenderer } from './scene/DistrictRenderer';
 import { portfolioData, OVERVIEW_CAMERA_POSITION } from '../constants';
-import type { CityDistrict, PortfolioSubItem, ShipControlMode, ShipInputState } from '../types';
+import type { CityDistrict, ShipControlMode, ShipInputState } from '../types';
 import { CameraRig } from './CameraRig';
 import { HUD } from './ui/HUD';
 import { ProceduralTerrain } from './scene/ProceduralTerrain';
@@ -171,11 +171,6 @@ export const Experience3D: React.FC = () => {
       }
     }
   }, [selectedDistrict, pov, isCalibrationMode, resetIdleTimer]);
-
-
-  const handleProjectClick = (item: PortfolioSubItem) => {
-    console.log('Project clicked:', item.title);
-  };
   
   const handlePanelClose = () => {
       setInfoPanelItem(null);
@@ -411,7 +406,6 @@ export const Experience3D: React.FC = () => {
               isOpen={showContentPanel}
               district={selectedDistrict}
               onClose={handleGoHome}
-              onProjectSelect={handleProjectClick}
           />
       )}
       {isHintsOpen && (
