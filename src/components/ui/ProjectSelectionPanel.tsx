@@ -93,7 +93,26 @@ const chatScript: ChatScript = {
     nextOptions: [{ id: 'advantage', text: 'Explain the "Fusionist Advantage"' }, { id: 'competencies', text: 'Analyze Core Competencies' }, { id: 'history', text: 'Query Professional History' }],
   },
 };
-const bootSequence = ['INITIALIZING CONNECTION...', 'SYNCING WITH RAGETOPIA CORE...', 'DECRYPTING ARCHIVAL DATA...', 'CONNECTION ESTABLISHED.'];
+const bootSequenceTexts = ['INITIALIZING CONNECTION...', 'SYNCING WITH RAGETOPIA CORE...', 'DECRYPTING ARCHIVAL DATA...', 'CONNECTION ESTABLISHED.'];
+
+const getTypingDuration = (response: string | React.ReactNode) => {
+    const messageLength = typeof response === 'string' ? response.length : 100;
+    const typingSpeed = 25; // ms per character
+    const pauseAfter = 800; // ms
+    return messageLength * typingSpeed + pauseAfter;
+};
+
+const initialSequence = [
+    { type: 'boot', text: bootSequenceTexts[0], delay: 600 },
+    { type: 'boot', text: bootSequenceTexts[1], delay: 600 },
+    { type: 'boot', text: bootSequenceTexts[2], delay: 600 },
+    { type: 'boot', text: bootSequenceTexts[3], delay: 800 },
+    { type: 'transitionToChat', delay: 100 },
+    { type: 'addMessage', message: { sender: 'ai', text: chatScript['initial'].aiResponses[0] }, delay: 500 },
+    { type: 'addMessage', message: { sender: 'ai', text: chatScript['initial'].aiResponses[1] }, delay: getTypingDuration(chatScript['initial'].aiResponses[0]) },
+    { type: 'showOptions', options: chatScript['initial'].nextOptions, delay: getTypingDuration(chatScript['initial'].aiResponses[1]) }
+];
+
 const AiIcon = () => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10" /><path d="M8 12h.01" /><path d="M12 12h.01" /><path d="M16 12h.01" /><path d="M12 2a10 10 0 0 0-3.5 19.3" /><path d="M12 22a10 10 0 0 0 3.5-19.3" /></svg>);
 const UserIcon = () => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>);
 const ThinkingIndicator = () => (<div style={{ display: 'flex', gap: '4px', alignItems: 'center', height: '24px' }}><div className="dot dot1"></div><div className="dot dot2"></div><div className="dot"></div></div>);
@@ -117,68 +136,80 @@ const AIInquiryView: React.FC<{onClose: () => void}> = ({onClose}) => {
     const [isThinking, setIsThinking] = useState(false);
     const [chatState, setChatState] = useState<'booting' | 'active'>('booting');
     const [bootText, setBootText] = useState('');
+    const [sequenceIndex, setSequenceIndex] = useState(0);
     const endOfMessagesRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         endOfMessagesRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
-
-    const startChat = useCallback(() => {
-        const script = chatScript['initial'];
-        setIsThinking(true);
-        setOptions([]);
-        let delay = 500;
-        script.aiResponses.forEach((res, index) => {
-            setTimeout(() => {
-                setMessages(prev => [...prev, { id: Date.now() + index, sender: 'ai', text: res }]);
-                if (index === script.aiResponses.length - 1) {
-                    setIsThinking(false);
-                    setOptions(script.nextOptions);
-                }
-            }, delay);
-            const messageLength = typeof res === 'string' ? res.length : 100;
-            delay += messageLength * 30 + 800;
-        });
-    }, []);
     
+    // This master useEffect hook drives the entire intro sequence.
     useEffect(() => {
-        setMessages([]); setOptions([]); setIsThinking(false); setChatState('booting');
-        let bootDelay = 0;
-        bootSequence.forEach((text, i) => {
-            setTimeout(() => {
-                setBootText(text);
-                if (i === bootSequence.length - 1) {
-                    setTimeout(() => { setChatState('active'); startChat(); }, 800);
-                }
-            }, bootDelay);
-            bootDelay += 600;
-        });
-    }, [startChat]);
+        if (sequenceIndex >= initialSequence.length) return; // Sequence complete
+
+        const currentStep = initialSequence[sequenceIndex];
+        const timer = setTimeout(() => {
+            switch (currentStep.type) {
+                case 'boot':
+                    setBootText(currentStep.text);
+                    break;
+                case 'transitionToChat':
+                    setChatState('active');
+                    break;
+                case 'addMessage':
+                    setMessages(prev => [...prev, { ...currentStep.message, id: Date.now() + sequenceIndex }]);
+                    break;
+                case 'showOptions':
+                    setOptions(currentStep.options);
+                    setIsThinking(false);
+                    break;
+            }
+            setSequenceIndex(prev => prev + 1);
+        }, currentStep.delay);
+
+        return () => clearTimeout(timer);
+    }, [sequenceIndex]);
+
 
     const handleOptionClick = (optionId: string) => {
         if (isThinking) return;
         if (optionId === 'end') { onClose(); return; }
         const script = chatScript[optionId];
         if (!script) return;
+
         setMessages(prev => [...prev, { id: Date.now(), sender: 'user', text: script.userMessage }]);
         setOptions([]);
         setIsThinking(true);
-        setTimeout(() => setMessages(prev => [...prev, { id: 'thinking', sender: 'ai', text: 'thinking...' }]), 600);
-        setTimeout(() => {
+
+        const timers: ReturnType<typeof setTimeout>[] = [];
+        let cumulativeDelay = 0;
+
+        // Add thinking indicator
+        cumulativeDelay += 600;
+        timers.push(setTimeout(() => {
+            setMessages(prev => [...prev, { id: 'thinking', sender: 'ai', text: 'thinking...' }]);
+        }, cumulativeDelay));
+
+        // Remove thinking indicator
+        cumulativeDelay += 900;
+        timers.push(setTimeout(() => {
             setMessages(prev => prev.filter(m => m.id !== 'thinking'));
-            let responseDelay = 0;
-            script.aiResponses.forEach((res, index) => {
-                setTimeout(() => {
-                    setMessages(prev => [...prev, { id: Date.now() + index, sender: 'ai', text: res }]);
-                    if (index === script.aiResponses.length - 1) {
-                        setIsThinking(false);
-                        setOptions(script.nextOptions);
-                    }
-                }, responseDelay);
-                const messageLength = typeof res === 'string' ? res.length : 100;
-                responseDelay += messageLength * 25 + 800;
-            });
-        }, 1500);
+        }, cumulativeDelay));
+
+        // Add AI responses sequentially
+        script.aiResponses.forEach((res, index) => {
+            cumulativeDelay += getTypingDuration(res);
+            timers.push(setTimeout(() => {
+                setMessages(prev => [...prev, { id: Date.now() + index, sender: 'ai', text: res }]);
+                
+                // After the last message, show options
+                if (index === script.aiResponses.length - 1) {
+                    setIsThinking(false);
+                    setOptions(script.nextOptions);
+                }
+            }, cumulativeDelay));
+        });
+        // No need to clear timers, they are short-lived, but this is good practice for complex components
     };
 
     return (
