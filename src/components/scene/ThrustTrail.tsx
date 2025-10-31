@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
+// FIX: Add useThree to provide types for JSX primitives
+import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { createNoise2D } from 'simplex-noise';
 
@@ -14,6 +15,8 @@ interface ThrustTrailProps {
 }
 
 export const ThrustTrail: React.FC<ThrustTrailProps> = ({ width = 0.3, length = 3, opacity = 0.5, color = '#00ffff', position = [0, 0, 0] }) => {
+    // FIX: Call useThree to provide types for JSX primitives
+    useThree();
     const meshRef = useRef<THREE.Mesh>(null!);
 
     // This component renders a cone pointing towards -Z (backwards).

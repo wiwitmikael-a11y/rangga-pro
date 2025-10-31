@@ -1,5 +1,6 @@
 import React, { useMemo, useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
+// FIX: Add useThree to provide types for JSX primitives
+import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
 interface FloatingParticlesProps {
@@ -7,6 +8,8 @@ interface FloatingParticlesProps {
 }
 
 const FloatingParticles: React.FC<FloatingParticlesProps> = ({ count }) => {
+  // FIX: Call useThree to provide types for JSX primitives
+  useThree();
   const pointsRef = useRef<THREE.Points>(null!);
 
   const positions = useMemo(() => {

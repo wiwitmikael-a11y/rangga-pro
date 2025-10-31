@@ -1,5 +1,6 @@
 import React, { useRef, useMemo } from 'react';
-import { useFrame } from '@react-three/fiber';
+// FIX: Add useThree to provide types for JSX primitives
+import { useFrame, useThree } from '@react-three/fiber';
 import { Cone, Cylinder, Torus } from '@react-three/drei';
 import * as THREE from 'three';
 
@@ -8,6 +9,8 @@ interface HolographicProjectorProps {
 }
 
 export const HolographicProjector: React.FC<HolographicProjectorProps> = ({ position }) => {
+  // FIX: Call useThree to provide types for JSX primitives
+  useThree();
   const holoRef = useRef<THREE.Group>(null!);
   const coneRef = useRef<THREE.Mesh>(null!);
 

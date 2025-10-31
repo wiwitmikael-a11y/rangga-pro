@@ -1,5 +1,6 @@
 import React, { useRef, useState, useMemo, useCallback } from 'react';
-import { useFrame, ThreeEvent } from '@react-three/fiber';
+// FIX: Add useThree to provide types for JSX primitives
+import { useFrame, ThreeEvent, useThree } from '@react-three/fiber';
 import { Text, Billboard, RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 import { CityDistrict } from '../../types';
@@ -64,6 +65,8 @@ const dangerBorderFragmentShader = `
 const DESC_CYAN = '#afeeee'; // Pale turquoise for description
 
 const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ district, onSelect, isSelected, isCalibrationMode, isHeld, onSetHeld, pointerEventsEnabled = true }) => {
+  // FIX: Call useThree to provide types for JSX primitives
+  useThree();
   const groupRef = useRef<THREE.Group>(null!);
   const [isHovered, setIsHovered] = useState(false);
   const glowIntensityRef = useRef(1.0);
@@ -71,7 +74,6 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
   // --- NEW: State and refs for hold-to-select interaction ---
   const [holdProgress, setHoldProgress] = useState(0);
   const isHoldingRef = useRef(false);
-  // FIX: Initialize useRef with null to fix invalid call. This was likely causing misleading type errors.
   const animationFrameRef = useRef<number | null>(null);
   const actionTriggeredRef = useRef(false); // New ref to track if action has been called
   const HOLD_DURATION = 1000; // ms

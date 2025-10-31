@@ -1,7 +1,6 @@
 import React from 'react';
 import { Grid } from '@react-three/drei';
 import * as THREE from 'three';
-// FIX: Add import from '@react-three/fiber' to provide types for JSX primitives.
 import { useThree } from '@react-three/fiber';
 
 interface CalibrationGridProps {
@@ -13,7 +12,7 @@ const FADE_DISTANCE = 50;
 const GRID_Y_POSITION = -3; // Positioned just above the terrain base
 
 export const CalibrationGrid: React.FC<CalibrationGridProps> = ({ size = 250 }) => {
-  // FIX: Call useThree hook to ensure R3F types are loaded for JSX.
+  // Call useThree hook to ensure R3F types are loaded for JSX.
   useThree();
   const divisions = 25;
 

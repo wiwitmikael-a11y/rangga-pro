@@ -1,7 +1,8 @@
 import React, { Suspense, useLayoutEffect, useMemo, useRef, useCallback, useState } from 'react';
 import { useGLTF, Text, RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
-import { useFrame, ThreeEvent } from '@react-three/fiber';
+// FIX: Add useThree to provide types for JSX primitives
+import { useFrame, ThreeEvent, useThree } from '@react-three/fiber';
 import { CityDistrict } from '../../types';
 import HolographicDistrictLabel from './HolographicDistrictLabel';
 
@@ -25,6 +26,8 @@ interface ModelProps {
 }
 
 function Model({ url, scale, isHeld, onPointerOver, onPointerOut, onPointerDown, onPointerUp }: ModelProps) {
+  // FIX: Call useThree to provide types for JSX primitives
+  useThree();
   const { scene } = useGLTF(url);
   const clonedScene = useMemo(() => scene.clone(), [scene]);
   const originalEmissives = useRef<{ [uuid: string]: THREE.Color }>({});
@@ -98,12 +101,13 @@ function Model({ url, scale, isHeld, onPointerOver, onPointerOut, onPointerDown,
 }
 
 export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, isSelected, onSelect, isCalibrationMode, isHeld, onSetHeld }) => {
+  // FIX: Call useThree to provide types for JSX primitives
+  useThree();
   const groupRef = useRef<THREE.Group>(null!);
   
   // --- NEW: State and refs for hold-to-select interaction ---
   const [holdProgress, setHoldProgress] = useState(0);
   const isHoldingRef = useRef(false);
-  // FIX: Initialize useRef with null to fix invalid call. This was likely causing misleading type errors.
   const animationFrameRef = useRef<number | null>(null);
   const actionTriggeredRef = useRef(false); // New ref
   const HOLD_DURATION = 1000;

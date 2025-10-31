@@ -1,9 +1,12 @@
 import React, { useLayoutEffect, useMemo, useRef } from 'react';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
-import { useFrame } from '@react-three/fiber';
+// FIX: Add useThree to provide types for JSX primitives
+import { useFrame, useThree } from '@react-three/fiber';
 
 export const CityModel: React.FC = React.memo(() => {
+  // FIX: Call useThree to provide types for JSX primitives
+  useThree();
   const { scene } = useGLTF('https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/cyberpunk_city.glb');
   
   const clonedScene = useMemo(() => scene.clone(), [scene]);

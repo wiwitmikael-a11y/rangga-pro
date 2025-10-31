@@ -1,5 +1,6 @@
 import React, { useState, useRef, useMemo } from 'react';
-import { useFrame, ThreeEvent } from '@react-three/fiber';
+// FIX: Add useThree to provide types for JSX primitives
+import { useFrame, ThreeEvent, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { CityDistrict } from '../../types';
 import { Text } from '@react-three/drei';
@@ -22,6 +23,8 @@ const DistrictBuilding: React.FC<DistrictBuildingProps> = ({
   isSelected,
   isUnlocked = true,
 }) => {
+  // FIX: Call useThree to provide types for JSX primitives
+  useThree();
   const meshRef = useRef<THREE.Mesh>(null!);
   const [isHovered, setIsHovered] = useState(false);
   

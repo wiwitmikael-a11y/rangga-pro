@@ -1,5 +1,6 @@
 import React, { useMemo, useRef, Suspense, forwardRef, useImperativeHandle, useEffect, useState, useCallback } from 'react';
-import { useFrame } from '@react-three/fiber';
+// FIX: Add useThree to provide types for JSX primitives
+import { useFrame, useThree } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { portfolioData, FLIGHT_RADIUS } from '../../constants';
@@ -76,6 +77,8 @@ interface ShipProps extends ShipData {
 }
 
 const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isPaused, shipType, isUnderManualControl, manualInputs }, ref) => {
+  // FIX: Call useThree to provide types for JSX primitives
+  useThree();
   const groupRef = useRef<THREE.Group>(null!);
   useImperativeHandle(ref, () => groupRef.current, []);
 
@@ -317,6 +320,8 @@ interface LaserBeamProps {
 }
 
 const LaserBeam: React.FC<LaserBeamProps> = ({ id, initialPosition, initialQuaternion, onEnded }) => {
+  // FIX: Call useThree to provide types for JSX primitives
+  useThree();
   const meshRef = useRef<THREE.Mesh>(null!);
   const life = useRef(0);
   const LASER_LENGTH = 100;
@@ -357,6 +362,8 @@ interface LaserManagerProps {
 }
 
 const LaserManager: React.FC<LaserManagerProps> = ({ fireRequest, controlledShipRef }) => {
+    // FIX: Call useThree to provide types for JSX primitives
+    useThree();
     const [lasers, setLasers] = useState<Omit<LaserBeamProps, 'onEnded'>[]>([]);
     const lastFireRequest = useRef(fireRequest);
     const laserIdCounter = useRef(0);

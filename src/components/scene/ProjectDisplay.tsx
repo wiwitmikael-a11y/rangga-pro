@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import * as THREE from 'three';
-import { useFrame, ThreeEvent } from '@react-three/fiber';
+// FIX: Add useThree to provide types for JSX primitives
+import { useFrame, ThreeEvent, useThree } from '@react-three/fiber';
 import { RoundedBox, Image, Text } from '@react-three/drei';
 import { PortfolioSubItem } from '../../types';
 
@@ -38,6 +39,8 @@ const AccessDeniedMessage: React.FC = () => (
 );
 
 export const ProjectDisplay: React.FC<ProjectDisplayProps> = ({ item, isLocked, onClick }) => {
+  // FIX: Call useThree to provide types for JSX primitives
+  useThree();
   const groupRef = useRef<THREE.Group>(null!);
   const [isHovered, setIsHovered] = useState(false);
   const [isVisible, setIsVisible] = useState(false);

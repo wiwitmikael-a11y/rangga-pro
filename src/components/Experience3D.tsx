@@ -1,5 +1,4 @@
 import React, { useState, useCallback, Suspense, useMemo, useRef, useEffect } from 'react';
-// FIX: Add useThree to load types for JSX primitives
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, Sky } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
@@ -30,8 +29,22 @@ import { HintsPanel } from './ui/HintsPanel';
 const sunPosition: [number, number, number] = [100, 2, -100]; // Lower sun for a more dramatic sunset
 const sunColor = '#ffd0b3'; // Warmer light
 
-const SceneContent = ({ districts, selectedDistrict, handleDistrictSelect, isCalibrationMode, heldDistrictId, setHeldDistrictId, setShipRefs, isPaused, controlledShipId, shipInputs, fireRequest }) => {
-  // FIX: Call useThree hook to ensure R3F types are loaded for JSX primitives.
+interface SceneContentProps {
+  districts: CityDistrict[];
+  selectedDistrict: CityDistrict | null;
+  handleDistrictSelect: (district: CityDistrict) => void;
+  isCalibrationMode: boolean;
+  heldDistrictId: string | null;
+  setHeldDistrictId: (id: string | null) => void;
+  setShipRefs: (refs: React.RefObject<THREE.Group>[]) => void;
+  isPaused: boolean;
+  controlledShipId: string | null;
+  shipInputs: ShipInputState;
+  fireRequest: number;
+}
+
+const SceneContent: React.FC<SceneContentProps> = ({ districts, selectedDistrict, handleDistrictSelect, isCalibrationMode, heldDistrictId, setHeldDistrictId, setShipRefs, isPaused, controlledShipId, shipInputs, fireRequest }) => {
+  // Call useThree hook to ensure R3F types are loaded for JSX primitives.
   useThree();
 
   return (
@@ -386,7 +399,7 @@ export const Experience3D: React.FC = () => {
       <HUD 
         selectedDistrict={selectedDistrict}
         onToggleNavMenu={handleToggleNavMenu}
-        onToggleHints={onToggleHints}
+        onToggleHints={handleToggleHints}
         pov={pov}
         onSetPov={handleSetPov}
         onGoHome={handleGoHome}

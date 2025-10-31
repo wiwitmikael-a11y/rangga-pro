@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import * as THREE from 'three';
 import { useTexture } from '@react-three/drei';
 import { createNoise2D } from 'simplex-noise';
-// FIX: Add import from '@react-three/fiber' to provide types for JSX primitives.
 import { useThree } from '@react-three/fiber';
 
 interface ProceduralTerrainProps {}
@@ -10,7 +9,7 @@ interface ProceduralTerrainProps {}
 const TERRAIN_TEXTURE_URL = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/terrain.jpeg?v=2';
 
 export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(() => {
-    // FIX: Call useThree hook to ensure R3F types are loaded for JSX.
+    // Call useThree hook to ensure R3F types are loaded for JSX.
     useThree();
     
     const terrainTexture = useTexture(TERRAIN_TEXTURE_URL);

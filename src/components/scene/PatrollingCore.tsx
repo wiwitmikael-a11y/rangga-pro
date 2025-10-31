@@ -1,6 +1,7 @@
 import React, { useRef, useMemo } from 'react';
 import { useGLTF } from '@react-three/drei';
-import { useFrame } from '@react-three/fiber';
+// FIX: Add useThree to provide types for JSX primitives
+import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { createNoise3D } from 'simplex-noise';
 
@@ -15,6 +16,8 @@ interface PatrollingCoreProps {
 }
 
 export const PatrollingCore: React.FC<PatrollingCoreProps> = React.memo(({ isPaused }) => {
+  // FIX: Call useThree to provide types for JSX primitives
+  useThree();
   const groupRef = useRef<THREE.Group>(null!);
   const { scene } = useGLTF(MODEL_URL);
   

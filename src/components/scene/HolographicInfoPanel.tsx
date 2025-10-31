@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
-import { useFrame } from '@react-three/fiber';
+// FIX: Add useThree to provide types for JSX primitives
+import { useFrame, useThree } from '@react-three/fiber';
 import { Html, Billboard } from '@react-three/drei';
 import * as THREE from 'three';
 import { CityDistrict } from '../../types';
@@ -77,6 +78,8 @@ const styles: { [key: string]: React.CSSProperties } = {
 };
 
 const HolographicInfoPanel: React.FC<HolographicInfoPanelProps> = ({ district, onClose }) => {
+  // FIX: Call useThree to provide types for JSX primitives
+  useThree();
   const groupRef = useRef<THREE.Group>(null!);
   const [isVisible, setIsVisible] = useState(false);
 
