@@ -11,7 +11,10 @@ interface ProjectDisplayProps {
   onClick: () => void;
 }
 
-const LockIcon: React.FC = () => (
+const LockIcon: React.FC = () => {
+    // FIX: Add useThree hook to ensure R3F types are available for JSX elements.
+    useThree();
+    return (
     <Text
         position={[0, 0.5, 0.2]}
         fontSize={2}
@@ -21,9 +24,12 @@ const LockIcon: React.FC = () => (
         ?
         <meshStandardMaterial color="#ff4444" emissive="#ff4444" emissiveIntensity={2} toneMapped={false} />
     </Text>
-);
+)};
 
-const AccessDeniedMessage: React.FC = () => (
+const AccessDeniedMessage: React.FC = () => {
+    // FIX: Add useThree hook to ensure R3F types are available for JSX elements.
+    useThree();
+    return (
     <Text
         position={[0, 1.5, 0.2]}
         fontSize={0.25}
@@ -36,7 +42,7 @@ const AccessDeniedMessage: React.FC = () => (
     >
         ACCESS DENIED.
     </Text>
-);
+)};
 
 export const ProjectDisplay: React.FC<ProjectDisplayProps> = ({ item, isLocked, onClick }) => {
   // FIX: Call useThree to provide types for JSX primitives

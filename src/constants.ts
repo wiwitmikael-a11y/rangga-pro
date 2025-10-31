@@ -144,7 +144,7 @@ export const OVERVIEW_CAMERA_POSITION = new THREE.Vector3(0, 100, 250);
 export const FLIGHT_RADIUS = 120; // Replaces FLIGHT_AREA_SIZE for circular flight path
 
 // --- Formspree Endpoint ---
-export const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xwpwvzaa';
+export const FORMSPREE_FORM_ID = 'xwpwvzaa';
 
 
 // Data portofolio telah diisi dengan konten mock yang relevan dan gambar dari CDN.

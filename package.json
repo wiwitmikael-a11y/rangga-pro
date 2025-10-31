@@ -1,4 +1,3 @@
-
 {
   "name": "rangga-pro-ragetopia",
   "private": true,
@@ -10,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@formspree/react": "^2.5.1",
     "@react-three/drei": "^9.108.1",
     "@react-three/fiber": "^8.16.8",
     "@react-three/postprocessing": "^2.16.2",

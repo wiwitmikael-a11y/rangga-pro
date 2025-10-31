@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useForm, ValidationError } from '@formspree/react';
 // FIX: Import ChatTopic type to be used for casting.
 import type { CityDistrict, SkillCategory } from '../../types';
-import { chatData, ChatPrompt, type ChatTopic } from '../../chat-data';
-import { skillsDataBilingual, professionalSummaryBilingual, FORMSPREE_ENDPOINT } from '../../constants';
+import { chatData, ChatPrompt, ChatTopic } from '../../chat-data';
+import { skillsDataBilingual, professionalSummaryBilingual, FORMSPREE_FORM_ID } from '../../constants';
 import { SkillsRadarChart } from './SkillsRadarChart';
 
 
@@ -203,59 +204,13 @@ const YouTubeIcon = () => (
 );
 
 const ContactHubContent: React.FC = () => {
-    const [formState, setFormState] = useState({ name: '', email: '', message: '' });
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isSent, setIsSent] = useState(false);
-    const [error, setError] = useState('');
+    const [state, handleSubmit] = useForm(FORMSPREE_FORM_ID);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setFormState({ ...formState, [e.target.name]: e.target.value });
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!formState.name || !formState.email || !formState.message) {
-            setError('All fields are required.');
-            return;
-        }
-        
-        setError('');
-        setIsSubmitting(true);
-
-        try {
-            const response = await fetch(FORMSPREE_ENDPOINT, {
-                method: 'POST',
-                body: JSON.stringify(formState),
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                },
-            });
-
-            if (response.ok) {
-                setIsSent(true);
-                setFormState({ name: '', email: '', message: '' });
-            } else {
-                const data = await response.json();
-                if (data && data.errors) {
-                    setError(data.errors.map((error: { message: string }) => error.message).join(", "));
-                } else {
-                    setError('Transmission failed. Please try again later.');
-                }
-            }
-        } catch (error) {
-            setError('A network error occurred. Please check your connection and try again.');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    if (isSent) {
+    if (state.succeeded) {
         return (
             <div className="form-success-message">
                 <h3>Transmission Received.</h3>
-                <p>Thank you for your message. Your inquiry has been logged, and I will get back to you shortly.</p>
-                <button onClick={() => setIsSent(false)}>Send Another Message</button>
+                <p>Thank you for your message. Your inquiry has been logged, and I will get back to you shortly. You may now close this panel.</p>
             </div>
         );
     }
@@ -276,22 +231,44 @@ const ContactHubContent: React.FC = () => {
             <p className="contact-form-intro">
                 Direct channel open. Use this terminal to establish a connection for collaborations, inquiries, or strategic discussions. All transmissions are routed securely.
             </p>
-            <form onSubmit={handleSubmit} noValidate>
+            <form onSubmit={handleSubmit}>
                 <div className="form-group">
                     <label htmlFor="name">Identifier (Name)</label>
-                    <input type="text" id="name" name="name" value={formState.name} onChange={handleChange} required disabled={isSubmitting} />
+                    <input type="text" id="name" name="name" required disabled={state.submitting} />
+                     <ValidationError 
+                        prefix="Name" 
+                        field="name"
+                        errors={state.errors}
+                        className="form-error"
+                    />
                 </div>
                 <div className="form-group">
                     <label htmlFor="email">Return Address (Email)</label>
-                    <input type="email" id="email" name="email" value={formState.email} onChange={handleChange} required disabled={isSubmitting} />
+                    <input type="email" id="email" name="email" required disabled={state.submitting} />
+                    <ValidationError 
+                        prefix="Email" 
+                        field="email"
+                        errors={state.errors}
+                        className="form-error"
+                    />
                 </div>
                 <div className="form-group">
                     <label htmlFor="message">Message Data</label>
-                    <textarea id="message" name="message" value={formState.message} onChange={handleChange} rows={5} required disabled={isSubmitting} />
+                    <textarea id="message" name="message" rows={5} required disabled={state.submitting} />
+                    <ValidationError 
+                        prefix="Message" 
+                        field="message"
+                        errors={state.errors}
+                        className="form-error"
+                    />
                 </div>
-                {error && <p className="form-error">{error}</p>}
-                <button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? 'Transmitting...' : 'Transmit Message'}
+                 {state.errors && state.errors.length > 0 && !state.errors.find(e => e.field) && (
+                    <p className="form-error">
+                        {state.errors.map(e => e.message).join(', ')}
+                    </p>
+                )}
+                <button type="submit" disabled={state.submitting}>
+                    {state.submitting ? 'Transmitting...' : 'Transmit Message'}
                 </button>
             </form>
         </div>
@@ -526,7 +503,13 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
 
     return (
         <>
-            <style>{`.close-button:hover { background-color: rgba(255, 153, 0, 0.2); border-color: #ff9900; transform: scale(1.1); }`}</style>
+            <style>{`.close-button:hover { background-color: rgba(255, 153, 0, 0.2); border-color: #ff9900; transform: scale(1.1); }
+            .form-error {
+                color: #ff6b6b;
+                font-size: 0.8rem;
+                margin-top: 5px;
+            }
+            `}</style>
             <div style={overlayStyle} onClick={onClose} />
             <div style={containerStyle} className="project-panel responsive-modal" onContextMenu={(e) => e.stopPropagation()}>
                 <div style={styles.header}>
