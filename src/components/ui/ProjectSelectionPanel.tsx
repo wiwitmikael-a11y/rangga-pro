@@ -354,7 +354,7 @@ const ProceduralChatContent: React.FC<{ district: CityDistrict | null }> = ({ di
 
             const messageContent = topic.botResponses[index];
             const messageText = typeof messageContent === 'function' ? messageContent() : messageContent;
-            const delay = messageText.length * 15 + 300;
+            const delay = messageText.length * 10 + 100; // Faster typing simulation
             setTimeout(() => {
                 addMessage('bot', messageText);
                 processMessageQueue(index + 1);
@@ -379,12 +379,12 @@ const ProceduralChatContent: React.FC<{ district: CityDistrict | null }> = ({ di
             
             const districtTopicId = district?.id ? districtToTopicMap[district.id] : null;
             if (districtTopicId && districtTopicId !== 'start') {
-                 setTimeout(() => handleTopicSelect(districtTopicId, lang), 500);
+                 setTimeout(() => handleTopicSelect(districtTopicId, lang), 200); // Faster transition
             } else {
                 setPrompts(chatData[lang].entryPoints);
                 setIsBotTyping(false);
             }
-        }, 1000);
+        }, 200); // Faster response
     }, [district, handleTopicSelect, addMessage]);
     
     const handleFreeformSubmit = useCallback((e: React.FormEvent) => {
@@ -417,7 +417,7 @@ const ProceduralChatContent: React.FC<{ district: CityDistrict | null }> = ({ di
             } else {
                 handleTopicSelect('unhandled_query_freeform', language);
             }
-        }, 500);
+        }, 100); // Faster processing
     }, [userInput, language, languageSelected, isBotTyping, addMessage, handleTopicSelect]);
 
     useEffect(() => {
@@ -430,7 +430,7 @@ const ProceduralChatContent: React.FC<{ district: CityDistrict | null }> = ({ di
           addMessage('bot', chatData.languageSelector.intro);
           setPrompts([chatData.languageSelector.prompts.en, chatData.languageSelector.prompts.id]);
           setIsBotTyping(false);
-        }, 500);
+        }, 200); // Faster initial message
     }, [district, addMessage]);
     
     useEffect(() => {
