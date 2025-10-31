@@ -1,5 +1,5 @@
 import React, { useState, useCallback, Suspense, useMemo, useRef, useEffect } from 'react';
-import { Canvas, type ThreeEvent } from '@react-three/fiber';
+import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Sky } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { EffectComposer, Noise } from '@react-three/postprocessing';
