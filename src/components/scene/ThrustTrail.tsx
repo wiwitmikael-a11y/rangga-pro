@@ -1,4 +1,6 @@
 import React, { useRef } from 'react';
+// FIX: Add side-effect import to ensure R3F's JSX types are globally available.
+import '@react-three/fiber';
 // FIX: Add useThree to provide types for JSX primitives
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';

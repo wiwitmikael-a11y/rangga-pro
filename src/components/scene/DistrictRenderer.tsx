@@ -1,4 +1,6 @@
 import React from 'react';
+// FIX: Add side-effect import to ensure R3F's JSX types are globally available.
+import '@react-three/fiber';
 import type { CityDistrict } from '../../types';
 import DistrictBuilding from './DistrictBuilding';
 import HolographicDistrictLabel from './HolographicDistrictLabel';

@@ -1,4 +1,6 @@
 import React, { Suspense, useLayoutEffect, useMemo, useRef, useCallback, useState } from 'react';
+// FIX: Add side-effect import to ensure R3F's JSX types are globally available.
+import '@react-three/fiber';
 import { useGLTF, Text, RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 // FIX: Add useThree to provide types for JSX primitives

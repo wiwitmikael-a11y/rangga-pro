@@ -1,4 +1,6 @@
 import React, { useMemo } from 'react';
+// FIX: Add side-effect import to ensure R3F's JSX types are globally available.
+import '@react-three/fiber';
 import * as THREE from 'three';
 import { useTexture } from '@react-three/drei';
 import { createNoise2D } from 'simplex-noise';

@@ -1,4 +1,6 @@
 import React, { useMemo, useCallback } from 'react';
+// FIX: Add side-effect import to ensure R3F's JSX types are globally available.
+import '@react-three/fiber';
 import { useThree, useFrame, ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { CityDistrict } from '../../types';

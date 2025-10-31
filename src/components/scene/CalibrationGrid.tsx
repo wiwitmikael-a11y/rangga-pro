@@ -1,4 +1,6 @@
 import React from 'react';
+// FIX: Add side-effect import to ensure R3F's JSX types are globally available.
+import '@react-three/fiber';
 import { Grid } from '@react-three/drei';
 import * as THREE from 'three';
 import { useThree } from '@react-three/fiber';
