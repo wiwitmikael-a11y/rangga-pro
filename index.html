@@ -119,6 +119,17 @@
         from { background-position: 0 -3px; }
         to { background-position: 0 100%; }
       }
+
+      /* --- NEW: Global Blinking Cursor for Typing Effect --- */
+      @keyframes blink { 
+        50% { opacity: 0; } 
+      }
+      .cursor { 
+        animation: blink 1s step-end infinite;
+        display: inline-block; /* Ensures it takes space */
+        width: 0.5em;
+        margin-left: 2px;
+      }
       
       /* --- Contact Hub Floating Labels & Form Layout --- */
       .contact-grid .input-group {

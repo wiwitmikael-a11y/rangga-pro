@@ -2,6 +2,7 @@ import React, { useState, useCallback, FormEvent, useEffect } from 'react';
 import type { CityDistrict, PortfolioSubItem, SkillCategory } from '../../types';
 import { SkillsRadarChart } from './SkillsRadarChart';
 import { skillsData, professionalSummary } from '../../constants';
+import { AboutMeModal } from './AboutMeModal'; // Import the new modal
 
 interface ProjectSelectionPanelProps {
   isOpen: boolean;
@@ -128,6 +129,7 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<SkillCategory | null>(skillsData[0]);
   const [hoveredCategory, setHoveredCategory] = useState<SkillCategory | null>(null);
+  const [isAboutMeModalOpen, setIsAboutMeModalOpen] = useState(false);
 
   const containerStyle: React.CSSProperties = {
     ...styles.container,
@@ -387,6 +389,25 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
 
   const renderContent = () => {
     if (!district) return null;
+
+    if (district.id === 'nexus-core') {
+      return (
+        <div style={{...styles.integratedContentContainer, ...styles.infoPanel}}>
+          <h3 style={styles.infoTitle}>Rangga Prayoga Hermawan</h3>
+          <p style={styles.infoDescription}>Digital Artisan & Tech Explorer</p>
+          <p style={{...styles.infoDescription, marginTop: '20px', maxWidth: '600px'}}>
+            This is the central data hub. From here, you can explore various aspects of my professional journey, or you can initiate a direct inquiry with my archival AI to get a summarized overview.
+          </p>
+          <button
+            onClick={() => setIsAboutMeModalOpen(true)}
+            style={{...styles.instagramVisitButton, marginTop: '30px'}}
+            className="project-card"
+          >
+            Initiate AI Inquiry
+          </button>
+        </div>
+      );
+    }
     
     if (district.subItems && district.subItems.length > 0) {
       return (
@@ -463,6 +484,10 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
         </div>
         {renderContent()}
       </div>
+      <AboutMeModal
+        isOpen={isAboutMeModalOpen}
+        onClose={() => setIsAboutMeModalOpen(false)}
+      />
     </>
   );
 };

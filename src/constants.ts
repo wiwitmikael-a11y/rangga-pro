@@ -258,7 +258,7 @@ export const portfolioData: CityDistrict[] = [
           5,
           55
         ],
-        "imageUrl": "https://images.unsplash.com/photo-1639755291242-df73356c39d6?auto=format&fit=crop&w=800&q=80"
+        "imageUrl": "https://images.unsplash.com/photo-1542831371-d531d3af5a8e?auto=format&fit=crop&w=800&q=80"
       }
     ]
   },
@@ -316,7 +316,7 @@ export const portfolioData: CityDistrict[] = [
           5,
           45
         ],
-        "imageUrl": "https://images.unsplash.com/photo-16421047041242-df73356c39d6?auto=format&fit=crop&w=800&q=80"
+        "imageUrl": "https://images.unsplash.com/photo-1639322537228-f710d846310a?auto=format&fit=crop&w=800&q=80"
       },
       {
         "id": "skill-creative",
