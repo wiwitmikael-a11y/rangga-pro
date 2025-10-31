@@ -108,7 +108,7 @@ const MemoizedMessage = React.memo(({ msg }: { msg: Message }) => {
     const showCursor = isAi && isString && isTyping;
     const bubbleStyles = { ...styles.messageBubble, ...(isAi ? styles.aiMessage : styles.userMessage) };
     const rowStyles = { ...styles.messageRow, alignSelf: isAi ? 'flex-start' : 'flex-end', flexDirection: isAi ? 'row' : 'row-reverse' };
-    return (<div style={rowStyles}><{isAi ? AiIcon : UserIcon} /><div style={bubbleStyles} dangerouslySetInnerHTML={typeof messageContent === 'string' ? {__html: messageContent + (showCursor ? '<span class="cursor">_</span>' : '')} : undefined}>{typeof messageContent !== 'string' && messageContent}</div></div>);
+    return (<div style={rowStyles}>{isAi ? <AiIcon /> : <UserIcon />}<div style={bubbleStyles} dangerouslySetInnerHTML={typeof messageContent === 'string' ? {__html: messageContent + (showCursor ? '<span class="cursor">_</span>' : '')} : undefined}>{typeof messageContent !== 'string' && messageContent}</div></div>);
 });
 
 const AIInquiryView: React.FC<{onClose: () => void}> = ({onClose}) => {
