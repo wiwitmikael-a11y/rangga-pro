@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { CityDistrict } from '../../types';
-import { chatDatabase, ChatPrompt } from '../../chat-data';
+import { chatData, ChatPrompt } from '../../chat-data';
 
 // --- STYLING (matches app aesthetic) ---
 const glassmorphism: React.CSSProperties = {
@@ -82,6 +82,7 @@ type ChatMessage = {
   sender: 'bot' | 'user';
   text: string;
 };
+type Language = 'id' | 'en';
 
 // Helper to get a random item from an array
 const getRandomItem = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
@@ -100,6 +101,8 @@ const ProceduralChatContent: React.FC<{ district: CityDistrict | null }> = ({ di
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [prompts, setPrompts] = useState<ChatPrompt[]>([]);
     const [isBotTyping, setIsBotTyping] = useState(false);
+    const [language, setLanguage] = useState<Language>('id');
+    const [languageSelected, setLanguageSelected] = useState(false);
     const chatLogRef = useRef<HTMLDivElement>(null);
     const messageIdCounter = useRef(0);
 
@@ -107,20 +110,19 @@ const ProceduralChatContent: React.FC<{ district: CityDistrict | null }> = ({ di
         setMessages(prev => [...prev, { id: messageIdCounter.current++, sender, text }]);
     };
     
-    const handleTopicSelect = useCallback((topicId: string) => {
-        const topic = chatDatabase.topics[topicId];
+    const handleTopicSelect = useCallback((topicId: string, lang: Language) => {
+        const topic = chatData[lang].topics[topicId];
         if (!topic) return;
 
         setIsBotTyping(true);
         setPrompts([]);
         
-        // Special case for 'start' to show main menu
         if (topicId === 'start') {
             const botResponse = getRandomItem(topic.botResponses);
             const responseText = typeof botResponse === 'function' ? botResponse() : botResponse;
              setTimeout(() => {
                 addMessage('bot', responseText);
-                setPrompts(chatDatabase.entryPoints);
+                setPrompts(chatData[lang].entryPoints);
                 setIsBotTyping(false);
             }, 800);
             return;
@@ -129,10 +131,9 @@ const ProceduralChatContent: React.FC<{ district: CityDistrict | null }> = ({ di
         const processMessageQueue = (index: number) => {
             if (index >= topic.botResponses.length) {
                 setIsBotTyping(false);
-                // Combine topic-specific prompts with a random fallback for variety
                 const nextPrompts = [...topic.followUpPrompts];
-                if (chatDatabase.fallbackPrompts.length > 0) {
-                    nextPrompts.push(getRandomItem(chatDatabase.fallbackPrompts));
+                if (chatData[lang].fallbackPrompts.length > 0) {
+                    nextPrompts.push(getRandomItem(chatData[lang].fallbackPrompts));
                 }
                 setPrompts(nextPrompts);
                 return;
@@ -140,8 +141,6 @@ const ProceduralChatContent: React.FC<{ district: CityDistrict | null }> = ({ di
 
             const messageContent = topic.botResponses[index];
             const messageText = typeof messageContent === 'function' ? messageContent() : messageContent;
-
-            // Simulate typing delay
             const delay = messageText.length * 15 + 300;
             setTimeout(() => {
                 addMessage('bot', messageText);
@@ -153,23 +152,42 @@ const ProceduralChatContent: React.FC<{ district: CityDistrict | null }> = ({ di
 
     }, []);
 
-    useEffect(() => {
-        setMessages([]);
+    const handleLanguageSelect = useCallback((lang: Language) => {
+        setLanguage(lang);
+        setLanguageSelected(true);
         setIsBotTyping(true);
-        const initialGreeting = getRandomItem(chatDatabase.greetings);
         
+        // Add user's language choice to chat
+        const langPrompt = lang === 'id' ? chatData.languageSelector.prompts.id : chatData.languageSelector.prompts.en;
+        addMessage('user', langPrompt.text);
+        
+        // Start the actual conversation in the chosen language
         setTimeout(() => {
+            const initialGreeting = getRandomItem(chatData[lang].greetings);
             addMessage('bot', initialGreeting);
             
             const districtTopicId = district?.id ? districtToTopicMap[district.id] : null;
             if (districtTopicId && districtTopicId !== 'start') {
-                 setTimeout(() => handleTopicSelect(districtTopicId), 500);
+                 setTimeout(() => handleTopicSelect(districtTopicId, lang), 500);
             } else {
-                setPrompts(chatDatabase.entryPoints);
+                setPrompts(chatData[lang].entryPoints);
                 setIsBotTyping(false);
             }
         }, 1000);
     // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [district, handleTopicSelect]);
+
+    useEffect(() => {
+        // Reset and start language selection on mount/district change
+        setMessages([]);
+        setLanguageSelected(false);
+        setIsBotTyping(true);
+        
+        setTimeout(() => {
+          addMessage('bot', chatData.languageSelector.intro);
+          setPrompts([chatData.languageSelector.prompts.en, chatData.languageSelector.prompts.id]);
+          setIsBotTyping(false);
+        }, 500);
     }, [district]);
     
     useEffect(() => {
@@ -179,8 +197,13 @@ const ProceduralChatContent: React.FC<{ district: CityDistrict | null }> = ({ di
     }, [messages, isBotTyping]);
 
     const handlePromptClick = (prompt: ChatPrompt) => {
-        addMessage('user', prompt.text);
-        handleTopicSelect(prompt.topicId);
+        if (!languageSelected) {
+            if (prompt.topicId === 'lang_select_id') handleLanguageSelect('id');
+            if (prompt.topicId === 'lang_select_en') handleLanguageSelect('en');
+        } else {
+            addMessage('user', prompt.text);
+            handleTopicSelect(prompt.topicId, language);
+        }
     };
 
     return (
@@ -188,7 +211,7 @@ const ProceduralChatContent: React.FC<{ district: CityDistrict | null }> = ({ di
             <div ref={chatLogRef} className="chat-log custom-scrollbar">
                 {messages.map((msg) => (
                     <div key={msg.id} className={`chat-message-wrapper ${msg.sender}`}>
-                        <div className="chat-bubble">{msg.text.split('\n').map((line, i) => <p key={i} style={{ margin: 0 }}>{line}</p>)}</div>
+                        <div className={`chat-bubble ${msg.sender}`}>{msg.text.split('\n').map((line, i) => <p key={i} style={{ margin: 0 }}>{line}</p>)}</div>
                     </div>
                 ))}
                 {isBotTyping && (
