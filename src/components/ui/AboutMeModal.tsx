@@ -6,7 +6,7 @@ interface AboutMeModalProps {
 }
 
 type Message = {
-  id: number;
+  id: number | string; // Allow string ID for temporary messages like "thinking"
   sender: 'ai' | 'user';
   text: React.ReactNode;
 };
@@ -25,7 +25,7 @@ type ChatScript = {
 };
 
 // --- Custom Hook for Typing Effect ---
-const useTypingEffect = (text: string, speed = 30) => {
+const useTypingEffect = (text: string, speed = 25) => { // Slightly faster typing
     const [displayText, setDisplayText] = useState('');
     const isDone = displayText.length === text.length;
 
@@ -190,6 +190,30 @@ const UserIcon = () => (
     </svg>
 );
 
+const ThinkingIndicator = () => (
+    <div style={{ display: 'flex', gap: '4px', alignItems: 'center', height: '24px' }}>
+        <style>{`
+            @keyframes bounce {
+                0%, 80%, 100% { transform: scale(0); }
+                40% { transform: scale(1.0); }
+            }
+            .dot {
+                width: 8px;
+                height: 8px;
+                background-color: #cceeff;
+                border-radius: 50%;
+                display: inline-block;
+                animation: bounce 1.4s infinite ease-in-out both;
+            }
+            .dot1 { animation-delay: -0.32s; }
+            .dot2 { animation-delay: -0.16s; }
+        `}</style>
+        <div className="dot dot1"></div>
+        <div className="dot dot2"></div>
+        <div className="dot"></div>
+    </div>
+);
+
 
 const glassmorphism: React.CSSProperties = { background: 'rgba(5, 15, 30, 0.9)', backdropFilter: 'blur(15px)', border: '1px solid rgba(0, 170, 255, 0.5)' };
 const styles: { [key: string]: React.CSSProperties } = {
@@ -198,11 +222,11 @@ const styles: { [key: string]: React.CSSProperties } = {
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(0, 170, 255, 0.3)', paddingBottom: '15px', marginBottom: '15px', flexShrink: 0 },
   title: { margin: 0, color: 'var(--primary-color)', fontSize: '1.5rem', textShadow: '0 0 8px var(--primary-color)' },
   closeButton: { background: 'transparent', border: '1px solid rgba(255, 153, 0, 0.7)', color: '#ff9900', width: '30px', height: '30px', borderRadius: '50%', cursor: 'pointer', fontSize: '1.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center', lineHeight: 1, transition: 'all 0.2s' },
-  chatWindow: { flexGrow: 1, overflowY: 'auto', paddingRight: '15px', display: 'flex', flexDirection: 'column-reverse', minHeight: 0 },
-  messageRow: { display: 'flex', marginBottom: '15px', gap: '10px', animation: 'fadeInMessage 0.5s ease forwards' },
-  messageBubble: { maxWidth: '100%', padding: '10px 15px', borderRadius: '10px', lineHeight: 1.5 },
-  aiMessage: { background: 'rgba(0, 170, 255, 0.1)', color: '#cceeff', alignSelf: 'flex-start' },
-  userMessage: { background: '#2c3e50', color: '#ecf0f1', alignSelf: 'flex-end' },
+  chatWindow: { flexGrow: 1, overflowY: 'auto', paddingRight: '15px', display: 'flex', flexDirection: 'column', minHeight: 0 },
+  messageRow: { display: 'flex', marginBottom: '20px', gap: '10px', animation: 'fadeInMessage 0.5s ease forwards', maxWidth: '85%' },
+  messageBubble: { padding: '12px 16px', borderRadius: '12px', lineHeight: 1.5, position: 'relative' },
+  aiMessage: { background: 'rgba(0, 170, 255, 0.1)', color: '#cceeff', alignSelf: 'flex-start', borderTopLeftRadius: '0' },
+  userMessage: { background: 'rgba(44, 62, 80, 0.8)', color: '#ecf0f1', alignSelf: 'flex-end', borderTopRightRadius: '0' },
   optionsContainer: { flexShrink: 0, paddingTop: '15px', borderTop: '1px solid rgba(0, 170, 255, 0.3)', display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center' },
   optionButton: { background: 'rgba(0, 170, 255, 0.2)', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', padding: '10px 15px', fontSize: '0.9rem', fontFamily: 'inherit', cursor: 'pointer', transition: 'all 0.3s ease', textShadow: '0 0 5px var(--primary-color)', borderRadius: '5px' },
   bootScreen: { display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', color: 'var(--primary-color)', fontFamily: 'monospace', fontSize: '1.2rem', textShadow: '0 0 5px var(--primary-color)' },
@@ -211,20 +235,32 @@ const styles: { [key: string]: React.CSSProperties } = {
 const MemoizedMessage = React.memo(({ msg }: { msg: Message }) => {
     const { text, sender } = msg;
     const isAi = sender === 'ai';
+
+    if (text === 'thinking...') {
+        return (
+            <div style={{ ...styles.messageRow, alignSelf: 'flex-start' }}>
+                <AiIcon />
+                <div style={{ ...styles.messageBubble, ...styles.aiMessage, padding: '10px 15px' }}>
+                    <ThinkingIndicator />
+                </div>
+            </div>
+        );
+    }
     
-    // Typing effect is only for string-based AI messages
     const isString = typeof text === 'string';
     const { typedText, isTyping } = useTypingEffect(isAi && isString ? text as string : '');
 
     const messageContent = isAi && isString ? typedText : text;
     const showCursor = isAi && isString && isTyping;
 
+    const bubbleStyles = { ...styles.messageBubble, ...(isAi ? styles.aiMessage : styles.userMessage) };
+    const rowStyles = { ...styles.messageRow, alignSelf: isAi ? 'flex-start' : 'flex-end', flexDirection: isAi ? 'row' : 'row-reverse' };
+
     return (
-        <div style={{ ...styles.messageRow, flexDirection: isAi ? 'row' : 'row-reverse' }}>
+        <div style={rowStyles}>
             {isAi ? <AiIcon /> : <UserIcon />}
-            <div style={{...styles.messageBubble, ...(isAi ? styles.aiMessage : styles.userMessage)}} dangerouslySetInnerHTML={typeof messageContent === 'string' ? {__html: messageContent} : undefined}>
+            <div style={bubbleStyles} dangerouslySetInnerHTML={typeof messageContent === 'string' ? {__html: messageContent + (showCursor ? '<span class="cursor">_</span>' : '')} : undefined}>
                 {typeof messageContent !== 'string' && messageContent}
-                {showCursor && <span className="cursor">_</span>}
             </div>
         </div>
     );
@@ -236,27 +272,34 @@ export const AboutMeModal: React.FC<AboutMeModalProps> = ({ isOpen, onClose }) =
     const [isThinking, setIsThinking] = useState(false);
     const [chatState, setChatState] = useState<'booting' | 'active'>('booting');
     const [bootText, setBootText] = useState('');
-    const chatWindowRef = useRef<HTMLDivElement>(null);
+    const endOfMessagesRef = useRef<HTMLDivElement>(null);
 
     const containerStyle: React.CSSProperties = { ...styles.container, opacity: isOpen ? 1 : 0, transform: isOpen ? 'translate(-50%, -50%) scale(1)' : 'translate(-50%, -50%) scale(0.95)', pointerEvents: isOpen ? 'auto' : 'none' };
     const overlayStyle: React.CSSProperties = { ...styles.overlay, opacity: isOpen ? 1 : 0, pointerEvents: isOpen ? 'auto' : 'none' };
 
+    useEffect(() => {
+        endOfMessagesRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
+
     const startChat = useCallback(() => {
         const script = chatScript['initial'];
         setIsThinking(true);
+        setOptions([]);
+
         let delay = 500;
         script.aiResponses.forEach((res, index) => {
             setTimeout(() => {
-                setMessages(prev => [{ id: Date.now() + index, sender: 'ai', text: res }, ...prev]);
+                setMessages(prev => [...prev, { id: Date.now() + index, sender: 'ai', text: res }]);
                 if (index === script.aiResponses.length - 1) {
                     setIsThinking(false);
                     setOptions(script.nextOptions);
                 }
             }, delay);
-            delay += 1500;
+            const messageLength = typeof res === 'string' ? res.length : 100;
+            delay += messageLength * 30 + 800;
         });
     }, []);
-
+    
     useEffect(() => {
         if (isOpen) {
             setMessages([]);
@@ -279,13 +322,6 @@ export const AboutMeModal: React.FC<AboutMeModalProps> = ({ isOpen, onClose }) =
             });
         }
     }, [isOpen, startChat]);
-    
-    useEffect(() => {
-        if (chatWindowRef.current) {
-            chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
-        }
-    }, [messages, isThinking]);
-
 
     const handleOptionClick = (optionId: string) => {
         if (isThinking) return;
@@ -297,31 +333,44 @@ export const AboutMeModal: React.FC<AboutMeModalProps> = ({ isOpen, onClose }) =
         const script = chatScript[optionId];
         if (!script) return;
 
-        setMessages(prev => [{ id: Date.now(), sender: 'user', text: script.userMessage }, ...prev]);
+        setMessages(prev => [...prev, { id: Date.now(), sender: 'user', text: script.userMessage }]);
         setOptions([]);
         setIsThinking(true);
 
         setTimeout(() => {
-            let delay = 0;
+            setMessages(prev => [...prev, { id: 'thinking', sender: 'ai', text: 'thinking...' }]);
+        }, 600);
+
+        setTimeout(() => {
+            setMessages(prev => prev.filter(m => m.id !== 'thinking'));
+
+            let responseDelay = 0;
             script.aiResponses.forEach((res, index) => {
-                const messageLength = typeof res === 'string' ? res.length : 100;
-                delay += (messageLength * 30 + 500); // Dynamic delay based on text length
                 setTimeout(() => {
-                    setMessages(prev => [{ id: Date.now() + index, sender: 'ai', text: res }, ...prev]);
+                    setMessages(prev => [...prev, { id: Date.now() + index, sender: 'ai', text: res }]);
+                    
                     if (index === script.aiResponses.length - 1) {
                         setIsThinking(false);
                         setOptions(script.nextOptions);
                     }
-                }, delay);
+                }, responseDelay);
+                const messageLength = typeof res === 'string' ? res.length : 100;
+                responseDelay += messageLength * 25 + 800;
             });
-        }, 1000);
+        }, 1500);
     };
 
     return (
         <>
             <style>{`
+                .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0, 170, 255, 0.4); border-radius: 3px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(0, 170, 255, 0.6); }
+
                 @keyframes fadeInMessage { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
                 .option-button:hover:not(:disabled) { background-color: rgba(0, 170, 255, 0.4); transform: translateY(-2px); }
+                .option-button:disabled { opacity: 0.5; cursor: wait; }
             `}</style>
             <div style={overlayStyle} onClick={onClose} />
             <div style={containerStyle} className="responsive-modal">
@@ -335,8 +384,9 @@ export const AboutMeModal: React.FC<AboutMeModalProps> = ({ isOpen, onClose }) =
                     </div>
                 ) : (
                     <>
-                        <div ref={chatWindowRef} style={styles.chatWindow}>
-                            {messages.slice().reverse().map((msg) => <MemoizedMessage key={msg.id} msg={msg} />)}
+                        <div style={styles.chatWindow} className="custom-scrollbar">
+                           {messages.map((msg) => <MemoizedMessage key={msg.id} msg={msg} />)}
+                           <div ref={endOfMessagesRef} />
                         </div>
                         <div style={styles.optionsContainer}>
                             {options.map(opt => (
