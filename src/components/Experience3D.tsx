@@ -274,7 +274,7 @@ export const Experience3D: React.FC = () => {
     setFireRequest(Date.now());
   }, []);
 
-  const handleCanvasPointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
+  const handleCanvasPointerDown = useCallback((e: React.PointerEvent) => {
     // Hanya picu pada klik kiri mouse, dan hanya dalam mode pilot manual.
     // Pemeriksaan `pointerType` mencegah pemicuan pada sentuhan mobile.
     if (e.button === 0 && shipControlMode === 'manual' && e.pointerType === 'mouse') {
