@@ -47,16 +47,6 @@
         box-shadow: 0 5px 15px rgba(0, 225, 255, 0.3) !important;
         background: rgba(0, 100, 150, 0.4) !important;
       }
-      .project-card {
-        transition: all 0.3s ease;
-        border-left: 3px solid transparent;
-      }
-      .project-card:hover {
-        transform: translateY(-5px);
-        background: rgba(0, 100, 150, 0.3);
-        border-left-color: var(--primary-color);
-        box-shadow: 0 8px 20px rgba(0, 225, 255, 0.2);
-      }
 
       @keyframes pulse-glow {
         0% { 
@@ -161,23 +151,316 @@
       }
       /* --- End Chat UI Styles --- */
 
+      /* --- Chat Input Styles --- */
+      .chat-input-form {
+        flex-shrink: 0;
+        padding: 10px;
+        border-top: 1px solid rgba(0, 170, 255, 0.3);
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .chat-text-input {
+        flex-grow: 1;
+        background: rgba(0,0,0,0.3);
+        border: 1px solid rgba(0, 170, 255, 0.3);
+        border-radius: 20px;
+        color: #e0e0e0;
+        font-family: var(--font-family);
+        font-size: 1rem;
+        padding: 10px 15px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+      .chat-text-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 10px rgba(0, 170, 255, 0.5);
+      }
+      .chat-send-button {
+        background: transparent;
+        border: 1px solid var(--primary-color);
+        color: var(--primary-color);
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-shrink: 0;
+        transition: all 0.2s;
+      }
+      .chat-send-button:hover, .chat-send-button:focus {
+        background: rgba(0, 170, 255, 0.2);
+        color: white;
+        transform: scale(1.1);
+      }
+      .chat-send-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+      }
 
+      /* --- Project Gallery Styles --- */
+      .project-gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+        padding: 15px 15px 15px 0;
+        overflow-y: auto;
+        height: 100%;
+      }
+      .project-card {
+        background: rgba(0, 30, 50, 0.5);
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid rgba(0, 170, 255, 0.2);
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+      .project-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 225, 255, 0.2);
+        border-color: rgba(0, 170, 255, 0.5);
+      }
+      .project-card-img {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+        display: block;
+      }
+      .project-card-body {
+        padding: 15px;
+      }
+      .project-card-title {
+        margin: 0 0 8px 0;
+        color: #fff;
+        font-size: 1rem;
+      }
+      .project-card-desc {
+        margin: 0;
+        color: #ccc;
+        font-size: 0.85rem;
+        line-height: 1.5;
+      }
+
+      /* --- Image Modal Styles --- */
+      .image-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(8px);
+        z-index: 1000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        animation: fadeInModal 0.3s ease;
+      }
+      .image-modal-content {
+        position: relative;
+        max-width: 90vw;
+        max-height: 90vh;
+        animation: zoomInModal 0.3s ease;
+      }
+      .image-modal-content img {
+        display: block;
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 10px;
+        border: 2px solid var(--primary-color);
+      }
+      .image-modal-close {
+        position: absolute;
+        top: -15px;
+        right: -15px;
+        background: var(--background-color);
+        border: 1px solid var(--primary-color);
+        color: var(--primary-color);
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        font-size: 1.5rem;
+        cursor: pointer;
+      }
+
+      /* --- Skills Matrix Styles --- */
+      .skills-matrix-container {
+        display: flex;
+        height: 100%;
+        padding-top: 15px;
+        gap: 20px;
+      }
+      .skills-chart {
+        flex: 1 1 40%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-width: 250px;
+      }
+      .skills-details {
+        flex: 1 1 60%;
+        overflow-y: auto;
+        padding-right: 15px;
+        display: flex;
+        flex-direction: column;
+      }
+      .skills-details-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 10px;
+      }
+      .skills-details-title {
+        color: var(--primary-color);
+        margin: 0;
+        text-shadow: 0 0 5px var(--primary-color);
+        flex-grow: 1;
+      }
+      .language-switcher {
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+      .language-switcher button {
+        background: transparent;
+        border: 1px solid rgba(0, 170, 255, 0.4);
+        color: rgba(0, 255, 255, 0.7);
+        padding: 4px 12px;
+        font-size: 0.8rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: inherit;
+        font-weight: bold;
+      }
+      .language-switcher button.active,
+      .language-switcher button:hover {
+        background: rgba(0, 170, 255, 0.2);
+        color: var(--primary-color);
+        border-color: var(--primary-color);
+      }
+      .skills-details-desc {
+        color: #ccc;
+        line-height: 1.7;
+        margin: 0 0 20px 0;
+        white-space: pre-wrap;
+      }
+      .skills-details-subtitle {
+        color: #fff;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-size: 0.9rem;
+        border-bottom: 1px solid rgba(0, 170, 255, 0.3);
+        padding-bottom: 5px;
+        margin: 0 0 10px 0;
+      }
+      .skills-details-metrics {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        color: #ccc;
+      }
+      .skills-details-metrics li {
+        margin-bottom: 8px;
+        position: relative;
+        padding-left: 20px;
+      }
+      .skills-details-metrics li::before {
+        content: '»';
+        color: var(--primary-color);
+        position: absolute;
+        left: 0;
+      }
+
+      /* --- Contact Form Styles --- */
+      .contact-form-container {
+        padding: 20px 10px;
+        height: 100%;
+        overflow-y: auto;
+      }
+      .contact-form-intro {
+        text-align: center;
+        color: #ccc;
+        margin: 0 auto 25px auto;
+        max-width: 600px;
+        line-height: 1.6;
+      }
+      .contact-form-container form {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        max-width: 500px;
+        margin: 0 auto;
+      }
+      .form-group {
+        display: flex;
+        flex-direction: column;
+      }
+      .form-group label {
+        color: rgba(0, 255, 255, 0.8);
+        margin-bottom: 5px;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+      }
+      .form-group input, .form-group textarea {
+        background: rgba(0,0,0,0.3);
+        border: 1px solid rgba(0, 170, 255, 0.3);
+        border-radius: 5px;
+        color: #e0e0e0;
+        font-family: var(--font-family);
+        font-size: 1rem;
+        padding: 12px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+      .form-group input:focus, .form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 10px rgba(0, 170, 255, 0.5);
+      }
+      .form-group textarea { resize: vertical; }
+      .contact-form-container button[type="submit"], .form-success-message button {
+        background: rgba(0, 170, 255, 0.2);
+        border: 1px solid var(--primary-color);
+        color: var(--primary-color);
+        padding: 12px 25px;
+        font-size: 1rem;
+        font-family: inherit;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        transition: all 0.3s ease;
+        text-shadow: 0 0 5px var(--primary-color);
+        align-self: center;
+        margin-top: 10px;
+      }
+      .contact-form-container button[type="submit"]:hover, .form-success-message button:hover {
+        background: rgba(0, 170, 255, 0.4);
+        color: #fff;
+      }
+      .form-error {
+        color: #ff6b6b;
+        text-align: center;
+        margin: -5px 0 10px 0;
+      }
+      .form-success-message {
+        text-align: center;
+        padding: 40px 20px;
+      }
+      .form-success-message h3 {
+        color: var(--primary-color);
+        font-size: 1.5rem;
+      }
+      
       /* --- Scrollbar --- */
       .custom-scrollbar::-webkit-scrollbar { width: 8px; }
       .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); border-radius: 4px; }
       .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0, 170, 255, 0.4); border-radius: 4px; }
       .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(0, 170, 255, 0.6); }
 
-      /* --- Image Modal Styles --- */
-      @keyframes fadeInModal {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
-      @keyframes zoomInModal {
-        from { transform: scale(0.9); opacity: 0; }
-        to { transform: scale(1); opacity: 1; }
-      }
-
+      /* --- Animation Keyframes --- */
+      @keyframes fadeInModal { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes zoomInModal { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
       /* --- Tablet Breakpoint --- */
       @media (max-width: 1024px) {
@@ -194,6 +477,16 @@
         .quick-nav-container {
           width: 90% !important;
           max-width: 700px !important;
+        }
+        .skills-matrix-container {
+            flex-direction: column;
+        }
+        .skills-chart {
+            flex: 1 1 auto;
+            max-height: 250px;
+        }
+        .skills-details {
+            flex: 1 1 auto;
         }
       }
 
@@ -274,7 +567,7 @@
           overflow-y: hidden !important; /* Panel itself shouldn't scroll */
         }
         
-        .chat-log {
+        .chat-log, .project-gallery-grid {
           padding: 5px;
         }
         .chat-prompts {
