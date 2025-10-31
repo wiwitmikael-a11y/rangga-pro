@@ -71,7 +71,8 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
   // --- NEW: State and refs for hold-to-select interaction ---
   const [holdProgress, setHoldProgress] = useState(0);
   const isHoldingRef = useRef(false);
-  const animationFrameRef = useRef<number>();
+  // FIX: Initialize useRef with null to fix invalid call. This was likely causing misleading type errors.
+  const animationFrameRef = useRef<number | null>(null);
   const actionTriggeredRef = useRef(false); // New ref to track if action has been called
   const HOLD_DURATION = 1000; // ms
 

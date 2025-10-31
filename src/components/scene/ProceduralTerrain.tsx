@@ -2,12 +2,16 @@ import React, { useMemo } from 'react';
 import * as THREE from 'three';
 import { useTexture } from '@react-three/drei';
 import { createNoise2D } from 'simplex-noise';
+// FIX: Add import from '@react-three/fiber' to provide types for JSX primitives.
+import { useThree } from '@react-three/fiber';
 
 interface ProceduralTerrainProps {}
 
 const TERRAIN_TEXTURE_URL = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/terrain.jpeg?v=2';
 
 export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(() => {
+    // FIX: Call useThree hook to ensure R3F types are loaded for JSX.
+    useThree();
     
     const terrainTexture = useTexture(TERRAIN_TEXTURE_URL);
 
@@ -23,14 +27,18 @@ export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(()
         const positions = planeGeo.attributes.position;
 
         // Define zones for the terrain shape
-        const cityRadius = 90; // The completely flat central area
-        const moatStartRadius = 100; // Where the concave dip begins
-        const moatEndRadius = 120;   // Where the dip reaches its lowest point
-        const noisyTerrainStartRadius = 140; // Where the bumpy terrain begins to rise
-        const moatDepth = 4;    // How deep the concave moat is
+        const cityRadius = 90;
+        const moatStartRadius = 100;
+        const moatEndRadius = 120;
+        const noisyTerrainStartRadius = 140;
+        const moatDepth = 4;
         const noiseFactor = 0.015;
-        const noiseHeightMultiplier = 8;
-        const globalCurvatureFactor = 0.0002;
+
+        // --- NEW: Constants for more dramatic, hilly terrain ---
+        const noiseHeightMultiplier = 18; // Ditingkatkan untuk medan yang lebih dramatis
+        const hillStartRadius = 150;      // Jarak di mana perbukitan mulai naik
+        const maxRadius = 250;            // Tepi luar medan
+        const hillRiseAmount = 50;        // Ketinggian maksimum tambahan untuk perbukitan
 
         for (let i = 0; i < positions.count; i++) {
             const x = positions.getX(i);
@@ -60,9 +68,15 @@ export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(()
                 height = rawNoiseHeight;
             }
             
-            const curveOffset = distanceFromCenter * distanceFromCenter * globalCurvatureFactor;
+            // --- NEW: Add the surrounding hill structure ---
+            if (distanceFromCenter > hillStartRadius) {
+                // Use an ease-out curve (1 - (1-t)^2) for a natural rise
+                const t = (distanceFromCenter - hillStartRadius) / (maxRadius - hillStartRadius);
+                const hillHeight = hillRiseAmount * (1 - Math.pow(1 - Math.min(t, 1), 2));
+                height += hillHeight;
+            }
             
-            positions.setZ(i, height - curveOffset);
+            positions.setZ(i, height);
         }
         
         planeGeo.computeVertexNormals();

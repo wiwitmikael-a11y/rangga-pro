@@ -7,6 +7,7 @@ interface HUDProps {
   onToggleHints: () => void;
   pov: 'main' | 'ship';
   onSetPov: (pov: 'main' | 'ship') => void;
+  onGoHome: () => void;
   isCalibrationMode: boolean;
   heldDistrictId: string | null;
   shipControlMode: 'follow' | 'manual';
@@ -40,18 +41,26 @@ const ShipIcon: React.FC = () => (
   </svg>
 );
 
-const PilotIcon: React.FC = () => (
+const PilotHelmIcon: React.FC = () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 2L6 22l6-4 6 4L12 2z"></path>
-        <path d="M12 14v-4"></path>
+        <circle cx="12" cy="12" r="8"></circle>
+        <circle cx="12" cy="12" r="2"></circle>
+        <line x1="12" y1="4" x2="12" y2="6"></line>
+        <line x1="12" y1="18" x2="12" y2="20"></line>
+        <line x1="4" y1="12" x2="6" y2="12"></line>
+        <line x1="18" y1="12" x2="20" y2="12"></line>
+        <line x1="6.34" y1="6.34" x2="7.76" y2="7.76"></line>
+        <line x1="16.24" y1="16.24" x2="17.66" y2="17.66"></line>
+        <line x1="6.34" y1="17.66" x2="7.76" y2="16.24"></line>
+        <line x1="16.24" y1="7.76" x2="17.66" y2="6.34"></line>
     </svg>
 );
 
-const AutopilotIcon: React.FC = () => (
+const ExitIcon: React.FC = () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 2L6 22l6-4 6 4L12 2z"></path>
-        <path d="M12 14v-4"></path>
-        <path d="M18.3 18.3a5 5 0 1 0-12.6 0"></path>
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+        <polyline points="16 17 21 12 16 7"></polyline>
+        <line x1="21" y1="12" x2="9" y2="12"></line>
     </svg>
 );
 
@@ -77,7 +86,7 @@ const QuestionMarkIcon: React.FC = () => (
 const ControlHints: React.FC<{isManual: boolean}> = ({ isManual }) => {
     const hintStyle: React.CSSProperties = {
         position: 'fixed',
-        bottom: '20px',
+        bottom: '80px',
         right: '20px',
         padding: '10px 15px',
         background: 'rgba(0, 20, 40, 0.7)',
@@ -479,7 +488,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
 };
 
-export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleNavMenu, onToggleHints, pov, onSetPov, isCalibrationMode, heldDistrictId, shipControlMode, onToggleShipControl, onFire, isTouchDevice, onShipTouchInputChange, isAnyPanelOpen }) => {
+export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleNavMenu, onToggleHints, pov, onSetPov, onGoHome, isCalibrationMode, heldDistrictId, shipControlMode, onToggleShipControl, onFire, isTouchDevice, onShipTouchInputChange, isAnyPanelOpen }) => {
 
   const breadcrumb = useMemo(() => {
     if (heldDistrictId) return `RAGETOPIA > /ARCHITECT_MODE/MOVING...`;
@@ -576,7 +585,7 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
       <div style={bottomLeftContainerStyle} className="bottom-left-container">
           <div style={styles.buttonWrapper}>
               <button 
-                onClick={() => onSetPov('main')} 
+                onClick={onGoHome}
                 style={{...styles.hudButton, ...(pov === 'main' ? styles.activePov : {})}}
                 className="hud-button"
                 aria-label="Overview Camera"
@@ -588,20 +597,23 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
                 Overview
               </span>
           </div>
-          <div style={styles.buttonWrapper}>
-              <button 
-                onClick={() => onSetPov('ship')} 
-                style={{...styles.hudButton, ...(pov === 'ship' ? styles.activePov : {})}}
-                className="hud-button"
-                aria-label="Ship Follow Camera"
-                disabled={isCalibrationMode}
-              >
-                  <ShipIcon />
-              </button>
-              <span style={{...styles.buttonLabel, ...(pov === 'ship' ? styles.activeButtonLabel : {})}}>
-                Ship POV
-              </span>
-          </div>
+          
+          {shipControlMode !== 'manual' && (
+            <div style={styles.buttonWrapper}>
+                <button 
+                  onClick={() => onSetPov('ship')} 
+                  style={{...styles.hudButton, ...(pov === 'ship' ? styles.activePov : {})}}
+                  className="hud-button"
+                  aria-label="Ship Follow Camera"
+                  disabled={isCalibrationMode}
+                >
+                    <ShipIcon />
+                </button>
+                <span style={{...styles.buttonLabel, ...(pov === 'ship' ? styles.activeButtonLabel : {})}}>
+                  Ship POV
+                </span>
+            </div>
+          )}
 
           {pov === 'ship' && (
             <div style={styles.buttonWrapper}>
@@ -611,7 +623,7 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
                     className="hud-button danger-button"
                     aria-label={shipControlMode === 'follow' ? "Take Manual Control" : "Engage Autopilot"}
                 >
-                    {shipControlMode === 'follow' ? <PilotIcon /> : <AutopilotIcon />}
+                    {shipControlMode === 'follow' ? <PilotHelmIcon /> : <ExitIcon />}
                 </button>
                 <span style={{...styles.buttonLabel, color: '#ff9900'}}>
                     {shipControlMode === 'follow' ? 'Pilot Mode' : 'Exit Pilot'}

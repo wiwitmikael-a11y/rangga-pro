@@ -5,6 +5,8 @@ import HolographicDistrictLabel from './HolographicDistrictLabel';
 import { HolographicProjector } from './HolographicProjector';
 import { InteractiveModel } from './InteractiveModel';
 import { DataBridge } from './DataBridge';
+// FIX: Add import from '@react-three/fiber' to provide types for JSX primitives.
+import { useThree } from '@react-three/fiber';
 
 interface DistrictRendererProps {
   districts: CityDistrict[];
@@ -23,6 +25,8 @@ export const DistrictRenderer: React.FC<DistrictRendererProps> = ({
   heldDistrictId,
   onSetHeldDistrict,
 }) => {
+  // FIX: Call useThree hook to ensure R3F types are loaded for JSX.
+  useThree();
   // Find the central core's position dynamically to serve as the endpoint for all data streams.
   const nexusCore = districts.find(d => d.id === 'nexus-core');
   // Use the core's position, or a fallback if it's not found.
