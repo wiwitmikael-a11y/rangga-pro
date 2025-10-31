@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 // FIX: Import ChatTopic type to be used for casting.
 import type { CityDistrict, SkillCategory } from '../../types';
 import { chatData, ChatPrompt, type ChatTopic } from '../../chat-data';
-import { skillsDataBilingual, professionalSummaryBilingual } from '../../constants';
+import { skillsDataBilingual, professionalSummaryBilingual, FORMSPREE_ENDPOINT } from '../../constants';
 import { SkillsRadarChart } from './SkillsRadarChart';
 
 
@@ -179,8 +179,32 @@ const SkillsMatrixContent: React.FC = () => {
 };
 
 // --- 4. Contact Hub ---
+const InstagramIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+  </svg>
+);
+
+const LinkedInIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+    <rect x="2" y="9" width="4" height="12"></rect>
+    <circle cx="4" cy="4" r="2"></circle>
+  </svg>
+);
+
+const YouTubeIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path>
+    <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
+  </svg>
+);
+
 const ContactHubContent: React.FC = () => {
     const [formState, setFormState] = useState({ name: '', email: '', message: '' });
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSent, setIsSent] = useState(false);
     const [error, setError] = useState('');
 
@@ -188,14 +212,42 @@ const ContactHubContent: React.FC = () => {
         setFormState({ ...formState, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!formState.name || !formState.email || !formState.message) {
             setError('All fields are required.');
             return;
         }
+        
         setError('');
-        setIsSent(true);
+        setIsSubmitting(true);
+
+        try {
+            const response = await fetch(FORMSPREE_ENDPOINT, {
+                method: 'POST',
+                body: JSON.stringify(formState),
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                setIsSent(true);
+                setFormState({ name: '', email: '', message: '' });
+            } else {
+                const data = await response.json();
+                if (data && data.errors) {
+                    setError(data.errors.map((error: { message: string }) => error.message).join(", "));
+                } else {
+                    setError('Transmission failed. Please try again later.');
+                }
+            }
+        } catch (error) {
+            setError('A network error occurred. Please check your connection and try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     if (isSent) {
@@ -203,31 +255,44 @@ const ContactHubContent: React.FC = () => {
             <div className="form-success-message">
                 <h3>Transmission Received.</h3>
                 <p>Thank you for your message. Your inquiry has been logged, and I will get back to you shortly.</p>
-                <button onClick={() => { setIsSent(false); setFormState({ name: '', email: '', message: '' }); }}>Send Another Message</button>
+                <button onClick={() => setIsSent(false)}>Send Another Message</button>
             </div>
         );
     }
     
     return (
         <div className="contact-form-container custom-scrollbar">
+            <div className="social-links-container">
+                <a href="https://www.instagram.com/rangga.p.h" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="Instagram">
+                    <InstagramIcon />
+                </a>
+                <a href="https://id.linkedin.com/in/rangga-prayoga-hermawan" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="LinkedIn">
+                    <LinkedInIcon />
+                </a>
+                <a href="https://www.youtube.com/@ruangranggamusicchannel5536" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="YouTube">
+                    <YouTubeIcon />
+                </a>
+            </div>
             <p className="contact-form-intro">
                 Direct channel open. Use this terminal to establish a connection for collaborations, inquiries, or strategic discussions. All transmissions are routed securely.
             </p>
             <form onSubmit={handleSubmit} noValidate>
                 <div className="form-group">
                     <label htmlFor="name">Identifier (Name)</label>
-                    <input type="text" id="name" name="name" value={formState.name} onChange={handleChange} required />
+                    <input type="text" id="name" name="name" value={formState.name} onChange={handleChange} required disabled={isSubmitting} />
                 </div>
                 <div className="form-group">
                     <label htmlFor="email">Return Address (Email)</label>
-                    <input type="email" id="email" name="email" value={formState.email} onChange={handleChange} required />
+                    <input type="email" id="email" name="email" value={formState.email} onChange={handleChange} required disabled={isSubmitting} />
                 </div>
                 <div className="form-group">
                     <label htmlFor="message">Message Data</label>
-                    <textarea id="message" name="message" value={formState.message} onChange={handleChange} rows={5} required />
+                    <textarea id="message" name="message" value={formState.message} onChange={handleChange} rows={5} required disabled={isSubmitting} />
                 </div>
                 {error && <p className="form-error">{error}</p>}
-                <button type="submit">Transmit Message</button>
+                <button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? 'Transmitting...' : 'Transmit Message'}
+                </button>
             </form>
         </div>
     );

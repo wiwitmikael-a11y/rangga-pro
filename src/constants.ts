@@ -143,6 +143,9 @@ export const skillsDataBilingual: { [key in 'id' | 'en']: SkillCategory[] } = {
 export const OVERVIEW_CAMERA_POSITION = new THREE.Vector3(0, 100, 250);
 export const FLIGHT_RADIUS = 120; // Replaces FLIGHT_AREA_SIZE for circular flight path
 
+// --- Formspree Endpoint ---
+export const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xwpwvzaa';
+
 
 // Data portofolio telah diisi dengan konten mock yang relevan dan gambar dari CDN.
 // FOKUS KAMERA TELAH DIKALIBRASI ULANG UNTUK PEMBINGKAIAN YANG AKURAT DAN SINEMATIK
@@ -196,7 +199,7 @@ export const portfolioData: CityDistrict[] = [
       {
         "id": "project-ai-agent",
         "title": "AI Financial Risk Agent",
-        "description": "A generative AI agent trained on market data to identify and flag potential risks in micro-loan portfolios. (Gemini API)",
+        "description": "An autonomous agent powered by the Gemini API, trained to perform risk analysis on micro-loan portfolios, directly merging 15 years of financial acumen with modern AI engineering.",
         "position": [
           -55,
           5,
@@ -207,7 +210,7 @@ export const portfolioData: CityDistrict[] = [
       {
         "id": "project-data-viz",
         "title": "WebGL Market Visualizer",
-        "description": "An interactive 3D web application for visualizing real-time market data streams using React and Three.js.",
+        "description": "An interactive 3D financial data visualization platform built with React Three Fiber, showcasing expertise in creating immersive, data-driven WebGL experiences.",
         "position": [
           -45,
           5,
@@ -218,7 +221,7 @@ export const portfolioData: CityDistrict[] = [
       {
         "id": "project-portfolio",
         "title": "This is Ragetopia",
-        "description": "A meta-project about this portfolio. A deep-dive into the technologies and design philosophy behind its creation.",
+        "description": "A meta-project exploring this portfolio's architecture. A testament to full-stack development, UI/UX engineering, and interactive 3D design using the latest web technologies.",
         "position": [
           -50,
           5,
@@ -254,7 +257,7 @@ export const portfolioData: CityDistrict[] = [
       {
         "id": "photo-gallery",
         "title": "Landscape Photography",
-        "description": "A curated gallery of award-winning photographs capturing the raw, dramatic beauty of remote natural landscapes.",
+        "description": "A curated gallery of national award-winning photographs, demonstrating a mastery of composition, light, and narrative storytelling in capturing the raw beauty of natural landscapes.",
         "position": [
           45,
           5,
@@ -265,18 +268,18 @@ export const portfolioData: CityDistrict[] = [
       {
         "id": "video-reel",
         "title": "Cinematic Storytelling",
-        "description": "A reel showcasing short films and narrative projects that explore human stories through powerful visual language.",
+        "description": "A showcase of cinematic projects, from concept to final cut. Highlights expertise in directing, cinematography, VFX, and post-production to tell compelling, human-centric stories.",
         "position": [
           55,
           5,
           -45
         ],
-        "imageUrl": "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&q=80"
+        "imageUrl": "https://images.unsplash.com/photo-1603953074228-0d65a190586f?auto=format&fit=crop&w=800&q=80"
       },
       {
         "id": "drone-showcase",
         "title": "Aerial Cinematography",
-        "description": "Discovering unique perspectives and breathtaking scales through professional drone cinematography and photography.",
+        "description": "A collection of aerial cinematography capturing breathtaking perspectives. Demonstrates technical skill in drone operation and an artistic eye for dynamic aerial composition.",
         "position": [
           50,
           5,
@@ -312,7 +315,7 @@ export const portfolioData: CityDistrict[] = [
       {
         "id": "onchain-reports",
         "title": "On-Chain Intelligence",
-        "description": "In-depth reports on DeFi protocols, whale transaction tracking, and market sentiment analysis from raw blockchain data.",
+        "description": "Deep-dive analyses of DeFi protocols derived from raw on-chain data. Showcases proficiency in tracking whale movements and identifying market anomalies in the Web3 ecosystem.",
         "position": [
           -55,
           5,
@@ -322,14 +325,14 @@ export const portfolioData: CityDistrict[] = [
       },
       {
         "id": "smart-contracts",
-        "title": "Smart Contract Studies",
-        "description": "Case studies on security vulnerabilities and logic exploits in public Solidity-based smart contracts.",
+        "title": "Smart Contract Audits",
+        "description": "Case studies on Solidity smart contracts, focusing on security audits, logic exploits, and architectural best practices for building secure, decentralized applications.",
         "position": [
           -45,
           5,
           55
         ],
-        "imageUrl": "https://images.unsplash.com/photo-1542831371-d531d3af5a8e?auto=format&fit=crop&w=800&q=80"
+        "imageUrl": "https://images.unsplash.com/photo-1639755491196-ab1a12f0f4df?auto=format&fit=crop&w=800&q=80"
       }
     ]
   },
@@ -359,7 +362,7 @@ export const portfolioData: CityDistrict[] = [
       {
         "id": "skill-ai",
         "title": "AI & Machine Learning",
-        "description": "Python, TensorFlow, PyTorch, LangChain, Gemini API",
+        "description": "Expertise in Generative AI Engineering, including Gemini API integration, and the design of autonomous, data-driven agents.",
         "position": [
           45,
           5,
@@ -370,7 +373,7 @@ export const portfolioData: CityDistrict[] = [
       {
         "id": "skill-web",
         "title": "Web Technologies",
-        "description": "React, Next.js, Three.js/R3F, Node.js, GraphQL",
+        "description": "15+ years of full-stack architecture, specializing in high-performance web apps, intuitive UI/UX, and immersive 3D/WebGL experiences.",
         "position": [
           55,
           5,
@@ -381,7 +384,7 @@ export const portfolioData: CityDistrict[] = [
       {
         "id": "skill-blockchain",
         "title": "Blockchain & Web3",
-        "description": "Solidity, Ethers.js, Hardhat, The Graph Protocol",
+        "description": "Deep proficiency in the Web3 ecosystem, from on-chain intelligence and DeFi analysis to secure smart contract development.",
         "position": [
           50,
           5,
@@ -391,14 +394,14 @@ export const portfolioData: CityDistrict[] = [
       },
       {
         "id": "skill-creative",
-        "title": "Creative Suite & Tools",
-        "description": "Adobe Photoshop, Premiere Pro, After Effects, DaVinci Resolve",
+        "title": "Creative Tech & Media",
+        "description": "Mastery of the professional creative pipeline, including Adobe Creative Suite and DaVinci Resolve for videography, VFX, and branding.",
         "position": [
           50,
           5,
           65
         ],
-        "imageUrl": "https://images.unsplash.com/photo-1502472584811-0a7e28494df4?auto=format&fit=crop&w=800&q=80"
+        "imageUrl": "https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=800&q=80"
       }
     ]
   },
