@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, Suspense, forwardRef, useImperativeHandle, useEffect } from 'react';
+import React, { useMemo, useRef, Suspense, forwardRef, useImperativeHandle, useEffect, useState, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
@@ -7,8 +7,8 @@ import { ShipInputState } from '../../types';
 
 const GITHUB_MODEL_URL_BASE = 'https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/';
 
-const FLIGHT_ALTITUDE_MIN = 45; // Raised to avoid all buildings
-const FLIGHT_ALTITUDE_MAX = 60;
+const FLIGHT_ALTITUDE_MIN = 40; // Raised to avoid all buildings
+const FLIGHT_ALTITUDE_MAX = 55; // Lowered to keep ships more visible
 const FLIGHT_SPEED = 12;
 const TURN_SPEED = 1.5;
 
@@ -301,6 +301,96 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isP
 });
 
 
+// --- NEW: Laser Components ---
+const muzzleOffsets: { [key in ShipType | 'default']: THREE.Vector3 } = {
+    fighter: new THREE.Vector3(0, -0.2, 2.5),
+    transport: new THREE.Vector3(0, 0.5, 3.5),
+    copter: new THREE.Vector3(0, -0.2, 2.0),
+    default: new THREE.Vector3(0, 0, 3),
+};
+
+interface LaserBeamProps {
+  id: number;
+  initialPosition: THREE.Vector3;
+  initialQuaternion: THREE.Quaternion;
+  onEnded: (id: number) => void;
+}
+
+const LaserBeam: React.FC<LaserBeamProps> = ({ id, initialPosition, initialQuaternion, onEnded }) => {
+  const meshRef = useRef<THREE.Mesh>(null!);
+  const life = useRef(0);
+  const LASER_LENGTH = 100;
+  const LASER_DURATION = 0.5; // seconds
+
+  useFrame((_, delta) => {
+    life.current += delta;
+    if (!meshRef.current) return;
+
+    const progress = life.current / LASER_DURATION;
+    if (progress >= 1) {
+      onEnded(id);
+      return;
+    }
+
+    meshRef.current.scale.z = LASER_LENGTH;
+    (meshRef.current.material as THREE.MeshBasicMaterial).opacity = 1.0 - progress;
+  });
+
+  return (
+    <mesh ref={meshRef} position={initialPosition} quaternion={initialQuaternion}>
+      <cylinderGeometry args={[0.08, 0.08, 1, 8]} />
+      <meshBasicMaterial 
+        color="#ff4444" 
+        blending={THREE.AdditiveBlending}
+        transparent
+        depthWrite={false}
+        toneMapped={false}
+      />
+    </mesh>
+  );
+};
+
+
+interface LaserManagerProps {
+    fireRequest: number;
+    controlledShipRef: React.RefObject<THREE.Group> | null;
+}
+
+const LaserManager: React.FC<LaserManagerProps> = ({ fireRequest, controlledShipRef }) => {
+    const [lasers, setLasers] = useState<Omit<LaserBeamProps, 'onEnded'>[]>([]);
+    const lastFireRequest = useRef(fireRequest);
+    const laserIdCounter = useRef(0);
+    const muzzlePosition = useMemo(() => new THREE.Vector3(), []);
+    
+    useFrame(() => {
+        if (fireRequest > lastFireRequest.current && controlledShipRef?.current) {
+            lastFireRequest.current = fireRequest;
+            const ship = controlledShipRef.current;
+            const shipType = (ship.userData.shipType as ShipType) || 'default';
+            const offset = muzzleOffsets[shipType];
+
+            muzzlePosition.copy(offset).applyQuaternion(ship.quaternion).add(ship.position);
+
+            setLasers(prev => [...prev, {
+                id: laserIdCounter.current++,
+                initialPosition: muzzlePosition.clone(),
+                initialQuaternion: ship.quaternion.clone(),
+            }]);
+        }
+    });
+
+    const handleLaserEnded = useCallback((id: number) => {
+        setLasers(prev => prev.filter(laser => laser.id !== id));
+    }, []);
+
+    return (
+        <group>
+            {lasers.map(laser => <LaserBeam key={laser.id} {...laser} onEnded={handleLaserEnded} />)}
+        </group>
+    );
+};
+
+
 export const shipsData: ShipData[] = [
     { id: 'space_1', url: `${GITHUB_MODEL_URL_BASE}ship_space.glb`, scale: 0.45, initialDelay: 0, shipType: 'fighter' },
     { id: 'space_2', url: `${GITHUB_MODEL_URL_BASE}ship_space.glb`, scale: 0.47, initialDelay: 5, shipType: 'fighter' },
@@ -315,9 +405,10 @@ interface FlyingShipsProps {
   isPaused?: boolean;
   controlledShipId: string | null;
   shipInputs: ShipInputState;
+  fireRequest: number;
 }
 
-export const FlyingShips: React.FC<FlyingShipsProps> = React.memo(({ setShipRefs, isPaused, controlledShipId, shipInputs }) => {
+export const FlyingShips: React.FC<FlyingShipsProps> = React.memo(({ setShipRefs, isPaused, controlledShipId, shipInputs, fireRequest }) => {
   
   const shipRefs = useMemo(() => 
     Array.from({ length: shipsData.length }, () => React.createRef<THREE.Group>()), 
@@ -330,19 +421,29 @@ export const FlyingShips: React.FC<FlyingShipsProps> = React.memo(({ setShipRefs
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const controlledShipRef = useMemo(() => {
+    if (!controlledShipId) return null;
+    const shipIndex = shipsData.findIndex(s => s.id === controlledShipId);
+    if (shipIndex === -1) return null;
+    return shipRefs[shipIndex];
+  }, [controlledShipId, shipRefs]);
+
   return (
-    <Suspense fallback={null}>
-      {shipsData.map((ship, i) => (
-        <Ship 
-            ref={shipRefs[i]} 
-            key={ship.id} 
-            {...ship} 
-            isPaused={isPaused} 
-            isUnderManualControl={controlledShipId === ship.id}
-            manualInputs={shipInputs}
-        />
-      ))}
-    </Suspense>
+    <>
+      <Suspense fallback={null}>
+        {shipsData.map((ship, i) => (
+          <Ship 
+              ref={shipRefs[i]} 
+              key={ship.id} 
+              {...ship} 
+              isPaused={isPaused} 
+              isUnderManualControl={controlledShipId === ship.id}
+              manualInputs={shipInputs}
+          />
+        ))}
+      </Suspense>
+      <LaserManager fireRequest={fireRequest} controlledShipRef={controlledShipRef} />
+    </>
   );
 });
 

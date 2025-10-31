@@ -1,8 +1,8 @@
 import React, { useState, useCallback, Suspense, useMemo, useRef, useEffect } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, type ThreeEvent } from '@react-three/fiber';
 import { OrbitControls, Sky } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
-import { EffectComposer, Noise, ChromaticAberration } from '@react-three/postprocessing';
+import { EffectComposer, Noise } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
 
@@ -50,6 +50,7 @@ export const Experience3D: React.FC = () => {
   // Ship Control State
   const [shipControlMode, setShipControlMode] = useState<ShipControlMode>('follow');
   const [controlledShipId, setControlledShipId] = useState<string | null>(null);
+  const [fireRequest, setFireRequest] = useState(0);
   
   const shipKeyboardInputs = useShipControls(shipControlMode === 'manual' && !isTouchDevice);
   const [shipTouchInputs, setShipTouchInputs] = useState<ShipInputState>({ forward: 0, turn: 0, ascend: 0, roll: 0 });
@@ -269,6 +270,17 @@ export const Experience3D: React.FC = () => {
     return 'overview';
   }, [pov, shipControlMode]);
 
+  const handleFire = useCallback(() => {
+    setFireRequest(Date.now());
+  }, []);
+
+  const handleCanvasPointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
+    // Hanya picu pada klik kiri mouse, dan hanya dalam mode pilot manual.
+    // Pemeriksaan `pointerType` mencegah pemicuan pada sentuhan mobile.
+    if (e.button === 0 && shipControlMode === 'manual' && e.pointerType === 'mouse') {
+        handleFire();
+    }
+  }, [shipControlMode, handleFire]);
 
   return (
     <>
@@ -283,6 +295,7 @@ export const Experience3D: React.FC = () => {
         }}
         dpr={[1, 1.5]}
         onDoubleClick={(e) => e.stopPropagation()}
+        onPointerDown={handleCanvasPointerDown}
       >
         <Suspense fallback={null}>
             <>
@@ -309,6 +322,7 @@ export const Experience3D: React.FC = () => {
                 isPaused={isPaused} 
                 controlledShipId={controlledShipId}
                 shipInputs={shipInputs}
+                fireRequest={fireRequest}
               />
               <PatrollingCore isPaused={isPaused} />
               <ProceduralTerrain />
@@ -352,11 +366,6 @@ export const Experience3D: React.FC = () => {
                   blendFunction={BlendFunction.ADD}
                   opacity={0.07} 
                 />
-                <ChromaticAberration 
-                  offset={new THREE.Vector2(0.001, 0.001)}
-                  radialModulation={false}
-                  modulationOffset={0.15}
-                />
               </EffectComposer>
             </>
         </Suspense>
@@ -388,6 +397,7 @@ export const Experience3D: React.FC = () => {
           heldDistrictId={heldDistrictId}
           shipControlMode={shipControlMode}
           onToggleShipControl={handleToggleShipControl}
+          onFire={handleFire}
           isTouchDevice={isTouchDevice}
           onShipTouchInputChange={setShipTouchInputs}
           isAnyPanelOpen={isAnyPanelOpen}

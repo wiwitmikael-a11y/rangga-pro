@@ -11,6 +11,7 @@ interface HUDProps {
   heldDistrictId: string | null;
   shipControlMode: 'follow' | 'manual';
   onToggleShipControl: () => void;
+  onFire: () => void;
   isTouchDevice: boolean;
   onShipTouchInputChange: (input: ShipInputState) => void;
   isAnyPanelOpen: boolean;
@@ -51,6 +52,15 @@ const AutopilotIcon: React.FC = () => (
         <path d="M12 2L6 22l6-4 6 4L12 2z"></path>
         <path d="M12 14v-4"></path>
         <path d="M18.3 18.3a5 5 0 1 0-12.6 0"></path>
+    </svg>
+);
+
+const LaserIcon: React.FC = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M22 2L11 13" />
+        <path d="M22 2L15 22l-4-9-9-4L22 2z" />
+        <path d="M8 16l-3-3" />
+        <path d="M14 10l-3-3" />
     </svg>
 );
 
@@ -469,7 +479,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
 };
 
-export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleNavMenu, onToggleHints, pov, onSetPov, isCalibrationMode, heldDistrictId, shipControlMode, onToggleShipControl, isTouchDevice, onShipTouchInputChange, isAnyPanelOpen }) => {
+export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleNavMenu, onToggleHints, pov, onSetPov, isCalibrationMode, heldDistrictId, shipControlMode, onToggleShipControl, onFire, isTouchDevice, onShipTouchInputChange, isAnyPanelOpen }) => {
 
   const breadcrumb = useMemo(() => {
     if (heldDistrictId) return `RAGETOPIA > /ARCHITECT_MODE/MOVING...`;
@@ -507,6 +517,17 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
         pointerEvents: 'none',
       }),
   };
+  
+  const lastFireTime = useRef(0);
+  const FIRE_COOLDOWN = 300; // ms
+
+  const handleFireClick = useCallback(() => {
+      const now = Date.now();
+      if (now - lastFireTime.current > FIRE_COOLDOWN) {
+          lastFireTime.current = now;
+          onFire();
+      }
+  }, [onFire]);
 
   return (
     <>
@@ -582,24 +603,39 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
               </span>
           </div>
 
-          {pov === 'ship' && shipControlMode === 'follow' && (
+          {pov === 'ship' && (
             <div style={styles.buttonWrapper}>
                 <button
                     onClick={onToggleShipControl}
                     style={{...styles.hudButton, ...styles.dangerButton}}
                     className="hud-button danger-button"
-                    aria-label="Take Manual Control"
+                    aria-label={shipControlMode === 'follow' ? "Take Manual Control" : "Engage Autopilot"}
                 >
-                    <PilotIcon />
+                    {shipControlMode === 'follow' ? <PilotIcon /> : <AutopilotIcon />}
                 </button>
                 <span style={{...styles.buttonLabel, color: '#ff9900'}}>
-                    Pilot Mode
+                    {shipControlMode === 'follow' ? 'Pilot Mode' : 'Exit Pilot'}
                 </span>
             </div>
           )}
       </div>
 
       <div style={bottomRightContainerStyle}>
+          {shipControlMode === 'manual' && (
+            <div style={styles.buttonWrapper}>
+              <button
+                onClick={handleFireClick}
+                style={{...styles.hudButton, borderColor: '#ff4444', color: '#ff4444'}}
+                className="hud-button"
+                aria-label="Fire Laser"
+              >
+                <LaserIcon />
+              </button>
+              <span style={{...styles.buttonLabel, color: '#ff4444'}}>
+                Fire
+              </span>
+            </div>
+          )}
           <div style={styles.buttonWrapper}>
                 <button
                   onClick={onToggleHints}
@@ -613,21 +649,6 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
                   Hints
                 </span>
             </div>
-          {pov === 'ship' && shipControlMode === 'manual' && (
-              <div style={styles.buttonWrapper}>
-                  <button
-                      onClick={onToggleShipControl}
-                      style={{...styles.hudButton, ...styles.dangerButton}}
-                      className="hud-button danger-button"
-                      aria-label="Engage Autopilot"
-                  >
-                      <AutopilotIcon />
-                  </button>
-                  <span style={{...styles.buttonLabel, color: '#ff9900'}}>
-                      Exit Pilot
-                  </span>
-              </div>
-          )}
       </div>
 
       {!isTouchDevice && <ControlHints isManual={isManualMode} />}

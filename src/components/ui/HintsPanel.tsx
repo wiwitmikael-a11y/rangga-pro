@@ -132,10 +132,13 @@ const OverviewHints: React.FC = () => (
             </ul>
         </div>
         <div style={styles.section}>
-            <h3 style={styles.sectionTitle}>Interaction</h3>
+            <h3 style={styles.sectionTitle}>Interaction Guide</h3>
             <ul style={styles.controlList}>
-                <li style={styles.controlItem}><span style={styles.controlKey}>Press & Hold</span><span style={styles.controlDescription}>To select a district, press and hold on its 3D model or holographic label until the orange gauge fills up.</span></li>
-                <li style={styles.controlItem}><span style={styles.controlKey}>Click Image</span><span style={styles.controlDescription}>Inside a project panel, click on a project's image to view a larger version.</span></li>
+                <li style={styles.controlItem}><span style={styles.controlKey}>Select District</span><span style={styles.controlDescription}>Press and hold on a district's 3D model or label to open its content panel.</span></li>
+                <li style={styles.controlItem}><span style={styles.controlKey}>Project Galleries</span><span style={styles.controlDescription}>In districts like "AI Engineer Lab," click on project cards to view images fullscreen.</span></li>
+                <li style={styles.controlItem}><span style={styles.controlKey}>Core Matrix</span><span style={styles.controlDescription}>Interact with the radar chart to explore skill categories. Use the language toggle (ID/EN) for details.</span></li>
+                <li style={styles.controlItem}><span style={styles.controlKey}>Contact Hub</span><span style={styles.controlDescription}>Use the secure form to send a message or connect via the social media links.</span></li>
+                <li style={styles.controlItem}><span style={styles.controlKey}>@rangga.p.h (Core)</span><span style={styles.controlDescription}>Engage with the AI assistant to ask about Rangga's professional profile, skills, and experience.</span></li>
             </ul>
         </div>
         <div style={styles.section}>
@@ -188,6 +191,12 @@ const ShipManualHints: React.FC = () => (
             <ul style={styles.controlList}>
                 <li style={styles.controlItem}><span style={styles.controlKey}>Left Joystick</span><span style={styles.controlDescription}>Controls forward/backward movement and turning.</span></li>
                 <li style={styles.controlItem}><span style={styles.controlKey}>Right Sliders</span><span style={styles.controlDescription}>Independently control vertical altitude (ascend/descend) and roll.</span></li>
+            </ul>
+        </div>
+        <div style={styles.section}>
+            <h3 style={styles.sectionTitle}>Weapon Systems</h3>
+            <ul style={styles.controlList}>
+                <li style={styles.controlItem}><span style={styles.controlKey}>Fire Button</span><span style={styles.controlDescription}>Unleash a laser blast. A short cooldown is active between shots.</span></li>
             </ul>
         </div>
         <div style={styles.section}>
