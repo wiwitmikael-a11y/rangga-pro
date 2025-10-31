@@ -1,8 +1,7 @@
-import React, { useState, useCallback, FormEvent, useEffect } from 'react';
+import React, { useState, useCallback, FormEvent, useEffect, useRef } from 'react';
 import type { CityDistrict, PortfolioSubItem, SkillCategory } from '../../types';
 import { SkillsRadarChart } from './SkillsRadarChart';
 import { skillsData, professionalSummary } from '../../constants';
-import { AboutMeModal } from './AboutMeModal'; // Import the new modal
 
 interface ProjectSelectionPanelProps {
   isOpen: boolean;
@@ -10,6 +9,202 @@ interface ProjectSelectionPanelProps {
   onClose: () => void;
   onProjectSelect: (item: PortfolioSubItem) => void;
 }
+
+// --- START: AI INQUIRY CHAT COMPONENTS & LOGIC (Integrated from AboutMeModal) ---
+
+type Message = {
+  id: number | string;
+  sender: 'ai' | 'user';
+  text: React.ReactNode;
+};
+type Option = { id: string; text: string; };
+type ChatScript = {
+  [key: string]: {
+    userMessage: string;
+    aiResponses: (string | React.ReactNode)[];
+    nextOptions: Option[];
+  };
+};
+
+const useTypingEffect = (text: string, speed = 25) => {
+    const [displayText, setDisplayText] = useState('');
+    const isDone = displayText.length === text.length;
+    useEffect(() => {
+        setDisplayText('');
+        if (text) {
+            let i = 0;
+            const intervalId = setInterval(() => {
+                if (i < text.length) {
+                    setDisplayText(prev => prev + text.charAt(i));
+                    i++;
+                } else {
+                    clearInterval(intervalId);
+                }
+            }, speed);
+            return () => clearInterval(intervalId);
+        }
+    }, [text, speed]);
+    return { typedText: displayText, isTyping: !isDone };
+};
+
+const chatScript: ChatScript = {
+  'initial': {
+    userMessage: '',
+    aiResponses: ["Welcome to the personal data core of @rangga.p.h.", "I am the core's archival AI. How may I assist your inquiry?"],
+    nextOptions: [
+      { id: 'advantage', text: 'Explain the "Fusionist Advantage"' },
+      { id: 'competencies', text: 'Analyze Core Competencies' },
+      { id: 'history', text: 'Query Professional History' },
+    ],
+  },
+  'advantage': {
+    userMessage: 'Explain the "Fusionist Advantage".',
+    aiResponses: ["Processing query... The 'Fusionist Advantage' is a strategic designation derived from two core data sets.", "1. Fifteen years of strategic leadership at BRI, providing 'ground-truth' insight into real-world economics and user behavior.", "2. Fifteen years of parallel execution in deep technology.", "This fusion is his 'alpha'. It allows him to architect technology (AI, Web3, 3D/WebGL) that is not just advanced, but fundamentally relevant to business outcomes.", "Conclusion: Building technology that is wise, empathetic, and commercially potent."],
+    nextOptions: [{ id: 'competencies', text: 'Analyze Core Competencies' }, { id: 'history', text: 'Query Professional History' }, { id: 'suggest', text: 'Suggest other high-impact topics' }, { id: 'end', text: 'End Session' }],
+  },
+  'competencies': {
+    userMessage: 'Analyze his core competencies.',
+    aiResponses: ["Parsing skills matrix... This will be a multi-part transmission.", <><b>Leadership &amp; Finance (15 Yrs):</b> Executive P&L management, market strategy, deep financial acumen.</>, <><b>Web &amp; Architecture (15 Yrs):</b> Full-stack systems, UI/UX engineering, and immersive 3D/WebGL.</>, <><b>AI &amp; ML:</b> Generative AI Engineering with a focus on the Gemini API and autonomous agent design.</>, <><b>Blockchain:</b> On-chain intelligence, DeFi protocol analysis, and smart contract development (Solidity).</>, <><b>Creative Tech &amp; Arts:</b> A 20-year foundation in award-winning visual production, branding, 3D modeling, and music composition.</>, "Analysis complete. The data indicates a rare hybrid professional profile."],
+    nextOptions: [{ id: 'advantage', text: 'Re-explain the "Fusionist Advantage"' }, { id: 'history', text: 'Query Professional History' }, { id: 'suggest', text: 'Suggest other high-impact topics' }, { id: 'end', text: 'End Session' }],
+  },
+  'history': {
+    userMessage: 'Query his professional history.',
+    aiResponses: ["Accessing employment records... Primary entry found: PT. Bank Rakyat Indonesia (BRI).", "Tenure: 15 years, culminating in the role of <strong>Head of Unit</strong>.", "This was a frontline leadership role involving direct P&L ownership, market penetration strategy, and managing a portfolio of thousands of real-economy clients.", "Conclusion: This leadership experience is forged by direct, measurable business impact, not theoreticals."],
+    nextOptions: [{ id: 'competencies', text: 'Analyze Core Competencies' }, { id: 'advantage', text: 'Re-explain the "Fusionist Advantage"' }, { id: 'suggest', text: 'Suggest other high-impact topics' }, { id: 'end', text: 'End Session' }],
+  },
+  'suggest': {
+    userMessage: 'Suggest other high-impact topics.',
+    aiResponses: ["Analyzing high-impact data points... Significant strategic initiatives identified:", "1. Founder of 'desain.fun', a live AI-powered platform for Indonesian SMBs.", "2. Lead R&D on 'Project AIRORA', a custom autonomous AI.", "3. Architect of multiple DeFi projects on Solana and BSC.", "Please select an initiative for elaboration."],
+    nextOptions: [{ id: 'desain_fun', text: "Elaborate on 'desain.fun'" }, { id: 'airora', text: "Elaborate on 'Project AIRORA'" }, { id: 'go_back', text: 'Return to main topics' }],
+  },
+  'desain_fun': {
+    userMessage: "Elaborate on 'desain.fun'",
+    aiResponses: ["Query: 'desain.fun'. This is a live, practical application of AI.", "It's a web platform providing AI-powered tools for Small and Medium-sized Businesses (SMBs) in Indonesia.", "Objective: To solve real-world branding and business development challenges for a market segment he understands deeply from his tenure at BRI.", "It represents a direct line from market insight to technological solution."],
+    nextOptions: [{ id: 'airora', text: "Elaborate on 'Project AIRORA'" }, { id: 'go_back', text: 'Return to main topics' }, { id: 'end', text: 'End Session' }],
+  },
+  'airora': {
+    userMessage: "Elaborate on 'Project AIRORA'",
+    aiResponses: ["Query: 'Project AIRORA'. This is a research and development initiative.", "Focus: Creating a custom AI with advanced autonomous capabilities and complex reasoning.", "This project is an exploration into next-generation intelligent systems, moving beyond simple API integrations toward true machine autonomy."],
+    nextOptions: [{ id: 'desain_fun', text: "Elaborate on 'desain.fun'" }, { id: 'go_back', text: 'Return to main topics' }, { id: 'end', text: 'End Session' }],
+  },
+  'go_back': {
+    userMessage: 'Return to main query options.',
+    aiResponses: ["Acknowledged. Returning to primary command list."],
+    nextOptions: [{ id: 'advantage', text: 'Explain the "Fusionist Advantage"' }, { id: 'competencies', text: 'Analyze Core Competencies' }, { id: 'history', text: 'Query Professional History' }],
+  },
+};
+const bootSequence = ['INITIALIZING CONNECTION...', 'SYNCING WITH RAGETOPIA CORE...', 'DECRYPTING ARCHIVAL DATA...', 'CONNECTION ESTABLISHED.'];
+const AiIcon = () => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10" /><path d="M8 12h.01" /><path d="M12 12h.01" /><path d="M16 12h.01" /><path d="M12 2a10 10 0 0 0-3.5 19.3" /><path d="M12 22a10 10 0 0 0 3.5-19.3" /></svg>);
+const UserIcon = () => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>);
+const ThinkingIndicator = () => (<div style={{ display: 'flex', gap: '4px', alignItems: 'center', height: '24px' }}><div className="dot dot1"></div><div className="dot dot2"></div><div className="dot"></div></div>);
+
+const MemoizedMessage = React.memo(({ msg }: { msg: Message }) => {
+    const { text, sender } = msg;
+    const isAi = sender === 'ai';
+    if (text === 'thinking...') return (<div style={{ ...styles.messageRow, alignSelf: 'flex-start' }}><AiIcon /><div style={{ ...styles.messageBubble, ...styles.aiMessage, padding: '10px 15px' }}><ThinkingIndicator /></div></div>);
+    const isString = typeof text === 'string';
+    const { typedText, isTyping } = useTypingEffect(isAi && isString ? text as string : '');
+    const messageContent = isAi && isString ? typedText : text;
+    const showCursor = isAi && isString && isTyping;
+    const bubbleStyles = { ...styles.messageBubble, ...(isAi ? styles.aiMessage : styles.userMessage) };
+    const rowStyles = { ...styles.messageRow, alignSelf: isAi ? 'flex-start' : 'flex-end', flexDirection: isAi ? 'row' : 'row-reverse' };
+    return (<div style={rowStyles}><{isAi ? AiIcon : UserIcon} /><div style={bubbleStyles} dangerouslySetInnerHTML={typeof messageContent === 'string' ? {__html: messageContent + (showCursor ? '<span class="cursor">_</span>' : '')} : undefined}>{typeof messageContent !== 'string' && messageContent}</div></div>);
+});
+
+const AIInquiryView: React.FC<{onClose: () => void}> = ({onClose}) => {
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [options, setOptions] = useState<Option[]>([]);
+    const [isThinking, setIsThinking] = useState(false);
+    const [chatState, setChatState] = useState<'booting' | 'active'>('booting');
+    const [bootText, setBootText] = useState('');
+    const endOfMessagesRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        endOfMessagesRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
+
+    const startChat = useCallback(() => {
+        const script = chatScript['initial'];
+        setIsThinking(true);
+        setOptions([]);
+        let delay = 500;
+        script.aiResponses.forEach((res, index) => {
+            setTimeout(() => {
+                setMessages(prev => [...prev, { id: Date.now() + index, sender: 'ai', text: res }]);
+                if (index === script.aiResponses.length - 1) {
+                    setIsThinking(false);
+                    setOptions(script.nextOptions);
+                }
+            }, delay);
+            const messageLength = typeof res === 'string' ? res.length : 100;
+            delay += messageLength * 30 + 800;
+        });
+    }, []);
+    
+    useEffect(() => {
+        setMessages([]); setOptions([]); setIsThinking(false); setChatState('booting');
+        let bootDelay = 0;
+        bootSequence.forEach((text, i) => {
+            setTimeout(() => {
+                setBootText(text);
+                if (i === bootSequence.length - 1) {
+                    setTimeout(() => { setChatState('active'); startChat(); }, 800);
+                }
+            }, bootDelay);
+            bootDelay += 600;
+        });
+    }, [startChat]);
+
+    const handleOptionClick = (optionId: string) => {
+        if (isThinking) return;
+        if (optionId === 'end') { onClose(); return; }
+        const script = chatScript[optionId];
+        if (!script) return;
+        setMessages(prev => [...prev, { id: Date.now(), sender: 'user', text: script.userMessage }]);
+        setOptions([]);
+        setIsThinking(true);
+        setTimeout(() => setMessages(prev => [...prev, { id: 'thinking', sender: 'ai', text: 'thinking...' }]), 600);
+        setTimeout(() => {
+            setMessages(prev => prev.filter(m => m.id !== 'thinking'));
+            let responseDelay = 0;
+            script.aiResponses.forEach((res, index) => {
+                setTimeout(() => {
+                    setMessages(prev => [...prev, { id: Date.now() + index, sender: 'ai', text: res }]);
+                    if (index === script.aiResponses.length - 1) {
+                        setIsThinking(false);
+                        setOptions(script.nextOptions);
+                    }
+                }, responseDelay);
+                const messageLength = typeof res === 'string' ? res.length : 100;
+                responseDelay += messageLength * 25 + 800;
+            });
+        }, 1500);
+    };
+
+    return (
+        <div style={styles.chatViewContainer}>
+            <p style={styles.chatCaption}>Initiating direct inquiry with the archival AI...</p>
+            {chatState === 'booting' ? (
+                <div style={styles.bootScreen}><p>{bootText}<span className="cursor">_</span></p></div>
+            ) : (
+                <>
+                    <div style={styles.chatWindow} className="custom-scrollbar">
+                       {messages.map((msg) => <MemoizedMessage key={msg.id} msg={msg} />)}
+                       <div ref={endOfMessagesRef} />
+                    </div>
+                    <div style={styles.optionsContainer}>
+                        {options.map(opt => (
+                            <button key={opt.id} onClick={() => handleOptionClick(opt.id)} style={styles.optionButton} className="option-button" disabled={isThinking}>{opt.text}</button>
+                        ))}
+                    </div>
+                </>
+            )}
+        </div>
+    );
+};
+
+// --- END: AI INQUIRY CHAT ---
+
 
 const glassmorphism: React.CSSProperties = {
   background: 'rgba(5, 15, 30, 0.85)',
@@ -121,7 +316,19 @@ const styles: { [key: string]: React.CSSProperties } = {
   linkHandle: { margin: 0, fontSize: '0.8rem' },
   transmitButton: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0, 170, 255, 0.2)', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', padding: '12px 25px', fontSize: '1rem', fontFamily: 'inherit', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em', transition: 'all 0.3s ease', textShadow: '0 0 5px var(--primary-color)', borderRadius: '5px', alignSelf: 'flex-end', marginTop: 'auto' },
   formStatus: { textAlign: 'center', marginTop: '10px', fontSize: '0.9rem', transition: 'opacity 0.3s ease' },
-  // --- END: Styles for re-integrated content ---
+  
+  // --- START: Styles for integrated AI Chat ---
+  chatViewContainer: { display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', flexGrow: 1 },
+  chatCaption: { color: '#88a7a6', fontStyle: 'italic', textAlign: 'center', flexShrink: 0, margin: '5px 0 15px 0', animation: 'fadeInDetails 0.5s' },
+  bootScreen: { display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', color: 'var(--primary-color)', fontFamily: 'monospace', fontSize: '1.2rem', textShadow: '0 0 5px var(--primary-color)' },
+  chatWindow: { flexGrow: 1, overflowY: 'auto', paddingRight: '15px', display: 'flex', flexDirection: 'column', minHeight: 0 },
+  messageRow: { display: 'flex', marginBottom: '20px', gap: '10px', animation: 'fadeInMessage 0.5s ease forwards', maxWidth: '85%' },
+  messageBubble: { padding: '12px 16px', borderRadius: '12px', lineHeight: 1.5, position: 'relative' },
+  aiMessage: { background: 'rgba(0, 170, 255, 0.1)', color: '#cceeff', alignSelf: 'flex-start', borderTopLeftRadius: '0' },
+  userMessage: { background: 'rgba(44, 62, 80, 0.8)', color: '#ecf0f1', alignSelf: 'flex-end', borderTopRightRadius: '0' },
+  optionsContainer: { flexShrink: 0, paddingTop: '15px', borderTop: '1px solid rgba(0, 170, 255, 0.3)', display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center' },
+  optionButton: { background: 'rgba(0, 170, 255, 0.2)', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', padding: '10px 15px', fontSize: '0.9rem', fontFamily: 'inherit', cursor: 'pointer', transition: 'all 0.3s ease', textShadow: '0 0 5px var(--primary-color)', borderRadius: '5px' },
+  // --- END: Styles for integrated AI Chat ---
 };
 
 
@@ -129,7 +336,6 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<SkillCategory | null>(skillsData[0]);
   const [hoveredCategory, setHoveredCategory] = useState<SkillCategory | null>(null);
-  const [isAboutMeModalOpen, setIsAboutMeModalOpen] = useState(false);
 
   const containerStyle: React.CSSProperties = {
     ...styles.container,
@@ -391,22 +597,7 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
     if (!district) return null;
 
     if (district.id === 'nexus-core') {
-      return (
-        <div style={{...styles.integratedContentContainer, ...styles.infoPanel}}>
-          <h3 style={styles.infoTitle}>Rangga Prayoga Hermawan</h3>
-          <p style={styles.infoDescription}>Digital Artisan & Tech Explorer</p>
-          <p style={{...styles.infoDescription, marginTop: '20px', maxWidth: '600px'}}>
-            This is the central data hub. From here, you can explore various aspects of my professional journey, or you can initiate a direct inquiry with my archival AI to get a summarized overview.
-          </p>
-          <button
-            onClick={() => setIsAboutMeModalOpen(true)}
-            style={{...styles.instagramVisitButton, marginTop: '30px'}}
-            className="project-card"
-          >
-            Initiate AI Inquiry
-          </button>
-        </div>
-      );
+      return <AIInquiryView onClose={onClose} />;
     }
     
     if (district.subItems && district.subItems.length > 0) {
@@ -471,6 +662,19 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
 
   return (
     <>
+      <style>{`
+          .option-button:hover:not(:disabled) { background-color: rgba(0, 170, 255, 0.4); transform: translateY(-2px); }
+          .option-button:disabled { opacity: 0.5; cursor: wait; }
+          .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+          .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+          .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0, 170, 255, 0.4); border-radius: 3px; }
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(0, 170, 255, 0.6); }
+          @keyframes fadeInMessage { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+          @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
+          .dot { width: 8px; height: 8px; background-color: #cceeff; border-radius: 50%; display: inline-block; animation: bounce 1.4s infinite ease-in-out both; }
+          .dot1 { animation-delay: -0.32s; }
+          .dot2 { animation-delay: -0.16s; }
+      `}</style>
       <div style={overlayStyle} onClick={onClose} />
       <div 
         style={containerStyle} 
@@ -484,10 +688,6 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
         </div>
         {renderContent()}
       </div>
-      <AboutMeModal
-        isOpen={isAboutMeModalOpen}
-        onClose={() => setIsAboutMeModalOpen(false)}
-      />
     </>
   );
 };
