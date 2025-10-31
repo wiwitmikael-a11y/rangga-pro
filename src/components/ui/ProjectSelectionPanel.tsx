@@ -107,7 +107,7 @@ const MemoizedMessage = React.memo(({ msg }: { msg: Message }) => {
     const messageContent = isAi && isString ? typedText : text;
     const showCursor = isAi && isString && isTyping;
     const bubbleStyles = { ...styles.messageBubble, ...(isAi ? styles.aiMessage : styles.userMessage) };
-    const rowStyles = { ...styles.messageRow, alignSelf: isAi ? 'flex-start' : 'flex-end', flexDirection: isAi ? 'row' : 'row-reverse' };
+    const rowStyles: React.CSSProperties = { ...styles.messageRow, alignSelf: isAi ? 'flex-start' : 'flex-end', flexDirection: isAi ? 'row' : 'row-reverse' };
     return (<div style={rowStyles}>{isAi ? <AiIcon /> : <UserIcon />}<div style={bubbleStyles} dangerouslySetInnerHTML={typeof messageContent === 'string' ? {__html: messageContent + (showCursor ? '<span class="cursor">_</span>' : '')} : undefined}>{typeof messageContent !== 'string' && messageContent}</div></div>);
 });
 
