@@ -336,9 +336,7 @@ export const AboutMeModal: React.FC<AboutMeModalProps> = ({ isOpen, onClose }) =
                 ) : (
                     <>
                         <div ref={chatWindowRef} style={styles.chatWindow}>
-                            <div>
-                                {messages.slice().reverse().map((msg) => <MemoizedMessage key={msg.id} msg={msg} />)}
-                            </div>
+                            {messages.slice().reverse().map((msg) => <MemoizedMessage key={msg.id} msg={msg} />)}
                         </div>
                         <div style={styles.optionsContainer}>
                             {options.map(opt => (
