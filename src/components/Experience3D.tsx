@@ -244,6 +244,7 @@ export const Experience3D: React.FC = () => {
         resetIdleTimer();
         if (controlsRef.current) {
           controlsRef.current.target.set(0, 5, 0);
+          controlsRef.current.update(); // BUG FIX: Sync controls state
         }
       }
       return;
@@ -256,11 +257,13 @@ export const Experience3D: React.FC = () => {
       if (controlsRef.current && selectedDistrict.cameraFocus) {
         const { lookAt } = selectedDistrict.cameraFocus;
         controlsRef.current.target.set(lookAt[0], lookAt[1], lookAt[2]);
+        controlsRef.current.update(); // BUG FIX: Sync controls state
       }
     } else if (pov === 'main' && !isCalibrationMode) {
       resetIdleTimer();
       if (controlsRef.current) {
         controlsRef.current.target.set(0, 5, 0);
+        controlsRef.current.update(); // BUG FIX: Sync controls state
       }
     }
   }, [isTouring, tourIndex, tourStops, selectedDistrict, pov, isCalibrationMode, resetIdleTimer]);
@@ -388,7 +391,9 @@ export const Experience3D: React.FC = () => {
           enablePan={!isCalibrationMode}
           target={[0, 5, 0]}
           onChange={handleControlsChange}
-          enabled={shipControlMode !== 'manual'}
+          // BUG FIX: Disable controls during any camera animation to prevent user input
+          // from interfering and causing the camera to shake or get stuck.
+          enabled={!isAnimating && shipControlMode !== 'manual'}
         />
 
         <EffectComposer>
@@ -400,7 +405,9 @@ export const Experience3D: React.FC = () => {
       </Canvas>
       <HUD 
         selectedDistrict={selectedDistrict}
+// FIX: Changed onToggleNavMenu to handleToggleNavMenu to match the function name.
         onToggleNavMenu={handleToggleNavMenu}
+// FIX: Changed onToggleHints to handleToggleHints to match the function name.
         onToggleHints={handleToggleHints}
         pov={pov}
         onSetPov={handleSetPov}
@@ -408,6 +415,7 @@ export const Experience3D: React.FC = () => {
         isCalibrationMode={isCalibrationMode}
         heldDistrictId={heldDistrictId}
         shipControlMode={shipControlMode}
+// FIX: Changed onToggleShipControl to handleToggleShipControl to match the function name.
         onToggleShipControl={handleToggleShipControl}
         onFire={handleFire}
         isTouchDevice={isTouchDevice}
