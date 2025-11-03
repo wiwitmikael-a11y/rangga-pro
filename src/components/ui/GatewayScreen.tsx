@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface GatewayScreenProps {
   onAnimationEnd: () => void;
@@ -51,14 +51,26 @@ const styles: { [key: string]: React.CSSProperties } = {
 };
 
 export const GatewayScreen: React.FC<GatewayScreenProps> = ({ onAnimationEnd }) => {
-  useEffect(() => {
-    // Timeout to match the CSS transition and then call the callback
-    const timer = setTimeout(() => {
-      onAnimationEnd();
-    }, 1800); // A bit longer to let the effect finish
+  const [isOpening, setIsOpening] = useState(false);
 
-    return () => clearTimeout(timer);
+  useEffect(() => {
+    // Memicu animasi sesaat setelah komponen dimuat untuk memastikan transisi CSS berjalan dengan andal.
+    const openTimer = setTimeout(() => {
+      setIsOpening(true);
+    }, 50); // Jeda singkat sudah cukup untuk memungkinkan render awal.
+
+    // Timeout ini harus cocok dengan total waktu animasi untuk membongkar komponen.
+    const endTimer = setTimeout(() => {
+      onAnimationEnd();
+    }, 1800); // 1.5s untuk transformasi pintu + buffer 0.3s. Cocok dengan delay 1.3s + fade-out 0.5s.
+
+    return () => {
+      clearTimeout(openTimer);
+      clearTimeout(endTimer);
+    };
   }, [onAnimationEnd]);
+
+  const containerClassName = `gateway-container ${isOpening ? 'opening' : ''}`;
 
   return (
     <>
@@ -67,21 +79,22 @@ export const GatewayScreen: React.FC<GatewayScreenProps> = ({ onAnimationEnd }) 
           0% { background-position: 0 0; }
           100% { background-position: 56.5px 0; }
         }
-        /* 'opening' class is added on mount to trigger the transition */
+        
         .gateway-container.opening .door-left {
           transform: translateX(-100%);
         }
         .gateway-container.opening .door-right {
           transform: translateX(100%);
         }
-        /* Fade out container after doors open */
+        
+        /* Fade out seluruh kontainer setelah pintu hampir terbuka penuh */
         .gateway-container.opening {
           opacity: 0;
           transition: opacity 0.5s ease 1.3s;
           pointer-events: none;
         }
       `}</style>
-      <div style={styles.container} className="gateway-container opening">
+      <div style={styles.container} className={containerClassName}>
         <div style={{...styles.door, ...styles.leftDoor}} className="door-left">
           <div style={styles.panelLines}></div>
           <div style={{...styles.dangerStripes, ...styles.leftStripe}}></div>
