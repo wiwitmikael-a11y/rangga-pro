@@ -4,7 +4,7 @@ import '@react-three/fiber';
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, Sky } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
-import { EffectComposer, Noise } from '@react-three/postprocessing';
+import { EffectComposer, Noise, Bloom } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
 
@@ -90,9 +90,10 @@ const SceneContent: React.FC<SceneContentProps> = ({ districts, selectedDistrict
 
 interface Experience3DProps {
   isHudVisible: boolean;
+  isEntering: boolean;
 }
 
-export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible }) => {
+export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEntering }) => {
   const [districts, setDistricts] = useState<CityDistrict[]>(portfolioData);
   const [selectedDistrict, setSelectedDistrict] = useState<CityDistrict | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -105,16 +106,14 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible }) => {
   const [shipRefs, setShipRefs] = useState<React.RefObject<THREE.Group>[]>([]);
   const [targetShipRef, setTargetShipRef] = useState<React.RefObject<THREE.Group> | null>(null);
   const [isAutoRotating, setIsAutoRotating] = useState(true);
-  const [isCalibrationMode] = useState(false); // Setter removed as it's no longer used
+  const [isCalibrationMode] = useState(false);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
-  // --- NEW: Cinematic Tour State ---
   const [isTouring, setIsTouring] = useState(false);
   const [tourIndex, setTourIndex] = useState(0);
 
   const isTouchDevice = useMemo(() => 'ontouchstart' in window || navigator.maxTouchPoints > 0, []);
 
-  // Ship Control State
   const [shipControlMode, setShipControlMode] = useState<ShipControlMode>('follow');
   const [controlledShipId, setControlledShipId] = useState<string | null>(null);
   const [fireRequest, setFireRequest] = useState(0);
@@ -123,59 +122,46 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible }) => {
   const [shipTouchInputs, setShipTouchInputs] = useState<ShipInputState>({ forward: 0, turn: 0, ascend: 0, roll: 0 });
   const shipInputs = isTouchDevice ? shipTouchInputs : shipKeyboardInputs;
   
-  // Build Mode State
   const [heldDistrictId, setHeldDistrictId] = useState<string | null>(null);
-  const [isExportModalOpen] = useState(false); // Setter removed as it's no longer used
-  const [exportedLayoutJson] = useState(''); // Setter removed as it's no longer used
+  const [isExportModalOpen] = useState(false);
+  const [exportedLayoutJson] = useState('');
 
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const isPaused = isCalibrationMode;
   
   const isAnyPanelOpen = showContentPanel || isNavMenuOpen || isHintsOpen;
 
+  // Effect to trigger the cinematic entry camera animation
+  useEffect(() => {
+    if (isEntering) {
+      setIsAnimating(true);
+    }
+  }, [isEntering]);
+
   const navDistricts = useMemo(() => {
     const majorDistricts = districts.filter(d => d.type === 'major');
-    const order: string[] = [
-      'skills-matrix',
-      'visual-arts',
-      'nova-forge',
-      'defi-data-vault',
-      'contact',
-      'nexus-core',
-    ];
-    
-    // Create a copy to avoid mutating the original `majorDistricts` array if it's used elsewhere
+    const order: string[] = ['skills-matrix', 'visual-arts', 'nova-forge', 'defi-data-vault', 'contact', 'nexus-core'];
     return [...majorDistricts].sort((a, b) => {
         let indexA = order.indexOf(a.id);
         let indexB = order.indexOf(b.id);
-        
-        // If an item is not in the order list, treat its index as infinity so it goes to the end
         if (indexA === -1) indexA = Infinity;
         if (indexB === -1) indexB = Infinity;
-        
         return indexA - indexB;
     });
   }, [districts]);
 
   const tourStops = useMemo(() => {
     const tourDistrictIds = ['skills-matrix', 'visual-arts', 'nova-forge'];
-    const stops = tourDistrictIds
-        .map(id => districts.find(d => d.id === id))
-        .filter((d): d is CityDistrict => !!d);
-    return [...stops, null]; // End with the overview position
+    const stops = tourDistrictIds.map(id => districts.find(d => d.id === id)).filter((d): d is CityDistrict => !!d);
+    return [...stops, null];
   }, [districts]);
 
   const handleDistrictSelect = useCallback((district: CityDistrict) => {
-    // BUG FIX: Prevent any new selection if an animation is already in progress.
-    if (isAnimating || isCalibrationMode) return;
-    // Also prevent re-selecting the currently selected district.
-    if (district.id === selectedDistrict?.id) return;
-
-    setIsTouring(false); // Cancel tour on direct selection
+    if (isAnimating || isCalibrationMode || district.id === selectedDistrict?.id) return;
+    setIsTouring(false);
     setShowContentPanel(false);
     setInfoPanelItem(null);
     setIsAutoRotating(false);
-    
     setSelectedDistrict(districts.find(d => d.id === district.id) || null);
     setIsAnimating(true);
   }, [selectedDistrict, isAnimating, districts, isCalibrationMode]);
@@ -188,11 +174,11 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible }) => {
         if (pov === 'main' && !isDetailViewActive && !isCalibrationMode) {
             setIsAutoRotating(true);
         }
-    }, 60000); // Waktu idle ditingkatkan menjadi 60 detik
+    }, 60000);
   }, [pov, isDetailViewActive, isCalibrationMode]);
 
   const handleInteractionStart = useCallback(() => {
-      setIsTouring(false); // Cancel tour on manual interaction
+      setIsTouring(false);
       setIsAutoRotating(false);
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
   }, []);
@@ -207,7 +193,7 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible }) => {
       const boundary = 150;
       target.x = THREE.MathUtils.clamp(target.x, -boundary, boundary);
       target.z = THREE.MathUtils.clamp(target.z, -boundary, boundary);
-      target.y = THREE.MathUtils.clamp(target.y, 0, 50); // Prevent looking underground or too high
+      target.y = THREE.MathUtils.clamp(target.y, 0, 50);
     }
   }, []);
 
@@ -219,76 +205,73 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible }) => {
   }, [resetIdleTimer]);
 
   const handleGoHome = useCallback(() => {
-    // BUG FIX: Prevent new camera movements if an animation is already in progress.
     if (isAnimating) return;
-
-    // This function cleanly returns to the main overview state.
-    setIsTouring(false); // Stop any cinematic tour.
+    setIsTouring(false);
     setPov('main');
-    setSelectedDistrict(null); // Setting district to null is the key to return to overview.
+    setSelectedDistrict(null);
     setIsAnimating(true);
     setShowContentPanel(false);
     setInfoPanelItem(null);
     setTargetShipRef(null);
     setShipControlMode('follow');
     setControlledShipId(null);
-    // OrbitControls will be re-enabled automatically in onAnimationFinish.
   }, [isAnimating]);
 
   const onAnimationFinish = useCallback(() => {
+    if (isEntering) { // Special case for the entry animation finishing
+      setIsAnimating(false);
+      resetIdleTimer();
+      if (controlsRef.current) {
+        controlsRef.current.target.set(0, 5, 0); // Set initial target
+        controlsRef.current.update();
+      }
+      return;
+    }
+    
     if (isTouring) {
       const nextIndex = tourIndex + 1;
       if (nextIndex < tourStops.length) {
-        // Continue to the next stop
         setTourIndex(nextIndex);
         setSelectedDistrict(tourStops[nextIndex]);
-        // Animation remains true
       } else {
-        // Tour finished
         setIsTouring(false);
         setIsAnimating(false);
         setSelectedDistrict(null);
         resetIdleTimer();
         if (controlsRef.current) {
           controlsRef.current.target.set(0, 5, 0);
-          controlsRef.current.update(); // BUG FIX: Sync controls state
+          controlsRef.current.update();
         }
       }
       return;
     }
 
-    // Original animation finish logic
     setIsAnimating(false);
     if (selectedDistrict) {
       setShowContentPanel(true);
       if (controlsRef.current && selectedDistrict.cameraFocus) {
         const { lookAt } = selectedDistrict.cameraFocus;
         controlsRef.current.target.set(lookAt[0], lookAt[1], lookAt[2]);
-        controlsRef.current.update(); // BUG FIX: Sync controls state
+        controlsRef.current.update();
       }
     } else if (pov === 'main' && !isCalibrationMode) {
       resetIdleTimer();
       if (controlsRef.current) {
         controlsRef.current.target.set(0, 5, 0);
-        controlsRef.current.update(); // BUG FIX: Sync controls state
+        controlsRef.current.update();
       }
     }
-  }, [isTouring, tourIndex, tourStops, selectedDistrict, pov, isCalibrationMode, resetIdleTimer]);
+  }, [isEntering, isTouring, tourIndex, tourStops, selectedDistrict, pov, isCalibrationMode, resetIdleTimer]);
 
   const handleClosePanel = useCallback(() => {
     setShowContentPanel(false);
     setInfoPanelItem(null);
     setSelectedDistrict(null);
-    setIsAnimating(true); // Animate back to overview
+    setIsAnimating(true);
   }, []);
 
-  const handleToggleNavMenu = useCallback(() => {
-    setIsNavMenuOpen(prev => !prev);
-  }, []);
-
-  const handleToggleHints = useCallback(() => {
-    setIsHintsOpen(prev => !prev);
-  }, []);
+  const handleToggleNavMenu = useCallback(() => setIsNavMenuOpen(prev => !prev), []);
+  const handleToggleHints = useCallback(() => setIsHintsOpen(prev => !prev), []);
 
   const handleSetPov = useCallback((newPov: 'main' | 'ship') => {
     if (newPov === 'ship' && shipRefs.length > 0) {
@@ -323,15 +306,11 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible }) => {
     }
   }, [shipControlMode, targetShipRef, shipRefs]);
 
-  const handleFire = useCallback(() => {
-    setFireRequest(prev => prev + 1);
-  }, []);
+  const handleFire = useCallback(() => setFireRequest(prev => prev + 1), []);
 
   const handleCanvasPointerDown = (e: React.PointerEvent) => {
     handleInteractionStart();
-    if (shipControlMode === 'manual' && e.button === 0) { // Left click
-      handleFire();
-    }
+    if (shipControlMode === 'manual' && e.button === 0) handleFire();
   };
 
   const hudContext = useMemo(() => {
@@ -384,6 +363,7 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible }) => {
           pov={pov}
           targetShipRef={targetShipRef}
           isCalibrationMode={isCalibrationMode}
+          isEntering={isEntering}
         />
         
         <OrbitControls
@@ -398,32 +378,29 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible }) => {
           enablePan={!isCalibrationMode}
           target={[0, 5, 0]}
           onChange={handleControlsChange}
-          // BUG FIX: Disable controls during any camera animation or when in any ship POV
-          // to prevent user input from interfering with the camera rig.
-          enabled={!isAnimating && pov !== 'ship'}
+          enabled={!isAnimating && !isEntering && pov !== 'ship'}
         />
 
         <EffectComposer>
           <Noise premultiply blendFunction={BlendFunction.ADD} opacity={0.05} />
+          <Bloom luminanceThreshold={1.2} intensity={0.6} levels={8} mipmapBlur />
         </EffectComposer>
 
         {infoPanelItem && <HolographicInfoPanel district={infoPanelItem} onClose={() => setInfoPanelItem(null)} />}
 
       </Canvas>
       <div
-        className="hud-container"
-        style={{
-          opacity: isHudVisible ? 1 : 0,
-          transition: 'opacity 0.8s ease-in-out',
-          pointerEvents: isHudVisible ? 'auto' : 'none',
-        }}
+        className={`hud-container ${isHudVisible ? 'visible' : ''}`}
+        style={{ pointerEvents: isHudVisible ? 'auto' : 'none' }}
       >
         <HUD 
           selectedDistrict={selectedDistrict}
+          // FIX: Pass the correct handler function `handleToggleNavMenu` for the `onToggleNavMenu` prop.
           onToggleNavMenu={handleToggleNavMenu}
           onToggleHints={handleToggleHints}
           pov={pov}
           onSetPov={handleSetPov}
+          // FIX: Pass the correct handler function `handleGoHome` for the `onGoHome` prop.
           onGoHome={handleGoHome}
           isCalibrationMode={isCalibrationMode}
           heldDistrictId={heldDistrictId}

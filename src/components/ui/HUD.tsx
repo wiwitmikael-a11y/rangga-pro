@@ -304,8 +304,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '5px',
     color: 'var(--primary-color)',
     zIndex: 100,
-    pointerEvents: 'none',
-    transition: 'opacity 0.3s ease',
   },
   breadcrumbText: {
     margin: 0,
@@ -322,7 +320,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'flex-end',
     gap: '15px',
     zIndex: 100,
-    transition: 'opacity 0.4s ease, transform 0.4s ease',
   },
   bottomRightContainer: {
     position: 'fixed',
@@ -339,7 +336,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     left: '50%',
     transform: 'translateX(-50%)',
     zIndex: 100,
-    transition: 'opacity 0.4s ease, transform 0.4s ease',
   },
   hudButton: {
     background: 'rgba(0, 20, 40, 0.7)',
@@ -503,30 +499,6 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
   const isNavButtonHidden = isAnyPanelOpen || pov === 'ship';
   const areSideButtonsHidden = isAnyPanelOpen || isCalibrationMode;
 
-  const bottomCenterContainerStyle = {
-      ...styles.bottomCenterContainer,
-      ...(isNavButtonHidden ? styles.hiddenBottom : styles.visible)
-  };
-
-  const bottomLeftContainerStyle: React.CSSProperties = {
-      ...styles.bottomLeftContainer,
-      ...(areSideButtonsHidden && {
-        opacity: 0,
-        transform: 'translateY(60px)',
-        pointerEvents: 'none',
-      }),
-  };
-
-  const bottomRightContainerStyle: React.CSSProperties = {
-      ...styles.bottomRightContainer,
-      transition: 'opacity 0.4s ease, transform 0.4s ease',
-      ...(areSideButtonsHidden && {
-        opacity: 0,
-        transform: 'translateY(60px)',
-        pointerEvents: 'none',
-      }),
-  };
-  
   const lastFireTime = useRef(0);
   const FIRE_COOLDOWN = 300; // ms
 
@@ -561,11 +533,11 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
         }
       `}</style>
       
-      <div style={styles.breadcrumbContainer} className="breadcrumb-container">
+      <div style={styles.breadcrumbContainer} className="breadcrumb-container hud-anim-breadcrumb">
           <p style={styles.breadcrumbText}>{breadcrumb}</p>
       </div>
 
-      <div style={bottomCenterContainerStyle} className="bottom-center-container">
+      <div style={styles.bottomCenterContainer} className={`bottom-center-container hud-anim-center ${isNavButtonHidden ? 'hiddenBottom' : 'visible'}`}>
         <button
           onClick={onToggleNavMenu}
           style={{
@@ -573,16 +545,20 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
             width: '64px',
             height: '64px',
             margin: 0,
-            borderRadius: 0, // Reset border radius for clip-path to work
+            borderRadius: 0,
+            transition: 'opacity 0.4s ease, transform 0.4s ease',
+            opacity: isNavButtonHidden ? 0 : 1,
+            transform: isNavButtonHidden ? 'translateY(60px)' : 'translateY(0)',
           }}
           className="hud-button hex-btn"
           aria-label="Open Navigation Menu"
+          disabled={isNavButtonHidden}
         >
           <NavMenuIcon />
         </button>
       </div>
        
-      <div style={bottomLeftContainerStyle} className="bottom-left-container">
+      <div style={styles.bottomLeftContainer} className={`bottom-left-container hud-anim-left ${areSideButtonsHidden ? 'hidden' : ''}`}>
           <div style={styles.buttonWrapper}>
               <button 
                 onClick={onGoHome}
@@ -632,7 +608,7 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
           )}
       </div>
 
-      <div style={bottomRightContainerStyle}>
+      <div style={styles.bottomRightContainer} className={`hud-anim-right ${areSideButtonsHidden ? 'hidden' : ''}`}>
           {shipControlMode === 'manual' && (
             <div style={styles.buttonWrapper}>
               <button

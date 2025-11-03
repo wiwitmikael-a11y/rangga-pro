@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { Loader } from './Loader';
 
 interface StartScreenProps {
+  appState: 'loading' | 'start' | 'entering';
+  progress: number;
+  onStart: () => void;
   onIntroEnd: () => void;
-  isEntering: boolean;
 }
 
 const styles: { [key: string]: React.CSSProperties } = {
@@ -44,6 +47,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '20px',
     transition: 'opacity 0.5s ease-out',
     pointerEvents: 'auto',
+    width: '90%',
+    maxWidth: '800px',
+    background: 'rgba(0, 5, 10, 0.4)',
+    border: '1px solid rgba(0, 170, 255, 0.2)',
+    borderRadius: '10px',
+    boxShadow: 'inset 0 0 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 170, 255, 0.1)',
+    backdropFilter: 'blur(3px)',
   },
   title: {
     fontSize: 'clamp(2.5rem, 8vw, 5rem)',
@@ -79,17 +89,16 @@ const styles: { [key: string]: React.CSSProperties } = {
     width: '100vw',
     height: '20px',
     background: 'repeating-linear-gradient(45deg, #ff9900, #ff9900 20px, #000000 20px, #000000 40px)',
-    animation: 'stripe-scroll 1s linear infinite',
     boxShadow: '0 0 15px #ff9900',
   },
 };
 
-export const StartScreen: React.FC<StartScreenProps> = React.memo(({ onIntroEnd, isEntering }) => {
+export const StartScreen: React.FC<StartScreenProps> = React.memo(({ appState, progress, onStart, onIntroEnd }) => {
   const [uiVisible, setUiVisible] = useState(true);
   const [doorsOpening, setDoorsOpening] = useState(false);
 
   useEffect(() => {
-    if (isEntering) {
+    if (appState === 'entering') {
       // 1. Fade out the console UI
       setUiVisible(false);
 
@@ -108,11 +117,13 @@ export const StartScreen: React.FC<StartScreenProps> = React.memo(({ onIntroEnd,
         clearTimeout(endTimer);
       };
     }
-  }, [isEntering, onIntroEnd]);
+  }, [appState, onIntroEnd]);
 
   const topDoorStyle = { ...styles.door, ...styles.topDoor, transform: doorsOpening ? 'translateY(-100%)' : 'translateY(0)' };
   const bottomDoorStyle = { ...styles.door, ...styles.bottomDoor, transform: doorsOpening ? 'translateY(100%)' : 'translateY(0)' };
-  const consoleStyle = { ...styles.consoleUI, opacity: uiVisible ? 1 : 0, pointerEvents: isEntering ? 'none' : 'auto' };
+  const consoleStyle = { ...styles.consoleUI, opacity: uiVisible ? 1 : 0, pointerEvents: appState === 'entering' ? 'none' : 'auto' };
+
+  const isLoaded = appState !== 'loading';
 
   return (
     <>
@@ -122,24 +133,26 @@ export const StartScreen: React.FC<StartScreenProps> = React.memo(({ onIntroEnd,
           50% { text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color); }
           100% { text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
         }
-        @keyframes stripe-scroll {
-          0% { background-position: 0 0; }
-          100% { background-position: 56.5px 0; }
-        }
       `}</style>
       <div style={styles.gateContainer}>
         <div style={topDoorStyle}>
           <div style={consoleStyle}>
-            <h1 style={styles.title}>RAGETOPIA</h1>
-            <p style={styles.subtitle}>Rangga Digital Portfolio</p>
-            <button
-              style={styles.startButton}
-              onClick={onIntroEnd} // The button is now on the top door
-              onMouseOver={e => (e.currentTarget.style.backgroundColor = 'rgba(0, 170, 255, 0.2)')}
-              onMouseOut={e => (e.currentTarget.style.backgroundColor = 'transparent')}
-            >
-              Enter 3D World
-            </button>
+            {isLoaded ? (
+              <>
+                <h1 style={styles.title}>RAGETOPIA</h1>
+                <p style={styles.subtitle}>Rangga Digital Portfolio</p>
+                <button
+                  style={styles.startButton}
+                  onClick={onStart}
+                  onMouseOver={e => (e.currentTarget.style.backgroundColor = 'rgba(0, 170, 255, 0.2)')}
+                  onMouseOut={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  Enter 3D World
+                </button>
+              </>
+            ) : (
+              <Loader progress={progress} />
+            )}
           </div>
           <div style={{...styles.dangerStripes, bottom: 0}}></div>
         </div>

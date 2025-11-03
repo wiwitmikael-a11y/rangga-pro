@@ -506,6 +506,34 @@
       @keyframes fadeInModal { from { opacity: 0; } to { opacity: 1; } }
       @keyframes zoomInModal { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
+      /* --- NEW: HUD Staggered Animation Keyframes --- */
+      @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes fadeInLeft { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+      @keyframes fadeInRight { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+      .hud-container .hud-anim-breadcrumb,
+      .hud-container .hud-anim-center,
+      .hud-container .hud-anim-left,
+      .hud-container .hud-anim-right {
+        opacity: 0;
+        /* Prevent elements from being interactive before animation starts */
+        pointer-events: none; 
+      }
+
+      .hud-container.visible .hud-anim-breadcrumb,
+      .hud-container.visible .hud-anim-center,
+      .hud-container.visible .hud-anim-left,
+      .hud-container.visible .hud-anim-right {
+        pointer-events: auto; /* Re-enable interaction after animation */
+      }
+      
+      .hud-container.visible .hud-anim-breadcrumb { animation: fadeInUp 0.5s 0.2s ease-out forwards; }
+      .hud-container.visible .hud-anim-center { animation: fadeInUp 0.5s 0.4s ease-out forwards; }
+      .hud-container.visible .hud-anim-left { animation: fadeInLeft 0.5s 0.6s ease-out forwards; }
+      .hud-container.visible .hud-anim-right { animation: fadeInRight 0.5s 0.6s ease-out forwards; }
+      /* --- END: HUD Staggered Animation --- */
+
+
       /* --- Tablet Breakpoint --- */
       @media (max-width: 1024px) {
         .responsive-modal {
