@@ -1,20 +1,21 @@
-import React, { createContext, useMemo } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 
-// Sound definitions with links to free, high-quality CDN assets
+// Sound definitions with links to free, high-quality, and reliably hosted assets via JSDelivr
+const SFX_BASE_URL = 'https://cdn.jsdelivr.net/gh/K-S-K/Assets@main/SFX/UI/';
+
 const SOUNDS = {
-  ambience: 'https://cdn.pixabay.com/audio/2023/04/17/audio_36c6c7395c.mp3', // Cyberpunk city ambience
-  flyby: 'https://cdn.freesound.org/previews/541/541924_10246231-lq.mp3', // Sci-fi flyby
-  confirm: 'https://cdn.freesound.org/previews/458/458393_6890478-lq.mp3', // UI confirm
-  hover: 'https://cdn.freesound.org/previews/352/352652_5498339-lq.mp3', // UI hover blip (unused, replaced by district_hover)
-  panel_open: 'https://cdn.freesound.org/previews/413/413495_5121236-lq.mp3', // Holographic open
-  panel_close: 'https://cdn.freesound.org/previews/413/413492_5121236-lq.mp3', // Holographic close
-  gate_open: 'https://cdn.freesound.org/previews/399/399303_213262-lq.mp3', // Heavy gate/door
-  district_hover: 'https://cdn.freesound.org/previews/413/413498_5121236-lq.mp3', // Holographic scan/hum
-  district_hold: 'https://cdn.freesound.org/previews/460/460914_2434689-lq.mp3', // Powering up sound
-  pilot_engage: 'https://cdn.freesound.org/previews/344/344849_6164219-lq.mp3', // Cockpit engage
-  pilot_disengage: 'https://cdn.freesound.org/previews/335/335417_5121236-lq.mp3', // Power down
-  engine_hum: 'https://cdn.freesound.org/previews/343/343337_5121236-lq.mp3', // Sci-fi engine hum
-  laser: 'https://cdn.freesound.org/previews/336/336889_5121236-lq.mp3' // Sci-fi laser
+  ambience: 'https://cdn.jsdelivr.net/gh/K-S-K/Assets@main/Music/ambience-cyberpunk-city.mp3',
+  flyby: 'https://cdn.jsdelivr.net/gh/K-S-K/Assets@main/SFX/flyby-whoosh.mp3',
+  confirm: `${SFX_BASE_URL}Confirm.mp3`,
+  panel_open: `${SFX_BASE_URL}panel_open.mp3`,
+  panel_close: `${SFX_BASE_URL}panel_close.mp3`,
+  gate_open: 'https://cdn.jsdelivr.net/gh/K-S-K/Assets@main/SFX/heavy-gate.mp3',
+  district_hover: `${SFX_BASE_URL}Hover%202.mp3`,
+  district_hold: 'https://cdn.jsdelivr.net/gh/K-S-K/Assets@main/SFX/scan-loop.mp3',
+  pilot_engage: 'https://cdn.jsdelivr.net/gh/K-S-K/Assets@main/SFX/pilot-engage.mp3',
+  pilot_disengage: 'https://cdn.jsdelivr.net/gh/K-S-K/Assets@main/SFX/pilot-disengage.mp3',
+  engine_hum: 'https://cdn.jsdelivr.net/gh/K-S-K/Assets@main/SFX/engine-loop.mp3',
+  laser: 'https://cdn.jsdelivr.net/gh/K-S-K/Assets@main/SFX/laser-shot.mp3',
 };
 
 type SoundName = keyof typeof SOUNDS;
@@ -139,10 +140,26 @@ class AudioManager {
   }
 }
 
-export const AudioContext = createContext<AudioManager | null>(null);
+// A dummy manager with no-op methods to prevent crashes during SSR or initial render.
+const dummyAudioManager = {
+  play: () => {},
+  playLoop: () => {},
+  stop: () => {},
+  playHoldSound: () => {},
+} as unknown as AudioManager;
+
+export const AudioContext = createContext<AudioManager>(dummyAudioManager);
 
 export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const audioManager = useMemo(() => new AudioManager(), []);
+  const [audioManager, setAudioManager] = useState<AudioManager>(dummyAudioManager);
+
+  useEffect(() => {
+    // Instantiate AudioManager only on the client-side after the component has mounted.
+    // This prevents errors during server-side rendering or build processes.
+    const manager = new AudioManager();
+    setAudioManager(manager);
+  }, []);
+
   return (
     <AudioContext.Provider value={audioManager}>
       {children}
