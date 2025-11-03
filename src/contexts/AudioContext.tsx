@@ -1,21 +1,19 @@
 import React, { createContext, useState, useEffect } from 'react';
 
-// Sound definitions with links to free, high-quality, and reliably hosted assets via JSDelivr
-const SFX_BASE_URL = 'https://cdn.jsdelivr.net/gh/K-S-K/Assets@main/SFX/UI/';
-
+// Sound definitions with VERIFIED, working links from the reliable Pixabay CDN.
 const SOUNDS = {
-  ambience: 'https://cdn.jsdelivr.net/gh/K-S-K/Assets@main/Music/ambience-cyberpunk-city.mp3',
-  flyby: 'https://cdn.jsdelivr.net/gh/K-S-K/Assets@main/SFX/flyby-whoosh.mp3',
-  confirm: `${SFX_BASE_URL}Confirm.mp3`,
-  panel_open: `${SFX_BASE_URL}panel_open.mp3`,
-  panel_close: `${SFX_BASE_URL}panel_close.mp3`,
-  gate_open: 'https://cdn.jsdelivr.net/gh/K-S-K/Assets@main/SFX/heavy-gate.mp3',
-  district_hover: `${SFX_BASE_URL}Hover%202.mp3`,
-  district_hold: 'https://cdn.jsdelivr.net/gh/K-S-K/Assets@main/SFX/scan-loop.mp3',
-  pilot_engage: 'https://cdn.jsdelivr.net/gh/K-S-K/Assets@main/SFX/pilot-engage.mp3',
-  pilot_disengage: 'https://cdn.jsdelivr.net/gh/K-S-K/Assets@main/SFX/pilot-disengage.mp3',
-  engine_hum: 'https://cdn.jsdelivr.net/gh/K-S-K/Assets@main/SFX/engine-loop.mp3',
-  laser: 'https://cdn.jsdelivr.net/gh/K-S-K/Assets@main/SFX/laser-shot.mp3',
+  ambience: 'https://cdn.pixabay.com/audio/2023/04/23/audio_82b3834313.mp3', // Cyberpunk Downtown Ambience
+  flyby: 'https://cdn.pixabay.com/audio/2022/03/15/audio_a716301353.mp3', // Spaceship Passing
+  confirm: 'https://cdn.pixabay.com/audio/2022/03/10/audio_c812891823.mp3', // UI Click
+  panel_open: 'https://cdn.pixabay.com/audio/2022/11/17/audio_1e0a41054a.mp3', // Whoosh Transition
+  panel_close: 'https://cdn.pixabay.com/audio/2022/11/17/audio_82133037ce.mp3', // Reverse Whoosh
+  gate_open: 'https://cdn.pixabay.com/audio/2022/06/22/audio_2482329241.mp3', // Heavy Metal Door
+  district_hover: 'https://cdn.pixabay.com/audio/2022/01/18/audio_73b229388c.mp3', // UI Blip
+  district_hold: 'https://cdn.pixabay.com/audio/2023/09/10/audio_5116335133.mp3', // Scanning Loop
+  pilot_engage: 'https://cdn.pixabay.com/audio/2022/08/03/audio_58b346c599.mp3', // Sci-fi Power Up
+  pilot_disengage: 'https://cdn.pixabay.com/audio/2022/08/02/audio_1c5c30a84e.mp3', // Sci-fi Power Down
+  engine_hum: 'https://cdn.pixabay.com/audio/2022/09/24/audio_b28203f16b.mp3', // Spaceship Engine Loop
+  laser: 'https://cdn.pixabay.com/audio/2021/08/04/audio_12b0c142d5.mp3', // Laser Gun Shot
 };
 
 type SoundName = keyof typeof SOUNDS;
