@@ -3,11 +3,10 @@ import { useProgress } from '@react-three/drei';
 import { Experience3D } from './components/Experience3D';
 import { Loader } from './components/ui/Loader';
 import { StartScreen } from './components/ui/StartScreen';
-import { GatewayScreen } from './components/ui/GatewayScreen';
 
 const App: React.FC = () => {
   const { progress } = useProgress();
-  const [appState, setAppState] = useState<'loading' | 'start' | 'entering' | 'gateway' | 'experience'>('loading');
+  const [appState, setAppState] = useState<'loading' | 'start' | 'entering' | 'experience'>('loading');
 
   const isLoaded = progress >= 100;
 
@@ -19,21 +18,16 @@ const App: React.FC = () => {
 
   const handleStart = useCallback(() => {
     setAppState('entering');
-    // Unmount StartScreen and mount GatewayScreen after fade-out transition
-    setTimeout(() => {
-      setAppState('gateway');
-    }, 1000); // This duration matches the fade-out of StartScreen
   }, []);
 
-  const handleGatewayEnd = useCallback(() => {
+  const handleIntroEnd = useCallback(() => {
     setAppState('experience');
   }, []);
 
-  const showStartScreen = appState === 'start' || appState === 'entering';
-  const showGateway = appState === 'gateway';
-  // Pre-mount Experience3D to allow asset preloading in the background
-  const showExperience = appState === 'entering' || appState === 'gateway' || appState === 'experience';
-  // The HUD should only be visible after the gateway sequence is complete.
+  const showIntro = appState === 'start' || appState === 'entering';
+  // Pre-mount Experience3D to allow asset preloading in the background, but keep it invisible behind the gate.
+  const showExperience = appState !== 'loading';
+  // The HUD should only be visible after the intro sequence is complete.
   const isHudVisible = appState === 'experience';
 
   return (
@@ -46,14 +40,12 @@ const App: React.FC = () => {
 
       {appState === 'loading' && <Loader progress={progress} />}
 
-      {showStartScreen && (
+      {showIntro && (
         <StartScreen
-          onStart={handleStart}
-          isExiting={appState === 'entering'}
+          onIntroEnd={handleIntroEnd}
+          isEntering={appState === 'entering'}
         />
       )}
-
-      {showGateway && <GatewayScreen onAnimationEnd={handleGatewayEnd} />}
     </>
   );
 };

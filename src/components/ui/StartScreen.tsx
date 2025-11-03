@@ -1,50 +1,49 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface StartScreenProps {
-  onStart: () => void;
-  isExiting: boolean;
+  onIntroEnd: () => void;
+  isEntering: boolean;
 }
 
 const styles: { [key: string]: React.CSSProperties } = {
-  container: {
+  gateContainer: {
     position: 'fixed',
     inset: 0,
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'black',
     zIndex: 1000,
-    color: 'var(--primary-color)',
-    fontFamily: 'var(--font-family)',
-    textAlign: 'center',
-    padding: '20px',
-    boxSizing: 'border-box',
-    animation: 'fadeInStart 1s ease-in',
+    pointerEvents: 'none',
     overflow: 'hidden',
   },
-  hatchBackground: {
+  door: {
+    width: '100vw',
+    height: '50vh',
+    background: 'linear-gradient(180deg, #141c32, #0a101f)',
     position: 'absolute',
-    width: 'min(80vw, 80vh)',
-    height: 'min(80vw, 80vh)',
-    borderRadius: '50%',
-    background: 'radial-gradient(circle, #1a2238 0%, #0a0f1a 70%)',
-    boxShadow: 'inset 0 0 40px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.5)',
+    left: 0,
+    transition: 'transform 1.5s cubic-bezier(0.8, 0, 0.2, 1)',
+    boxShadow: '0 0 50px rgba(0,0,0,0.8)',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 1,
   },
-  content: {
-    zIndex: 2,
-    position: 'relative',
+  topDoor: {
+    top: 0,
+    flexDirection: 'column',
+  },
+  bottomDoor: {
+    bottom: 0,
+    background: 'linear-gradient(0deg, #141c32, #0a101f)',
+  },
+  consoleUI: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
+    textAlign: 'center',
+    fontFamily: 'var(--font-family)',
+    color: 'var(--primary-color)',
     padding: '20px',
-    background: 'rgba(5, 8, 16, 0.3)',
-    borderRadius: '10px',
+    transition: 'opacity 0.5s ease-out',
+    pointerEvents: 'auto',
   },
   title: {
     fontSize: 'clamp(2.5rem, 8vw, 5rem)',
@@ -74,76 +73,79 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: 'all 0.3s ease',
     textShadow: '0 0 5px var(--primary-color)',
   },
-  disclaimer: {
-      position: 'absolute',
-      bottom: '20px',
-      left: '50%',
-      transform: 'translateX(-50%)',
-      fontSize: '0.8rem',
-      opacity: 0.5,
-      width: '100%',
-      zIndex: 3,
-  }
+  dangerStripes: {
+    position: 'absolute',
+    left: 0,
+    width: '100vw',
+    height: '20px',
+    background: 'repeating-linear-gradient(45deg, #ff9900, #ff9900 20px, #000000 20px, #000000 40px)',
+    animation: 'stripe-scroll 1s linear infinite',
+    boxShadow: '0 0 15px #ff9900',
+  },
 };
 
-export const StartScreen: React.FC<StartScreenProps> = React.memo(({ onStart, isExiting }) => {
-  const containerStyle: React.CSSProperties = {
-    ...styles.container,
-    opacity: isExiting ? 0 : 1,
-    pointerEvents: isExiting ? 'none' : 'auto',
-    transition: 'opacity 1s ease-out',
-  };
+export const StartScreen: React.FC<StartScreenProps> = React.memo(({ onIntroEnd, isEntering }) => {
+  const [uiVisible, setUiVisible] = useState(true);
+  const [doorsOpening, setDoorsOpening] = useState(false);
+
+  useEffect(() => {
+    if (isEntering) {
+      // 1. Fade out the console UI
+      setUiVisible(false);
+
+      // 2. After UI fades, start opening the gate doors
+      const doorsTimer = setTimeout(() => {
+        setDoorsOpening(true);
+      }, 500); // This should match the UI fade-out duration
+
+      // 3. After the doors have finished opening, notify the parent component
+      const endTimer = setTimeout(() => {
+        onIntroEnd();
+      }, 2000); // 500ms fade + 1500ms door animation
+
+      return () => {
+        clearTimeout(doorsTimer);
+        clearTimeout(endTimer);
+      };
+    }
+  }, [isEntering, onIntroEnd]);
+
+  const topDoorStyle = { ...styles.door, ...styles.topDoor, transform: doorsOpening ? 'translateY(-100%)' : 'translateY(0)' };
+  const bottomDoorStyle = { ...styles.door, ...styles.bottomDoor, transform: doorsOpening ? 'translateY(100%)' : 'translateY(0)' };
+  const consoleStyle = { ...styles.consoleUI, opacity: uiVisible ? 1 : 0, pointerEvents: isEntering ? 'none' : 'auto' };
 
   return (
     <>
       <style>{`
-          @keyframes fadeInStart { from { opacity: 0; } to { opacity: 1; } }
-          @keyframes pulse {
-            0% { text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
-            50% { text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color); }
-            100% { text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
-          }
-          @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-          }
-          .hatch-ring::before, .hatch-ring::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-          }
-          .hatch-ring::before {
-            width: 105%;
-            height: 105%;
-            border: 1px solid rgba(0, 255, 255, 0.1);
-          }
-          .hatch-ring::after {
-            width: 110%;
-            height: 110%;
-            border: 2px solid rgba(0, 255, 255, 0.05);
-            border-top-color: rgba(0, 255, 255, 0.3);
-            animation: spin 30s linear infinite;
-          }
+        @keyframes pulse {
+          0% { text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
+          50% { text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color); }
+          100% { text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
+        }
+        @keyframes stripe-scroll {
+          0% { background-position: 0 0; }
+          100% { background-position: 56.5px 0; }
+        }
       `}</style>
-      <div style={containerStyle}>
-        <div style={styles.hatchBackground} className="hatch-ring" />
-        <div style={styles.content}>
-          <h1 style={styles.title}>RAGETOPIA</h1>
-          <p style={styles.subtitle}>Rangga Digital Portfolio</p>
-          <button
+      <div style={styles.gateContainer}>
+        <div style={topDoorStyle}>
+          <div style={consoleStyle}>
+            <h1 style={styles.title}>RAGETOPIA</h1>
+            <p style={styles.subtitle}>Rangga Digital Portfolio</p>
+            <button
               style={styles.startButton}
-              onClick={onStart}
+              onClick={onIntroEnd} // The button is now on the top door
               onMouseOver={e => (e.currentTarget.style.backgroundColor = 'rgba(0, 170, 255, 0.2)')}
               onMouseOut={e => (e.currentTarget.style.backgroundColor = 'transparent')}
-          >
-            Enter 3D World
-          </button>
+            >
+              Enter 3D World
+            </button>
+          </div>
+          <div style={{...styles.dangerStripes, bottom: 0}}></div>
         </div>
-        <p style={styles.disclaimer}>Best experienced on a desktop browser with a dedicated GPU.</p>
+        <div style={bottomDoorStyle}>
+          <div style={{...styles.dangerStripes, top: 0}}></div>
+        </div>
       </div>
     </>
   );
