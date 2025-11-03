@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { GoogleGenAI } from '@google/genai';
 import { CityDistrict, SkillCategory } from '../../types';
-import { skillsDataBilingual, professionalSummaryBilingual, FORMSPREE_FORM_ID } from '../../constants';
+import { skillsDataBilingual, FORMSPREE_FORM_ID } from '../../constants';
 import { SkillsRadarChart } from './SkillsRadarChart';
 import { chatData, ChatPrompt } from '../../chat-data';
 
@@ -179,7 +178,6 @@ const AiInquiryPanel: React.FC<{ lang: 'id' | 'en' }> = ({ lang }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [input, setInput] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const ai = useMemo(() => new GoogleGenAI({ apiKey: process.env.API_KEY || '' }), []);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -215,7 +213,7 @@ const AiInquiryPanel: React.FC<{ lang: 'id' | 'en' }> = ({ lang }) => {
         }
     };
 
-    const handleFreeformSubmit = async (e: React.FormEvent) => {
+    const handleFreeformSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!input.trim() || isLoading) return;
         
@@ -224,30 +222,18 @@ const AiInquiryPanel: React.FC<{ lang: 'id' | 'en' }> = ({ lang }) => {
         setInput('');
         setIsLoading(true);
 
-        const context = `
-            Rangga's Professional Summary: ${professionalSummaryBilingual[lang].summary}
-            Work Experience at BRI: ${chatData[lang].topics.work_experience_bri.botResponses[0]}
-            Strategic Initiatives: ${chatData[lang].topics.strategic_initiatives.botResponses[0]}
-            Leadership & Finance Skills: ${chatData[lang].topics['skill_leadership_&_finance'].botResponses[0]}
-            Web & Architecture Skills: ${chatData[lang].topics['skill_web_&_architecture'].botResponses[0]}
-            AI & ML Skills: ${chatData[lang].topics['skill_ai_&_ml'].botResponses[0]}
-            Blockchain Skills: ${chatData[lang].topics.skill_blockchain.botResponses[0]}
-            Creative Tech Skills: ${chatData[lang].topics.skill_creative_tech.botResponses[0]}
-            Arts & Media Skills: ${chatData[lang].topics['skill_arts_&_media'].botResponses[0]}
-        `;
+        const db = chatData[lang];
+        // Use the predefined procedural response for unhandled freeform queries
+        const topic = db.topics.unhandled_query_freeform;
 
-        const systemInstruction = `You are a professional AI assistant for Rangga Prayoga H. Your knowledge is strictly limited to the provided context. Do not invent, assume, or use external knowledge. If a question cannot be answered from the text, politely state that the information is outside your scope. Your tone is professional, concise, and helpful. Context: ${context}`;
-
-        try {
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
-                contents: userMessage,
-                config: { systemInstruction }
-            });
-            addBotMessage(response.text, chatData[lang].fallbackPrompts);
-        } catch (error) {
-            console.error("Gemini API Error:", error);
-            addBotMessage("I'm sorry, I encountered an error connecting to my core systems. Please try a guided prompt.", chatData[lang].fallbackPrompts);
+        if (topic) {
+            const response = topic.botResponses[Math.floor(Math.random() * topic.botResponses.length)];
+            const newPrompts = [...(topic.followUpPrompts || []), ...db.fallbackPrompts];
+            // Simulate a delay to mimic the bot "thinking"
+            setTimeout(() => addBotMessage(typeof response === 'function' ? response() : response, newPrompts), 1000);
+        } else {
+            // Fallback just in case the topic is missing
+             setTimeout(() => addBotMessage("I'm sorry, I cannot process freeform questions at this time.", db.fallbackPrompts), 1000);
         }
     };
     
