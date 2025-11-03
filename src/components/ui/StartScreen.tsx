@@ -121,7 +121,7 @@ export const StartScreen: React.FC<StartScreenProps> = React.memo(({ appState, p
 
   const topDoorStyle = { ...styles.door, ...styles.topDoor, transform: doorsOpening ? 'translateY(-100%)' : 'translateY(0)' };
   const bottomDoorStyle = { ...styles.door, ...styles.bottomDoor, transform: doorsOpening ? 'translateY(100%)' : 'translateY(0)' };
-  const consoleStyle = { ...styles.consoleUI, opacity: uiVisible ? 1 : 0, pointerEvents: appState === 'entering' ? 'none' : 'auto' };
+  const consoleStyle: React.CSSProperties = { ...styles.consoleUI, opacity: uiVisible ? 1 : 0, pointerEvents: appState === 'entering' ? 'none' : 'auto' };
 
   const isLoaded = appState !== 'loading';
 
