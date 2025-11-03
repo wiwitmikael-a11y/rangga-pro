@@ -395,9 +395,9 @@ export const Experience3D: React.FC = () => {
           enablePan={!isCalibrationMode}
           target={[0, 5, 0]}
           onChange={handleControlsChange}
-          // BUG FIX: Disable controls during any camera animation to prevent user input
-          // from interfering and causing the camera to shake or get stuck.
-          enabled={!isAnimating && shipControlMode !== 'manual'}
+          // BUG FIX: Disable controls during any camera animation or when in any ship POV
+          // to prevent user input from interfering with the camera rig.
+          enabled={!isAnimating && pov !== 'ship'}
         />
 
         <EffectComposer>

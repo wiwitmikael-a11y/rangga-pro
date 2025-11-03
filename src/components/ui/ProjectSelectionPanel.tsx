@@ -36,13 +36,25 @@ const styles: { [key: string]: React.CSSProperties } = {
     maxHeight: '800px',
     zIndex: 101,
     borderRadius: '15px',
-    padding: '25px',
+    padding: '35px 25px 25px 25px',
     boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
     boxShadow: '0 0 40px rgba(0, 170, 255, 0.3)',
     userSelect: 'auto',
     overflow: 'hidden',
+  },
+  dangerStripes: {
+    position: 'absolute',
+    top: '0',
+    left: '0',
+    width: '100%',
+    height: '10px',
+    background: 'repeating-linear-gradient(45deg, #ff9900, #ff9900 20px, #000000 20px, #000000 40px)',
+    animation: 'stripe-scroll 1s linear infinite',
+    borderBottom: '2px solid #ff9900',
+    borderTopLeftRadius: '15px',
+    borderTopRightRadius: '15px',
   },
   header: {
     display: 'flex',
@@ -126,12 +138,33 @@ const SkillsMatrixPanel: React.FC<{ lang: 'id' | 'en' }> = ({ lang }) => {
   );
 };
 
+const LinkedInIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+    </svg>
+);
+
+const YouTubeIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
+    </svg>
+);
+
+const InstagramIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.85s-.011 3.584-.069 4.85c-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07s-3.584-.012-4.85-.07c-3.252-.148-4.771-1.691-4.919-4.919-.058-1.265-.069-1.645-.069-4.85s.011-3.584.069-4.85c.149-3.225 1.664 4.771 4.919-4.919 1.266-.057 1.644-.069 4.85-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948s.014 3.667.072 4.947c.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072s3.667-.014 4.947-.072c4.358-.2 6.78-2.618 6.98-6.98.059-1.281.073-1.689.073-4.948s-.014-3.667-.072-4.947c-.2-4.358-2.618-6.78-6.98-6.98-1.281-.059-1.689-.073-4.948-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.162 6.162 6.162 6.162-2.759 6.162-6.162-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4s1.791-4 4-4 4 1.79 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44 1.441-.645 1.441-1.44-.645-1.44-1.441-1.44z"/>
+    </svg>
+);
+
+
 const ContactPanel: React.FC = () => {
     const [status, setStatus] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        setStatus('Sending...');
+        setIsLoading(true);
+        setStatus('Transmitting...');
         const form = event.currentTarget;
         const data = new FormData(form);
         
@@ -141,33 +174,74 @@ const ContactPanel: React.FC = () => {
                 body: data,
                 headers: { 'Accept': 'application/json' }
             });
+
             if (response.ok) {
-                setStatus('Message sent successfully!');
+                setStatus('Message sent successfully! Thank you for reaching out.');
                 form.reset();
             } else {
                 const responseData = await response.json();
                 if (responseData.errors) {
                     setStatus(responseData.errors.map((error: any) => error.message).join(', '));
                 } else {
-                    setStatus('Oops! There was a problem submitting your form.');
+                    setStatus('Error: An unknown issue occurred during transmission.');
                 }
             }
         } catch (error) {
-            setStatus('Oops! There was a problem submitting your form.');
+            setStatus('Error: Could not connect to the communication network.');
+        } finally {
+            setIsLoading(false);
         }
     };
     
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-            <p style={{ textAlign: 'center', maxWidth: '600px', color: '#ccc' }}>
+        <div className="contact-form-container custom-scrollbar">
+            <p className="contact-form-intro">
                 Your inquiries are welcome. Please use the form below to establish a direct communication link. For professional networking or technical collaboration, you can also connect via the provided social channels.
             </p>
-            <form onSubmit={handleSubmit} style={{ width: '100%', maxWidth: '500px' }}>
-                <input type="email" name="email" placeholder="Your Email" required style={{ width: '100%', padding: '12px', margin: '8px 0', background: 'rgba(0,0,0,0.3)', border: '1px solid #00aaff', borderRadius: '5px', color: 'white' }} />
-                <textarea name="message" placeholder="Your Message" required style={{ width: '100%', padding: '12px', margin: '8px 0', background: 'rgba(0,0,0,0.3)', border: '1px solid #00aaff', borderRadius: '5px', color: 'white', minHeight: '120px', resize: 'vertical' }} />
-                <button type="submit" style={{ ...styles.closeButton, position: 'static', width: 'auto', padding: '10px 20px', borderRadius: '5px' }}>Send Message</button>
-            </form>
-            <p style={{ marginTop: '15px' }}>{status}</p>
+
+            <div className="social-links-container">
+                 <a href="https://www.linkedin.com/in/ranggaprayogah/" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="LinkedIn Profile">
+                    <LinkedInIcon />
+                </a>
+                <a href="https://www.youtube.com/@ranggaprayogah" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="YouTube Channel">
+                    <YouTubeIcon />
+                </a>
+                <a href="https://www.instagram.com/rangga.p.h" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="Instagram Profile">
+                    <InstagramIcon />
+                </a>
+            </div>
+
+            {status.includes('successfully') ? (
+                 <div className="form-success-message">
+                    <h3>Transmission Received!</h3>
+                    <p>{status}</p>
+                    <button onClick={() => setStatus('')}>Establish New Connection</button>
+                </div>
+            ) : (
+                <form onSubmit={handleSubmit}>
+                    <div className="form-group">
+                        <label htmlFor="name">Name / Alias</label>
+                        <input type="text" id="name" name="name" required disabled={isLoading} placeholder="Your identifier" />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="email">Return Comms Channel (Email)</label>
+                        <input type="email" id="email" name="email" required disabled={isLoading} placeholder="your.address@domain.com" />
+                    </div>
+                     <div className="form-group">
+                        <label htmlFor="subject">Subject</label>
+                        <input type="text" id="subject" name="subject" required disabled={isLoading} placeholder="Transmission subject" />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="message">Message</label>
+                        <textarea id="message" name="message" required disabled={isLoading} rows={5} placeholder="Your message details..."></textarea>
+                    </div>
+
+                    <button type="submit" disabled={isLoading}>
+                        {isLoading ? 'TRANSMITTING...' : 'SEND MESSAGE'}
+                    </button>
+                    {status && !status.includes('successfully') && <p className="form-error">{status}</p>}
+                </form>
+            )}
         </div>
     );
 };
@@ -370,6 +444,7 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
     <>
       <div style={overlayStyle} onClick={onClose} />
       <div style={containerStyle} className="project-selection-panel responsive-modal">
+        <div style={styles.dangerStripes} />
         <div style={styles.header}>
           <h2 style={styles.title}>{district?.title}</h2>
            {district?.id === 'skills-matrix' && (
@@ -381,7 +456,7 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
           )}
           <button onClick={onClose} style={styles.closeButton} aria-label="Close Panel">&times;</button>
         </div>
-        <div style={styles.content}>
+        <div style={styles.content} className="custom-scrollbar">
           {renderContent()}
         </div>
       </div>

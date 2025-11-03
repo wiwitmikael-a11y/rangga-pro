@@ -34,13 +34,25 @@ const styles: { [key: string]: React.CSSProperties } = {
     maxHeight: '80vh',
     zIndex: 101,
     borderRadius: '15px',
-    padding: '30px',
+    padding: '40px 30px 30px 30px',
     boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
     boxShadow: '0 0 40px rgba(0, 170, 255, 0.3)',
     userSelect: 'auto',
     transition: 'opacity 0.3s ease, transform 0.3s ease',
+  },
+  dangerStripes: {
+    position: 'absolute',
+    top: '0',
+    left: '0',
+    width: '100%',
+    height: '10px',
+    background: 'repeating-linear-gradient(45deg, #ff9900, #ff9900 20px, #000000 20px, #000000 40px)',
+    animation: 'stripe-scroll 1s linear infinite',
+    borderBottom: '2px solid #ff9900',
+    borderTopLeftRadius: '15px',
+    borderTopRightRadius: '15px',
   },
   header: {
     display: 'flex',
@@ -241,6 +253,7 @@ export const HintsPanel: React.FC<HintsPanelProps> = ({ isOpen, onClose, context
       <>
         <div style={overlayStyle} onClick={onClose} />
         <div style={containerStyle} className="responsive-modal">
+          <div style={styles.dangerStripes} />
           <div style={styles.header}>
               <h2 style={styles.title}>Control & Navigation Guide</h2>
               <button onClick={onClose} style={styles.closeButton} aria-label="Close Hints">&times;</button>
