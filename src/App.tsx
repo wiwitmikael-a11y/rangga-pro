@@ -19,10 +19,10 @@ const App: React.FC = () => {
 
   const handleStart = useCallback(() => {
     setAppState('entering');
-    // Unmount StartScreen dan mount GatewayScreen setelah transisi fade-out
+    // Unmount StartScreen and mount GatewayScreen after fade-out transition
     setTimeout(() => {
       setAppState('gateway');
-    }, 1000); // Durasi ini cocok dengan fade-out dari StartScreen
+    }, 1000); // This duration matches the fade-out of StartScreen
   }, []);
 
   const handleGatewayEnd = useCallback(() => {
@@ -31,14 +31,16 @@ const App: React.FC = () => {
 
   const showStartScreen = appState === 'start' || appState === 'entering';
   const showGateway = appState === 'gateway';
-  // Pasang Experience3D lebih awal untuk memungkinkan preload aset di latar belakang
+  // Pre-mount Experience3D to allow asset preloading in the background
   const showExperience = appState === 'entering' || appState === 'gateway' || appState === 'experience';
+  // The HUD should only be visible after the gateway sequence is complete.
+  const isHudVisible = appState === 'experience';
 
   return (
     <>
       <main style={{ width: '100vw', height: '100vh', backgroundColor: '#050810' }}>
         <Suspense fallback={null}>
-          {showExperience && <Experience3D />}
+          {showExperience && <Experience3D isHudVisible={isHudVisible} />}
         </Suspense>
       </main>
 

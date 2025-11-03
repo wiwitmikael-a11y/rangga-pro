@@ -88,8 +88,11 @@ const SceneContent: React.FC<SceneContentProps> = ({ districts, selectedDistrict
   );
 };
 
+interface Experience3DProps {
+  isHudVisible: boolean;
+}
 
-export const Experience3D: React.FC = () => {
+export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible }) => {
   const [districts, setDistricts] = useState<CityDistrict[]>(portfolioData);
   const [selectedDistrict, setSelectedDistrict] = useState<CityDistrict | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -407,49 +410,55 @@ export const Experience3D: React.FC = () => {
         {infoPanelItem && <HolographicInfoPanel district={infoPanelItem} onClose={() => setInfoPanelItem(null)} />}
 
       </Canvas>
-      <HUD 
-        selectedDistrict={selectedDistrict}
-// FIX: Changed onToggleNavMenu to handleToggleNavMenu to match the function name.
-        onToggleNavMenu={handleToggleNavMenu}
-// FIX: Changed onToggleHints to handleToggleHints to match the function name.
-        onToggleHints={handleToggleHints}
-        pov={pov}
-        onSetPov={handleSetPov}
-        onGoHome={handleGoHome}
-        isCalibrationMode={isCalibrationMode}
-        heldDistrictId={heldDistrictId}
-        shipControlMode={shipControlMode}
-// FIX: Changed onToggleShipControl to handleToggleShipControl to match the function name.
-        onToggleShipControl={handleToggleShipControl}
-        onFire={handleFire}
-        isTouchDevice={isTouchDevice}
-        onShipTouchInputChange={setShipTouchInputs}
-        isAnyPanelOpen={isAnyPanelOpen}
-      />
-      <QuickNavMenu 
-        isOpen={isNavMenuOpen}
-        onClose={handleToggleNavMenu}
-        onSelectDistrict={(d) => {
-          handleDistrictSelect(d);
-          setIsNavMenuOpen(false);
+      <div
+        className="hud-container"
+        style={{
+          opacity: isHudVisible ? 1 : 0,
+          transition: 'opacity 0.8s ease-in-out',
+          pointerEvents: isHudVisible ? 'auto' : 'none',
         }}
-        districts={navDistricts}
-      />
-      <ProjectSelectionPanel
-        isOpen={showContentPanel}
-        district={selectedDistrict}
-        onClose={handleClosePanel}
-      />
-      <HintsPanel
-        isOpen={isHintsOpen}
-        onClose={handleToggleHints}
-        context={hudContext}
-      />
-       <ExportLayoutModal
-          isOpen={isExportModalOpen}
-          onClose={() => { /* setIsExportModalOpen(false) */ }}
-          jsonData={exportedLayoutJson}
-      />
+      >
+        <HUD 
+          selectedDistrict={selectedDistrict}
+          onToggleNavMenu={handleToggleNavMenu}
+          onToggleHints={handleToggleHints}
+          pov={pov}
+          onSetPov={handleSetPov}
+          onGoHome={handleGoHome}
+          isCalibrationMode={isCalibrationMode}
+          heldDistrictId={heldDistrictId}
+          shipControlMode={shipControlMode}
+          onToggleShipControl={handleToggleShipControl}
+          onFire={handleFire}
+          isTouchDevice={isTouchDevice}
+          onShipTouchInputChange={setShipTouchInputs}
+          isAnyPanelOpen={isAnyPanelOpen}
+        />
+        <QuickNavMenu 
+          isOpen={isNavMenuOpen}
+          onClose={handleToggleNavMenu}
+          onSelectDistrict={(d) => {
+            handleDistrictSelect(d);
+            setIsNavMenuOpen(false);
+          }}
+          districts={navDistricts}
+        />
+        <ProjectSelectionPanel
+          isOpen={showContentPanel}
+          district={selectedDistrict}
+          onClose={handleClosePanel}
+        />
+        <HintsPanel
+          isOpen={isHintsOpen}
+          onClose={handleToggleHints}
+          context={hudContext}
+        />
+        <ExportLayoutModal
+            isOpen={isExportModalOpen}
+            onClose={() => { /* setIsExportModalOpen(false) */ }}
+            jsonData={exportedLayoutJson}
+        />
+      </div>
     </>
   );
 };
