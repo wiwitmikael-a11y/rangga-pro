@@ -8,39 +8,41 @@ const styles: { [key: string]: React.CSSProperties } = {
   container: {
     position: 'fixed',
     inset: 0,
-    backgroundColor: '#050810',
+    backgroundColor: 'transparent',
     zIndex: 999,
     overflow: 'hidden',
-    display: 'flex',
+    pointerEvents: 'none',
   },
   door: {
-    width: '50vw',
-    height: '100vh',
-    background: 'linear-gradient(145deg, #0a101f, #141c32)',
-    position: 'relative',
+    width: '100vw',
+    height: '50vh',
+    background: 'linear-gradient(180deg, #0a101f, #141c32)',
+    position: 'absolute',
+    left: 0,
     transition: 'transform 1.5s cubic-bezier(0.76, 0, 0.24, 1)',
-    boxShadow: 'inset 0 0 50px rgba(0,0,0,0.6)',
+    boxShadow: '0 0 50px rgba(0,0,0,0.8)',
   },
-  leftDoor: {
-    transformOrigin: 'left',
+  topDoor: {
+    top: 0,
   },
-  rightDoor: {
-    transformOrigin: 'right',
+  bottomDoor: {
+    bottom: 0,
+    background: 'linear-gradient(0deg, #0a101f, #141c32)',
   },
   dangerStripes: {
     position: 'absolute',
-    top: 0,
-    bottom: 0,
-    width: '20px',
+    left: 0,
+    width: '100vw',
+    height: '20px',
     background: 'repeating-linear-gradient(45deg, #ff9900, #ff9900 20px, #000000 20px, #000000 40px)',
     animation: 'stripe-scroll 1s linear infinite',
     boxShadow: '0 0 15px #ff9900',
   },
-  leftStripe: {
-    right: 0,
+  topStripe: {
+    bottom: 0,
   },
-  rightStripe: {
-    left: 0,
+  bottomStripe: {
+    top: 0,
   },
   panelLines: {
     position: 'absolute',
@@ -54,15 +56,13 @@ export const GatewayScreen: React.FC<GatewayScreenProps> = ({ onAnimationEnd }) 
   const [isOpening, setIsOpening] = useState(false);
 
   useEffect(() => {
-    // Memicu animasi sesaat setelah komponen dimuat untuk memastikan transisi CSS berjalan dengan andal.
     const openTimer = setTimeout(() => {
       setIsOpening(true);
-    }, 50); // Jeda singkat sudah cukup untuk memungkinkan render awal.
+    }, 50);
 
-    // Timeout ini harus cocok dengan total waktu animasi untuk membongkar komponen.
     const endTimer = setTimeout(() => {
       onAnimationEnd();
-    }, 1800); // 1.5s untuk transformasi pintu + buffer 0.3s. Cocok dengan delay 1.3s + fade-out 0.5s.
+    }, 1800); 
 
     return () => {
       clearTimeout(openTimer);
@@ -80,28 +80,21 @@ export const GatewayScreen: React.FC<GatewayScreenProps> = ({ onAnimationEnd }) 
           100% { background-position: 56.5px 0; }
         }
         
-        .gateway-container.opening .door-left {
-          transform: translateX(-100%);
+        .gateway-container.opening .door-top {
+          transform: translateY(-100%);
         }
-        .gateway-container.opening .door-right {
-          transform: translateX(100%);
-        }
-        
-        /* Fade out seluruh kontainer setelah pintu hampir terbuka penuh */
-        .gateway-container.opening {
-          opacity: 0;
-          transition: opacity 0.5s ease 1.3s;
-          pointer-events: none;
+        .gateway-container.opening .door-bottom {
+          transform: translateY(100%);
         }
       `}</style>
       <div style={styles.container} className={containerClassName}>
-        <div style={{...styles.door, ...styles.leftDoor}} className="door-left">
+        <div style={{...styles.door, ...styles.topDoor}} className="door-top">
           <div style={styles.panelLines}></div>
-          <div style={{...styles.dangerStripes, ...styles.leftStripe}}></div>
+          <div style={{...styles.dangerStripes, ...styles.topStripe}}></div>
         </div>
-        <div style={{...styles.door, ...styles.rightDoor}} className="door-right">
+        <div style={{...styles.door, ...styles.bottomDoor}} className="door-bottom">
           <div style={styles.panelLines}></div>
-          <div style={{...styles.dangerStripes, ...styles.rightStripe}}></div>
+          <div style={{...styles.dangerStripes, ...styles.bottomStripe}}></div>
         </div>
       </div>
     </>
