@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { GoogleGenAI } from '@google/genai';
-import { CityDistrict, PortfolioSubItem, SkillCategory } from '../../types';
+import { CityDistrict, SkillCategory } from '../../types';
 import { skillsDataBilingual, professionalSummaryBilingual, FORMSPREE_FORM_ID } from '../../constants';
 import { SkillsRadarChart } from './SkillsRadarChart';
 import { chatData, ChatPrompt } from '../../chat-data';
