@@ -18,28 +18,28 @@ export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(()
 
     useMemo(() => {
         terrainTexture.wrapS = terrainTexture.wrapT = THREE.RepeatWrapping;
-        terrainTexture.repeat.set(25, 25);
+        terrainTexture.repeat.set(50, 50); // Increased texture repeat for larger terrain
         terrainTexture.anisotropy = 16;
     }, [terrainTexture]);
 
     const geometry = useMemo(() => {
-        const planeGeo = new THREE.PlaneGeometry(500, 500, 200, 200);
+        const planeGeo = new THREE.PlaneGeometry(1000, 1000, 200, 200); // Increased plane size
         const noise = createNoise2D();
         const positions = planeGeo.attributes.position;
 
-        // Define zones for the terrain shape
-        const cityRadius = 90;
-        const moatStartRadius = 100;
-        const moatEndRadius = 120;
-        const noisyTerrainStartRadius = 140;
+        // Define zones for the terrain shape - scaled up for a larger world
+        const cityRadius = 180; // was 90
+        const moatStartRadius = 200; // was 100
+        const moatEndRadius = 240; // was 120
+        const noisyTerrainStartRadius = 280; // was 140
         const moatDepth = 4;
         const noiseFactor = 0.015;
 
-        // --- NEW: Constants for more dramatic, hilly terrain ---
-        const noiseHeightMultiplier = 18; // Ditingkatkan untuk medan yang lebih dramatis
-        const hillStartRadius = 150;      // Jarak di mana perbukitan mulai naik
-        const maxRadius = 250;            // Tepi luar medan
-        const hillRiseAmount = 50;        // Ketinggian maksimum tambahan untuk perbukitan
+        // --- Constants for more dramatic, hilly terrain ---
+        const noiseHeightMultiplier = 12; 
+        const hillStartRadius = 360;      // was 180
+        const maxRadius = 500;            // was 250
+        const hillRiseAmount = 25;
 
         for (let i = 0; i < positions.count; i++) {
             const x = positions.getX(i);
@@ -69,7 +69,7 @@ export const ProceduralTerrain: React.FC<ProceduralTerrainProps> = React.memo(()
                 height = rawNoiseHeight;
             }
             
-            // --- NEW: Add the surrounding hill structure ---
+            // --- Add the surrounding hill structure ---
             if (distanceFromCenter > hillStartRadius) {
                 // Use an ease-out curve (1 - (1-t)^2) for a natural rise
                 const t = (distanceFromCenter - hillStartRadius) / (maxRadius - hillStartRadius);

@@ -163,9 +163,11 @@ export const Experience3D: React.FC = () => {
   }, [districts]);
 
   const handleDistrictSelect = useCallback((district: CityDistrict) => {
-    if (isCalibrationMode) return;
-    if (district.id === selectedDistrict?.id && !isAnimating) return;
-    
+    // BUG FIX: Prevent any new selection if an animation is already in progress.
+    if (isAnimating || isCalibrationMode) return;
+    // Also prevent re-selecting the currently selected district.
+    if (district.id === selectedDistrict?.id) return;
+
     setIsTouring(false); // Cancel tour on direct selection
     setShowContentPanel(false);
     setInfoPanelItem(null);
