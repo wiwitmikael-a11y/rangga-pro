@@ -216,19 +216,21 @@ export const Experience3D: React.FC = () => {
   }, [resetIdleTimer]);
 
   const handleGoHome = useCallback(() => {
-    // This function now starts the cinematic tour
-    setIsTouring(true);
-    setTourIndex(0);
+    // BUG FIX: Prevent new camera movements if an animation is already in progress.
+    if (isAnimating) return;
+
+    // This function cleanly returns to the main overview state.
+    setIsTouring(false); // Stop any cinematic tour.
     setPov('main');
-    setSelectedDistrict(tourStops[0]);
+    setSelectedDistrict(null); // Setting district to null is the key to return to overview.
     setIsAnimating(true);
     setShowContentPanel(false);
     setInfoPanelItem(null);
     setTargetShipRef(null);
     setShipControlMode('follow');
     setControlledShipId(null);
-    if(controlsRef.current) controlsRef.current.enabled = true;
-  }, [tourStops]);
+    // OrbitControls will be re-enabled automatically in onAnimationFinish.
+  }, [isAnimating]);
 
   const onAnimationFinish = useCallback(() => {
     if (isTouring) {

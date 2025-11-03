@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { CityDistrict, SkillCategory } from '../../types';
 import { skillsDataBilingual, FORMSPREE_FORM_ID } from '../../constants';
 import { SkillsRadarChart } from './SkillsRadarChart';
-import { chatData, ChatPrompt } from '../../chat-data';
+import { chatData, ChatPrompt, ChatTopic } from '../../chat-data';
 
 interface ProjectSelectionPanelProps {
   isOpen: boolean;
@@ -172,7 +172,8 @@ const ContactPanel: React.FC = () => {
     );
 };
 
-const AiInquiryPanel: React.FC<{ lang: 'id' | 'en' }> = ({ lang }) => {
+const AiInquiryPanel: React.FC = () => {
+    const [lang, setLang] = useState<'id' | 'en' | null>(null);
     const [messages, setMessages] = useState<{ author: 'user' | 'bot'; text: string; }[]>([]);
     const [prompts, setPrompts] = useState<ChatPrompt[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -191,50 +192,108 @@ const AiInquiryPanel: React.FC<{ lang: 'id' | 'en' }> = ({ lang }) => {
         setIsLoading(false);
     }, []);
 
+    // Effect for initial language selection
     useEffect(() => {
-      const db = chatData[lang];
-      const initialGreeting = db.greetings[Math.floor(Math.random() * db.greetings.length)];
-      addBotMessage(initialGreeting, db.entryPoints);
+        setIsLoading(true);
+        setTimeout(() => {
+            addBotMessage(
+                chatData.languageSelector.intro, 
+                [chatData.languageSelector.prompts.id, chatData.languageSelector.prompts.en]
+            );
+        }, 500);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Effect to greet in selected language
+    useEffect(() => {
+        if (lang) {
+            setIsLoading(true);
+            const db = chatData[lang];
+            const initialGreeting = db.greetings[Math.floor(Math.random() * db.greetings.length)];
+            setTimeout(() => addBotMessage(initialGreeting, db.entryPoints), 800);
+        }
     }, [lang, addBotMessage]);
+
+    const findTopicByKeywords = useCallback((message: string, db: typeof chatData.en): ChatTopic | null => {
+        const lowerCaseMessage = message.toLowerCase().trim();
+        if (!lowerCaseMessage) return null;
+
+        let bestMatch: { topic: ChatTopic, score: number } | null = null;
+
+        for (const topicId in db.topics) {
+            const topic = db.topics[topicId];
+            let score = 0;
+            topic.keywords.forEach(keyword => {
+                const regex = new RegExp(`\\b${keyword.toLowerCase()}\\b`);
+                if (regex.test(lowerCaseMessage)) {
+                    score++;
+                }
+            });
+
+            if (score > 0) {
+                if (!bestMatch || score > bestMatch.score) {
+                    bestMatch = { topic, score };
+                }
+            }
+        }
+        return bestMatch ? bestMatch.topic : null;
+    }, []);
     
+    const processAndRespond = useCallback((topic: ChatTopic, db: typeof chatData.en) => {
+        const response = topic.botResponses[Math.floor(Math.random() * topic.botResponses.length)];
+        let newPrompts;
+
+        if (topic === db.topics.start) {
+            newPrompts = db.entryPoints;
+        } else {
+            const followUps = topic.followUpPrompts || [];
+            const uniquePrompts = [...followUps];
+            db.fallbackPrompts.forEach(fp => {
+                if (!uniquePrompts.some(p => p.topicId === fp.topicId)) {
+                    uniquePrompts.push(fp);
+                }
+            });
+            newPrompts = uniquePrompts;
+        }
+
+        setTimeout(() => addBotMessage(typeof response === 'function' ? response() : response, newPrompts), 1000);
+    }, [addBotMessage]);
+
     const handlePromptClick = (prompt: ChatPrompt) => {
+        if (isLoading) return;
         setMessages(prev => [...prev, { author: 'user', text: prompt.text }]);
         setIsLoading(true);
+        setPrompts([]);
 
-        const db = chatData[lang];
-        const topic = db.topics[prompt.topicId];
-
-        if (topic) {
-            const response = topic.botResponses[Math.floor(Math.random() * topic.botResponses.length)];
-            const newPrompts = [...(topic.followUpPrompts || []), ...db.fallbackPrompts];
-            setTimeout(() => addBotMessage(typeof response === 'function' ? response() : response, newPrompts), 1000);
-        } else {
-             setTimeout(() => addBotMessage("I'm sorry, I don't have information on that topic.", db.fallbackPrompts), 1000);
+        if (prompt.topicId === 'lang_select_id') {
+            setLang('id');
+            return;
         }
+        if (prompt.topicId === 'lang_select_en') {
+            setLang('en');
+            return;
+        }
+        
+        if (!lang) return;
+        const db = chatData[lang];
+        const topic = db.topics[prompt.topicId] || db.topics.start;
+        processAndRespond(topic, db);
     };
 
     const handleFreeformSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!input.trim() || isLoading) return;
+        if (!input.trim() || isLoading || !lang) return;
         
         const userMessage = input;
         setMessages(prev => [...prev, { author: 'user', text: userMessage }]);
         setInput('');
         setIsLoading(true);
+        setPrompts([]);
 
         const db = chatData[lang];
-        // Use the predefined procedural response for unhandled freeform queries
-        const topic = db.topics.unhandled_query_freeform;
-
-        if (topic) {
-            const response = topic.botResponses[Math.floor(Math.random() * topic.botResponses.length)];
-            const newPrompts = [...(topic.followUpPrompts || []), ...db.fallbackPrompts];
-            // Simulate a delay to mimic the bot "thinking"
-            setTimeout(() => addBotMessage(typeof response === 'function' ? response() : response, newPrompts), 1000);
-        } else {
-            // Fallback just in case the topic is missing
-             setTimeout(() => addBotMessage("I'm sorry, I cannot process freeform questions at this time.", db.fallbackPrompts), 1000);
-        }
+        const matchedTopic = findTopicByKeywords(userMessage, db);
+        const topic = matchedTopic || db.topics.unhandled_query_freeform;
+        processAndRespond(topic, db);
     };
     
     return (
@@ -253,8 +312,8 @@ const AiInquiryPanel: React.FC<{ lang: 'id' | 'en' }> = ({ lang }) => {
                     {!isLoading && prompts.map((p, i) => <button key={i} onClick={() => handlePromptClick(p)} style={{ background: 'rgba(0, 170, 255, 0.2)', border: '1px solid #00aaff', color: '#00aaff', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer' }}>{p.text}</button>)}
                 </div>
                  <form onSubmit={handleFreeformSubmit} style={{ display: 'flex', gap: '10px' }}>
-                    <input type="text" value={input} onChange={e => setInput(e.target.value)} placeholder="Or ask a freeform question..." disabled={isLoading} style={{ flexGrow: 1, padding: '12px', background: 'rgba(0,0,0,0.3)', border: '1px solid #00aaff', borderRadius: '5px', color: 'white' }} />
-                    <button type="submit" disabled={isLoading} style={{...styles.closeButton, position: 'static', width: 'auto', padding: '10px 20px', borderRadius: '5px' }}>Send</button>
+                    <input type="text" value={input} onChange={e => setInput(e.target.value)} placeholder={!lang ? "Select a language to begin..." : "Or ask a freeform question..."} disabled={isLoading || !lang} style={{ flexGrow: 1, padding: '12px', background: 'rgba(0,0,0,0.3)', border: '1px solid #00aaff', borderRadius: '5px', color: 'white' }} />
+                    <button type="submit" disabled={isLoading || !lang} style={{...styles.closeButton, position: 'static', width: 'auto', padding: '10px 20px', borderRadius: '5px' }}>Send</button>
                 </form>
             </div>
         </div>
@@ -276,7 +335,7 @@ const DefaultProjectPanel: React.FC<{ district: CityDistrict }> = ({ district })
 };
 
 export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ isOpen, district, onClose }) => {
-  const [lang, setLang] = useState<'id' | 'en'>('en');
+  const [lang, setLang] = useState<'id' | 'en'>('id');
 
   const containerStyle: React.CSSProperties = {
     ...styles.container,
@@ -301,7 +360,7 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
       case 'contact':
         return <ContactPanel />;
       case 'nexus-core':
-        return <AiInquiryPanel lang={lang} />;
+        return <AiInquiryPanel />;
       default:
         return <DefaultProjectPanel district={district} />;
     }
