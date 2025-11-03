@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Loader } from './Loader';
+import { useAudio } from '../../hooks/useAudio';
 
 interface StartScreenProps {
   appState: 'loading' | 'start' | 'entering';
@@ -96,11 +97,15 @@ const styles: { [key: string]: React.CSSProperties } = {
 export const StartScreen: React.FC<StartScreenProps> = React.memo(({ appState, progress, onStart, onIntroEnd }) => {
   const [uiVisible, setUiVisible] = useState(true);
   const [doorsOpening, setDoorsOpening] = useState(false);
+  const audio = useAudio();
 
   useEffect(() => {
     if (appState === 'entering') {
       // 1. Fade out the console UI
       setUiVisible(false);
+
+      // Play the gate sound effect
+      audio.play('gate_open', { volume: 0.7 });
 
       // 2. After UI fades, start opening the gate doors
       const doorsTimer = setTimeout(() => {
@@ -117,7 +122,7 @@ export const StartScreen: React.FC<StartScreenProps> = React.memo(({ appState, p
         clearTimeout(endTimer);
       };
     }
-  }, [appState, onIntroEnd]);
+  }, [appState, onIntroEnd, audio]);
 
   const topDoorStyle = { ...styles.door, ...styles.topDoor, transform: doorsOpening ? 'translateY(-100%)' : 'translateY(0)' };
   const bottomDoorStyle = { ...styles.door, ...styles.bottomDoor, transform: doorsOpening ? 'translateY(100%)' : 'translateY(0)' };

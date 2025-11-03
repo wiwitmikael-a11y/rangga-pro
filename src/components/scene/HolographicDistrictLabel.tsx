@@ -6,6 +6,7 @@ import { useFrame, ThreeEvent, useThree } from '@react-three/fiber';
 import { Text, Billboard, RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 import { CityDistrict } from '../../types';
+import { useAudio } from '../../hooks/useAudio';
 
 interface HolographicDistrictLabelProps {
   district: CityDistrict;
@@ -27,9 +28,6 @@ const borderVertexShader = `
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `;
-
-// Original cyan border Fragment Shader - NO LONGER IN USE
-// const borderFragmentShader = `...`;
 
 // Danger Zone Fragment Shader for ALL labels
 const dangerBorderFragmentShader = `
@@ -72,6 +70,7 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
   const groupRef = useRef<THREE.Group>(null!);
   const [isHovered, setIsHovered] = useState(false);
   const glowIntensityRef = useRef(1.0);
+  const audio = useAudio();
   
   // --- NEW: State and refs for hold-to-select interaction ---
   const [holdProgress, setHoldProgress] = useState(0);
@@ -92,7 +91,8 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
     }
     setHoldProgress(0);
     actionTriggeredRef.current = false; // Reset the trigger
-  }, []);
+    audio.stop('district_hold');
+  }, [audio]);
 
   useFrame(({ clock }, delta) => {
     if (!groupRef.current) return;
@@ -111,6 +111,7 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     setIsHovered(true);
+    audio.play('district_hover', { volume: 0.3, rate: 1.2 });
     if(isCalibrationMode) document.body.style.cursor = 'grab';
     else document.body.style.cursor = 'pointer';
   };
@@ -130,7 +131,9 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
       return;
     }
     
+    audio.playHoldSound('district_hold', { volume: 0.4 });
     isHoldingRef.current = true;
+    actionTriggeredRef.current = false;
     const startTime = performance.now();
     
     const animateHold = (currentTime: number) => {

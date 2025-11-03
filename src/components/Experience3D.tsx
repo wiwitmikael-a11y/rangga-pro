@@ -11,8 +11,8 @@ import * as THREE from 'three';
 import { CityModel } from './scene/CityModel';
 import { FlyingShips, shipsData } from './scene/FlyingShips';
 import { DistrictRenderer } from './scene/DistrictRenderer';
-import { portfolioData, OVERVIEW_CAMERA_POSITION } from '../constants';
-import type { CityDistrict, ShipControlMode, ShipInputState } from '../types';
+import { portfolioData, OVERVIEW_CAMERA_POSITION } from '../../constants';
+import type { CityDistrict, ShipControlMode, ShipInputState } from '../../types';
 import { CameraRig } from './CameraRig';
 import { HUD } from './ui/HUD';
 import { ProceduralTerrain } from './scene/ProceduralTerrain';
@@ -25,6 +25,7 @@ import { BuildModeController } from './scene/BuildModeController';
 import { ExportLayoutModal } from './ui/ExportLayoutModal';
 import { useShipControls } from '../hooks/useShipControls';
 import { HintsPanel } from './ui/HintsPanel';
+import { useAudio } from '../hooks/useAudio';
 
 
 // Define the sun's position for a sunset glow near the horizon
@@ -101,6 +102,7 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEnte
   const [infoPanelItem, setInfoPanelItem] = useState<CityDistrict | null>(null);
   const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
   const [isHintsOpen, setIsHintsOpen] = useState(false);
+  const audio = useAudio();
   
   const [pov, setPov] = useState<'main' | 'ship'>('main');
   const [shipRefs, setShipRefs] = useState<React.RefObject<THREE.Group>[]>([]);
@@ -164,7 +166,8 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEnte
     setIsAutoRotating(false);
     setSelectedDistrict(districts.find(d => d.id === district.id) || null);
     setIsAnimating(true);
-  }, [selectedDistrict, isAnimating, districts, isCalibrationMode]);
+    audio.play('confirm');
+  }, [selectedDistrict, isAnimating, districts, isCalibrationMode, audio]);
   
   const isDetailViewActive = showContentPanel || !!infoPanelItem || !!selectedDistrict;
 
@@ -206,6 +209,7 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEnte
 
   const handleGoHome = useCallback(() => {
     if (isAnimating) return;
+    audio.play('confirm');
     setIsTouring(false);
     setPov('main');
     setSelectedDistrict(null);
@@ -215,7 +219,7 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEnte
     setTargetShipRef(null);
     setShipControlMode('follow');
     setControlledShipId(null);
-  }, [isAnimating]);
+  }, [isAnimating, audio]);
 
   const onAnimationFinish = useCallback(() => {
     if (isEntering) { // Special case for the entry animation finishing
@@ -268,13 +272,22 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEnte
     setInfoPanelItem(null);
     setSelectedDistrict(null);
     setIsAnimating(true);
-  }, []);
+    audio.play('panel_close');
+  }, [audio]);
 
-  const handleToggleNavMenu = useCallback(() => setIsNavMenuOpen(prev => !prev), []);
-  const handleToggleHints = useCallback(() => setIsHintsOpen(prev => !prev), []);
+  const handleToggleNavMenu = useCallback(() => setIsNavMenuOpen(prev => {
+    if (!prev) audio.play('panel_open'); else audio.play('panel_close');
+    return !prev;
+  }), [audio]);
+
+  const handleToggleHints = useCallback(() => setIsHintsOpen(prev => {
+    if (!prev) audio.play('panel_open'); else audio.play('panel_close');
+    return !prev;
+  }), [audio]);
 
   const handleSetPov = useCallback((newPov: 'main' | 'ship') => {
     if (newPov === 'ship' && shipRefs.length > 0) {
+      audio.play('confirm');
       const currentShipIndex = shipRefs.findIndex(ref => ref.current === targetShipRef?.current);
       const nextShipIndex = (currentShipIndex + 1) % shipRefs.length;
       setTargetShipRef(shipRefs[nextShipIndex]);
@@ -289,24 +302,31 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEnte
         setIsAnimating(true);
       }
     }
-  }, [shipRefs, targetShipRef, pov]);
+  }, [shipRefs, targetShipRef, pov, audio]);
 
   const handleToggleShipControl = useCallback(() => {
     if (shipControlMode === 'follow') {
       if (targetShipRef?.current) {
+        audio.play('pilot_engage');
+        audio.playLoop('engine_hum', { volume: 0.1 });
         const shipIndex = shipRefs.findIndex(ref => ref.current === targetShipRef.current);
         setControlledShipId(shipsData[shipIndex].id);
         setShipControlMode('manual');
         if (controlsRef.current) controlsRef.current.enabled = false;
       }
     } else {
+      audio.play('pilot_disengage');
+      audio.stop('engine_hum');
       setShipControlMode('follow');
       setControlledShipId(null);
       if (controlsRef.current) controlsRef.current.enabled = true;
     }
-  }, [shipControlMode, targetShipRef, shipRefs]);
+  }, [shipControlMode, targetShipRef, shipRefs, audio]);
 
-  const handleFire = useCallback(() => setFireRequest(prev => prev + 1), []);
+  const handleFire = useCallback(() => {
+    audio.play('laser');
+    setFireRequest(prev => prev + 1)
+  }, [audio]);
 
   const handleCanvasPointerDown = (e: React.PointerEvent) => {
     handleInteractionStart();
@@ -395,12 +415,10 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEnte
       >
         <HUD 
           selectedDistrict={selectedDistrict}
-          // FIX: Pass the correct handler function `handleToggleNavMenu` for the `onToggleNavMenu` prop.
           onToggleNavMenu={handleToggleNavMenu}
           onToggleHints={handleToggleHints}
           pov={pov}
           onSetPov={handleSetPov}
-          // FIX: Pass the correct handler function `handleGoHome` for the `onGoHome` prop.
           onGoHome={handleGoHome}
           isCalibrationMode={isCalibrationMode}
           heldDistrictId={heldDistrictId}

@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { useFrame, ThreeEvent, useThree } from '@react-three/fiber';
 import { CityDistrict } from '../../types';
 import HolographicDistrictLabel from './HolographicDistrictLabel';
+import { useAudio } from '../../hooks/useAudio';
 
 interface InteractiveModelProps {
   district: CityDistrict;
@@ -106,36 +107,38 @@ export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, is
   // FIX: Call useThree to provide types for JSX primitives
   useThree();
   const groupRef = useRef<THREE.Group>(null!);
-  
-  // --- NEW: State and refs for hold-to-select interaction ---
+  const audio = useAudio();
+
   const [holdProgress, setHoldProgress] = useState(0);
   const isHoldingRef = useRef(false);
   const animationFrameRef = useRef<number | null>(null);
-  const actionTriggeredRef = useRef(false); // New ref
+  const actionTriggeredRef = useRef(false);
   const HOLD_DURATION = 1000;
-  
+
   const cancelHold = useCallback(() => {
     isHoldingRef.current = false;
     if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
     }
     setHoldProgress(0);
-    actionTriggeredRef.current = false; // Reset
-  }, []);
-  
-  const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
+    actionTriggeredRef.current = false;
+    audio.stop('district_hold');
+  }, [audio]);
+
+  const handlePointerOver = useCallback((e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
+    audio.play('district_hover', { volume: 0.4, rate: 0.8 });
     if (isCalibrationMode) document.body.style.cursor = 'grab';
     else document.body.style.cursor = 'pointer';
-  };
+  }, [isCalibrationMode, audio]);
 
-  const handlePointerOut = (e: ThreeEvent<PointerEvent>) => {
+  const handlePointerOut = useCallback((e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
-    cancelHold(); // Cancel press if user drags out
+    cancelHold();
     document.body.style.cursor = 'auto';
-  };
-  
-  const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
+  }, [cancelHold]);
+
+  const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
 
     if (isCalibrationMode) {
@@ -143,7 +146,9 @@ export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, is
       return;
     }
     
+    audio.playHoldSound('district_hold', { volume: 0.4 });
     isHoldingRef.current = true;
+    actionTriggeredRef.current = false;
     const startTime = performance.now();
     
     const animateHold = (currentTime: number) => {
@@ -156,14 +161,12 @@ export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, is
         const progress = Math.min(elapsedTime / HOLD_DURATION, 1);
         setHoldProgress(progress);
 
-        // NEW LOGIC: Trigger action at 75% for a more responsive feel
         if (progress >= 0.75 && !actionTriggeredRef.current) {
             actionTriggeredRef.current = true;
             onSelect(district);
         }
 
         if (progress >= 1) {
-            // Animation completes
             cancelHold();
         } else {
             animationFrameRef.current = requestAnimationFrame(animateHold);
@@ -171,96 +174,63 @@ export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, is
     };
     
     animationFrameRef.current = requestAnimationFrame(animateHold);
-  };
+  }, [isCalibrationMode, onSetHeld, district, onSelect, audio, cancelHold]);
 
-  const handlePointerUp = (e: ThreeEvent<PointerEvent>) => {
-      e.stopPropagation();
-      cancelHold();
-  };
-
-
-  useFrame((_, delta) => {
-      if (groupRef.current) {
-          if (isHeld) {
-            // If held, the position is controlled by BuildModeController, so we just add a visual lift
-            const targetY = district.position[1] + 5;
-            groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, targetY, delta * 8);
-            groupRef.current.position.x = district.position[0];
-            groupRef.current.position.z = district.position[2];
-
-          } else {
-            // Normal behavior: hover bobbing or returning to base position
-            const targetY = isSelected ? Math.sin(Date.now() * 0.001) * 0.5 : 0;
-            const finalPos = new THREE.Vector3(...district.position);
-            finalPos.y += targetY;
-            groupRef.current.position.lerp(finalPos, delta * 4);
-          }
-      }
-  });
-
+  const handlePointerUp = useCallback((e: ThreeEvent<PointerEvent>) => {
+    e.stopPropagation();
+    cancelHold();
+  }, [cancelHold]);
 
   return (
     <group ref={groupRef} position={district.position}>
-        <Suspense fallback={
-            <Text color="cyan" anchorX="center" anchorY="middle">Loading...</Text>
-        }>
-            <Model 
-                url={district.modelUrl!} 
-                scale={district.modelScale || 1}
-                isHeld={isHeld}
-                onPointerOver={handlePointerOver}
-                onPointerOut={handlePointerOut}
-                onPointerDown={handlePointerDown}
-                onPointerUp={handlePointerUp}
-            />
-        </Suspense>
-        {/* The label is wrapped to disable its pointer events in normal mode, preventing conflicting interactions. */}
-        <HolographicDistrictLabel 
-            district={district} 
-            isSelected={isSelected} 
-            onSelect={onSelect} 
-            isCalibrationMode={isCalibrationMode}
-            isHeld={isHeld}
-            onSetHeld={onSetHeld}
-            pointerEventsEnabled={isCalibrationMode}
+      <Suspense fallback={null}>
+        <Model 
+          url={district.modelUrl!}
+          scale={district.modelScale || 1}
+          isHeld={isHeld}
+          onPointerOver={handlePointerOver}
+          onPointerOut={handlePointerOut}
+          onPointerDown={handlePointerDown}
+          onPointerUp={handlePointerUp}
         />
-        {/* Render the gauge here, controlled by this component's state, positioned over the label */}
-        {holdProgress > 0 && !isCalibrationMode && (
-             <group position={[0, 22.5, 0.2]}> {/* Positioned above the holographic label */}
-                <Text
-                    position={[0, 2.5, 0]} // Positioned above the bar
-                    fontSize={2}
-                    color="white"
-                    anchorX="center"
-                    anchorY="middle"
-                >
-                    HOLD
-                    <meshStandardMaterial emissive={'white'} emissiveIntensity={2} toneMapped={false} />
-                </Text>
-                {/* Gauge Background */}
-                <RoundedBox args={[28, 1.5, 0.2]} radius={0.5}>
-                    <meshStandardMaterial
-                        color="#000000"
-                        transparent
-                        opacity={0.5}
-                    />
-                </RoundedBox>
-                {/* Gauge Fill */}
-                <RoundedBox
-                    args={[28, 1.5, 0.2]}
-                    radius={0.5}
-                    position={[-14 * (1 - holdProgress), 0, 0.1]}
-                    scale={[holdProgress, 1, 1]}
-                >
-                    <meshStandardMaterial
-                        color="#ff9900" // Orange
-                        emissive="#ff9900"
-                        emissiveIntensity={2}
-                        toneMapped={false}
-                    />
-                </RoundedBox>
-            </group>
-        )}
+      </Suspense>
+      <HolographicDistrictLabel 
+        district={district}
+        isSelected={isSelected}
+        onSelect={onSelect}
+        isCalibrationMode={isCalibrationMode}
+        isHeld={isHeld}
+        onSetHeld={onSetHeld}
+        pointerEventsEnabled={false} // Disable label interaction to prevent duplicate sounds
+      />
+      {/* Replicating the hold gauge from HolographicDistrictLabel here */}
+      {holdProgress > 0 && !isCalibrationMode && (
+        <group position={[0, 15, 0]}>
+            <Text
+                position={[0, 10, 0]} // Positioned above the model
+                fontSize={3}
+                color="white"
+                anchorX="center"
+                anchorY="middle"
+            >
+                HOLD
+                <meshStandardMaterial emissive={'white'} emissiveIntensity={2} toneMapped={false} />
+            </Text>
+            {/* Gauge Background */}
+            <RoundedBox args={[28, 1.5, 0.2]} radius={0.5} position={[0, 7.5, 0]}>
+                <meshStandardMaterial color="#000000" transparent opacity={0.5} />
+            </RoundedBox>
+            {/* Gauge Fill */}
+            <RoundedBox
+                args={[28, 1.5, 0.2]}
+                radius={0.5}
+                position={[-14 * (1 - holdProgress), 7.5, 0.1]}
+                scale={[holdProgress, 1, 1]}
+            >
+                <meshStandardMaterial color="#ff9900" emissive="#ff9900" emissiveIntensity={2} toneMapped={false} />
+            </RoundedBox>
+        </group>
+      )}
     </group>
   );
 };

@@ -2,16 +2,18 @@ import React, { useState, Suspense, useCallback, useEffect } from 'react';
 import { useProgress } from '@react-three/drei';
 import { Experience3D } from './components/Experience3D';
 import { StartScreen } from './components/ui/StartScreen';
+import { AudioProvider } from './contexts/AudioContext';
+import { useAudio } from './hooks/useAudio';
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   const { progress } = useProgress();
   const [appState, setAppState] = useState<'loading' | 'start' | 'entering' | 'experience'>('loading');
+  const audio = useAudio();
 
   const isLoaded = progress >= 100;
 
   useEffect(() => {
     if (appState === 'loading' && isLoaded) {
-      // Short delay to ensure the final loading text is visible before transitioning.
       const timer = setTimeout(() => setAppState('start'), 500);
       return () => clearTimeout(timer);
     }
@@ -19,19 +21,20 @@ const App: React.FC = () => {
 
   const handleStart = useCallback(() => {
     if (appState === 'start') {
+      audio.play('confirm');
+      // Start main ambience loop once user engages
+      audio.playLoop('ambience', { volume: 0.2 });
+      audio.playLoop('flyby', { volume: 0.15 });
       setAppState('entering');
     }
-  }, [appState]);
+  }, [appState, audio]);
 
   const handleIntroEnd = useCallback(() => {
     setAppState('experience');
   }, []);
 
-  // The intro screen (gate/console) is shown during loading, start, and the entering animation.
   const showIntro = appState === 'loading' || appState === 'start' || appState === 'entering';
-  // The 3D experience canvas is mounted after loading is complete to be revealed by the gate.
   const showExperienceCanvas = appState !== 'loading';
-  // The HUD only becomes visible after the gate is fully open and the state is 'experience'.
   const isHudVisible = appState === 'experience';
 
   return (
@@ -58,5 +61,14 @@ const App: React.FC = () => {
     </>
   );
 };
+
+const App: React.FC = () => {
+  return (
+    <AudioProvider>
+      <AppContent />
+    </AudioProvider>
+  );
+};
+
 
 export default App;
