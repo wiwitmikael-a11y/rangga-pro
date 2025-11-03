@@ -156,6 +156,15 @@ const InstagramIcon = () => (
     </svg>
 );
 
+// --- Type definitions for Formspree API response to fix TSC build error ---
+interface FormspreeError {
+  message: string;
+  field?: string;
+}
+
+interface FormspreeResponse {
+  errors?: FormspreeError[];
+}
 
 const ContactPanel: React.FC = () => {
     const [status, setStatus] = useState('');
@@ -179,9 +188,9 @@ const ContactPanel: React.FC = () => {
                 setStatus('Message sent successfully! Thank you for reaching out.');
                 form.reset();
             } else {
-                const responseData = await response.json();
-                if (responseData.errors) {
-                    setStatus(responseData.errors.map((error: any) => error.message).join(', '));
+                const responseData: FormspreeResponse = await response.json();
+                if (responseData && responseData.errors) {
+                    setStatus(responseData.errors.map((error) => error.message).join(', '));
                 } else {
                     setStatus('Error: An unknown issue occurred during transmission.');
                 }
