@@ -175,17 +175,17 @@ export const chatData: {
             followUpPrompts: [{ text: "Lihat keahlian lain.", topicId: "skills_overview" }],
         },
         contact: {
-          keywords: ['kontak', 'terhubung', 'sosial', 'jaringan', 'hubungi', 'email', 'linkedin', 'github', 'sosmed', 'media sosial', 'cara menghubungi', 'twitter', 'x'],
+          keywords: ['kontak', 'terhubung', 'sosial', 'jaringan', 'hubungi', 'email', 'linkedin', 'github', 'sosmed', 'media sosial', 'cara menghubungi', 'twitter', 'x', 'youtube'],
           botResponses: ["Anda dapat menjalin koneksi langsung melalui jaringan ini.", "Berikut adalah saluran utama untuk terhubung dengannya."],
           followUpPrompts: [
             { text: "LinkedIn", topicId: "link_linkedin" },
             { text: "GitHub", topicId: "link_github" },
-            { text: "X (Twitter)", topicId: "link_x" },
+            { text: "YouTube", topicId: "link_x" },
           ],
         },
         link_linkedin: {
             keywords: [],
-            botResponses: ["Untuk wawasan profesional dan jaringan, Anda dapat mengunjungi profil LinkedIn-nya di: https://www.linkedin.com/in/ranggaprayogah/"],
+            botResponses: ["Untuk wawasan profesional dan jaringan, Anda dapat mengunjungi profil LinkedIn-nya di: https://id.linkedin.com/in/rangga-prayoga-hermawan"],
             followUpPrompts: [{ text: "Tampilkan opsi kontak lain.", topicId: "contact" }],
         },
         link_github: {
@@ -195,7 +195,7 @@ export const chatData: {
         },
         link_x: {
             keywords: [],
-            botResponses: ["Untuk pemikiran dan pembaruan terkini, Anda bisa mengikutinya di X (sebelumnya Twitter) di: https://x.com/ranggaprayogah"],
+            botResponses: ["Untuk konten musik dan kreatifnya, Anda bisa mengunjungi channel YouTube-nya di: https://www.youtube.com/@ruangranggamusicchannel5536"],
             followUpPrompts: [{ text: "Tampilkan opsi kontak lain.", topicId: "contact" }],
         },
         unhandled_query: {
@@ -353,17 +353,17 @@ export const chatData: {
             followUpPrompts: [{ text: "See other skills.", topicId: "skills_overview" }],
         },
         contact: {
-          keywords: ['contact', 'connect', 'social', 'network', 'reach out', 'email', 'linkedin', 'github', 'social media', 'how to contact', 'twitter', 'x'],
+          keywords: ['contact', 'connect', 'social', 'network', 'reach out', 'email', 'linkedin', 'github', 'social media', 'how to contact', 'twitter', 'x', 'youtube'],
           botResponses: ["You can establish a direct connection through these networks.", "Here are the primary channels to connect with him."],
           followUpPrompts: [
             { text: "LinkedIn", topicId: "link_linkedin" },
             { text: "GitHub", topicId: "link_github" },
-            { text: "X (Twitter)", topicId: "link_x" },
+            { text: "YouTube", topicId: "link_x" },
           ],
         },
         link_linkedin: {
             keywords: [],
-            botResponses: ["For professional insights and networking, you can visit his LinkedIn profile at: https://www.linkedin.com/in/ranggaprayogah/"],
+            botResponses: ["For professional insights and networking, you can visit his LinkedIn profile at: https://id.linkedin.com/in/rangga-prayoga-hermawan"],
             followUpPrompts: [{ text: "Show other contact options.", topicId: "contact" }],
         },
         link_github: {
@@ -373,7 +373,7 @@ export const chatData: {
         },
         link_x: {
             keywords: [],
-            botResponses: ["For his latest thoughts and updates, you can follow him on X (formerly Twitter) at: https://x.com/ranggaprayogah"],
+            botResponses: ["For his music and creative content, you can visit his YouTube channel at: https://www.youtube.com/@ruangranggamusicchannel5536"],
             followUpPrompts: [{ text: "Show other contact options.", topicId: "contact" }],
         },
         unhandled_query: {
