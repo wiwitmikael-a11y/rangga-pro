@@ -4,13 +4,18 @@ import { Experience3D } from './components/Experience3D';
 import { StartScreen } from './components/ui/StartScreen';
 import { AudioProvider } from './contexts/AudioContext';
 import { useAudio } from './hooks/useAudio';
+import { VideoIntro } from './components/ui/VideoIntro';
 
 const AppContent: React.FC = () => {
   const { progress } = useProgress();
-  const [appState, setAppState] = useState<'loading' | 'start' | 'entering' | 'experience'>('loading');
+  const [appState, setAppState] = useState<'video' | 'loading' | 'start' | 'entering' | 'experience'>('video');
   const audio = useAudio();
 
   const isLoaded = progress >= 100;
+
+  const handleVideoEnd = useCallback(() => {
+    setAppState('loading');
+  }, []);
 
   useEffect(() => {
     if (appState === 'loading' && isLoaded) {
@@ -33,12 +38,15 @@ const AppContent: React.FC = () => {
     setAppState('experience');
   }, []);
 
+  const showVideo = appState === 'video';
   const showIntro = appState === 'loading' || appState === 'start' || appState === 'entering';
-  const showExperienceCanvas = appState !== 'loading';
+  const showExperienceCanvas = appState !== 'loading' && appState !== 'video';
   const isHudVisible = appState === 'experience';
 
   return (
     <>
+      {showVideo && <VideoIntro onVideoEnd={handleVideoEnd} />}
+
       <main style={{ width: '100vw', height: '100vh', backgroundColor: '#050810' }}>
         <Suspense fallback={null}>
           {showExperienceCanvas && (

@@ -57,8 +57,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     backdropFilter: 'blur(3px)',
   },
   title: {
-    fontSize: 'clamp(2.5rem, 8vw, 5rem)',
-    margin: '0 0 40px 0',
+    fontSize: 'clamp(1.8rem, 4vw, 2.5rem)',
+    fontWeight: 400,
+    margin: '0 0 30px 0',
     letterSpacing: '0.2em',
     textTransform: 'uppercase',
     textShadow: '0 0 10px var(--primary-color), 0 0 20px var(--primary-color)',
