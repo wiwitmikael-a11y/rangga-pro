@@ -264,163 +264,168 @@ export const portfolioData: CityDistrict[] = [
           -45
         ],
         "imageUrl": "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        "id": "video-reel",
+        "title": "Cinematic Storytelling",
+        "description": "A showcase of cinematic projects, from concept to final cut. Highlights expertise in directing, cinematography, VFX, and post-production to tell compelling, human-centric stories.",
+        "position": [
+          55,
+          5,
+          -45
+        ],
+        "imageUrl": "https://images.unsplash.com/photo-1603953074228-0d65a190586f?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        "id": "drone-showcase",
+        "title": "Aerial Cinematography",
+        "description": "A collection of aerial cinematography capturing breathtaking perspectives. Demonstrates technical skill in drone operation and an artistic eye for dynamic aerial composition.",
+        "position": [
+          50,
+          5,
+          -55
+        ],
+        "imageUrl": "https://images.unsplash.com/photo-1504938634393-39d2c52b0488?auto=format&fit=crop&w=800&q=80"
+      }
+    ]
+  },
+  {
+    "id": "defi-data-vault",
+    "title": "DeFi Vault",
+    "description": "Blockchain Analysis & Web3 Exploration",
+    "position": [
+      70,
+      -5,
+      10
+    ],
+    "type": "major",
+    "cameraFocus": {
+      "pos": [
+        60,
+        20,
+        -40
+      ],
+      "lookAt": [
+        60,
+        10,
+        0
+      ]
+    },
+    "subItems": [
+      {
+        "id": "onchain-reports",
+        "title": "On-Chain Intelligence",
+        "description": "Deep-dive analyses of DeFi protocols derived from raw on-chain data. Showcases proficiency in tracking whale movements and identifying market anomalies in the Web3 ecosystem.",
+        "position": [
+          -55,
+          5,
+          55
+        ],
+        "imageUrl": "https://images.unsplash.com/photo-1640340434855-6084b1f4901c?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        "id": "smart-contracts",
+        "title": "Smart Contract Audits",
+        "description": "Case studies on Solidity smart contracts, focusing on security audits, logic exploits, and architectural best practices for building secure, decentralized applications.",
+        "position": [
+          -45,
+          5,
+          55
+        ],
+        "imageUrl": "https://images.unsplash.com/photo-1639755491196-ab1a12f0f4df?auto=format&fit=crop&w=800&q=80"
       }
     ]
   },
   {
     "id": "skills-matrix",
     "title": "Core Matrix",
-    "description": "Interactive Skills Assessment",
+    "description": "Core Technical & Creative Proficiencies",
     "position": [
-      -60,
-      5,
-      -20
-    ],
-    "type": "major",
-    "cameraFocus": {
-      "pos": [
-        -80,
-        30,
-        0
-      ],
-      "lookAt": [
-        -60,
-        15,
-        -20
-      ]
-    }
-  },
-  {
-    "id": "defi-data-vault",
-    "title": "DeFi Data Vault",
-    "description": "On-Chain Intelligence & dApps",
-    "position": [
-      20,
-      2,
-      -70
-    ],
-    "type": "major",
-    "modelUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/DeFiDataVault.glb",
-    "modelScale": 3.5,
-    "cameraFocus": {
-      "pos": [
-        20,
-        25,
-        -40
-      ],
-      "lookAt": [
-        20,
-        10,
-        -70
-      ]
-    }
-  },
-  {
-    "id": "contact",
-    "title": "Comms Hub",
-    "description": "Establish a Direct Connection",
-    "position": [
-      80,
-      -2,
-      -50
-    ],
-    "type": "major",
-    "modelUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/CommsHub.glb",
-    "modelScale": 4,
-    "cameraFocus": {
-      "pos": [
-        100,
-        20,
-        -30
-      ],
-      "lookAt": [
-        80,
-        10,
-        -50
-      ]
-    }
-  },
-  {
-    "id": "architects-spire",
-    "title": "The Architect's Profile",
-    "description": "Executive Summary & Core Competencies",
-    "position": [
-      0,
-      100,
+      -20,
+      -5,
       0
     ],
     "type": "major",
     "cameraFocus": {
       "pos": [
-        0,
-        105,
-        40
+        -10,
+        20,
+        -50
       ],
       "lookAt": [
-        0,
-        100,
-        0
+        -10,
+        10,
+        -10
+      ]
+    },
+    "subItems": [
+      {
+        "id": "skill-ai",
+        "title": "AI & Machine Learning",
+        "description": "Expertise in Generative AI Engineering, including Gemini API integration, and the design of autonomous, data-driven agents.",
+        "position": [
+          45,
+          5,
+          55
+        ],
+        "imageUrl": "https://images.unsplash.com/photo-1678483789004-6f16f39e3170?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        "id": "skill-web",
+        "title": "Web Technologies",
+        "description": "15+ years of full-stack architecture, specializing in high-performance web apps, intuitive UI/UX, and immersive 3D/WebGL experiences.",
+        "position": [
+          55,
+          5,
+          55
+        ],
+        "imageUrl": "https://images.unsplash.com/photo-1596003906917-202d08f44038?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        "id": "skill-blockchain",
+        "title": "Blockchain & Web3",
+        "description": "Deep proficiency in the Web3 ecosystem, from on-chain intelligence and DeFi analysis to secure smart contract development.",
+        "position": [
+          50,
+          5,
+          45
+        ],
+        "imageUrl": "https://images.unsplash.com/photo-1639322537228-f710d846310a?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        "id": "skill-creative",
+        "title": "Creative Tech & Media",
+        "description": "Mastery of the professional creative pipeline, including Adobe Creative Suite and DaVinci Resolve for videography, VFX, and branding.",
+        "position": [
+          50,
+          5,
+          65
+        ],
+        "imageUrl": "https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=800&q=80"
+      }
+    ]
+  },
+  {
+    "id": "contact",
+    "title": "Contact Hub",
+    "description": "Establish a connection",
+    "position": [
+      20,
+      -5,
+      80
+    ],
+    "type": "major",
+    "cameraFocus": {
+      "pos": [
+        20,
+        20,
+        120
+      ],
+      "lookAt": [
+        20,
+        10,
+        80
       ]
     }
-  },
-  {
-    "id": "ambient-bldg-1",
-    "title": "Residential Block A",
-    "description": "",
-    "position": [
-      -50,
-      -5,
-      -60
-    ],
-    "type": "minor",
-    "height": 45
-  },
-  {
-    "id": "ambient-bldg-2",
-    "title": "Corp Tower B",
-    "description": "",
-    "position": [
-      55,
-      -5,
-      -25
-    ],
-    "type": "minor",
-    "height": 60
-  },
-  {
-    "id": "ambient-bldg-3",
-    "title": "Data Spire C",
-    "description": "",
-    "position": [
-      -20,
-      -5,
-      90
-    ],
-    "type": "minor",
-    "height": 55
-  },
-  {
-    "id": "ambient-bldg-4",
-    "title": "Habitation Unit D",
-    "description": "",
-    "position": [
-      90,
-      -5,
-      20
-    ],
-    "type": "minor",
-    "height": 40
-  },
-  {
-    "id": "ambient-bldg-5",
-    "title": "Network Node E",
-    "description": "",
-    "position": [
-      -80,
-      -5,
-      40
-    ],
-    "type": "minor",
-    "height": 50
   }
 ];

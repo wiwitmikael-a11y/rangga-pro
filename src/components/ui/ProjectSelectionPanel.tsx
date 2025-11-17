@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { CityDistrict, SkillCategory } from '../../types';
-import { skillsDataBilingual, FORMSPREE_FORM_ID, professionalSummaryBilingual } from '../../constants';
+import { skillsDataBilingual, FORMSPREE_FORM_ID } from '../../constants';
 import { SkillsRadarChart } from './SkillsRadarChart';
 import { chatData, ChatPrompt, ChatTopic } from '../../chat-data';
 
@@ -209,10 +209,10 @@ const ContactPanel: React.FC = () => {
             </p>
 
             <div className="social-links-container">
-                 <a href="https://id.linkedin.com/in/rangga-prayoga-hermawan" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="LinkedIn Profile">
+                 <a href="https://www.linkedin.com/in/ranggaprayogah/" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="LinkedIn Profile">
                     <LinkedInIcon />
                 </a>
-                <a href="https://youtube.com/@ruangranggamusicchannel5536" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="YouTube Channel">
+                <a href="https://www.youtube.com/@ranggaprayogah" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="YouTube Channel">
                     <YouTubeIcon />
                 </a>
                 <a href="https://www.instagram.com/rangga.p.h" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="Instagram Profile">
@@ -417,31 +417,6 @@ const DefaultProjectPanel: React.FC<{ district: CityDistrict }> = ({ district })
     );
 };
 
-const ArchitectProfilePanel: React.FC<{ lang: 'id' | 'en' }> = ({ lang }) => {
-  const summary = professionalSummaryBilingual[lang].summary;
-  const skills = skillsDataBilingual[lang];
-
-  return (
-    <div className="architect-profile-container custom-scrollbar">
-        <div className="architect-profile-header">
-            <h3 className="architect-profile-title">Investment Thesis: The Fusionist Advantage</h3>
-        </div>
-        <p className="architect-profile-summary">{summary}</p>
-        
-        <h3 className="architect-profile-title">Core Competencies</h3>
-        <div className="architect-profile-skills-grid">
-            {skills.map(skillCat => (
-                <div key={skillCat.category} className="architect-profile-skill-card">
-                    <h4>{skillCat.category}</h4>
-                    <p>{skillCat.description}</p>
-                </div>
-            ))}
-        </div>
-    </div>
-  );
-};
-
-
 export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ isOpen, district, onClose }) => {
   const [lang, setLang] = useState<'id' | 'en'>('id');
 
@@ -469,8 +444,6 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
         return <ContactPanel />;
       case 'nexus-core':
         return <AiInquiryPanel />;
-      case 'architects-spire':
-        return <ArchitectProfilePanel lang={lang} />;
       default:
         return <DefaultProjectPanel district={district} />;
     }
@@ -483,7 +456,7 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
         <div style={styles.dangerStripes} />
         <div style={styles.header}>
           <h2 style={styles.title}>{district?.title}</h2>
-           { (district?.id === 'skills-matrix' || district?.id === 'architects-spire') && (
+           {district?.id === 'skills-matrix' && (
               <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
                   <button onClick={() => setLang('id')} style={{ fontWeight: lang === 'id' ? 'bold' : 'normal', color: lang === 'id' ? 'white' : '#aaa', background: 'none', border: 'none', cursor: 'pointer' }}>ID</button>
                   <span>/</span>

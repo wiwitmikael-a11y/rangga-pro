@@ -38,7 +38,7 @@ export const DistrictRenderer: React.FC<DistrictRendererProps> = ({
       {districts.map((district) => {
         const isSelected = selectedDistrict?.id === district.id;
         const isHeld = heldDistrictId === district.id;
-        
+
         // Render the main interactive portfolio districts
         if (district.type === 'major') {
           return (
