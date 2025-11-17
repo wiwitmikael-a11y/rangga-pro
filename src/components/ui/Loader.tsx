@@ -71,11 +71,12 @@ export const Loader: React.FC<LoaderProps> = React.memo(({ progress }) => {
 
   const displayedText = loadingTexts[currentTextIndex];
 
-  const progressBar = useMemo(() => {
+  const { bar, percentageText } = useMemo(() => {
     const barWidth = 40;
     const filledWidth = Math.floor((progress / 100) * barWidth);
-    const bar = `[${'█'.repeat(filledWidth)}${'-'.repeat(barWidth - filledWidth)}]`;
-    return `${bar} ${Math.round(progress)}%`;
+    const barStr = `[${'█'.repeat(filledWidth)}${'-'.repeat(barWidth - filledWidth)}]`;
+    const percentage = `${Math.round(progress)}%`;
+    return { bar: barStr, percentageText: percentage };
   }, [progress]);
 
   return (
@@ -85,7 +86,15 @@ export const Loader: React.FC<LoaderProps> = React.memo(({ progress }) => {
         <p style={styles.text}>{displayedText}<span style={styles.cursor}>_</span></p>
       </div>
       <div style={styles.progressBarContainer}>
-        <pre style={styles.text}>{progressBar}</pre>
+        {/* FIX: The progress bar and text are separated into different elements. 
+            The percentage text is given a fixed width to prevent layout shifts 
+            caused by non-monospace fonts when the number of digits changes. */}
+        <pre style={styles.text}>
+          <span>{bar}</span>
+          <span style={{display: 'inline-block', width: '5ch', textAlign: 'left', paddingLeft: '1ch' }}>
+            {percentageText}
+          </span>
+        </pre>
       </div>
       <style>{`
           @keyframes blink { 50% { opacity: 0; } }
