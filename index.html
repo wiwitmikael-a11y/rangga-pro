@@ -32,6 +32,12 @@
         -ms-user-select: none; /* IE10+ */
         -webkit-touch-callout: none; /* Disable callout on iOS long press */
       }
+
+      /* Ensure consistent font across form elements */
+      button, input, textarea, select {
+        font-family: inherit;
+      }
+      
       #root {
         width: 100vw;
         height: 100vh;
@@ -125,7 +131,6 @@
         padding: 8px 15px;
         border-radius: 20px;
         cursor: pointer;
-        font-family: inherit;
         font-size: 0.9rem;
         transition: all 0.2s ease;
       }
@@ -168,7 +173,6 @@
         border: 1px solid rgba(0, 170, 255, 0.3);
         border-radius: 20px;
         color: #e0e0e0;
-        font-family: var(--font-family);
         font-size: 1rem;
         padding: 10px 15px;
         transition: border-color 0.2s, box-shadow 0.2s;
@@ -333,7 +337,6 @@
         border-radius: 4px;
         cursor: pointer;
         transition: all 0.2s;
-        font-family: inherit;
         font-weight: bold;
       }
       .language-switcher button.active,
@@ -413,7 +416,6 @@
         border: 1px solid rgba(0, 170, 255, 0.3);
         border-radius: 5px;
         color: #e0e0e0;
-        font-family: var(--font-family);
         font-size: 1rem;
         padding: 12px;
         transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s, opacity 0.2s;
@@ -434,7 +436,6 @@
         color: var(--primary-color);
         padding: 12px 25px;
         font-size: 1rem;
-        font-family: inherit;
         cursor: pointer;
         text-transform: uppercase;
         letter-spacing: 0.1em;
