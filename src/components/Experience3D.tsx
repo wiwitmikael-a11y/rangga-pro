@@ -174,302 +174,262 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEnte
 
   const handleDistrictSelect = useCallback((district: CityDistrict) => {
     if (isAnimating || isCalibrationMode || district.id === selectedDistrict?.id) return;
-    setIsTouring(false);
+    audio.play('panel_open');
+    setSelectedDistrict(district);
+    setIsAnimating(true);
     setShowContentPanel(false);
-    setInfoPanelItem(null);
     setIsAutoRotating(false);
-    setSelectedDistrict(districts.find(d => d.id === district.id) || null);
-    setIsAnimating(true);
-    audio.play('confirm');
-  }, [selectedDistrict, isAnimating, districts, isCalibrationMode, audio]);
-  
-  const isDetailViewActive = showContentPanel || !!infoPanelItem || !!selectedDistrict;
-
-  const resetIdleTimer = useCallback(() => {
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-    idleTimerRef.current = setTimeout(() => {
-        if (pov === 'main' && !isDetailViewActive && !isCalibrationMode) {
-            setIsAutoRotating(true);
-        }
-    }, 60000);
-  }, [pov, isDetailViewActive, isCalibrationMode]);
-
-  const handleInteractionStart = useCallback(() => {
-      setIsTouring(false);
-      setIsAutoRotating(false);
-      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-  }, []);
-
-  const handleInteractionEnd = useCallback(() => {
-      resetIdleTimer();
-  }, [resetIdleTimer]);
-
-  const handleControlsChange = useCallback(() => {
-    if (controlsRef.current) {
-      const target = controlsRef.current.target;
-      const boundary = 150;
-      target.x = THREE.MathUtils.clamp(target.x, -boundary, boundary);
-      target.z = THREE.MathUtils.clamp(target.z, -boundary, boundary);
-      target.y = THREE.MathUtils.clamp(target.y, 0, 50);
+    if (pov === 'ship') {
+      setPov('main');
     }
-  }, []);
+  }, [isAnimating, isCalibrationMode, selectedDistrict?.id, audio, pov]);
 
-  useEffect(() => {
-    resetIdleTimer();
-    return () => {
-        if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-    };
-  }, [resetIdleTimer]);
-
-  const handleGoHome = useCallback(() => {
-    if (isAnimating) return;
-    audio.play('confirm');
-    setIsTouring(false);
-    setPov('main');
-    setSelectedDistrict(null);
-    setIsAnimating(true);
-    setShowContentPanel(false);
-    setInfoPanelItem(null);
-    setTargetShipRef(null);
-    setShipControlMode('follow');
-    setControlledShipId(null);
-  }, [isAnimating, audio]);
-
-  const onAnimationFinish = useCallback(() => {
-    if (isEntering) { // Special case for the entry animation finishing
-      setIsAnimating(false);
-      resetIdleTimer();
-      if (controlsRef.current) {
-        controlsRef.current.target.set(0, 5, 0); // Set initial target
-        controlsRef.current.update();
-      }
-      return;
-    }
-    
-    if (isTouring) {
-      const nextIndex = tourIndex + 1;
-      if (nextIndex < tourStops.length) {
-        setTourIndex(nextIndex);
-        setSelectedDistrict(tourStops[nextIndex]);
-      } else {
-        setIsTouring(false);
-        setIsAnimating(false);
-        setSelectedDistrict(null);
-        resetIdleTimer();
-        if (controlsRef.current) {
-          controlsRef.current.target.set(0, 5, 0);
-          controlsRef.current.update();
-        }
-      }
-      return;
-    }
-
+  const handleAnimationFinish = useCallback(() => {
     setIsAnimating(false);
     if (selectedDistrict) {
       setShowContentPanel(true);
-      if (controlsRef.current && selectedDistrict.cameraFocus) {
-        const { lookAt } = selectedDistrict.cameraFocus;
-        controlsRef.current.target.set(lookAt[0], lookAt[1], lookAt[2]);
-        controlsRef.current.update();
-      }
-    } else if (pov === 'main' && !isCalibrationMode) {
-      resetIdleTimer();
-      if (controlsRef.current) {
-        controlsRef.current.target.set(0, 5, 0);
-        controlsRef.current.update();
-      }
     }
-  }, [isEntering, isTouring, tourIndex, tourStops, selectedDistrict, pov, isCalibrationMode, resetIdleTimer]);
+  }, [selectedDistrict]);
 
   const handleClosePanel = useCallback(() => {
-    setShowContentPanel(false);
-    setInfoPanelItem(null);
-    setSelectedDistrict(null);
-    setIsAnimating(true);
     audio.play('panel_close');
-  }, [audio]);
-
-  const handleToggleNavMenu = useCallback(() => setIsNavMenuOpen(prev => {
-    if (!prev) audio.play('panel_open'); else audio.play('panel_close');
-    return !prev;
-  }), [audio]);
-
-  const handleToggleHints = useCallback(() => setIsHintsOpen(prev => {
-    if (!prev) audio.play('panel_open'); else audio.play('panel_close');
-    return !prev;
-  }), [audio]);
-
-  const handleSetPov = useCallback((newPov: 'main' | 'ship') => {
-    if (newPov === 'ship' && shipRefs.length > 0) {
-      audio.play('confirm');
-      const currentShipIndex = shipRefs.findIndex(ref => ref.current === targetShipRef?.current);
-      const nextShipIndex = (currentShipIndex + 1) % shipRefs.length;
-      setTargetShipRef(shipRefs[nextShipIndex]);
-      setPov('ship');
+    setShowContentPanel(false);
+    // Timeout to allow the panel to fade out before camera moves
+    setTimeout(() => {
       setSelectedDistrict(null);
       setIsAnimating(true);
-    } else {
-      setPov('main');
-      setTargetShipRef(null);
-      if (pov === 'ship') {
-        setSelectedDistrict(null);
-        setIsAnimating(true);
-      }
-    }
-  }, [shipRefs, targetShipRef, pov, audio]);
-
-  const handleToggleShipControl = useCallback(() => {
-    if (shipControlMode === 'follow') {
-      if (targetShipRef?.current) {
-        audio.play('pilot_engage');
-        audio.playLoop('engine_hum', { volume: 0.1 });
-        const shipIndex = shipRefs.findIndex(ref => ref.current === targetShipRef.current);
-        setControlledShipId(shipsData[shipIndex].id);
-        setShipControlMode('manual');
-        if (controlsRef.current) controlsRef.current.enabled = false;
-      }
-    } else {
-      audio.play('pilot_disengage');
-      audio.stop('engine_hum');
-      setShipControlMode('follow');
-      setControlledShipId(null);
-      if (controlsRef.current) controlsRef.current.enabled = true;
-    }
-  }, [shipControlMode, targetShipRef, shipRefs, audio]);
-
-  const handleFire = useCallback(() => {
-    audio.play('laser');
-    setFireRequest(prev => prev + 1)
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      idleTimerRef.current = setTimeout(() => setIsAutoRotating(true), 5000);
+    }, 300);
   }, [audio]);
+  
+  const handleGoHome = useCallback(() => {
+    audio.play('panel_close');
+    setSelectedDistrict(null);
+    setIsAnimating(true);
+    setShowContentPanel(false);
+    setIsNavMenuOpen(false);
+    setPov('main');
+  }, [audio]);
+  
+  const handleSetPov = useCallback((newPov: 'main' | 'ship') => {
+    if (newPov === pov) {
+        if (newPov === 'ship') {
+            // Cycle to the next ship if already in ship POV
+            setTargetShipRef(prevRef => {
+                if (!prevRef) return shipRefs[0] || null;
+                const currentIndex = shipRefs.findIndex(ref => ref === prevRef);
+                const nextIndex = (currentIndex + 1) % shipRefs.length;
+                return shipRefs[nextIndex] || null;
+            });
+        }
+        return;
+    }
+    
+    setPov(newPov);
+    setSelectedDistrict(null);
+    setShowContentPanel(false);
+    setIsAnimating(true);
 
-  const handleCanvasPointerDown = (e: React.PointerEvent) => {
-    handleInteractionStart();
-    if (shipControlMode === 'manual' && e.button === 0) handleFire();
-  };
+    if (newPov === 'ship') {
+        setShipControlMode('follow');
+        setTargetShipRef(shipRefs[0] || null);
+        setIsAutoRotating(false);
+        if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    } else { // newPov is 'main'
+        setTargetShipRef(null);
+        setControlledShipId(null);
+        setShipControlMode('follow');
+        if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+        idleTimerRef.current = setTimeout(() => setIsAutoRotating(true), 5000);
+    }
+  }, [pov, shipRefs]);
+  
+  const handleToggleShipControl = useCallback(() => {
+    setShipControlMode(prev => {
+        const newMode = prev === 'follow' ? 'manual' : 'follow';
+        if (newMode === 'manual') {
+            audio.play('pilot_engage', { volume: 0.6 });
+            audio.playLoop('engine_hum', { volume: 0.2 });
+            setControlledShipId(shipsData.find(s => s.id === (targetShipRef?.current?.userData.shipId as string))?.id ?? null);
+        } else {
+            audio.play('pilot_disengage', { volume: 0.6 });
+            audio.stop('engine_hum');
+            setControlledShipId(null);
+        }
+        return newMode;
+    });
+  }, [audio, targetShipRef]);
+  
+  const handleTour = useCallback(() => {
+    setIsTouring(isTouring => {
+        if (isTouring) {
+            // Stop the tour
+            setSelectedDistrict(null);
+            setIsAnimating(true);
+            return false;
+        } else {
+            // Start the tour
+            const nextStop = tourStops[0];
+            setSelectedDistrict(nextStop);
+            setIsAnimating(true);
+            setTourIndex(0);
+            return true;
+        }
+    });
+  }, [tourStops]);
 
-  const hudContext = useMemo(() => {
-    if (shipControlMode === 'manual') return 'shipManual';
-    if (pov === 'ship') return 'shipFollow';
-    return 'overview';
-  }, [shipControlMode, pov]);
+  useEffect(() => {
+    let tourTimeout: ReturnType<typeof setTimeout>;
+    if (isTouring && !isAnimating) {
+        tourTimeout = setTimeout(() => {
+            const nextIndex = (tourIndex + 1) % tourStops.length;
+            const nextStop = tourStops[nextIndex];
+            setSelectedDistrict(nextStop);
+            setIsAnimating(true);
+            setTourIndex(nextIndex);
+        }, 5000); // Wait 5 seconds at each stop
+    }
+    return () => clearTimeout(tourTimeout);
+  }, [isTouring, isAnimating, tourIndex, tourStops]);
+  
+  const handleFire = useCallback(() => {
+    audio.play('laser', { volume: 0.3, rate: 1.1 + Math.random() * 0.2 });
+    setFireRequest(prev => prev + 1);
+  }, [audio]);
 
   return (
     <>
       <Canvas
         shadows
-        camera={{ position: OVERVIEW_CAMERA_POSITION, fov: 50, near: 1, far: 1000 }}
-        onPointerDown={handleCanvasPointerDown}
-        onPointerUp={handleInteractionEnd}
-        onWheel={handleInteractionStart}
+        camera={{ position: OVERVIEW_CAMERA_POSITION, fov: 50 }}
+        gl={{
+          antialias: true,
+          powerPreference: 'high-performance',
+        }}
+        onPointerDown={() => {
+          if (isAutoRotating) setIsAutoRotating(false);
+          if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+        }}
+        onPointerUp={() => {
+          if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+          idleTimerRef.current = setTimeout(() => setIsAutoRotating(true), 5000);
+        }}
       >
         <Suspense fallback={null}>
-            <SceneContent
-              districts={districts}
-              selectedDistrict={selectedDistrict}
-              handleDistrictSelect={handleDistrictSelect}
-              isCalibrationMode={isCalibrationMode}
-              heldDistrictId={heldDistrictId}
-              setHeldDistrictId={setHeldDistrictId}
-              setShipRefs={setShipRefs}
-              isPaused={isPaused}
-              controlledShipId={controlledShipId}
-              shipInputs={shipInputs}
-              fireRequest={fireRequest}
-            />
-        </Suspense>
-
-        {isCalibrationMode && <CalibrationGrid size={250} />}
-        {heldDistrictId && (
-            <BuildModeController
+          <CameraRig
+            selectedDistrict={selectedDistrict}
+            onAnimationFinish={handleAnimationFinish}
+            isAnimating={isAnimating}
+            pov={pov}
+            targetShipRef={targetShipRef}
+            isCalibrationMode={isCalibrationMode}
+            isEntering={isEntering}
+          />
+          
+          <OrbitControls
+            ref={controlsRef}
+            enableDamping
+            dampingFactor={0.1}
+            rotateSpeed={0.5}
+            minDistance={30}
+            maxDistance={300}
+            maxPolarAngle={Math.PI / 2.2}
+            target={[0, 5, 0]}
+            enabled={pov === 'main' && !isAnimating && !isCalibrationMode}
+            autoRotate={isAutoRotating}
+            autoRotateSpeed={0.3}
+          />
+          
+          <SceneContent
+            districts={districts}
+            selectedDistrict={selectedDistrict}
+            handleDistrictSelect={handleDistrictSelect}
+            isCalibrationMode={isCalibrationMode}
+            heldDistrictId={heldDistrictId}
+            setHeldDistrictId={setHeldDistrictId}
+            setShipRefs={setShipRefs}
+            isPaused={isPaused}
+            controlledShipId={controlledShipId}
+            shipInputs={shipInputs}
+            fireRequest={fireRequest}
+          />
+          
+          {selectedDistrict && <HolographicInfoPanel district={selectedDistrict} onClose={handleClosePanel} />}
+          
+          {isCalibrationMode && (
+            <>
+              <CalibrationGrid size={250} />
+              <BuildModeController
                 districts={districts}
                 setDistricts={setDistricts}
                 heldDistrictId={heldDistrictId}
                 onPlaceDistrict={() => setHeldDistrictId(null)}
                 gridSize={250}
                 gridDivisions={25}
-            />
-        )}
-        
-        <CameraRig 
-          selectedDistrict={selectedDistrict} 
-          onAnimationFinish={onAnimationFinish} 
-          isAnimating={isAnimating} 
-          pov={pov}
-          targetShipRef={targetShipRef}
-          isCalibrationMode={isCalibrationMode}
-          isEntering={isEntering}
-        />
-        
-        <OrbitControls
-          ref={controlsRef}
-          enableDamping
-          dampingFactor={0.1}
-          autoRotate={isAutoRotating}
-          autoRotateSpeed={0.2}
-          minDistance={15}
-          maxDistance={300}
-          maxPolarAngle={Math.PI / 2.1}
-          enablePan={!isCalibrationMode}
-          target={[0, 5, 0]}
-          onChange={handleControlsChange}
-          enabled={!isAnimating && !isEntering && pov !== 'ship'}
-        />
+              />
+            </>
+          )}
 
+        </Suspense>
+        
         <EffectComposer>
-          <Noise premultiply blendFunction={BlendFunction.ADD} opacity={0.05} />
-          <Bloom luminanceThreshold={1.2} intensity={0.6} levels={8} mipmapBlur />
+          <Bloom luminanceThreshold={0.8} intensity={0.8} mipmapBlur />
+          <Noise opacity={0.05} blendFunction={BlendFunction.COLOR_DODGE} />
         </EffectComposer>
-
-        {infoPanelItem && <HolographicInfoPanel district={infoPanelItem} onClose={() => setInfoPanelItem(null)} />}
-
       </Canvas>
+      
+      {isHudVisible && (
+        <div className={`hud-container ${isHudVisible ? 'visible' : ''}`}>
+          <HUD
+            selectedDistrict={selectedDistrict}
+            onToggleNavMenu={() => setIsNavMenuOpen(!isNavMenuOpen)}
+            onToggleHints={() => setIsHintsOpen(!isHintsOpen)}
+            pov={pov}
+            onSetPov={handleSetPov}
+            onGoHome={handleGoHome}
+            isCalibrationMode={isCalibrationMode}
+            heldDistrictId={heldDistrictId}
+            shipControlMode={shipControlMode}
+            onToggleShipControl={handleToggleShipControl}
+            onFire={handleFire}
+            isTouchDevice={isTouchDevice}
+            onShipTouchInputChange={setShipTouchInputs}
+            isAnyPanelOpen={isAnyPanelOpen}
+          />
+        </div>
+      )}
+      
       {showInitialHint && <InitialHintTooltip />}
-      <div
-        className={`hud-container ${isHudVisible ? 'visible' : ''}`}
-        style={{ pointerEvents: isHudVisible ? 'auto' : 'none' }}
-      >
-        {/* FIX: Corrected handler names passed as props to the HUD component. */}
-        <HUD 
-          selectedDistrict={selectedDistrict}
-          onToggleNavMenu={handleToggleNavMenu}
-          onToggleHints={handleToggleHints}
-          pov={pov}
-          onSetPov={handleSetPov}
-          onGoHome={handleGoHome}
-          isCalibrationMode={isCalibrationMode}
-          heldDistrictId={heldDistrictId}
-          shipControlMode={shipControlMode}
-          onToggleShipControl={handleToggleShipControl}
-          onFire={handleFire}
-          isTouchDevice={isTouchDevice}
-          onShipTouchInputChange={setShipTouchInputs}
-          isAnyPanelOpen={isAnyPanelOpen}
-        />
-        <QuickNavMenu 
-          isOpen={isNavMenuOpen}
-          onClose={handleToggleNavMenu}
-          onSelectDistrict={(d) => {
-            handleDistrictSelect(d);
-            setIsNavMenuOpen(false);
-          }}
-          districts={navDistricts}
-        />
-        <ProjectSelectionPanel
-          isOpen={showContentPanel}
-          district={selectedDistrict}
-          onClose={handleClosePanel}
-        />
-        <HintsPanel
-          isOpen={isHintsOpen}
-          onClose={handleToggleHints}
-          context={hudContext}
-        />
-        <ExportLayoutModal
-            isOpen={isExportModalOpen}
-            onClose={() => { /* setIsExportModalOpen(false) */ }}
-            jsonData={exportedLayoutJson}
-        />
-      </div>
+
+      <QuickNavMenu
+        isOpen={isNavMenuOpen}
+        onClose={() => setIsNavMenuOpen(false)}
+        onSelectDistrict={(district) => {
+          handleDistrictSelect(district);
+          setIsNavMenuOpen(false);
+        }}
+        districts={navDistricts}
+      />
+      
+      <HintsPanel 
+        isOpen={isHintsOpen}
+        onClose={() => setIsHintsOpen(false)}
+        context={shipControlMode === 'manual' ? 'shipManual' : (pov === 'ship' ? 'shipFollow' : 'overview')}
+      />
+
+      <ProjectSelectionPanel
+        isOpen={showContentPanel}
+        district={selectedDistrict}
+        onClose={handleClosePanel}
+      />
+      
+      <ExportLayoutModal
+        isOpen={isExportModalOpen}
+        onClose={() => { /* Logic to close */ }}
+        jsonData={exportedLayoutJson}
+      />
     </>
   );
 };
