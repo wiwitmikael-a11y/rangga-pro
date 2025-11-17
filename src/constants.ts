@@ -205,7 +205,7 @@ export const portfolioData: CityDistrict[] = [
           5,
           -45
         ],
-        "imageUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/Assets/AI_Agent.jpeg?v=5"
+        "imageUrl": "https://images.unsplash.com/photo-1678496464312-3f0559556a73?q=80&w=1920&auto=format&fit=crop"
       },
       {
         "id": "project-data-viz",
@@ -216,7 +216,7 @@ export const portfolioData: CityDistrict[] = [
           5,
           -45
         ],
-        "imageUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/Assets/WebGL.jpeg?v=5"
+        "imageUrl": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1920&auto=format&fit=crop"
       },
       {
         "id": "project-portfolio",
@@ -227,7 +227,7 @@ export const portfolioData: CityDistrict[] = [
           5,
           -55
         ],
-        "imageUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/Assets/Ragetopia.jpeg?v=5"
+        "imageUrl": "https://images.unsplash.com/photo-1531554694174-b6a86480b1da?q=80&w=1920&auto=format&fit=crop"
       }
     ]
   },
@@ -263,7 +263,7 @@ export const portfolioData: CityDistrict[] = [
           5,
           -45
         ],
-        "imageUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/Assets/Landscape.jpeg?v=5"
+        "imageUrl": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=1920&auto=format&fit=crop"
       },
       {
         "id": "video-reel",
@@ -274,7 +274,7 @@ export const portfolioData: CityDistrict[] = [
           5,
           -45
         ],
-        "imageUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/Assets/Cinematic.jpeg?v=5"
+        "imageUrl": "https://images.unsplash.com/photo-1505628346881-1398f61d2d2e?q=80&w=1920&auto=format&fit=crop"
       },
       {
         "id": "drone-showcase",
@@ -285,7 +285,7 @@ export const portfolioData: CityDistrict[] = [
           5,
           -55
         ],
-        "imageUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/Assets/Aerial.jpeg?v=5"
+        "imageUrl": "https://images.unsplash.com/photo-1517403495929-e374888a53a8?q=80&w=1920&auto=format&fit=crop"
       }
     ]
   },
@@ -321,7 +321,7 @@ export const portfolioData: CityDistrict[] = [
           5,
           55
         ],
-        "imageUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/Assets/OnChain.jpeg?v=5"
+        "imageUrl": "https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=1920&auto=format&fit=crop"
       },
       {
         "id": "smart-contracts",
@@ -332,7 +332,7 @@ export const portfolioData: CityDistrict[] = [
           5,
           55
         ],
-        "imageUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/Assets/SmartContract.jpeg?v=5"
+        "imageUrl": "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?q=80&w=1920&auto=format&fit=crop"
       }
     ]
   },
@@ -368,7 +368,7 @@ export const portfolioData: CityDistrict[] = [
           5,
           55
         ],
-        "imageUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/Assets/AI_ML.jpeg?v=5"
+        "imageUrl": "https://images.unsplash.com/photo-1535223289827-42f1e9919769?q=80&w=1920&auto=format&fit=crop"
       },
       {
         "id": "skill-web",
@@ -379,7 +379,7 @@ export const portfolioData: CityDistrict[] = [
           5,
           55
         ],
-        "imageUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/Assets/Web.jpeg?v=5"
+        "imageUrl": "https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=1920&auto=format&fit=crop"
       },
       {
         "id": "skill-blockchain",
@@ -390,7 +390,7 @@ export const portfolioData: CityDistrict[] = [
           5,
           45
         ],
-        "imageUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/Assets/Blockchain.jpeg?v=5"
+        "imageUrl": "https://images.unsplash.com/photo-1642104704074-9071262202?q=80&w=1920&auto=format&fit=crop"
       },
       {
         "id": "skill-creative",
@@ -401,7 +401,7 @@ export const portfolioData: CityDistrict[] = [
           5,
           65
         ],
-        "imageUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/Assets/Creative.jpeg?v=5"
+        "imageUrl": "https://images.unsplash.com/photo-1522881451255-f59ad836fdfb?q=80&w=1920&auto=format&fit=crop"
       }
     ]
   },

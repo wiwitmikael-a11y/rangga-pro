@@ -110,16 +110,22 @@ const SkillsMatrixPanel: React.FC<{ lang: 'id' | 'en' }> = ({ lang }) => {
   }, [lang]);
 
   const displayCategory = selectedCategory || hoveredCategory;
-  
-  const tipText = lang === 'id' 
-    ? "Pilih salah satu kategori pada radar untuk melihat detailnya."
-    : "Select a category on the radar to view details.";
+  const hintText = lang === 'id' 
+    ? "Klik pada kategori di radar untuk melihat detail." 
+    : "Click a category on the radar to view details.";
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', height: '100%' }}>
       <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-        <p style={{ fontSize: '0.8rem', color: '#88a7a6', textAlign: 'center', fontStyle: 'italic', marginBottom: '10px' }}>
-          {tipText}
+        <p style={{
+          fontSize: '0.8rem',
+          color: '#88a7a6',
+          textAlign: 'center',
+          marginBottom: '10px',
+          fontStyle: 'italic',
+          maxWidth: '80%'
+        }}>
+          {hintText}
         </p>
         <SkillsRadarChart 
             skills={skillsDataBilingual[lang]} 
@@ -157,150 +163,327 @@ const YouTubeIcon = () => (
     </svg>
 );
 
-const GitHubIcon = () => (
+const InstagramIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.85s-.011 3.584-.069 4.85c-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07s-3.584-.012-4.85-.07c-3.252-.148-4.771-1.691-4.919-4.919-.058-1.265-.069-1.645-.069-4.85s.011-3.584.069-4.85c.149-3.225 1.664 4.771 4.919-4.919 1.266-.057 1.644-.069 4.85-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948s.014 3.667.072 4.947c.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072s3.667-.014 4.947-.072c4.358-.2 6.78-2.618 6.98-6.98.059-1.281-.073-1.689-.073-4.948s-.014-3.667-.072-4.947c-.2-4.358-2.618-6.78-6.98-6.98-1.281-.059-1.689-.073-4.948-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.162 6.162 6.162 6.162-2.759 6.162-6.162-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4s1.791-4 4-4 4 1.79 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44 1.441-.645 1.441-1.44-.645-1.44-1.441-1.44z"/>
     </svg>
 );
 
-const SendIcon = () => (
-  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="22" y1="2" x2="11" y2="13"></line>
-    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-  </svg>
-);
+// --- Type definitions for Formspree API response to fix TSC build error ---
+interface FormspreeError {
+  message: string;
+  field?: string;
+}
 
-type ChatMessage = {
-  id: number;
-  sender: 'bot' | 'user';
-  text: string;
-};
+interface FormspreeResponse {
+  errors?: FormspreeError[];
+}
 
-const ChatPanel: React.FC = () => {
-    const [language, setLanguage] = useState<'id' | 'en' | null>(null);
-    const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
-    const [currentPrompts, setCurrentPrompts] = useState<ChatPrompt[]>([]);
-    const [isThinking, setIsThinking] = useState(false);
-    const chatLogRef = useRef<HTMLDivElement>(null);
+const messageTemplates = [
+    { label: 'Pertanyaan tentang Pengembangan Website 3D', value: "Halo, saya sangat terkesan dengan portofolio 3D Anda. Berapa estimasi biaya dan waktu untuk mengembangkan website interaktif serupa untuk [sebutkan proyek/brand Anda]?" },
+    { label: 'Kolaborasi Proyek AI', value: "Halo, saya tertarik dengan keahlian Anda di bidang AI, khususnya Gemini API. Saya memiliki proyek [sebutkan proyek] dan ingin mendiskusikan potensi kolaborasi. Apakah Anda bersedia untuk berdiskusi lebih lanjut?" },
+    { label: 'Konsultasi Web3/Blockchain', value: "Saya sedang menjajaki implementasi teknologi Web3 untuk proyek saya. Bisakah Anda jelaskan bagaimana keahlian Anda dalam analisis on-chain dan smart contract dapat membantu?" },
+    { label: 'Layanan Media Kreatif', value: "Saya mencari seorang profesional untuk proyek [videografi/fotografi/branding]. Bisakah Anda memberikan informasi lebih lanjut mengenai layanan kreatif yang Anda tawarkan?" },
+    { label: 'Konsultasi Umum', value: "Saya ingin menjadwalkan sesi konsultasi untuk membahas strategi digital untuk bisnis saya. Mohon informasikan ketersediaan dan tarif Anda." },
+];
 
-    const scrollToBottom = useCallback(() => {
-        chatLogRef.current?.scrollTo({ top: chatLogRef.current.scrollHeight, behavior: 'smooth' });
-    }, []);
 
-    useEffect(() => {
-        scrollToBottom();
-    }, [chatHistory, isThinking, scrollToBottom]);
-    
-    // Initial language selection setup
-    useEffect(() => {
-        if (!language) {
-            const initialMessage: ChatMessage = {
-                id: Date.now(),
-                sender: 'bot',
-                text: chatData.languageSelector.intro,
-            };
-            setChatHistory([initialMessage]);
-            setCurrentPrompts([chatData.languageSelector.prompts.id, chatData.languageSelector.prompts.en]);
-        }
-    }, [language]);
+const ContactPanel: React.FC = () => {
+    const [status, setStatus] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [messageContent, setMessageContent] = useState('');
 
-    const handleTopicSelection = useCallback((topicId: string) => {
-        if (topicId === 'lang_select_id') {
-            setLanguage('id');
-            const langDb = chatData.id;
-            const greeting = langDb.greetings[Math.floor(Math.random() * langDb.greetings.length)];
-            setChatHistory(prev => [...prev, {id: Date.now(), sender: 'bot', text: greeting}]);
-            setCurrentPrompts(langDb.entryPoints);
-            return;
-        }
-        if (topicId === 'lang_select_en') {
-            setLanguage('en');
-            const langDb = chatData.en;
-            const greeting = langDb.greetings[Math.floor(Math.random() * langDb.greetings.length)];
-            setChatHistory(prev => [...prev, {id: Date.now(), sender: 'bot', text: greeting}]);
-            setCurrentPrompts(langDb.entryPoints);
-            return;
-        }
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        setIsLoading(true);
+        setStatus('Transmitting...');
+        const form = event.currentTarget;
+        const data = new FormData(form);
         
-        if (!language) return;
+        try {
+            const response = await fetch(`https://formspree.io/f/${FORMSPREE_FORM_ID}`, {
+                method: 'POST',
+                body: data,
+                headers: { 'Accept': 'application/json' }
+            });
 
-        const langDb = chatData[language];
-        let topic: ChatTopic | undefined = langDb.topics[topicId];
-
-        if (topicId === 'start') {
-            topic = {
-                keywords: [],
-                botResponses: ["Tentu saja. Apa yang ingin Anda jelajahi dari topik utama?", "Baik, kembali ke ringkasannya. Apa yang menarik bagi Anda sekarang?", "Tidak masalah. Berikut adalah topik-topik utamanya lagi."],
-                followUpPrompts: langDb.entryPoints,
-            };
-        } else if (!topic) {
-            topic = langDb.topics['unhandled_query_freeform'];
+            if (response.ok) {
+                setStatus('Message sent successfully! Thank you for reaching out.');
+                form.reset();
+                setMessageContent(''); // Clear message state on successful submission
+            } else {
+                const responseData: FormspreeResponse = await response.json();
+                if (responseData && responseData.errors) {
+                    setStatus(responseData.errors.map((error) => error.message).join(', '));
+                } else {
+                    setStatus('Error: An unknown issue occurred during transmission.');
+                }
+            }
+        } catch (error) {
+            setStatus('Error: Could not connect to the communication network.');
+        } finally {
+            setIsLoading(false);
         }
-
-        if (topic) {
-            setIsThinking(true);
-            const responseText = topic.botResponses[Math.floor(Math.random() * topic.botResponses.length)];
-            const newPrompts = [...(topic.followUpPrompts || []), ...langDb.fallbackPrompts];
-
-            // Simulate AI thinking time
-            setTimeout(() => {
-                setChatHistory(prev => [...prev, { id: Date.now(), sender: 'bot', text: responseText }]);
-                setCurrentPrompts(newPrompts);
-                setIsThinking(false);
-            }, 800);
-        }
-    }, [language]);
-
-    const handlePromptClick = (prompt: ChatPrompt) => {
-        // Add user's choice to history
-        setChatHistory(prev => [...prev, { id: Date.now(), sender: 'user', text: prompt.text }]);
-        // Clear prompts immediately for a responsive feel
-        setCurrentPrompts([]);
-        // Handle the topic
-        handleTopicSelection(prompt.topicId);
     };
-
+    
     return (
-        <div className="chat-container">
-            <div ref={chatLogRef} className="chat-log custom-scrollbar">
-                {chatHistory.map(msg => (
-                    <div key={msg.id} className={`chat-message-wrapper ${msg.sender}`}>
-                        <div className={`chat-bubble ${msg.sender}`}>
-                            {msg.text}
-                        </div>
-                    </div>
-                ))}
-                {isThinking && (
-                     <div className="chat-message-wrapper bot">
-                        <div className="chat-bubble bot">
-                            <div className="typing-indicator"><span></span><span></span><span></span></div>
-                        </div>
-                    </div>
-                )}
+        <div className="contact-form-container custom-scrollbar">
+            <p className="contact-form-intro">
+                Your inquiries are welcome. Please use the form below to establish a direct communication link. For professional networking or technical collaboration, you can also connect via the provided social channels.
+            </p>
+
+            <div className="social-links-container">
+                 <a href="https://id.linkedin.com/in/rangga-prayoga-hermawan" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="LinkedIn Profile">
+                    <LinkedInIcon />
+                </a>
+                <a href="https://www.youtube.com/@ruangranggamusicchannel5536" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="YouTube Channel">
+                    <YouTubeIcon />
+                </a>
+                <a href="https://www.instagram.com/rangga.p.h" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="Instagram Profile">
+                    <InstagramIcon />
+                </a>
             </div>
-            {!isThinking && currentPrompts.length > 0 && (
-                <div className="chat-prompts">
-                    {currentPrompts.map((prompt, index) => (
-                        <button key={index} className="chat-prompt-button" onClick={() => handlePromptClick(prompt)}>
-                            {prompt.text}
-                        </button>
-                    ))}
+
+            {status.includes('successfully') ? (
+                 <div className="form-success-message">
+                    <h3>Transmission Received!</h3>
+                    <p>{status}</p>
+                    <button onClick={() => setStatus('')}>Establish New Connection</button>
                 </div>
+            ) : (
+                <form onSubmit={handleSubmit}>
+                    <div className="form-group">
+                        <label htmlFor="name">Name / Alias</label>
+                        <input type="text" id="name" name="name" required disabled={isLoading} placeholder="Your identifier" />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="email">Return Comms Channel (Email)</label>
+                        <input type="email" id="email" name="email" required disabled={isLoading} placeholder="your.address@domain.com" />
+                    </div>
+                     <div className="form-group">
+                        <label htmlFor="subject">Subject</label>
+                        <select id="subject" name="subject" required disabled={isLoading} defaultValue="">
+                            <option value="" disabled>-- Select a Subject --</option>
+                            <option value="General Inquiry">General Inquiry</option>
+                            <option value="Project Collaboration Proposal">Project Collaboration Proposal</option>
+                            <option value="AI & Engineering Consultation">AI & Engineering Consultation</option>
+                            <option value="Web/3D Development Inquiry">Web/3D Development Inquiry</option>
+                            <option value="Creative/Media Project Inquiry">Creative/Media Project Inquiry</option>
+                            <option value="Career/Mentorship Opportunity">Career/Mentorship Opportunity</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="message-template">Message Template (Optional)</label>
+                        <select 
+                            id="message-template" 
+                            onChange={(e) => setMessageContent(e.target.value)}
+                            disabled={isLoading} 
+                            defaultValue=""
+                        >
+                            <option value="" disabled>-- Select a pre-written question --</option>
+                            {messageTemplates.map(template => (
+                                <option key={template.label} value={template.value}>
+                                    {template.label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="message">Your Message</label>
+                        <textarea 
+                            id="message" 
+                            name="message" 
+                            value={messageContent}
+                            onChange={(e) => setMessageContent(e.target.value)}
+                            required 
+                            disabled={isLoading} 
+                            rows={5} 
+                            placeholder="Your message details... Select a template above or write your own."
+                        ></textarea>
+                    </div>
+
+                    <button type="submit" disabled={isLoading}>
+                        {isLoading ? 'TRANSMITTING...' : 'SEND MESSAGE'}
+                    </button>
+                    {status && !status.includes('successfully') && <p className="form-error">{status}</p>}
+                </form>
             )}
         </div>
     );
 };
 
+const AiInquiryPanel: React.FC = () => {
+    const [lang, setLang] = useState<'id' | 'en' | null>(null);
+    const [messages, setMessages] = useState<{ author: 'user' | 'bot'; text: string; }[]>([]);
+    const [prompts, setPrompts] = useState<ChatPrompt[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [input, setInput] = useState('');
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    useEffect(scrollToBottom, [messages]);
+
+    const addBotMessage = useCallback((text: string, newPrompts: ChatPrompt[]) => {
+        setMessages(prev => [...prev, { author: 'bot', text }]);
+        setPrompts(newPrompts);
+        setIsLoading(false);
+    }, []);
+
+    // Effect for initial language selection
+    useEffect(() => {
+        setIsLoading(true);
+        setTimeout(() => {
+            addBotMessage(
+                chatData.languageSelector.intro, 
+                [chatData.languageSelector.prompts.id, chatData.languageSelector.prompts.en]
+            );
+        }, 500);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Effect to greet in selected language
+    useEffect(() => {
+        if (lang) {
+            setIsLoading(true);
+            const db = chatData[lang];
+            const initialGreeting = db.greetings[Math.floor(Math.random() * db.greetings.length)];
+            setTimeout(() => addBotMessage(initialGreeting, db.entryPoints), 800);
+        }
+    }, [lang, addBotMessage]);
+
+    const findTopicByKeywords = useCallback((message: string, db: typeof chatData.en): ChatTopic | null => {
+        const lowerCaseMessage = message.toLowerCase().trim();
+        if (!lowerCaseMessage) return null;
+
+        let bestMatch: { topic: ChatTopic, score: number } | null = null;
+
+        for (const topicId in db.topics) {
+            const topic = db.topics[topicId];
+            let score = 0;
+            topic.keywords.forEach(keyword => {
+                const regex = new RegExp(`\\b${keyword.toLowerCase()}\\b`);
+                if (regex.test(lowerCaseMessage)) {
+                    score++;
+                }
+            });
+
+            if (score > 0) {
+                if (!bestMatch || score > bestMatch.score) {
+                    bestMatch = { topic, score };
+                }
+            }
+        }
+        return bestMatch ? bestMatch.topic : null;
+    }, []);
+    
+    const processAndRespond = useCallback((topic: ChatTopic, db: typeof chatData.en) => {
+        const response = topic.botResponses[Math.floor(Math.random() * topic.botResponses.length)];
+        let newPrompts;
+
+        if (topic === db.topics.start) {
+            newPrompts = db.entryPoints;
+        } else {
+            const followUps = topic.followUpPrompts || [];
+            const uniquePrompts = [...followUps];
+            db.fallbackPrompts.forEach(fp => {
+                if (!uniquePrompts.some(p => p.topicId === fp.topicId)) {
+                    uniquePrompts.push(fp);
+                }
+            });
+            newPrompts = uniquePrompts;
+        }
+
+        setTimeout(() => addBotMessage(typeof response === 'function' ? response() : response, newPrompts), 1000);
+    }, [addBotMessage]);
+
+    const handlePromptClick = (prompt: ChatPrompt) => {
+        if (isLoading) return;
+        setMessages(prev => [...prev, { author: 'user', text: prompt.text }]);
+        setIsLoading(true);
+        setPrompts([]);
+
+        if (prompt.topicId === 'lang_select_id') {
+            setLang('id');
+            return;
+        }
+        if (prompt.topicId === 'lang_select_en') {
+            setLang('en');
+            return;
+        }
+        
+        if (!lang) return;
+        const db = chatData[lang];
+        const topic = db.topics[prompt.topicId] || db.topics.start;
+        processAndRespond(topic, db);
+    };
+
+    const handleFreeformSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!input.trim() || isLoading || !lang) return;
+        
+        const userMessage = input;
+        setMessages(prev => [...prev, { author: 'user', text: userMessage }]);
+        setInput('');
+        setIsLoading(true);
+        setPrompts([]);
+
+        const db = chatData[lang];
+        const matchedTopic = findTopicByKeywords(userMessage, db);
+        const topic = matchedTopic || db.topics.unhandled_query_freeform;
+        processAndRespond(topic, db);
+    };
+    
+    return (
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ flexGrow: 1, overflowY: 'auto', paddingRight: '10px' }}>
+                {messages.map((msg, index) => (
+                    <div key={index} style={{ marginBottom: '15px', display: 'flex', flexDirection: msg.author === 'bot' ? 'row' : 'row-reverse' }}>
+                        <div style={{ padding: '10px 15px', borderRadius: '10px', maxWidth: '80%', background: msg.author === 'bot' ? 'rgba(0, 170, 255, 0.1)' : 'rgba(255, 255, 255, 0.1)', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{msg.text}</div>
+                    </div>
+                ))}
+                 {isLoading && <div style={{ textAlign: 'center', color: '#ccc' }}>Thinking...</div>}
+                <div ref={messagesEndRef} />
+            </div>
+            <div style={{ flexShrink: 0, paddingTop: '10px' }}>
+                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '10px', justifyContent: 'center' }}>
+                    {!isLoading && prompts.map((p, i) => <button key={i} onClick={() => handlePromptClick(p)} style={{ background: 'rgba(0, 170, 255, 0.2)', border: '1px solid #00aaff', color: '#00aaff', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer' }}>{p.text}</button>)}
+                </div>
+                 <form onSubmit={handleFreeformSubmit} style={{ display: 'flex', gap: '10px' }}>
+                    <input type="text" value={input} onChange={e => setInput(e.target.value)} placeholder={!lang ? "Select a language to begin..." : "Or ask a freeform question..."} disabled={isLoading || !lang} style={{ flexGrow: 1, padding: '12px', background: 'rgba(0,0,0,0.3)', border: '1px solid #00aaff', borderRadius: '5px', color: 'white' }} />
+                    <button type="submit" disabled={isLoading || !lang} style={{...styles.closeButton, position: 'static', width: 'auto', padding: '10px 20px', borderRadius: '5px' }}>Send</button>
+                </form>
+            </div>
+        </div>
+    );
+};
+
+const DefaultProjectPanel: React.FC<{ district: CityDistrict }> = ({ district }) => {
+    return (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
+            {district.subItems?.map(item => (
+                <div key={item.id} style={{ ...glassmorphism, padding: '15px', borderRadius: '8px', borderLeft: '3px solid var(--primary-color)' }}>
+                    <img src={item.imageUrl} alt={item.title} style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '5px', marginBottom: '10px' }} />
+                    <h4 style={{ color: 'white', margin: '0 0 5px 0' }}>{item.title}</h4>
+                    <p style={{ color: '#ccc', fontSize: '0.85rem', margin: 0, lineHeight: 1.5 }}>{item.description}</p>
+                </div>
+            ))}
+        </div>
+    );
+};
 
 export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ isOpen, district, onClose }) => {
   const [lang, setLang] = useState<'id' | 'en'>('id');
-  const [activeImage, setActiveImage] = useState<string | null>(null);
 
   const containerStyle: React.CSSProperties = {
     ...styles.container,
     opacity: isOpen ? 1 : 0,
     transform: isOpen ? 'translate(-50%, -50%) scale(1)' : 'translate(-50%, -50%) scale(0.95)',
     pointerEvents: isOpen ? 'auto' : 'none',
+    transition: 'opacity 0.3s ease, transform 0.3s ease',
   };
 
   const overlayStyle: React.CSSProperties = {
@@ -313,84 +496,40 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
     if (!district) return null;
 
     switch (district.id) {
-      case 'nexus-core':
-        return <ChatPanel />;
-
       case 'skills-matrix':
-        return (
-          <div className="skills-matrix-container">
-            <div className="skills-chart">
-              <SkillsMatrixPanel lang={lang} />
-            </div>
-            <div className="skills-details custom-scrollbar">
-              <div className="skills-details-header">
-                <h2 className="skills-details-title">Core Competencies</h2>
-                <div className="language-switcher">
-                  <button onClick={() => setLang('id')} className={lang === 'id' ? 'active' : ''}>ID</button>
-                  <button onClick={() => setLang('en')} className={lang === 'en' ? 'active' : ''}>EN</button>
-                </div>
-              </div>
-              <p className="skills-details-desc">{skillsDataBilingual[lang][0].description}</p>
-              <h3 className="skills-details-subtitle">Key Metrics</h3>
-              <ul className="skills-details-metrics">
-                {skillsDataBilingual[lang][0].keyMetrics.map(metric => <li key={metric}>{metric}</li>)}
-              </ul>
-            </div>
-          </div>
-        );
-
-      case 'nova-forge':
-      case 'visual-arts':
-      case 'defi-data-vault':
-        return (
-            <div className="project-gallery-grid custom-scrollbar">
-                {district.subItems?.map(item => (
-                    <div key={item.id} className="project-card" onClick={() => item.imageUrl && setActiveImage(item.imageUrl)}>
-                        {item.imageUrl && <img src={item.imageUrl} alt={item.title} className="project-card-img" />}
-                        <div className="project-card-body">
-                            <h3 className="project-card-title">{item.title}</h3>
-                            <p className="project-card-desc">{item.description}</p>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        );
-      
+        return <SkillsMatrixPanel lang={lang} />;
+      case 'contact':
+        return <ContactPanel />;
+      case 'nexus-core':
+        return <AiInquiryPanel />;
       default:
-        return (
-          <div style={{ padding: '20px', color: '#ccc', textAlign: 'center' }}>
-            Content for this district is under construction.
-          </div>
-        );
+        return <DefaultProjectPanel district={district} />;
     }
   };
 
   return (
     <>
       <div style={overlayStyle} onClick={onClose} />
-      <div 
-        style={containerStyle} 
-        className={`project-selection-panel responsive-modal ${isOpen ? 'panel-enter' : ''}`}
-        onContextMenu={(e) => e.stopPropagation()}
-      >
+      <div style={containerStyle} className="project-selection-panel responsive-modal">
         <div style={styles.dangerStripes} />
         <div style={styles.header}>
-            <h2 style={styles.title}>{district?.title}</h2>
+            {/* Wrapper for title and lang switch to ensure proper flex behavior */}
+            <div style={{ flex: '1 1 auto', display: 'flex', alignItems: 'center', minWidth: 0 }}>
+                <h2 style={styles.title}>{district?.title}</h2>
+                {district?.id === 'skills-matrix' && (
+                    <div style={{ display: 'flex', gap: '5px', alignItems: 'center', flexShrink: 0, marginLeft: '15px' }}>
+                        <button onClick={() => setLang('id')} style={{ fontWeight: lang === 'id' ? 'bold' : 'normal', color: lang === 'id' ? 'white' : '#aaa', background: 'none', border: 'none', cursor: 'pointer' }}>ID</button>
+                        <span>/</span>
+                        <button onClick={() => setLang('en')} style={{ fontWeight: lang === 'en' ? 'bold' : 'normal', color: lang === 'en' ? 'white' : '#aaa', background: 'none', border: 'none', cursor: 'pointer' }}>EN</button>
+                    </div>
+                )}
+            </div>
             <button onClick={onClose} style={styles.closeButton} aria-label="Close Panel">&times;</button>
         </div>
         <div style={styles.content} className="custom-scrollbar">
           {renderContent()}
         </div>
       </div>
-
-      {activeImage && (
-        <div className="image-modal-overlay" onClick={() => setActiveImage(null)}>
-            <div className="image-modal-content" onClick={e => e.stopPropagation()}>
-                <img src={activeImage} alt="Project Showcase" />
-                <button className="image-modal-close" onClick={() => setActiveImage(null)}>&times;</button>
-            </div>
-        </div>
-      )}
     </>
   );
 };

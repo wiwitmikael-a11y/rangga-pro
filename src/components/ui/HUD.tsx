@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useRef, useCallback, useState } from 'react';
+import React, { useMemo, useEffect, useRef, useCallback } from 'react';
 import type { CityDistrict, ShipInputState } from '../../types';
 
 interface HUDProps {
@@ -35,453 +35,612 @@ const CameraIcon: React.FC = () => (
 );
 
 const ShipIcon: React.FC = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 21l2-5 5-2L22 2 12 12l-2 5-5 2z"></path>
-      <path d="M12.5 11.5L18 6"></path>
-    </svg>
-);
-
-const HomeIcon: React.FC = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-        <polyline points="9 22 9 12 15 12 15 22"></polyline>
-    </svg>
-);
-
-const HintsIcon: React.FC = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10"></circle>
-    <line x1="12" y1="16" x2="12" y2="12"></line>
-    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+     <path d="M2 12l2.39 3.19L2.5 22h19l-1.89-6.81L22 12H2z" transform="rotate(-30 12 12) translate(0, 2)"></path>
+     <path d="M12 2L8 12h8L12 2z" transform="rotate(-30 12 12) translate(0, 2)"></path>
   </svg>
 );
 
-const CrosshairIcon: React.FC = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10"></circle>
-    <line x1="22" y1="12" x2="18" y2="12"></line>
-    <line x1="6" y1="12" x2="2" y2="12"></line>
-    <line x1="12" y1="6" x2="12" y2="2"></line>
-    <line x1="12" y1="22" x2="12" y2="18"></line>
-  </svg>
+const PilotHelmIcon: React.FC = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="8"></circle>
+        <circle cx="12" cy="12" r="2"></circle>
+        <line x1="12" y1="4" x2="12" y2="6"></line>
+        <line x1="12" y1="18" x2="12" y2="20"></line>
+        <line x1="4" y1="12" x2="6" y2="12"></line>
+        <line x1="18" y1="12" x2="20" y2="12"></line>
+        <line x1="6.34" y1="6.34" x2="7.76" y2="7.76"></line>
+        <line x1="16.24" y1="16.24" x2="17.66" y2="17.66"></line>
+        <line x1="6.34" y1="17.66" x2="7.76" y2="16.24"></line>
+        <line x1="16.24" y1="7.76" x2="17.66" y2="6.34"></line>
+    </svg>
 );
 
-// --- Styles ---
+const ExitIcon: React.FC = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+        <polyline points="16 17 21 12 16 7"></polyline>
+        <line x1="21" y1="12" x2="9" y2="12"></line>
+    </svg>
+);
+
+const LaserIcon: React.FC = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M22 2L11 13" />
+        <path d="M22 2L15 22l-4-9-9-4L22 2z" />
+        <path d="M8 16l-3-3" />
+        <path d="M14 10l-3-3" />
+    </svg>
+);
+
+const QuestionMarkIcon: React.FC = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+    </svg>
+);
+
+// --- New Control Hint and Virtual Joystick Components ---
+
+const ControlHints: React.FC<{isManual: boolean}> = ({ isManual }) => {
+    const hintStyle: React.CSSProperties = {
+        position: 'fixed',
+        bottom: '80px',
+        right: '20px',
+        padding: '10px 15px',
+        background: 'rgba(0, 20, 40, 0.7)',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(0, 170, 255, 0.3)',
+        borderRadius: '8px',
+        color: '#ccc',
+        zIndex: 99,
+        pointerEvents: 'none',
+        fontFamily: 'var(--font-family)',
+        fontSize: '0.8rem',
+        textAlign: 'right',
+        transition: 'opacity 0.3s ease, transform 0.3s ease',
+        opacity: isManual ? 1 : 0,
+        transform: isManual ? 'translateY(0)' : 'translateY(10px)',
+    };
+
+    return (
+        <div style={hintStyle}>
+            <p style={{ margin: '2px 0' }}><strong>[W/S]</strong> ACCEL/DECEL</p>
+            <p style={{ margin: '2px 0' }}><strong>[A/D]</strong> TURN</p>
+            <p style={{ margin: '2px 0' }}><strong>[Q/E]</strong> ROLL</p>
+            <p style={{ margin: '2px 0' }}><strong>[SPACE/SHIFT]</strong> ASCEND/DESCEND</p>
+        </div>
+    );
+};
+
+
+interface VirtualControlsProps {
+    onInputChange: (input: ShipInputState) => void;
+}
+const VIRTUAL_CONTROLS_BOTTOM_OFFSET = '140px'; // Dinaikkan untuk mencegah tumpang tindih dengan tombol HUD
+
+const VirtualControls: React.FC<VirtualControlsProps> = ({ onInputChange }) => {
+    const moveNubRef = useRef<HTMLDivElement>(null);
+    const ascendNubRef = useRef<HTMLDivElement>(null);
+    const rollNubRef = useRef<HTMLDivElement>(null);
+    
+    // Refs to the control elements themselves to attach listeners directly
+    const moveBaseRef = useRef<HTMLDivElement>(null);
+    const ascendBaseRef = useRef<HTMLDivElement>(null);
+    const rollBaseRef = useRef<HTMLDivElement>(null);
+
+    const inputs = useRef<ShipInputState>({ forward: 0, turn: 0, ascend: 0, roll: 0 });
+    const activePointers = useRef<{ [key: number]: 'move' | 'ascend' | 'roll' }>({});
+
+    const updateParent = useCallback(() => {
+        onInputChange({ ...inputs.current });
+    }, [onInputChange]);
+    
+    const handlePointerDown = useCallback((e: PointerEvent) => {
+        e.preventDefault(); // Mencegah gestur default browser
+        const target = e.currentTarget as HTMLDivElement;
+        const control = target.dataset.control as 'move' | 'ascend' | 'roll';
+        
+        if (!control || Object.values(activePointers.current).includes(control)) return;
+
+        target.setPointerCapture(e.pointerId);
+        activePointers.current[e.pointerId] = control;
+    }, []);
+
+    const handlePointerMove = useCallback((e: PointerEvent) => {
+        const control = activePointers.current[e.pointerId];
+        if (!control) return;
+        
+        e.preventDefault(); // Mencegah gestur default saat menggeser
+
+        let element;
+        if (control === 'move') element = moveBaseRef.current;
+        if (control === 'ascend') element = ascendBaseRef.current;
+        if (control === 'roll') element = rollBaseRef.current;
+        
+        if (!element) return;
+        
+        const rect = element.getBoundingClientRect();
+        
+        if (control === 'move') {
+            const size = rect.width;
+            const halfSize = size / 2;
+            const dx = e.clientX - (rect.left + halfSize);
+            const dy = e.clientY - (rect.top + halfSize);
+            
+            const distance = Math.min(halfSize, Math.sqrt(dx * dx + dy * dy));
+            const angle = Math.atan2(dy, dx);
+
+            const newX = distance * Math.cos(angle);
+            const newY = distance * Math.sin(angle);
+            
+            if (moveNubRef.current) moveNubRef.current.style.transform = `translate(${newX}px, ${newY}px)`;
+            
+            inputs.current.turn = newX / halfSize;
+            inputs.current.forward = -newY / halfSize;
+
+        } else { // Sliders
+            const size = rect.height;
+            const halfSize = size / 2;
+            const y = Math.max(0, Math.min(size, e.clientY - rect.top));
+            
+            const value = -((y / size) * 2 - 1); // Range -1 (bottom) to 1 (top)
+            
+            const nubRef = control === 'ascend' ? ascendNubRef : rollNubRef;
+            if (nubRef.current) nubRef.current.style.transform = `translateY(${y - halfSize}px)`;
+
+            if(control === 'ascend') inputs.current.ascend = value;
+            if(control === 'roll') inputs.current.roll = -value; // Invert for intuitive feel
+        }
+        updateParent();
+    }, [updateParent]);
+
+    const handlePointerUp = useCallback((e: PointerEvent) => {
+        const control = activePointers.current[e.pointerId];
+        if (!control) return;
+
+        const target = e.currentTarget as HTMLDivElement;
+        target.releasePointerCapture(e.pointerId);
+        delete activePointers.current[e.pointerId];
+
+        if (control === 'move') {
+            inputs.current.forward = 0;
+            inputs.current.turn = 0;
+            if (moveNubRef.current) moveNubRef.current.style.transform = `translate(0px, 0px)`;
+        } else {
+            if (control === 'ascend') inputs.current.ascend = 0;
+            if (control === 'roll') inputs.current.roll = 0;
+            const nubRef = control === 'ascend' ? ascendNubRef : rollNubRef;
+            if (nubRef.current) nubRef.current.style.transform = `translateY(0px)`;
+        }
+        updateParent();
+    }, [updateParent]);
+    
+    useEffect(() => {
+        const moveEl = moveBaseRef.current;
+        const ascendEl = ascendBaseRef.current;
+        const rollEl = rollBaseRef.current;
+
+        const listenerOptions = { passive: false };
+
+        moveEl?.addEventListener('pointerdown', handlePointerDown, listenerOptions);
+        moveEl?.addEventListener('pointermove', handlePointerMove, listenerOptions);
+        moveEl?.addEventListener('pointerup', handlePointerUp, listenerOptions);
+        moveEl?.addEventListener('pointercancel', handlePointerUp, listenerOptions);
+
+        ascendEl?.addEventListener('pointerdown', handlePointerDown, listenerOptions);
+        ascendEl?.addEventListener('pointermove', handlePointerMove, listenerOptions);
+        ascendEl?.addEventListener('pointerup', handlePointerUp, listenerOptions);
+        ascendEl?.addEventListener('pointercancel', handlePointerUp, listenerOptions);
+        
+        rollEl?.addEventListener('pointerdown', handlePointerDown, listenerOptions);
+        rollEl?.addEventListener('pointermove', handlePointerMove, listenerOptions);
+        rollEl?.addEventListener('pointerup', handlePointerUp, listenerOptions);
+        rollEl?.addEventListener('pointercancel', handlePointerUp, listenerOptions);
+
+        return () => {
+            moveEl?.removeEventListener('pointerdown', handlePointerDown);
+            moveEl?.removeEventListener('pointermove', handlePointerMove);
+            moveEl?.removeEventListener('pointerup', handlePointerUp);
+            moveEl?.removeEventListener('pointercancel', handlePointerUp);
+
+            ascendEl?.removeEventListener('pointerdown', handlePointerDown);
+            ascendEl?.removeEventListener('pointermove', handlePointerMove);
+            ascendEl?.removeEventListener('pointerup', handlePointerUp);
+            ascendEl?.removeEventListener('pointercancel', handlePointerUp);
+            
+            rollEl?.removeEventListener('pointerdown', handlePointerDown);
+            rollEl?.removeEventListener('pointermove', handlePointerMove);
+            rollEl?.removeEventListener('pointerup', handlePointerUp);
+            rollEl?.removeEventListener('pointercancel', handlePointerUp);
+        };
+    }, [handlePointerDown, handlePointerMove, handlePointerUp]);
+
+
+    return (
+        <div style={styles.virtualControlsContainer}>
+            <div 
+                ref={moveBaseRef}
+                data-control="move"
+                style={{...styles.joystickBase, left: '20px', bottom: VIRTUAL_CONTROLS_BOTTOM_OFFSET}}
+            >
+                <div style={styles.joystickTrack} />
+                <div style={{...styles.joystickTrack, transform: 'rotate(90deg)'}} />
+                <div ref={moveNubRef} style={styles.joystickNub} />
+            </div>
+            <div 
+                ref={ascendBaseRef}
+                data-control="ascend"
+                style={{...styles.sliderBase, right: '80px', bottom: VIRTUAL_CONTROLS_BOTTOM_OFFSET}}
+            >
+                <div style={styles.sliderTrack} />
+                <div ref={ascendNubRef} style={styles.sliderNub} />
+                <span style={{...styles.controlLabel, bottom: '-20px'}}>ALTITUDE</span>
+            </div>
+             <div 
+                ref={rollBaseRef}
+                data-control="roll"
+                style={{...styles.sliderBase, right: '20px', bottom: VIRTUAL_CONTROLS_BOTTOM_OFFSET}}
+             >
+                <div style={styles.sliderTrack} />
+                <div ref={rollNubRef} style={styles.sliderNub} />
+                <span style={{...styles.controlLabel, bottom: '-20px'}}>ROLL</span>
+            </div>
+        </div>
+    );
+};
+
 const styles: { [key: string]: React.CSSProperties } = {
-  hudButton: {
+  breadcrumbContainer: {
+    position: 'fixed',
+    top: '20px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    padding: '8px 16px',
     background: 'rgba(0, 20, 40, 0.7)',
     backdropFilter: 'blur(10px)',
     border: '1px solid rgba(0, 170, 255, 0.5)',
+    borderRadius: '5px',
     color: 'var(--primary-color)',
-    borderRadius: '50%',
-    width: '45px',
-    height: '45px',
-    cursor: 'pointer',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    transition: 'all 0.2s ease-in-out',
-    boxShadow: '0 0 10px rgba(0, 170, 255, 0.2)',
+    zIndex: 100,
   },
-  hexButton: {
-    width: '65px',
-    height: '65px',
-    background: 'rgba(0, 20, 40, 0.8)',
-    border: 'none',
-    color: 'var(--primary-color)',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease-in-out',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
+  breadcrumbText: {
+    margin: 0,
+    fontFamily: 'var(--font-family)',
+    fontSize: 'clamp(0.8rem, 1.5vw, 0.9rem)',
+    letterSpacing: '0.1em',
+    textShadow: '0 0 5px var(--primary-color)',
   },
   bottomLeftContainer: {
     position: 'fixed',
     bottom: '20px',
     left: '20px',
     display: 'flex',
-    flexDirection: 'column',
-    gap: '10px',
-    transition: 'transform 0.5s ease',
+    alignItems: 'flex-end',
+    gap: '15px',
+    zIndex: 100,
+  },
+  bottomRightContainer: {
+    position: 'fixed',
+    bottom: '20px',
+    right: '20px',
+    display: 'flex',
+    alignItems: 'flex-end',
+    gap: '15px',
+    zIndex: 100,
   },
   bottomCenterContainer: {
     position: 'fixed',
     bottom: '20px',
     left: '50%',
-    transition: 'transform 0.5s ease',
+    transform: 'translateX(-60%)',
+    zIndex: 100,
   },
-  breadcrumbContainer: {
-    position: 'fixed',
-    top: '20px',
-    left: '50%',
-    transform: 'translateX(-50%)',
+  hudButton: {
     background: 'rgba(0, 20, 40, 0.7)',
     backdropFilter: 'blur(10px)',
     border: '1px solid rgba(0, 170, 255, 0.5)',
-    color: '#ccc',
-    padding: '8px 16px',
-    borderRadius: '5px',
-    fontSize: '0.9rem',
-    textShadow: '0 0 3px black',
-    transition: 'opacity 0.5s ease, transform 0.5s ease',
-  },
-  breadcrumbStrong: {
     color: 'var(--primary-color)',
-    fontWeight: 'bold',
-  },
-  // --- Ship Control Styles ---
-  shipControlsContainer: {
-    position: 'fixed',
-    bottom: '20px',
-    width: '100%',
+    width: '44px',
+    height: '44px',
+    borderRadius: '50%',
     display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    padding: '0 20px',
+    justifyContent: 'center',
+    alignItems: 'center',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease-in-out',
+    fontSize: '1.5rem',
+  },
+  povSelector: {
+    display: 'flex',
+    background: 'rgba(0, 20, 40, 0.7)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(0, 170, 255, 0.5)',
+    borderRadius: '22px',
+    transition: 'opacity 0.3s ease',
+    overflow: 'hidden',
+  },
+  disabled: {
+    opacity: 0.4,
     pointerEvents: 'none',
   },
-  joystickContainer: {
+  activePov: {
+    background: 'rgba(0, 170, 255, 0.2)',
+    color: '#fff',
+    textShadow: '0 0 8px #fff',
+  },
+  visible: {
+    opacity: 1,
+    transform: 'translate(-50%, 0)',
+  },
+  hiddenBottom: {
+    opacity: 0,
+    transform: 'translate(-50%, 60px)',
+    pointerEvents: 'none',
+  },
+  dangerButton: {
+    borderColor: '#ff9900',
+    color: '#ff9900',
+  },
+  magentaButton: {
+    borderColor: '#ff00ff',
+    color: '#ff00ff',
+  },
+  virtualControlsContainer: {
+    position: 'fixed',
+    inset: 0,
+    pointerEvents: 'none',
+    zIndex: 98,
+  },
+  joystickBase: {
+    position: 'absolute',
     width: '120px',
     height: '120px',
     background: 'rgba(0, 20, 40, 0.5)',
-    border: '1px solid rgba(0, 170, 255, 0.3)',
     borderRadius: '50%',
-    position: 'relative',
+    border: '1px solid rgba(0, 170, 255, 0.3)',
     pointerEvents: 'auto',
+    touchAction: 'none',
   },
-  joystickThumb: {
-    width: '60px',
-    height: '60px',
+  joystickNub: {
+    position: 'absolute',
+    width: '50px',
+    height: '50px',
     background: 'rgba(0, 170, 255, 0.5)',
     borderRadius: '50%',
+    top: 'calc(50% - 25px)',
+    left: 'calc(50% - 25px)',
+    transition: 'transform 0.1s linear',
+  },
+  sliderBase: {
     position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    border: '1px solid var(--primary-color)',
-  },
-  slidersContainer: {
-    display: 'flex',
-    gap: '30px',
-    pointerEvents: 'auto',
-  },
-  sliderWrapper: {
-    width: '40px',
+    width: '50px',
     height: '120px',
     background: 'rgba(0, 20, 40, 0.5)',
+    borderRadius: '25px',
     border: '1px solid rgba(0, 170, 255, 0.3)',
-    borderRadius: '20px',
-    position: 'relative',
-    padding: '5px',
+    pointerEvents: 'auto',
+    touchAction: 'none',
+  },
+  sliderNub: {
+    position: 'absolute',
+    width: '40px',
+    height: '40px',
+    background: 'rgba(0, 170, 255, 0.5)',
+    borderRadius: '50%',
+    top: 'calc(50% - 20px)',
+    left: 'calc(50% - 20px)',
+    transition: 'transform 0.1s linear',
+  },
+  controlLabel: {
+    position: 'absolute',
+    width: '100%',
+    textAlign: 'center',
+    color: 'rgba(0, 170, 255, 0.6)',
+    fontFamily: 'var(--font-family)',
+    fontSize: '0.6rem',
+    fontWeight: 'bold',
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase',
+    pointerEvents: 'none',
+  },
+  joystickTrack: {
+    position: 'absolute',
+    top: '50%',
+    left: '10%',
+    width: '80%',
+    height: '1px',
+    backgroundColor: 'rgba(0, 170, 255, 0.2)',
+    transform: 'translateY(-50%)',
   },
   sliderTrack: {
-    width: '100%',
-    height: '100%',
-    position: 'relative',
-  },
-  sliderThumb: {
-    width: 'calc(100% - 4px)',
-    height: '30px',
-    background: 'rgba(0, 170, 255, 0.5)',
-    borderRadius: '15px',
     position: 'absolute',
-    left: '2px',
-    border: '1px solid var(--primary-color)',
+    left: '50%',
+    top: '10%',
+    width: '1px',
+    height: '80%',
+    backgroundColor: 'rgba(0, 170, 255, 0.2)',
+    transform: 'translateX(-50%)',
+  },
+  buttonWrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '5px',
+  },
+  buttonLabel: {
+    fontSize: '0.6rem',
+    fontWeight: 'bold',
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase',
+    color: 'rgba(0, 170, 255, 0.6)',
+    pointerEvents: 'none',
+    transition: 'color 0.2s, text-shadow 0.2s',
+  },
+  activeButtonLabel: {
+    color: '#fff',
+    textShadow: '0 0 4px #fff',
   },
 };
 
-const TouchJoystick: React.FC<{ onMove: (x: number, y: number) => void }> = ({ onMove }) => {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const thumbRef = useRef<HTMLDivElement>(null);
-    const isDragging = useRef(false);
+export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleNavMenu, onToggleHints, pov, onSetPov, onGoHome, isCalibrationMode, heldDistrictId, shipControlMode, onToggleShipControl, onFire, isTouchDevice, onShipTouchInputChange, isAnyPanelOpen }) => {
 
-    const handleMove = useCallback((clientX: number, clientY: number) => {
-        if (!containerRef.current || !thumbRef.current) return;
-        const rect = containerRef.current.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-
-        let dx = clientX - centerX;
-        let dy = clientY - centerY;
-
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        const maxDist = rect.width / 2;
-
-        if (distance > maxDist) {
-            dx = (dx / distance) * maxDist;
-            dy = (dy / distance) * maxDist;
-        }
-
-        thumbRef.current.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
-        
-        // Normalize values between -1 and 1
-        onMove(dx / maxDist, -dy / maxDist);
-    }, [onMove]);
-
-    const handleEnd = useCallback(() => {
-        if (!thumbRef.current) return;
-        isDragging.current = false;
-        thumbRef.current.style.transition = 'transform 0.1s ease-out';
-        thumbRef.current.style.transform = 'translate(-50%, -50%)';
-        onMove(0, 0);
-        setTimeout(() => {
-            if (thumbRef.current) thumbRef.current.style.transition = '';
-        }, 100);
-    }, [onMove]);
-
-    useEffect(() => {
-        const container = containerRef.current;
-        if (!container) return;
-
-        const handleTouchStart = (e: TouchEvent) => {
-            if (e.touches.length === 1) {
-                isDragging.current = true;
-                handleMove(e.touches[0].clientX, e.touches[0].clientY);
-            }
-        };
-        const handleTouchMove = (e: TouchEvent) => {
-            if (isDragging.current && e.touches.length === 1) {
-                handleMove(e.touches[0].clientX, e.touches[0].clientY);
-            }
-        };
-
-        container.addEventListener('touchstart', handleTouchStart);
-        container.addEventListener('touchmove', handleTouchMove);
-        container.addEventListener('touchend', handleEnd);
-        
-        return () => {
-            container.removeEventListener('touchstart', handleTouchStart);
-            container.removeEventListener('touchmove', handleTouchMove);
-            container.removeEventListener('touchend', handleEnd);
-        };
-    }, [handleMove, handleEnd]);
-
-    return (
-        <div ref={containerRef} style={styles.joystickContainer}>
-            <div ref={thumbRef} style={styles.joystickThumb} />
-        </div>
-    );
-};
-
-const TouchSlider: React.FC<{ onMove: (value: number) => void }> = ({ onMove }) => {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const thumbRef = useRef<HTMLDivElement>(null);
-
-    const handleMove = useCallback((clientY: number) => {
-        if (!containerRef.current || !thumbRef.current) return;
-        const rect = containerRef.current.getBoundingClientRect();
-        
-        let y = clientY - rect.top;
-        const trackHeight = rect.height;
-        const thumbHeight = thumbRef.current.offsetHeight;
-
-        y = Math.max(0, Math.min(trackHeight - thumbHeight, y));
-
-        thumbRef.current.style.top = `${y}px`;
-        
-        // Normalize value between -1 (bottom) and 1 (top)
-        const normalizedValue = 1 - (2 * (y / (trackHeight - thumbHeight)));
-        onMove(normalizedValue);
-    }, [onMove]);
-    
-    const handleEnd = useCallback(() => {
-        if (!thumbRef.current) return;
-        thumbRef.current.style.transition = 'top 0.1s ease-out';
-        thumbRef.current.style.top = `calc(50% - ${thumbRef.current.offsetHeight / 2}px)`;
-        onMove(0);
-        setTimeout(() => {
-             if (thumbRef.current) thumbRef.current.style.transition = '';
-        }, 100);
-    }, [onMove]);
-    
-    useEffect(() => {
-        const container = containerRef.current;
-        if (!container) return;
-
-        const handleTouchStart = (e: TouchEvent) => {
-            if (e.touches.length === 1) handleMove(e.touches[0].clientY);
-        };
-        const handleTouchMove = (e: TouchEvent) => {
-            if (e.touches.length === 1) handleMove(e.touches[0].clientY);
-        };
-
-        container.addEventListener('touchstart', handleTouchStart);
-        container.addEventListener('touchmove', handleTouchMove);
-        container.addEventListener('touchend', handleEnd);
-
-        return () => {
-            container.removeEventListener('touchstart', handleTouchStart);
-            container.removeEventListener('touchmove', handleTouchMove);
-            container.removeEventListener('touchend', handleEnd);
-        };
-    }, [handleMove, handleEnd]);
-
-    return (
-        <div ref={containerRef} style={styles.sliderWrapper}>
-            <div style={styles.sliderTrack}>
-                <div ref={thumbRef} style={{ ...styles.sliderThumb, top: 'calc(50% - 15px)' }} />
-            </div>
-        </div>
-    );
-};
-
-
-export const HUD: React.FC<HUDProps> = React.memo(({
-  selectedDistrict,
-  onToggleNavMenu,
-  onToggleHints,
-  pov,
-  onSetPov,
-  onGoHome,
-  isCalibrationMode,
-  heldDistrictId,
-  shipControlMode,
-  onToggleShipControl,
-  onFire,
-  isTouchDevice,
-  onShipTouchInputChange,
-  isAnyPanelOpen
-}) => {
-
-  const [touchInputs, setTouchInputs] = useState<ShipInputState>({ forward: 0, turn: 0, ascend: 0, roll: 0 });
-
-  useEffect(() => {
-    onShipTouchInputChange(touchInputs);
-  }, [touchInputs, onShipTouchInputChange]);
-
-  const breadcrumbText = useMemo(() => {
-    if (heldDistrictId) return <span>CALIBRATION MODE: Placing District...</span>;
-    if (isCalibrationMode) return <span>CALIBRATION MODE</span>;
-    if (pov === 'ship') return <><span style={styles.breadcrumbStrong}>SHIP POV</span> / Cycle or Take Control</>;
-    if (selectedDistrict) return <><span style={styles.breadcrumbStrong}>DISTRICT VIEW</span> / {selectedDistrict.title.toUpperCase()}</>;
-    return <><span style={styles.breadcrumbStrong}>CITY OVERVIEW</span> / Drag to Explore</>;
-  }, [selectedDistrict, pov, isCalibrationMode, heldDistrictId]);
-
-  const fireButtonRef = useRef<HTMLButtonElement>(null);
-  const fireCooldownTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const handleFire = () => {
-    if (fireButtonRef.current?.disabled) return;
-    
-    onFire();
-
-    if (fireButtonRef.current) {
-      fireButtonRef.current.disabled = true;
-      fireButtonRef.current.style.color = '#ff9900';
-      fireButtonRef.current.style.borderColor = '#ff9900';
-
-      fireCooldownTimer.current = setTimeout(() => {
-        if (fireButtonRef.current) {
-          fireButtonRef.current.disabled = false;
-          fireButtonRef.current.style.color = '';
-          fireButtonRef.current.style.borderColor = '';
-        }
-      }, 500); // 500ms cooldown
-    }
-  };
-
-  useEffect(() => {
-    // Cleanup timer on component unmount
-    return () => {
-      if (fireCooldownTimer.current) {
-        clearTimeout(fireCooldownTimer.current);
-      }
-    };
-  }, []);
-
-  const bottomLeftContainerStyle: React.CSSProperties = useMemo(() => ({
-    ...styles.bottomLeftContainer,
-    transform: isAnyPanelOpen ? 'translateX(-150%)' : 'translateX(0)',
-  }), [isAnyPanelOpen]);
+  const breadcrumb = useMemo(() => {
+    if (heldDistrictId) return `RAGETOPIA > /ARCHITECT_MODE/MOVING...`;
+    if (shipControlMode === 'manual') return `RAGETOPIA > /SHIP_CONTROL/PILOTING...`;
+    if (selectedDistrict) return `RAGETOPIA > /${selectedDistrict.id.toUpperCase()}_DISTRICT/`;
+    if (isCalibrationMode) return `RAGETOPIA > /ARCHITECT_MODE/`;
+    return 'RAGETOPIA';
+  }, [selectedDistrict, isCalibrationMode, heldDistrictId, shipControlMode]);
   
-  const bottomRightContainerStyle: React.CSSProperties = useMemo(() => ({
-    ...styles.bottomLeftContainer, // Reuse style, just change position
-    left: 'auto',
-    right: '20px',
-    alignItems: 'flex-end',
-    transform: isAnyPanelOpen ? 'translateX(150%)' : 'translateX(0)',
-  }), [isAnyPanelOpen]);
+  const isManualMode = shipControlMode === 'manual';
+  
+  const isNavButtonHidden = isAnyPanelOpen || pov === 'ship';
+  const areSideButtonsHidden = isAnyPanelOpen || isCalibrationMode;
 
-  const bottomCenterContainer: React.CSSProperties = useMemo(() => ({
-    ...styles.bottomCenterContainer,
-    transform: isAnyPanelOpen ? 'translateY(150%)' : 'translateX(-85%)',
-  }), [isAnyPanelOpen]);
+  const lastFireTime = useRef(0);
+  const FIRE_COOLDOWN = 300; // ms
 
-  const breadcrumbStyle: React.CSSProperties = useMemo(() => ({
-    ...styles.breadcrumbContainer,
-    opacity: isAnyPanelOpen ? 0 : 1,
-    transform: isAnyPanelOpen ? 'translate(-50%, -150%)' : 'translateX(-50%)',
-  }), [isAnyPanelOpen]);
+  const handleFireClick = useCallback(() => {
+      const now = Date.now();
+      if (now - lastFireTime.current > FIRE_COOLDOWN) {
+          lastFireTime.current = now;
+          onFire();
+      }
+  }, [onFire]);
 
   return (
     <>
-      <div style={breadcrumbStyle} className="breadcrumb-container hud-anim-breadcrumb">
-        {breadcrumbText}
+      <style>{`
+        .hud-button:not([disabled]):hover {
+            background-color: rgba(0, 170, 255, 0.2);
+            border-color: #00ffff;
+            transform: scale(1.1);
+        }
+        .hud-button.active, .hud-button:active {
+            transform: scale(0.95);
+        }
+        .hud-button.danger-button:hover {
+            background-color: rgba(255, 153, 0, 0.2);
+            border-color: #ff9900;
+            color: #ff9900;
+        }
+        .hud-button.magenta-button:hover {
+            background-color: rgba(255, 0, 255, 0.2);
+            border-color: #ff00ff;
+            color: #ff00ff;
+        }
+      `}</style>
+      
+      <div style={styles.breadcrumbContainer} className="breadcrumb-container hud-anim-breadcrumb">
+          <p style={styles.breadcrumbText}>{breadcrumb}</p>
       </div>
 
-      <div style={bottomLeftContainerStyle} className="bottom-left-container hud-anim-left">
+      <div style={styles.bottomCenterContainer} className={`bottom-center-container hud-anim-center ${isNavButtonHidden ? 'hiddenBottom' : 'visible'}`}>
         <button
-          style={{ ...styles.hudButton, color: pov === 'main' ? '#000' : 'var(--primary-color)', backgroundColor: pov === 'main' ? 'var(--primary-color)' : 'rgba(0, 20, 40, 0.7)' }}
-          onClick={() => onSetPov('main')}
-          aria-label="Overview"
+          onClick={onToggleNavMenu}
+          style={{
+            ...styles.hudButton,
+            width: '64px',
+            height: '64px',
+            margin: 0,
+            borderRadius: 0,
+            transition: 'opacity 0.4s ease, transform 0.4s ease',
+            opacity: isNavButtonHidden ? 0 : 1,
+            transform: isNavButtonHidden ? 'translateY(60px)' : 'translateY(0)',
+          }}
+          className="hud-button hex-btn"
+          aria-label="Open Navigation Menu"
+          disabled={isNavButtonHidden}
         >
-          {isCalibrationMode ? <HomeIcon /> : <CameraIcon />}
-        </button>
-        {!isCalibrationMode && (
-          <button
-            style={{ ...styles.hudButton, color: pov === 'ship' ? '#000' : 'var(--primary-color)', backgroundColor: pov === 'ship' ? 'var(--primary-color)' : 'rgba(0, 20, 40, 0.7)' }}
-            onClick={() => onSetPov('ship')}
-            aria-label="Ship POV"
-          >
-            <ShipIcon />
-          </button>
-        )}
-      </div>
-      
-      <div style={bottomCenterContainer} className="bottom-center-container hud-anim-center">
-        <button style={styles.hexButton} className="hex-btn" onClick={onToggleNavMenu} aria-label="Open Navigation Menu">
           <NavMenuIcon />
         </button>
       </div>
-      
-      <div style={bottomRightContainerStyle} className="hud-anim-right">
-        {pov === 'ship' && (
-          <button
-            style={{ ...styles.hudButton, 
-              borderColor: shipControlMode === 'manual' ? '#ff9900' : 'rgba(0, 170, 255, 0.5)', 
-              color: shipControlMode === 'manual' ? '#ff9900' : 'var(--primary-color)',
-              width: 'auto',
-              padding: '0 15px',
-              borderRadius: '25px',
-            }}
-            onClick={onToggleShipControl}
-            aria-label={shipControlMode === 'manual' ? "Exit Pilot Mode" : "Take Control"}
-          >
-            {shipControlMode === 'manual' ? 'Exit Pilot' : 'Pilot Mode'}
-          </button>
-        )}
-        <button style={styles.hudButton} onClick={onToggleHints} aria-label="Show Hints">
-            <HintsIcon />
-        </button>
+       
+      <div style={styles.bottomLeftContainer} className={`bottom-left-container hud-anim-left ${areSideButtonsHidden ? 'hidden' : ''}`}>
+          <div style={styles.buttonWrapper}>
+              <button 
+                onClick={onGoHome}
+                style={{...styles.hudButton, ...(pov === 'main' ? styles.activePov : {})}}
+                className="hud-button"
+                aria-label="Overview Camera"
+                disabled={isCalibrationMode}
+              >
+                  <CameraIcon />
+              </button>
+              <span style={{...styles.buttonLabel, ...(pov === 'main' ? styles.activeButtonLabel : {})}}>
+                Overview
+              </span>
+          </div>
+          
+          {shipControlMode !== 'manual' && (
+            <div style={styles.buttonWrapper}>
+                <button 
+                  onClick={() => onSetPov('ship')} 
+                  style={{...styles.hudButton, ...(pov === 'ship' ? styles.activePov : {})}}
+                  className="hud-button"
+                  aria-label="Ship Follow Camera"
+                  disabled={isCalibrationMode}
+                >
+                    <ShipIcon />
+                </button>
+                <span style={{...styles.buttonLabel, ...(pov === 'ship' ? styles.activeButtonLabel : {})}}>
+                  Ship POV
+                </span>
+            </div>
+          )}
+
+          {pov === 'ship' && (
+            <div style={styles.buttonWrapper}>
+                <button
+                    onClick={onToggleShipControl}
+                    style={{...styles.hudButton, ...styles.dangerButton}}
+                    className="hud-button danger-button"
+                    aria-label={shipControlMode === 'follow' ? "Take Manual Control" : "Engage Autopilot"}
+                >
+                    {shipControlMode === 'follow' ? <PilotHelmIcon /> : <ExitIcon />}
+                </button>
+                <span style={{...styles.buttonLabel, color: '#ff9900'}}>
+                    {shipControlMode === 'follow' ? 'Pilot Mode' : 'Exit Pilot'}
+                </span>
+            </div>
+          )}
       </div>
 
-      {shipControlMode === 'manual' && (
-        <div style={{...styles.bottomRightContainer, right: 'auto', left: '20px', alignItems: 'flex-start', transition: 'transform 0.5s ease', transform: isAnyPanelOpen ? 'translateX(-150%)' : 'translateX(0)', pointerEvents: 'auto' }}>
-            <button ref={fireButtonRef} style={{...styles.hudButton, borderColor: '#ff6666', color: '#ff6666', width: '60px', height: '60px' }} onClick={handleFire} aria-label="Fire Weapon">
-              <CrosshairIcon />
-            </button>
-        </div>
-      )}
-
-      {isTouchDevice && shipControlMode === 'manual' && (
-        <div style={styles.shipControlsContainer}>
-            <TouchJoystick onMove={(x, y) => setTouchInputs(prev => ({...prev, turn: x, forward: y }))} />
-            <div style={styles.slidersContainer}>
-                <TouchSlider onMove={value => setTouchInputs(prev => ({...prev, roll: value }))} />
-                <TouchSlider onMove={value => setTouchInputs(prev => ({...prev, ascend: value }))} />
+      <div style={styles.bottomRightContainer} className={`hud-anim-right ${areSideButtonsHidden ? 'hidden' : ''}`}>
+          {shipControlMode === 'manual' && (
+            <div style={styles.buttonWrapper}>
+              <button
+                onClick={handleFireClick}
+                style={{...styles.hudButton, borderColor: '#ff4444', color: '#ff4444'}}
+                className="hud-button"
+                aria-label="Fire Laser"
+              >
+                <LaserIcon />
+              </button>
+              <span style={{...styles.buttonLabel, color: '#ff4444'}}>
+                Fire
+              </span>
             </div>
-        </div>
-      )}
+          )}
+          <div style={styles.buttonWrapper}>
+                <button
+                  onClick={onToggleHints}
+                  style={{...styles.hudButton, ...styles.magentaButton}}
+                  className="hud-button magenta-button"
+                  aria-label="Show Controls and Hints"
+                >
+                    <QuestionMarkIcon />
+                </button>
+                <span style={{...styles.buttonLabel, color: '#ff00ff'}}>
+                  Hints
+                </span>
+            </div>
+      </div>
+
+      {!isTouchDevice && <ControlHints isManual={isManualMode} />}
+      {isTouchDevice && isManualMode && <VirtualControls onInputChange={onShipTouchInputChange} />}
 
     </>
   );
