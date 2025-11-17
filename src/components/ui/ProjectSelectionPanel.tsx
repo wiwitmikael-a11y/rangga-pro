@@ -220,10 +220,10 @@ const ContactPanel: React.FC = () => {
             </p>
 
             <div className="social-links-container">
-                 <a href="https://www.linkedin.com/in/ranggaprayogah/" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="LinkedIn Profile">
+                 <a href="https://id.linkedin.com/in/rangga-prayoga-hermawan" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="LinkedIn Profile">
                     <LinkedInIcon />
                 </a>
-                <a href="https://www.youtube.com/@ranggaprayogah" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="YouTube Channel">
+                <a href="https://www.youtube.com/@ruangranggamusicchannel5536" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="YouTube Channel">
                     <YouTubeIcon />
                 </a>
                 <a href="https://www.instagram.com/rangga.p.h" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="Instagram Profile">
