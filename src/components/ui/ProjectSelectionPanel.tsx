@@ -500,15 +500,18 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
       <div style={containerStyle} className="project-selection-panel responsive-modal">
         <div style={styles.dangerStripes} />
         <div style={styles.header}>
-          <h2 style={styles.title}>{district?.title}</h2>
-           {district?.id === 'skills-matrix' && (
-              <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-                  <button onClick={() => setLang('id')} style={{ fontWeight: lang === 'id' ? 'bold' : 'normal', color: lang === 'id' ? 'white' : '#aaa', background: 'none', border: 'none', cursor: 'pointer' }}>ID</button>
-                  <span>/</span>
-                  <button onClick={() => setLang('en')} style={{ fontWeight: lang === 'en' ? 'bold' : 'normal', color: lang === 'en' ? 'white' : '#aaa', background: 'none', border: 'none', cursor: 'pointer' }}>EN</button>
-              </div>
-          )}
-          <button onClick={onClose} style={styles.closeButton} aria-label="Close Panel">&times;</button>
+            {/* Wrapper for title and lang switch to ensure proper flex behavior */}
+            <div style={{ flex: '1 1 auto', display: 'flex', alignItems: 'center', minWidth: 0 }}>
+                <h2 style={styles.title}>{district?.title}</h2>
+                {district?.id === 'skills-matrix' && (
+                    <div style={{ display: 'flex', gap: '5px', alignItems: 'center', flexShrink: 0, marginLeft: '15px' }}>
+                        <button onClick={() => setLang('id')} style={{ fontWeight: lang === 'id' ? 'bold' : 'normal', color: lang === 'id' ? 'white' : '#aaa', background: 'none', border: 'none', cursor: 'pointer' }}>ID</button>
+                        <span>/</span>
+                        <button onClick={() => setLang('en')} style={{ fontWeight: lang === 'en' ? 'bold' : 'normal', color: lang === 'en' ? 'white' : '#aaa', background: 'none', border: 'none', cursor: 'pointer' }}>EN</button>
+                    </div>
+                )}
+            </div>
+            <button onClick={onClose} style={styles.closeButton} aria-label="Close Panel">&times;</button>
         </div>
         <div style={styles.content} className="custom-scrollbar">
           {renderContent()}
