@@ -5,7 +5,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         position: 'fixed',
         bottom: '100px',
         left: '50%',
-        transform: 'translateX(-50%)',
+        transform: 'translateX(-60%)',
         zIndex: 100,
         pointerEvents: 'none',
         display: 'flex',
