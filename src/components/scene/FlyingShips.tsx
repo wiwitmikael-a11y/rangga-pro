@@ -267,10 +267,18 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isP
 
     if (shipState.current.state !== 'LANDED') {
       const speed = shipState.current.state === 'DESCENDING' ? FLIGHT_SPEED * 0.5 : FLIGHT_SPEED;
-      const direction = targetPos.clone().sub(currentPos).normalize();
-      currentPos.add(direction.multiplyScalar(delta * speed));
+      // Prevent normalization of zero vector if ship reaches target
+      if (targetPos.distanceTo(currentPos) > 0.01) {
+          const direction = targetPos.clone().sub(currentPos).normalize();
+          currentPos.add(direction.multiplyScalar(delta * speed));
+      }
+
+      // FIX: Add a hard ceiling as a safeguard to prevent ships from flying out of bounds vertically.
+      if (currentPos.y > FLIGHT_ALTITUDE_MAX) {
+          currentPos.y = FLIGHT_ALTITUDE_MAX;
+      }
       
-      // --- NEW: Boundary Enforcement for AI Ships ---
+      // --- Boundary Enforcement for AI Ships ---
       const distanceFromCenter = Math.sqrt(currentPos.x * currentPos.x + currentPos.z * currentPos.z);
       if (distanceFromCenter > FLIGHT_RADIUS) {
           // Clamp position to the edge of the flight radius to prevent escaping.
@@ -284,17 +292,28 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isP
           newTarget.z = Math.abs(newTarget.z) * (currentPos.z > 0 ? -1 : 1);
           shipState.current.targetPosition.copy(newTarget);
       }
+      
+      // FIX: Reworked rotation logic. The original implementation caused a fatal error during the 'ASCENDING'
+      // state by trying to make the ship look at its own position, which corrupted its rotation data (NaN)
+      // and caused it to get stuck. The new logic correctly handles each flight state for stable movement.
+      if (shipState.current.state !== 'ASCENDING') {
+        const lookAtTarget = targetPos.clone();
+        if (shipState.current.state === 'DESCENDING') {
+            // Keep the ship level during vertical movement
+            lookAtTarget.y = currentPos.y;
+        }
 
-      const lookAtTarget = targetPos.clone();
-      if (shipState.current.state === 'ASCENDING' || shipState.current.state === 'DESCENDING') {
-          // Keep the ship level during vertical movement
-          lookAtTarget.y = currentPos.y;
+        // Add a final safety check to prevent lookAt from being called with a target that is too close.
+        if (currentPos.distanceTo(lookAtTarget) > 0.01) {
+            tempLookAtObject.position.copy(currentPos);
+            tempLookAtObject.lookAt(lookAtTarget);
+            // Check for NaN quaternions as a final safeguard before applying.
+            if (!isNaN(tempLookAtObject.quaternion.x)) {
+                tempQuaternion.copy(tempLookAtObject.quaternion);
+                groupRef.current.quaternion.slerp(tempQuaternion, delta * TURN_SPEED);
+            }
+        }
       }
-
-      tempLookAtObject.position.copy(currentPos);
-      tempLookAtObject.lookAt(lookAtTarget);
-      tempQuaternion.copy(tempLookAtObject.quaternion);
-      groupRef.current.quaternion.slerp(tempQuaternion, delta * TURN_SPEED);
     }
   });
 

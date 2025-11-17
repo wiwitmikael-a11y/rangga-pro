@@ -152,7 +152,7 @@ const YouTubeIcon = () => (
 
 const InstagramIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.85s-.011 3.584-.069 4.85c-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07s-3.584-.012-4.85-.07c-3.252-.148-4.771-1.691-4.919-4.919-.058-1.265-.069-1.645-.069-4.85s.011-3.584.069-4.85c.149-3.225 1.664 4.771 4.919-4.919 1.266-.057 1.644-.069 4.85-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948s.014 3.667.072 4.947c.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072s3.667-.014 4.947-.072c4.358-.2 6.78-2.618 6.98-6.98.059-1.281.073-1.689.073-4.948s-.014-3.667-.072-4.947c-.2-4.358-2.618-6.78-6.98-6.98-1.281-.059-1.689-.073-4.948-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.162 6.162 6.162 6.162-2.759 6.162-6.162-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4s1.791-4 4-4 4 1.79 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44 1.441-.645 1.441-1.44-.645-1.44-1.441-1.44z"/>
+        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.85s-.011 3.584-.069 4.85c-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07s-3.584-.012-4.85-.07c-3.252-.148-4.771-1.691-4.919-4.919-.058-1.265-.069-1.645-.069-4.85s.011-3.584.069-4.85c.149-3.225 1.664 4.771 4.919-4.919 1.266-.057 1.644-.069 4.85-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948s.014 3.667.072 4.947c.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072s3.667-.014 4.947-.072c4.358-.2 6.78-2.618 6.98-6.98.059-1.281-.073-1.689-.073-4.948s-.014-3.667-.072-4.947c-.2-4.358-2.618-6.78-6.98-6.98-1.281-.059-1.689-.073-4.948-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.162 6.162 6.162 6.162-2.759 6.162-6.162-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4s1.791-4 4-4 4 1.79 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44 1.441-.645 1.441-1.44-.645-1.44-1.441-1.44z"/>
     </svg>
 );
 
@@ -166,9 +166,19 @@ interface FormspreeResponse {
   errors?: FormspreeError[];
 }
 
+const messageTemplates = [
+    { label: 'Pertanyaan tentang Pengembangan Website 3D', value: "Halo, saya sangat terkesan dengan portofolio 3D Anda. Berapa estimasi biaya dan waktu untuk mengembangkan website interaktif serupa untuk [sebutkan proyek/brand Anda]?" },
+    { label: 'Kolaborasi Proyek AI', value: "Halo, saya tertarik dengan keahlian Anda di bidang AI, khususnya Gemini API. Saya memiliki proyek [sebutkan proyek] dan ingin mendiskusikan potensi kolaborasi. Apakah Anda bersedia untuk berdiskusi lebih lanjut?" },
+    { label: 'Konsultasi Web3/Blockchain', value: "Saya sedang menjajaki implementasi teknologi Web3 untuk proyek saya. Bisakah Anda jelaskan bagaimana keahlian Anda dalam analisis on-chain dan smart contract dapat membantu?" },
+    { label: 'Layanan Media Kreatif', value: "Saya mencari seorang profesional untuk proyek [videografi/fotografi/branding]. Bisakah Anda memberikan informasi lebih lanjut mengenai layanan kreatif yang Anda tawarkan?" },
+    { label: 'Konsultasi Umum', value: "Saya ingin menjadwalkan sesi konsultasi untuk membahas strategi digital untuk bisnis saya. Mohon informasikan ketersediaan dan tarif Anda." },
+];
+
+
 const ContactPanel: React.FC = () => {
     const [status, setStatus] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [messageContent, setMessageContent] = useState('');
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -187,6 +197,7 @@ const ContactPanel: React.FC = () => {
             if (response.ok) {
                 setStatus('Message sent successfully! Thank you for reaching out.');
                 form.reset();
+                setMessageContent(''); // Clear message state on successful submission
             } else {
                 const responseData: FormspreeResponse = await response.json();
                 if (responseData && responseData.errors) {
@@ -238,11 +249,45 @@ const ContactPanel: React.FC = () => {
                     </div>
                      <div className="form-group">
                         <label htmlFor="subject">Subject</label>
-                        <input type="text" id="subject" name="subject" required disabled={isLoading} placeholder="Transmission subject" />
+                        <select id="subject" name="subject" required disabled={isLoading} defaultValue="">
+                            <option value="" disabled>-- Select a Subject --</option>
+                            <option value="General Inquiry">General Inquiry</option>
+                            <option value="Project Collaboration Proposal">Project Collaboration Proposal</option>
+                            <option value="AI & Engineering Consultation">AI & Engineering Consultation</option>
+                            <option value="Web/3D Development Inquiry">Web/3D Development Inquiry</option>
+                            <option value="Creative/Media Project Inquiry">Creative/Media Project Inquiry</option>
+                            <option value="Career/Mentorship Opportunity">Career/Mentorship Opportunity</option>
+                            <option value="Other">Other</option>
+                        </select>
                     </div>
                     <div className="form-group">
-                        <label htmlFor="message">Message</label>
-                        <textarea id="message" name="message" required disabled={isLoading} rows={5} placeholder="Your message details..."></textarea>
+                        <label htmlFor="message-template">Message Template (Optional)</label>
+                        <select 
+                            id="message-template" 
+                            onChange={(e) => setMessageContent(e.target.value)}
+                            disabled={isLoading} 
+                            defaultValue=""
+                        >
+                            <option value="" disabled>-- Select a pre-written question --</option>
+                            {messageTemplates.map(template => (
+                                <option key={template.label} value={template.value}>
+                                    {template.label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="message">Your Message</label>
+                        <textarea 
+                            id="message" 
+                            name="message" 
+                            value={messageContent}
+                            onChange={(e) => setMessageContent(e.target.value)}
+                            required 
+                            disabled={isLoading} 
+                            rows={5} 
+                            placeholder="Your message details... Select a template above or write your own."
+                        ></textarea>
                     </div>
 
                     <button type="submit" disabled={isLoading}>

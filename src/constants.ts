@@ -153,7 +153,7 @@ export const portfolioData: CityDistrict[] = [
   {
     "id": "nexus-core",
     "title": "@rangga.p.h",
-    "description": "Digital Artisan & Tech Explorer",
+    "description": "AI Explorer Chatbot",
     "position": [
       30,
       15,
@@ -179,7 +179,7 @@ export const portfolioData: CityDistrict[] = [
     "description": "Engineering & Generative Projects",
     "position": [
       70,
-      -5,
+      0,
       80
     ],
     "type": "major",
@@ -237,7 +237,7 @@ export const portfolioData: CityDistrict[] = [
     "description": "Award-Winning Content Creations",
     "position": [
       -30,
-      0,
+      5,
       60
     ],
     "type": "major",
@@ -295,7 +295,7 @@ export const portfolioData: CityDistrict[] = [
     "description": "Blockchain Analysis & Web3 Exploration",
     "position": [
       70,
-      -5,
+      0,
       10
     ],
     "type": "major",
@@ -342,7 +342,7 @@ export const portfolioData: CityDistrict[] = [
     "description": "Core Technical & Creative Proficiencies",
     "position": [
       -20,
-      -5,
+      0,
       0
     ],
     "type": "major",
@@ -411,7 +411,7 @@ export const portfolioData: CityDistrict[] = [
     "description": "Establish a connection",
     "position": [
       20,
-      -5,
+      0,
       80
     ],
     "type": "major",
