@@ -26,6 +26,7 @@ import { ExportLayoutModal } from './ui/ExportLayoutModal';
 import { useShipControls } from '../hooks/useShipControls';
 import { HintsPanel } from './ui/HintsPanel';
 import { useAudio } from '../hooks/useAudio';
+import { InitialHintTooltip } from './ui/InitialHintTooltip';
 
 
 // Define the sun's position for a sunset glow near the horizon
@@ -132,6 +133,8 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEnte
   const isPaused = isCalibrationMode;
   
   const isAnyPanelOpen = showContentPanel || isNavMenuOpen || isHintsOpen;
+  
+  const [showInitialHint, setShowInitialHint] = useState(false);
 
   // Effect to trigger the cinematic entry camera animation
   useEffect(() => {
@@ -139,6 +142,17 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEnte
       setIsAnimating(true);
     }
   }, [isEntering]);
+  
+  // New effect to show the initial tooltip once
+  useEffect(() => {
+    if (isHudVisible) {
+        const timer = setTimeout(() => {
+            setShowInitialHint(true);
+        }, 1500); // Show after 1.5s delay
+        return () => clearTimeout(timer);
+    }
+  }, [isHudVisible]);
+
 
   const navDistricts = useMemo(() => {
     const majorDistricts = districts.filter(d => d.type === 'major');
@@ -409,10 +423,12 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEnte
         {infoPanelItem && <HolographicInfoPanel district={infoPanelItem} onClose={() => setInfoPanelItem(null)} />}
 
       </Canvas>
+      {showInitialHint && <InitialHintTooltip />}
       <div
         className={`hud-container ${isHudVisible ? 'visible' : ''}`}
         style={{ pointerEvents: isHudVisible ? 'auto' : 'none' }}
       >
+        {/* FIX: Corrected handler names passed as props to the HUD component. */}
         <HUD 
           selectedDistrict={selectedDistrict}
           onToggleNavMenu={handleToggleNavMenu}
