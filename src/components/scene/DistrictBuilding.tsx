@@ -18,7 +18,6 @@ const UNLOCKED_COLOR = new THREE.Color('#005577');
 const HOVER_COLOR = new THREE.Color('#00aaff');
 const SELECTED_COLOR = new THREE.Color('#00ffff');
 const LOCKED_COLOR = new THREE.Color('#333333');
-const FONT_EXO2_BOLD = 'https://raw.githubusercontent.com/google/fonts/main/ofl/exo2/Exo2-Bold.ttf';
 
 const DistrictBuilding: React.FC<DistrictBuildingProps> = ({
   district,
@@ -95,7 +94,6 @@ const DistrictBuilding: React.FC<DistrictBuildingProps> = ({
         </mesh>
         {!isUnlocked && (
             <Text
-                font={FONT_EXO2_BOLD}
                 position={[0, height / 2 + 2, 0]}
                 fontSize={2}
                 color="#ff4444"

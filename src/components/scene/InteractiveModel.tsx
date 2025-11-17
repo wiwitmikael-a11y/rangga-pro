@@ -28,8 +28,6 @@ interface ModelProps {
   onPointerOut: (e: ThreeEvent<PointerEvent>) => void;
 }
 
-const FONT_EXO2_BOLD = 'https://raw.githubusercontent.com/google/fonts/main/ofl/exo2/Exo2-Bold.ttf';
-
 function Model({ url, scale, isHeld, onPointerOver, onPointerOut, onPointerDown, onPointerUp }: ModelProps) {
   // FIX: Call useThree to provide types for JSX primitives
   useThree();
@@ -209,7 +207,6 @@ export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, is
       {holdProgress > 0 && !isCalibrationMode && (
         <group position={[0, 15, 0]}>
             <Text
-                font={FONT_EXO2_BOLD}
                 position={[0, 10, 0]} // Positioned above the model
                 fontSize={3}
                 color="white"

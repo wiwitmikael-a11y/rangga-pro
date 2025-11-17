@@ -63,8 +63,6 @@ const dangerBorderFragmentShader = `
 
 // Define futuristic cyan color palette for high contrast
 const DESC_CYAN = '#afeeee'; // Pale turquoise for description
-const FONT_EXO2_REGULAR = 'https://raw.githubusercontent.com/google/fonts/main/ofl/exo2/Exo2-Regular.ttf';
-const FONT_EXO2_BOLD = 'https://raw.githubusercontent.com/google/fonts/main/ofl/exo2/Exo2-Bold.ttf';
 
 const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ district, onSelect, isSelected, isCalibrationMode, isHeld, onSetHeld, pointerEventsEnabled = true }) => {
   // FIX: Call useThree to provide types for JSX primitives
@@ -205,7 +203,6 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
 
         {/* District Title */}
         <Text
-          font={FONT_EXO2_BOLD}
           fontSize={3.0}
           color={'#000000'}
           anchorX="center"
@@ -224,7 +221,6 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
 
         {/* District Description */}
         <Text
-          font={FONT_EXO2_REGULAR}
           position={[0, -2.0, 0]} // Position text inside the box
           fontSize={1.2}
           color={DESC_CYAN}
@@ -240,7 +236,6 @@ const HolographicDistrictLabel: React.FC<HolographicDistrictLabelProps> = ({ dis
         {holdProgress > 0 && !isCalibrationMode && (
           <group position={[0, 7.5, 0.2]}>
             <Text
-                font={FONT_EXO2_BOLD}
                 position={[0, 2.5, 0]} // Positioned above the bar
                 fontSize={2}
                 color="white"
