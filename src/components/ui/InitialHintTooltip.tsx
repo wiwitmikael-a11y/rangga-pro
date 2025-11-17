@@ -3,7 +3,7 @@ import React from 'react';
 const styles: { [key: string]: React.CSSProperties } = {
     container: {
         position: 'fixed',
-        bottom: '25%',
+        bottom: '100px',
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 100,

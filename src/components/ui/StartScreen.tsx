@@ -58,18 +58,11 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   title: {
     fontSize: 'clamp(2.5rem, 8vw, 5rem)',
-    margin: 0,
+    margin: '0 0 40px 0',
     letterSpacing: '0.2em',
     textTransform: 'uppercase',
     textShadow: '0 0 10px var(--primary-color), 0 0 20px var(--primary-color)',
     animation: 'pulse 3s infinite',
-  },
-  subtitle: {
-    fontSize: 'clamp(1rem, 2vw, 1.2rem)',
-    margin: '10px 0 40px 0',
-    letterSpacing: '0.1em',
-    textTransform: 'uppercase',
-    opacity: 0.8,
   },
   startButton: {
     background: 'transparent',
@@ -144,8 +137,7 @@ export const StartScreen: React.FC<StartScreenProps> = React.memo(({ appState, p
           <div style={consoleStyle}>
             {isLoaded ? (
               <>
-                <h1 style={styles.title}>RAGETOPIA</h1>
-                <p style={styles.subtitle}>Rangga Digital Portfolio</p>
+                <h1 style={styles.title}>Rangga Digital Portfolio</h1>
                 <button
                   style={styles.startButton}
                   onClick={onStart}
