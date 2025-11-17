@@ -13,11 +13,15 @@ interface ProjectDisplayProps {
   onClick: () => void;
 }
 
+const FONT_EXO2_REGULAR = 'https://raw.githubusercontent.com/google/fonts/main/ofl/exo2/Exo2-Regular.ttf';
+const FONT_EXO2_BOLD = 'https://raw.githubusercontent.com/google/fonts/main/ofl/exo2/Exo2-Bold.ttf';
+
 const LockIcon: React.FC = () => {
     // FIX: Add useThree hook to ensure R3F types are available for JSX elements.
     useThree();
     return (
     <Text
+        font={FONT_EXO2_BOLD}
         position={[0, 0.5, 0.2]}
         fontSize={2}
         anchorX="center"
@@ -33,6 +37,7 @@ const AccessDeniedMessage: React.FC = () => {
     useThree();
     return (
     <Text
+        font={FONT_EXO2_REGULAR}
         position={[0, 1.5, 0.2]}
         fontSize={0.25}
         color="#ff4444"
@@ -132,6 +137,7 @@ export const ProjectDisplay: React.FC<ProjectDisplayProps> = ({ item, isLocked, 
       {showDeniedMsg && <AccessDeniedMessage />}
 
       <Text
+        font={FONT_EXO2_BOLD}
         position={[0, -1.5, 0.15]}
         fontSize={0.35}
         color={isLocked ? "#555" : "white"}
@@ -143,6 +149,7 @@ export const ProjectDisplay: React.FC<ProjectDisplayProps> = ({ item, isLocked, 
         {item.title}
       </Text>
       <Text
+        font={FONT_EXO2_REGULAR}
         position={[0, -2.2, 0.15]}
         fontSize={0.25}
         color={isLocked ? "#444" : "#aaa"}
