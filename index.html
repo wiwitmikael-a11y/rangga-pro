@@ -496,6 +496,85 @@
         box-shadow: 0 0 10px rgba(0, 225, 255, 0.5);
       }
       
+      /* --- Architect Profile Panel Styles --- */
+      .architect-profile-container {
+        padding: 0 10px;
+        height: 100%;
+        overflow-y: auto;
+      }
+      .architect-profile-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 15px;
+      }
+      .architect-profile-title {
+        color: var(--primary-color);
+        font-size: 1.2rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        border-bottom: 1px solid rgba(0, 170, 255, 0.3);
+        padding-bottom: 10px;
+        margin: 25px 0 15px 0;
+      }
+      .architect-profile-header .architect-profile-title {
+        margin: 0;
+        padding: 0;
+        border: none;
+      }
+      .architect-profile-summary + .architect-profile-title {
+        margin-top: 25px;
+      }
+      .download-pdf-button {
+        background: rgba(0, 170, 255, 0.2);
+        border: 1px solid var(--primary-color);
+        color: var(--primary-color);
+        padding: 8px 15px;
+        font-size: 0.8rem;
+        font-family: inherit;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        transition: all 0.3s ease;
+        text-shadow: 0 0 5px var(--primary-color);
+        border-radius: 5px;
+        white-space: nowrap;
+      }
+      .download-pdf-button:hover {
+        background: rgba(0, 170, 255, 0.4);
+        color: #fff;
+      }
+      .architect-profile-summary {
+        color: #ccc;
+        font-size: 1rem;
+        line-height: 1.8;
+        white-space: pre-wrap;
+        margin-bottom: 20px;
+      }
+      .architect-profile-skills-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 15px;
+      }
+      .architect-profile-skill-card {
+        background: rgba(0, 30, 50, 0.5);
+        border-radius: 8px;
+        padding: 20px;
+        border-left: 3px solid var(--primary-color);
+      }
+      .architect-profile-skill-card h4 {
+        margin: 0 0 10px 0;
+        font-size: 1rem;
+        color: #fff;
+      }
+      .architect-profile-skill-card p {
+        margin: 0;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        color: #ccc;
+      }
+
       /* --- Scrollbar --- */
       .custom-scrollbar::-webkit-scrollbar { width: 8px; }
       .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); border-radius: 4px; }
