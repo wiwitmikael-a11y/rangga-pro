@@ -6,9 +6,8 @@ import { Loader } from './Loader';
 // It renders the visible `Loader` UI.
 // We use this as a Suspense fallback to ensure the screen is never blank.
 export const LoadingOverlay: React.FC = () => {
-  const { progress, active } = useProgress();
+  const { progress } = useProgress();
   
-  // Even if progress is 100, if active is true, we should still show loading.
   // We floor the progress to avoid ugly decimals.
   const displayProgress = Math.floor(progress);
 
