@@ -4,17 +4,57 @@ import { AudioProvider } from './contexts/AudioContext';
 import { useAudio } from './hooks/useAudio';
 import { VideoIntro } from './components/ui/VideoIntro';
 
+// Simple Error Boundary to catch 3D crashes without killing the whole app UI
+class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: Error | null}> {
+  constructor(props: {children: React.ReactNode}) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error("CRITICAL 3D ERROR:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{
+            position: 'absolute', inset: 0, zIndex: 999,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            backgroundColor: '#050810', color: '#ff4444', fontFamily: 'monospace', textAlign: 'center', padding: '20px'
+        }}>
+            <h2 style={{fontSize: '2rem', marginBottom: '10px'}}>SYSTEM FAILURE</h2>
+            <p style={{color: '#888', maxWidth: '600px', marginBottom: '20px'}}>
+                The 3D Reality Engine encountered a critical error.<br/>
+                {this.state.error?.message || "Unknown WebGL Error"}
+            </p>
+            <button 
+                onClick={() => window.location.reload()}
+                style={{
+                    background: 'transparent', border: '1px solid #ff4444', color: '#ff4444',
+                    padding: '10px 30px', cursor: 'pointer', fontFamily: 'inherit', fontSize: '1rem'
+                }}
+            >
+                REBOOT SYSTEM
+            </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 const AppContent: React.FC = () => {
-  // Simplified State: video (intro) -> entering (fly-in) -> experience (interactive)
   const [appState, setAppState] = useState<'video' | 'entering' | 'experience'>('video');
   const audio = useAudio();
 
   const handleIntroComplete = useCallback(() => {
-    // Triggers the transition from Intro directly to 3D Entry
     audio.play('confirm');
     audio.play('gate_open', { volume: 0.8 });
-    
-    // Start main ambience loop immediately
     audio.playLoop('ambience', { volume: 0.2 });
     audio.playLoop('flyby', { volume: 0.15 });
 
@@ -29,8 +69,7 @@ const AppContent: React.FC = () => {
   
   // RENDER STRATEGY:
   // Render Experience3D immediately behind the video.
-  // The 'isWaitingToStart' flag keeps the camera locked at the gate position
-  // until the video finishes and the user clicks enter.
+  // The 'isWaitingToStart' flag keeps the camera locked at the gate position.
   const isWaitingToStart = appState === 'video';
   const isEntering = appState === 'entering';
   const isHudVisible = appState === 'experience';
@@ -40,14 +79,16 @@ const AppContent: React.FC = () => {
       {showVideo && <VideoIntro onComplete={handleIntroComplete} />}
 
       <main style={{ width: '100vw', height: '100vh', backgroundColor: '#050810' }}>
-        <Suspense fallback={null}>
-            <Experience3D 
-              isHudVisible={isHudVisible} 
-              isEntering={isEntering}
-              isWaitingToStart={isWaitingToStart} // Camera is locked while video plays
-              onEntryFinish={handleEntryAnimationFinish} // Connect the callback here
-            />
-        </Suspense>
+        <ErrorBoundary>
+            <Suspense fallback={null}>
+                <Experience3D 
+                  isHudVisible={isHudVisible} 
+                  isEntering={isEntering}
+                  isWaitingToStart={isWaitingToStart} 
+                  onEntryFinish={handleEntryAnimationFinish} 
+                />
+            </Suspense>
+        </ErrorBoundary>
       </main>
     </>
   );

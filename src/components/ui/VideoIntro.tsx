@@ -128,7 +128,7 @@ const styles: { [key: string]: React.CSSProperties } = {
 export const VideoIntro: React.FC<VideoIntroProps> = ({ onComplete }) => {
   const [stepIndex, setStepIndex] = useState(0);
   const [isFadingOut, setIsFadingOut] = useState(false);
-  const [isReadyToStart, setIsReadyToStart] = useState(false); // New state to track if we are waiting for click
+  const [isReadyToStart, setIsReadyToStart] = useState(false); 
   const audioCtxRef = useRef<AudioContext | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -156,7 +156,7 @@ export const VideoIntro: React.FC<VideoIntroProps> = ({ onComplete }) => {
         osc.start();
         osc.stop(ctx.currentTime + length);
     } catch (e) {
-        // Ignore audio errors
+        // Ignore audio errors gracefully
     }
   }, []);
 
@@ -175,10 +175,14 @@ export const VideoIntro: React.FC<VideoIntroProps> = ({ onComplete }) => {
   }, [onComplete, playSound]);
 
   useEffect(() => {
+    // If we are already fading out or ready, do not run the loop logic
+    if (isFadingOut) return;
+
     const currentStep = SEQUENCE[stepIndex];
     const isLast = stepIndex === SEQUENCE.length - 1;
 
-    if (!isLast && !isFadingOut && !isReadyToStart) {
+    // Play sound for current step if not finished
+    if (!isLast && !isReadyToStart) {
         const progress = stepIndex / SEQUENCE.length;
         const freq = 100 + (progress * 400) + (Math.random() * 50);
         playSound(freq, 'sawtooth', 0.05);
@@ -186,8 +190,8 @@ export const VideoIntro: React.FC<VideoIntroProps> = ({ onComplete }) => {
 
     if (isLast) {
        // SEQUENCE FINISHED
-       // Instead of finishing immediately, we show the "Press to Start" prompt
-       setIsReadyToStart(true);
+       // Only set state if it hasn't been set yet to avoid infinite loop
+       if (!isReadyToStart) setIsReadyToStart(true);
     } else {
        // Move to next word
        timeoutRef.current = setTimeout(() => {
@@ -223,7 +227,7 @@ export const VideoIntro: React.FC<VideoIntroProps> = ({ onComplete }) => {
       
       <div 
         style={{ ...styles.container, opacity: isFadingOut ? 0 : 1, pointerEvents: isFadingOut ? 'none' : 'auto' }}
-        onClick={isReadyToStart ? triggerExit : undefined} // Only click-to-exit when ready (or use skip button)
+        onClick={isReadyToStart ? triggerExit : undefined}
       >
         <div style={styles.gridBackground} />
         
