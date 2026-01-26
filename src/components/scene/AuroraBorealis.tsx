@@ -15,8 +15,6 @@ void main() {
 }
 `;
 
-// Realistic Aurora Shader
-// Uses domain warping and high-frequency noise to simulate "curtains" of light
 const fragmentShader = `
 uniform float uTime;
 uniform vec3 uColor1;
@@ -54,50 +52,60 @@ float snoise(vec2 v){
 
 void main() {
   vec2 uv = vUv;
-  float time = uTime * 0.1; // Slow, majestic movement
+  float time = uTime * 0.05; // Even slower movement for realism
   
-  // --- BAND 1 (Lower, Brighter) ---
-  // Create a winding path using sin waves on X
-  float warp1 = sin(uv.x * 5.0 + time * 0.5) * 0.15 + sin(uv.x * 12.0 - time) * 0.05;
+  // --- AZIMUTH MASK (Arc restriction) ---
+  // Restrict aurora to only show in the middle 40% of the UV x-axis
+  // This prevents the "ring" effect.
+  float azimuthCenter = 0.5;
+  float azimuthWidth = 0.25; 
+  float azimuthMask = smoothstep(azimuthCenter - azimuthWidth, azimuthCenter, uv.x) * 
+                      (1.0 - smoothstep(azimuthCenter, azimuthCenter + azimuthWidth, uv.x));
   
-  // Determine distance from this winding path
-  // We center it around y=0.2 (low in the sky)
-  float path1 = abs(uv.y - 0.2 - warp1);
-  
-  // Intensity falls off quickly from the center of the path
-  float intensity1 = 1.0 - smoothstep(0.0, 0.25, path1);
-  intensity1 = pow(intensity1, 2.0); // Sharpen
-  
-  // Add "Curtain" effect (Vertical Streaks)
-  // High frequency noise on X, stretched along Y
-  float streak1 = snoise(vec2(uv.x * 40.0 - time * 2.0, uv.y * 3.0));
-  intensity1 *= (0.4 + 0.6 * streak1); // Modulate intensity by streaks
+  // If we are outside the arc, discard early for performance
+  if (azimuthMask < 0.01) discard;
 
-  // --- BAND 2 (Higher, Fainter, Different Phase) ---
-  float warp2 = sin(uv.x * 4.0 - time * 0.3) * 0.1 + sin(uv.x * 8.0 + time * 0.8) * 0.05;
-  float path2 = abs(uv.y - 0.35 - warp2); // Higher up at 0.35
-  float intensity2 = 1.0 - smoothstep(0.0, 0.3, path2);
-  intensity2 = pow(intensity2, 2.0);
-  float streak2 = snoise(vec2(uv.x * 30.0 + time, uv.y * 2.0));
-  intensity2 *= (0.3 + 0.7 * streak2);
+  // --- BAND 1 (Main Curtain) ---
+  // Warp path: Complex sin waves
+  float warp1 = sin(uv.x * 3.0 + time) * 0.1 + sin(uv.x * 7.0 - time * 0.5) * 0.05;
+  
+  // Path definition: centered lower in the sky
+  float path1 = abs(uv.y - 0.25 - warp1);
+  
+  // Intensity: Higher power (4.0) makes the band much thinner/sharper
+  float intensity1 = 1.0 - smoothstep(0.0, 0.15, path1);
+  intensity1 = pow(intensity1, 4.0); 
+  
+  // Fibrous Streaks: Very high frequency noise on X (150.0)
+  float streak1 = snoise(vec2(uv.x * 150.0, uv.y * 8.0 - time * 2.0));
+  // Stretch contrast of streaks
+  streak1 = smoothstep(0.2, 0.8, streak1);
+  intensity1 *= (0.2 + 0.8 * streak1); 
+
+  // --- BAND 2 (Secondary, Fainter) ---
+  float warp2 = sin(uv.x * 4.0 - time * 0.2) * 0.08;
+  float path2 = abs(uv.y - 0.35 - warp2);
+  float intensity2 = 1.0 - smoothstep(0.0, 0.2, path2);
+  intensity2 = pow(intensity2, 3.0); // Slightly softer than band 1
+  float streak2 = snoise(vec2(uv.x * 100.0 + time, uv.y * 5.0));
+  intensity2 *= (0.1 + 0.9 * streak2);
 
   // --- COMBINE ---
-  float finalIntensity = max(intensity1, intensity2 * 0.7); // Band 2 is slightly dimmer
+  float finalIntensity = max(intensity1, intensity2 * 0.5);
   
+  // Apply Azimuth Mask to cut the edges smoothly
+  finalIntensity *= azimuthMask;
+
   // --- COLORS ---
-  // Mix color based on height.
-  // Lower parts (y < 0.25) are Cyan/Greenish (uColor1)
-  // Upper parts (y > 0.4) fade to Purple (uColor2)
-  float colorMix = smoothstep(0.15, 0.5, uv.y);
-  vec3 col = mix(uColor1, uColor2, colorMix);
+  // Realistic Gradient: Cyan at bottom, fading to deep purple/void at top
+  vec3 col = mix(uColor1, uColor2, smoothstep(0.1, 0.6, uv.y));
   
-  // --- FADING ---
-  // Hard fade at horizon (0.0) to hide mesh edge
-  // Soft fade at zenith (top of dome)
-  float horizonFade = smoothstep(0.0, 0.1, uv.y);
-  float zenithFade = 1.0 - smoothstep(0.6, 0.9, uv.y);
+  // --- FINAL FADE ---
+  // Fade bottom (horizon) and top (zenith)
+  float horizonFade = smoothstep(0.05, 0.15, uv.y);
+  float zenithFade = 1.0 - smoothstep(0.5, 0.8, uv.y);
   
-  float alpha = finalIntensity * horizonFade * zenithFade * 0.8; // 0.8 Max opacity
+  float alpha = finalIntensity * horizonFade * zenithFade * 0.7; // 0.7 Max opacity
   
   gl_FragColor = vec4(col, alpha);
 }
@@ -108,11 +116,10 @@ export const AuroraBorealis: React.FC = React.memo(() => {
   
   const uniforms = useMemo(() => ({
     uTime: { value: 0 },
-    // Realistic Cyberpunk Palette:
-    // Color 1: Electric Cyan (Base)
+    // Crisp Electric Cyan
     uColor1: { value: new THREE.Color('#00ffe5') }, 
-    // Color 2: Deep Neon Purple (Top tips)
-    uColor2: { value: new THREE.Color('#9d00ff') },
+    // Deep Neon Violet
+    uColor2: { value: new THREE.Color('#7000ff') },
   }), []);
 
   useFrame(({ clock }) => {
@@ -123,20 +130,22 @@ export const AuroraBorealis: React.FC = React.memo(() => {
   });
 
   return (
-    <mesh ref={meshRef} position={[0, -20, 0]} scale={[1, 0.8, 1]}>
-      {/* 
-        Using a Sphere Cut (0 to PI*0.5) implies a hemisphere.
-        We scale Y by 0.8 to flatten it slightly for a wider sky feel.
-        Position moved up to -20 to bring the "horizon" of the dome closer to the city ground.
-      */}
+    <mesh 
+        ref={meshRef} 
+        position={[0, -20, 0]} 
+        scale={[1, 0.7, 1]}
+        // Rotate 225 deg (5 * PI / 4) to face South-West (Opposite Sun at North-East)
+        // Adjusting rotation so the "center" of the UVs (0.5) aligns with South-West
+        rotation={[0, Math.PI * 1.25, 0]} 
+    >
       <sphereGeometry args={[450, 64, 32, 0, Math.PI * 2, 0, Math.PI * 0.5]} />
       <shaderMaterial
         vertexShader={vertexShader}
         fragmentShader={fragmentShader}
         uniforms={uniforms}
-        side={THREE.BackSide} // Render inside
+        side={THREE.BackSide}
         transparent={true}
-        blending={THREE.AdditiveBlending} // Glow effect
+        blending={THREE.AdditiveBlending}
         depthWrite={false}
       />
     </mesh>
