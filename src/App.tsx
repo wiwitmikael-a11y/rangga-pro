@@ -1,86 +1,53 @@
-import React, { useState, Suspense, useCallback, useEffect } from 'react';
-import { useProgress } from '@react-three/drei';
+import React, { useState, Suspense, useCallback } from 'react';
 import { Experience3D } from './components/Experience3D';
-import { StartScreen } from './components/ui/StartScreen';
 import { AudioProvider } from './contexts/AudioContext';
 import { useAudio } from './hooks/useAudio';
 import { VideoIntro } from './components/ui/VideoIntro';
 
 const AppContent: React.FC = () => {
-  const { progress } = useProgress();
-  // State: video -> loading -> start (waiting for user) -> entering (animation) -> experience
-  const [appState, setAppState] = useState<'video' | 'loading' | 'start' | 'entering' | 'experience'>('video');
+  // Simplified State: video (intro) -> entering (fly-in) -> experience (interactive)
+  const [appState, setAppState] = useState<'video' | 'entering' | 'experience'>('video');
   const audio = useAudio();
 
-  // Threshold to switch from loading to start button
-  const isLoaded = progress >= 100;
+  const handleIntroComplete = useCallback(() => {
+    // Triggers the transition from Intro directly to 3D Entry
+    audio.play('confirm');
+    audio.play('gate_open', { volume: 0.8 });
+    
+    // Start main ambience loop immediately
+    audio.playLoop('ambience', { volume: 0.2 });
+    audio.playLoop('flyby', { volume: 0.15 });
 
-  const handleVideoEnd = useCallback(() => {
-    setAppState('loading');
-  }, []);
+    setAppState('entering');
+  }, [audio]);
 
-  useEffect(() => {
-    if (appState === 'loading' && isLoaded) {
-      // Small delay to ensure smooth transition from loader to button
-      const timer = setTimeout(() => setAppState('start'), 800);
-      return () => clearTimeout(timer);
-    }
-  }, [appState, isLoaded]);
-
-  const handleStart = useCallback(() => {
-    if (appState === 'start') {
-      audio.play('confirm');
-      audio.play('gate_open', { volume: 0.8 });
-      
-      // Start main ambience loop immediately
-      audio.playLoop('ambience', { volume: 0.2 });
-      audio.playLoop('flyby', { volume: 0.15 });
-      
-      setAppState('entering');
-    }
-  }, [appState, audio]);
-
-  const handleIntroEnd = useCallback(() => {
+  const handleEntryAnimationFinish = useCallback(() => {
     setAppState('experience');
   }, []);
 
   const showVideo = appState === 'video';
   
-  // RENDER STRATEGY: 
-  // Render Experience3D as soon as video ends. It hides behind StartScreen.
-  const showExperienceCanvas = appState !== 'video';
-  
-  // Pass specific flags to control camera behavior
-  const isWaitingToStart = appState === 'start' || appState === 'loading';
+  // RENDER STRATEGY:
+  // Render Experience3D immediately behind the video.
+  // The 'isWaitingToStart' flag keeps the camera locked at the gate position
+  // until the video finishes and the user clicks enter.
+  const isWaitingToStart = appState === 'video';
   const isEntering = appState === 'entering';
-  
-  const showStartScreen = appState === 'loading' || appState === 'start' || appState === 'entering';
   const isHudVisible = appState === 'experience';
 
   return (
     <>
-      {showVideo && <VideoIntro onVideoEnd={handleVideoEnd} />}
+      {showVideo && <VideoIntro onComplete={handleIntroComplete} />}
 
       <main style={{ width: '100vw', height: '100vh', backgroundColor: '#050810' }}>
         <Suspense fallback={null}>
-          {showExperienceCanvas && (
             <Experience3D 
               isHudVisible={isHudVisible} 
               isEntering={isEntering}
-              isWaitingToStart={isWaitingToStart} // NEW: Locks camera in pre-entry position
+              isWaitingToStart={isWaitingToStart} // Camera is locked while video plays
             />
-          )}
         </Suspense>
       </main>
-      
-      {showStartScreen && (
-        <StartScreen
-          appState={appState}
-          progress={progress}
-          onStart={handleStart}
-          onIntroEnd={handleIntroEnd}
-        />
-      )}
     </>
   );
 };
@@ -92,6 +59,5 @@ const App: React.FC = () => {
     </AudioProvider>
   );
 };
-
 
 export default App;

@@ -94,7 +94,7 @@ const SceneContent: React.FC<SceneContentProps> = ({ districts, selectedDistrict
 interface Experience3DProps {
   isHudVisible: boolean;
   isEntering: boolean;
-  isWaitingToStart: boolean; // New prop
+  isWaitingToStart: boolean; // Controls if camera is locked at gate
 }
 
 export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEntering, isWaitingToStart }) => {
@@ -401,7 +401,7 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEnte
           targetShipRef={targetShipRef}
           isCalibrationMode={isCalibrationMode}
           isEntering={isEntering}
-          isWaitingToStart={isWaitingToStart} // Pass the prop here
+          isWaitingToStart={isWaitingToStart} 
         />
         
         <OrbitControls

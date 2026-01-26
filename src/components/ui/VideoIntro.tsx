@@ -1,28 +1,42 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 interface VideoIntroProps {
-  onVideoEnd: () => void;
+  onComplete: () => void;
 }
 
 interface WordStep {
-  text: string; // The suffix text (e.g., "sign", "velop", "ploy")
-  fullWordMeaning: string; // For context/coloring (e.g., "DESIGN")
+  text: string;
+  fullWordMeaning: string;
   color: string;
   speed: number;
 }
 
-// Sequence: "rangga." is static. We animate the suffix.
-// The sequence creates: rangga.define -> rangga.design -> ... -> rangga.de
 const SEQUENCE: WordStep[] = [
-  { text: "fine", fullWordMeaning: "DEFINE", color: "#4a4a4a", speed: 150 },
-  { text: "termine", fullWordMeaning: "DETERMINE", color: "#666666", speed: 150 },
-  { text: "sign", fullWordMeaning: "DESIGN", color: "#ff0080", speed: 300 },      // Magenta
-  { text: "velop", fullWordMeaning: "DEVELOP", color: "#00e5ff", speed: 300 },   // Cyan
-  { text: "ploy", fullWordMeaning: "DEPLOY", color: "#ffee00", speed: 300 },     // Yellow
-  { text: "liver", fullWordMeaning: "DELIVER", color: "#00ff41", speed: 300 },   // Green
-  { text: "code", fullWordMeaning: "DECODE", color: "#bd00ff", speed: 200 },     // Purple
-  { text: "bug", fullWordMeaning: "DEBUG", color: "#ff4444", speed: 150 },       // Red
-  { text: "", fullWordMeaning: "DE", color: "#ff9900", speed: 2000 }             // Final: rangga.de
+  // Phase 1: Strategy & Logic
+  { text: "fine", fullWordMeaning: "DEFINE", color: "#666666", speed: 120 },
+  { text: "cide", fullWordMeaning: "DECIDE", color: "#888888", speed: 120 },
+  { text: "rive", fullWordMeaning: "DERIVE", color: "#aaaaaa", speed: 120 },
+  
+  // Phase 2: Creation
+  { text: "sign", fullWordMeaning: "DESIGN", color: "#ff0080", speed: 250 },
+  { text: "velop", fullWordMeaning: "DEVELOP", color: "#00e5ff", speed: 250 },
+  { text: "code", fullWordMeaning: "DECODE", color: "#bd00ff", speed: 200 },
+  
+  // Phase 3: Web3 Security
+  { text: "crypt", fullWordMeaning: "DECRYPT", color: "#00ff41", speed: 200 },
+  { text: "centralize", fullWordMeaning: "DECENTRALIZE", color: "#00ff41", speed: 250 },
+  
+  // Phase 4: Action
+  { text: "bug", fullWordMeaning: "DEBUG", color: "#ff4444", speed: 150 },
+  { text: "construct", fullWordMeaning: "DECONSTRUCT", color: "#ff4444", speed: 150 },
+  { text: "ploy", fullWordMeaning: "DEPLOY", color: "#ffee00", speed: 250 },
+  
+  // Phase 5: Result
+  { text: "liver", fullWordMeaning: "DELIVER", color: "#00e5ff", speed: 300 },
+  { text: "light", fullWordMeaning: "DELIGHT", color: "#ffffff", speed: 350 },
+  
+  // Final: Brand
+  { text: "", fullWordMeaning: "DE", color: "#ff9900", speed: 0 } 
 ];
 
 const styles: { [key: string]: React.CSSProperties } = {
@@ -32,11 +46,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     zIndex: 9999,
     backgroundColor: '#050810',
     display: 'flex',
+    flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    fontFamily: "'Courier New', monospace", // Monospace fits the "coding" theme better here
+    fontFamily: "'Courier New', monospace",
     transition: 'opacity 0.8s ease-in-out',
     overflow: 'hidden',
+    cursor: 'pointer', // Indicates the whole screen is interactive at the end
   },
   contentWrapper: {
     position: 'relative',
@@ -51,11 +67,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     textShadow: '0 0 20px rgba(255,255,255,0.1)',
     letterSpacing: '-0.05em',
   },
-  // The "de" part is the bridge between static and dynamic
   bridgeText: {
     fontSize: 'clamp(2.5rem, 6vw, 5rem)',
     fontWeight: 700,
-    color: '#ff9900', // Always orange/gold for the brand "de"
+    color: '#ff9900',
     letterSpacing: '-0.05em',
   },
   dynamicSuffix: {
@@ -73,6 +88,17 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginLeft: '5px',
     verticalAlign: 'middle',
     animation: 'blink 1s step-end infinite',
+  },
+  // New Start Prompt Style
+  startPrompt: {
+    marginTop: '40px',
+    color: '#00ffff',
+    fontSize: '1rem',
+    letterSpacing: '0.2em',
+    animation: 'pulse 1.5s infinite',
+    opacity: 0,
+    transition: 'opacity 0.5s ease',
+    textTransform: 'uppercase',
   },
   skipButton: {
     position: 'fixed',
@@ -99,13 +125,13 @@ const styles: { [key: string]: React.CSSProperties } = {
   }
 };
 
-export const VideoIntro: React.FC<VideoIntroProps> = ({ onVideoEnd }) => {
+export const VideoIntro: React.FC<VideoIntroProps> = ({ onComplete }) => {
   const [stepIndex, setStepIndex] = useState(0);
   const [isFadingOut, setIsFadingOut] = useState(false);
+  const [isReadyToStart, setIsReadyToStart] = useState(false); // New state to track if we are waiting for click
   const audioCtxRef = useRef<AudioContext | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // --- Audio Engine (Procedural) ---
   const playSound = useCallback((freq: number, type: OscillatorType, length: number) => {
     try {
         if (!audioCtxRef.current) {
@@ -134,33 +160,34 @@ export const VideoIntro: React.FC<VideoIntroProps> = ({ onVideoEnd }) => {
     }
   }, []);
 
-  const finish = useCallback(() => {
+  const triggerExit = useCallback(() => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setIsFadingOut(true);
-    // Play final success sound
+    
+    // Play success/enter sound
     playSound(440, 'sine', 0.1);
     playSound(880, 'sine', 0.4);
     
-    // Allow fade out animation to complete before unmounting
+    // Small delay for fade out
     setTimeout(() => {
-        onVideoEnd();
+        onComplete();
     }, 800);
-  }, [onVideoEnd, playSound]);
+  }, [onComplete, playSound]);
 
   useEffect(() => {
     const currentStep = SEQUENCE[stepIndex];
     const isLast = stepIndex === SEQUENCE.length - 1;
 
-    // Play glitch/type sound for each step
-    if (!isLast && !isFadingOut) {
-        const freq = 100 + (Math.random() * 200);
+    if (!isLast && !isFadingOut && !isReadyToStart) {
+        const progress = stepIndex / SEQUENCE.length;
+        const freq = 100 + (progress * 400) + (Math.random() * 50);
         playSound(freq, 'sawtooth', 0.05);
     }
 
     if (isLast) {
-       // We reached "rangga.de"
-       // Hold it for the duration specified in the last step (2000ms) then finish
-       timeoutRef.current = setTimeout(finish, currentStep.speed);
+       // SEQUENCE FINISHED
+       // Instead of finishing immediately, we show the "Press to Start" prompt
+       setIsReadyToStart(true);
     } else {
        // Move to next word
        timeoutRef.current = setTimeout(() => {
@@ -171,7 +198,7 @@ export const VideoIntro: React.FC<VideoIntroProps> = ({ onVideoEnd }) => {
     return () => {
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [stepIndex, finish, playSound, isFadingOut]);
+  }, [stepIndex, playSound, isFadingOut, isReadyToStart]);
 
   const currentStep = SEQUENCE[stepIndex];
 
@@ -179,6 +206,7 @@ export const VideoIntro: React.FC<VideoIntroProps> = ({ onVideoEnd }) => {
     <>
       <style>{`
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; text-shadow: 0 0 10px #00ffff; } 100% { opacity: 0.5; } }
         .intro-suffix {
             display: inline-block;
             animation: glitch-skew 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
@@ -193,31 +221,34 @@ export const VideoIntro: React.FC<VideoIntroProps> = ({ onVideoEnd }) => {
         }
       `}</style>
       
-      <div style={{ ...styles.container, opacity: isFadingOut ? 0 : 1, pointerEvents: isFadingOut ? 'none' : 'auto' }}>
+      <div 
+        style={{ ...styles.container, opacity: isFadingOut ? 0 : 1, pointerEvents: isFadingOut ? 'none' : 'auto' }}
+        onClick={isReadyToStart ? triggerExit : undefined} // Only click-to-exit when ready (or use skip button)
+      >
         <div style={styles.gridBackground} />
         
         <div style={styles.contentWrapper}>
-          {/* Static Part */}
           <span style={styles.staticText}>rangga.</span>
-          
-          {/* Bridge Part ("de") */}
           <span style={styles.bridgeText}>de</span>
-          
-          {/* Dynamic Suffix (starts empty, but conceptually we append "fine", "sign", etc) */}
           <span 
             className="intro-suffix"
             style={{ ...styles.dynamicSuffix, color: currentStep.color }}
           >
             {currentStep.text}
           </span>
-
-          {/* Blinking Cursor */}
           <span style={styles.cursor} />
         </div>
 
-        <button style={styles.skipButton} onClick={finish}>
-            SKIP_INTRO &gt;&gt;
-        </button>
+        {/* The Prompt appearing at the end acts as the new Start Button */}
+        <div style={{ ...styles.startPrompt, opacity: isReadyToStart ? 1 : 0 }}>
+            &gt; [ PRESS_TO_INITIALIZE ]
+        </div>
+
+        {!isReadyToStart && (
+            <button style={styles.skipButton} onClick={(e) => { e.stopPropagation(); triggerExit(); }}>
+                SKIP_INTRO &gt;&gt;
+            </button>
+        )}
       </div>
     </>
   );
