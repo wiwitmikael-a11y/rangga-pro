@@ -1,3 +1,4 @@
+
 import type { CityDistrict, SkillCategory } from './types';
 import * as THREE from 'three';
 
@@ -371,7 +372,7 @@ export const portfolioData: CityDistrict[] = [
             "position": [0,0,0]
         }
     ],
-    "modelUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/district_contact.glb",
+    // "modelUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/district_contact.glb", // REMOVED DUE TO 404 TO PREVENT CRASH
     "modelScale": 1.4
   },
   {

@@ -245,7 +245,7 @@ export const VideoIntro: React.FC<VideoIntroProps> = ({ onComplete }) => {
 
         {/* The Prompt appearing at the end acts as the new Start Button */}
         <div style={{ ...styles.startPrompt, opacity: isReadyToStart ? 1 : 0 }}>
-            &gt; [ PRESS_TO_INITIALIZE ]
+            &gt; [ CLICK TO ENTER SYSTEM ]
         </div>
 
         {!isReadyToStart && (

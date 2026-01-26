@@ -9,6 +9,7 @@ import { useFrame, ThreeEvent, useThree } from '@react-three/fiber';
 import { CityDistrict } from '../../types';
 import HolographicDistrictLabel from './HolographicDistrictLabel';
 import { useAudio } from '../../hooks/useAudio';
+import { HolographicProjector } from './HolographicProjector';
 
 interface InteractiveModelProps {
   district: CityDistrict;
@@ -27,6 +28,26 @@ interface ModelProps {
   onPointerUp: (e: ThreeEvent<PointerEvent>) => void;
   onPointerOver: (e: ThreeEvent<PointerEvent>) => void;
   onPointerOut: (e: ThreeEvent<PointerEvent>) => void;
+}
+
+// Robust Error Boundary specifically for model loading
+class ModelErrorBoundary extends React.Component<{ fallback: React.ReactNode, children: React.ReactNode }, { hasError: boolean }> {
+  constructor(props: { fallback: React.ReactNode, children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true };
+  }
+  componentDidCatch(error: any, info: any) {
+    console.error("3D Model load error (handled silently):", error);
+  }
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
 }
 
 function Model({ url, scale, isHeld, onPointerOver, onPointerOut, onPointerDown, onPointerUp }: ModelProps) {
@@ -184,17 +205,21 @@ export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, is
 
   return (
     <group ref={groupRef} position={district.position}>
-      <Suspense fallback={null}>
-        <Model 
-          url={district.modelUrl!}
-          scale={district.modelScale || 1}
-          isHeld={isHeld}
-          onPointerOver={handlePointerOver}
-          onPointerOut={handlePointerOut}
-          onPointerDown={handlePointerDown}
-          onPointerUp={handlePointerUp}
-        />
-      </Suspense>
+      {/* If Model fails to load (e.g. 404), it renders HolographicProjector as fallback without crashing */}
+      <ModelErrorBoundary fallback={<HolographicProjector position={[0, -5, 0]} />}>
+        <Suspense fallback={<HolographicProjector position={[0, -5, 0]} />}>
+            <Model 
+            url={district.modelUrl!}
+            scale={district.modelScale || 1}
+            isHeld={isHeld}
+            onPointerOver={handlePointerOver}
+            onPointerOut={handlePointerOut}
+            onPointerDown={handlePointerDown}
+            onPointerUp={handlePointerUp}
+            />
+        </Suspense>
+      </ModelErrorBoundary>
+      
       <HolographicDistrictLabel 
         district={district}
         isSelected={isSelected}
