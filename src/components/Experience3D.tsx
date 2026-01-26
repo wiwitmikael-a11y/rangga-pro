@@ -1,12 +1,12 @@
 
+
 import React, { useState, useCallback, Suspense, useMemo, useRef, useEffect } from 'react';
 // FIX: Add a side-effect import to ensure R3F's JSX types are globally available.
 import '@react-three/fiber';
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, Sky, Preload } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
-import { EffectComposer, Noise, Bloom } from '@react-three/postprocessing';
-import { BlendFunction } from 'postprocessing';
+import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
 
 import { CityModel } from './scene/CityModel';
@@ -28,6 +28,7 @@ import { useShipControls } from '../hooks/useShipControls';
 import { HintsPanel } from './ui/HintsPanel';
 import { useAudio } from '../hooks/useAudio';
 import { InitialHintTooltip } from './ui/InitialHintTooltip';
+import { BackgroundArchitecture } from './scene/BackgroundArchitecture';
 
 
 // Define the sun's position for a sunset glow near the horizon
@@ -59,8 +60,8 @@ const SceneContent: React.FC<SceneContentProps> = ({ districts, selectedDistrict
         position={sunPosition}
         intensity={2.5}
         castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
         shadow-camera-far={500}
         shadow-camera-left={-200}
         shadow-camera-right={200}
@@ -71,6 +72,7 @@ const SceneContent: React.FC<SceneContentProps> = ({ districts, selectedDistrict
       <Sky sunPosition={new THREE.Vector3(...sunPosition)} />
       <CityModel />
       <ProceduralTerrain />
+      <BackgroundArchitecture />
       <DistrictRenderer
         districts={districts}
         selectedDistrict={selectedDistrict}
@@ -360,6 +362,8 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEnte
     <>
       <Canvas
         shadows
+        // PERFORMANCE FIX: Limit pixel ratio to 1.5 to prevent lag on Retina/4K displays
+        dpr={[1, 1.5]}
         camera={{ position: OVERVIEW_CAMERA_POSITION, fov: 50, near: 1, far: 1000 }}
         onPointerDown={handleCanvasPointerDown}
         onPointerUp={handleInteractionEnd}
@@ -422,7 +426,8 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEnte
         />
 
         <EffectComposer>
-          <Noise premultiply blendFunction={BlendFunction.ADD} opacity={0.05} />
+          {/* PERFORMANCE FIX: Removed Noise effect which is expensive on low-power devices/Opera */}
+          {/* <Noise premultiply blendFunction={BlendFunction.ADD} opacity={0.05} /> */}
           <Bloom luminanceThreshold={1.2} intensity={0.6} levels={8} mipmapBlur />
         </EffectComposer>
 

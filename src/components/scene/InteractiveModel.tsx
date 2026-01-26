@@ -115,10 +115,7 @@ function Model({ url, scale, isHeld, onPointerOver, onPointerOut, onPointerDown,
   return (
     <group>
         {/* 
-           CRITICAL FIX: 
-           Enlarged Hitbox. 
-           Positioned at y=10 with height 30 ensures it covers from ground (y=-5) to above the label (y=25).
-           Width expanded to 15 to make clicking easier.
+           Invisible Hitbox to capture clicks around the model 
         */}
         <mesh 
             position={[0, 10, 0]} 
@@ -128,7 +125,7 @@ function Model({ url, scale, isHeld, onPointerOver, onPointerOut, onPointerDown,
             onPointerDown={onPointerDown}
             onPointerUp={onPointerUp}
         >
-            <boxGeometry args={[16, 30, 16]} /> 
+            <boxGeometry args={[18, 35, 18]} /> 
             <meshBasicMaterial transparent opacity={0} depthWrite={false} />
         </mesh>
 
@@ -156,7 +153,7 @@ export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, is
   const actionTriggeredRef = useRef(false);
   
   // FIX: Reduced hold duration for snappier interaction
-  const HOLD_DURATION = 400; // Even faster: 400ms
+  const HOLD_DURATION = 400; // 400ms
 
   const cancelHold = useCallback(() => {
     isHoldingRef.current = false;
@@ -241,6 +238,13 @@ export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, is
         </Suspense>
       </ModelErrorBoundary>
       
+      {/* 
+          CRITICAL FIX: 
+          Set `pointerEventsEnabled={true}`. 
+          This ensures hitting the label also triggers the shared hold logic if customized in Label component, 
+          OR allows it to bubble up if we wrap it correctly.
+          Here we are passing the hold handlers directly to the label.
+      */}
       <HolographicDistrictLabel 
         district={district}
         isSelected={isSelected}
@@ -248,7 +252,7 @@ export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, is
         isCalibrationMode={isCalibrationMode}
         isHeld={isHeld}
         onSetHeld={onSetHeld}
-        pointerEventsEnabled={false} 
+        pointerEventsEnabled={true} 
       />
       
       {holdProgress > 0 && !isCalibrationMode && (

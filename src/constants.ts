@@ -143,14 +143,15 @@ export const skillsDataBilingual: { [key in 'id' | 'en']: SkillCategory[] } = {
 
 // --- Global Scene Constants ---
 export const OVERVIEW_CAMERA_POSITION = new THREE.Vector3(0, 100, 250);
-export const FLIGHT_RADIUS = 120; // Replaces FLIGHT_AREA_SIZE for circular flight path
+export const FLIGHT_RADIUS = 150; // Increased radius to accommodate spread out districts
 
 // --- Formspree Endpoint ---
 export const FORMSPREE_FORM_ID = 'xwpwvzaa';
 
 
-// Data portofolio telah diisi dengan konten mock yang relevan dan gambar dari CDN Unsplash.
-// POSISI DAN FOKUS KAMERA DIKALIBRASI ULANG UNTUK LAYOUT KOTA YANG LEBIH PADAT (COMPACT)
+// RECALIBRATED DISTANCES:
+// Nova Forge: Spread out 3x further (approx x=105, z=60)
+// Contact: Spread out 2x further (z=100)
 export const portfolioData: CityDistrict[] = [
   {
     "id": "nexus-core",
@@ -189,21 +190,21 @@ export const portfolioData: CityDistrict[] = [
     "title": "AI Engineer Lab",
     "description": "Engineering & Generative Projects",
     "position": [
-      35,
+      105, // Moved significantly further X
       0,
-      20
+      60   // Moved further Z
     ],
     "type": "major",
     "cameraFocus": {
       "pos": [
-        55,
+        125,
         25,
-        40
+        80
       ],
       "lookAt": [
-        35,
+        105,
         10,
-        20
+        60
       ]
     },
     "subItems": [
@@ -230,21 +231,21 @@ export const portfolioData: CityDistrict[] = [
     "title": "Core Matrix",
     "description": "Skillset Visualization & Analytics",
     "position": [
-      -35,
+      -50,
       0,
-      20
+      30
     ],
     "type": "major",
     "cameraFocus": {
       "pos": [
-        -55,
+        -70,
         25,
-        40
+        50
       ],
       "lookAt": [
-        -35,
+        -50,
         10,
-        20
+        30
       ]
     },
     "subItems": [
@@ -264,21 +265,21 @@ export const portfolioData: CityDistrict[] = [
     "title": "Creative Studio",
     "description": "Award-Winning Visuals & Media",
     "position": [
-      -35,
+      -45,
       0,
-      -30
+      -40
     ],
     "type": "major",
     "cameraFocus": {
       "pos": [
-        -55,
+        -65,
         25,
-        -10
+        -20
       ],
       "lookAt": [
-        -35,
+        -45,
         10,
-        -30
+        -40
       ]
     },
     "subItems": [
@@ -305,21 +306,21 @@ export const portfolioData: CityDistrict[] = [
     "title": "Web3 Vault",
     "description": "Blockchain Architecture & DeFi",
     "position": [
-      35,
+      45,
       0,
-      -30
+      -40
     ],
     "type": "major",
     "cameraFocus": {
       "pos": [
-        55,
+        65,
         25,
-        -10
+        -20
       ],
       "lookAt": [
-        35,
+        45,
         10,
-        -30
+        -40
       ]
     },
     "subItems": [
@@ -334,7 +335,7 @@ export const portfolioData: CityDistrict[] = [
         "id": "on-chain-analytics",
         "title": "On-Chain Forensics",
         "description": "Deep data analysis of liquidity flows and tokenomics to identify market opportunities.",
-        "imageUrl": "https://images.unsplash.com/photo-1639322537228-ad7117a76437?q=80&w=800&auto=format&fit=crop", // FIXED: Working Blockchain Image
+        "imageUrl": "https://images.unsplash.com/photo-1620321023374-d1a68fbc720d?q=80&w=800&auto=format&fit=crop", // FIXED: Reliable Blockchain Image
         "position": [0, -2, 0]
       }
     ],
@@ -348,19 +349,19 @@ export const portfolioData: CityDistrict[] = [
     "position": [
       0,
       0,
-      50
+      100 // Moved significantly further Z (approx 2x from previous 50)
     ],
     "type": "major",
     "cameraFocus": {
       "pos": [
         0,
         15,
-        80
+        130
       ],
       "lookAt": [
         0,
         5,
-        50
+        100
       ]
     },
     "subItems": [

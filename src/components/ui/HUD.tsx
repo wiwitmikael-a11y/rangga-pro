@@ -537,25 +537,35 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
           <p style={styles.breadcrumbText}>{breadcrumb}</p>
       </div>
 
-      <div style={styles.bottomCenterContainer} className={`bottom-center-container hud-anim-center ${isNavButtonHidden ? 'hiddenBottom' : 'visible'}`}>
-        <button
-          onClick={onToggleNavMenu}
-          style={{
-            ...styles.hudButton,
-            width: '64px',
-            height: '64px',
-            margin: 0,
-            borderRadius: 0,
+      <div style={styles.bottomCenterContainer} className={`bottom-center-container hud-anim-center`}>
+         {/* Wrapped button in a flex column to add text label underneath */}
+         <div style={{
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            gap: '5px',
             transition: 'opacity 0.4s ease, transform 0.4s ease',
             opacity: isNavButtonHidden ? 0 : 1,
             transform: isNavButtonHidden ? 'translateY(60px)' : 'translateY(0)',
-          }}
-          className="hud-button hex-btn"
-          aria-label="Open Navigation Menu"
-          disabled={isNavButtonHidden}
-        >
-          <NavMenuIcon />
-        </button>
+            pointerEvents: isNavButtonHidden ? 'none' : 'auto'
+          }}>
+            <button
+              onClick={onToggleNavMenu}
+              style={{
+                ...styles.hudButton,
+                width: '64px',
+                height: '64px',
+                margin: 0,
+                borderRadius: 0,
+              }}
+              className="hud-button hex-btn"
+              aria-label="Open Navigation Menu"
+              disabled={isNavButtonHidden}
+            >
+              <NavMenuIcon />
+            </button>
+            <span style={styles.buttonLabel}>MENU</span>
+          </div>
       </div>
        
       <div style={styles.bottomLeftContainer} className={`bottom-left-container hud-anim-left ${areSideButtonsHidden ? 'hidden' : ''}`}>
@@ -570,7 +580,7 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
                   <CameraIcon />
               </button>
               <span style={{...styles.buttonLabel, ...(pov === 'main' ? styles.activeButtonLabel : {})}}>
-                Overview
+                City View
               </span>
           </div>
           
