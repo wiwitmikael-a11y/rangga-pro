@@ -1,4 +1,4 @@
-/// <reference types="@react-three/fiber" />
+
 import React, { Suspense, useLayoutEffect, useMemo, useRef, useCallback, useState } from 'react';
 // FIX: Add side-effect import to ensure R3F's JSX types are globally available.
 import '@react-three/fiber';
@@ -31,15 +31,16 @@ interface ModelProps {
 }
 
 // Robust Error Boundary specifically for model loading
-class ModelErrorBoundary extends React.Component<{ fallback: React.ReactNode, children: React.ReactNode }, { hasError: boolean }> {
-  constructor(props: { fallback: React.ReactNode, children: React.ReactNode }) {
+class ModelErrorBoundary extends React.Component<{ fallback: React.ReactNode, children?: React.ReactNode }, { hasError: boolean }> {
+  public state: { hasError: boolean } = { hasError: false };
+
+  constructor(props: { fallback: React.ReactNode, children?: React.ReactNode }) {
     super(props);
-    this.state = { hasError: false };
   }
-  static getDerivedStateFromError(error: any) {
+  static getDerivedStateFromError(_error: any) {
     return { hasError: true };
   }
-  componentDidCatch(error: any, info: any) {
+  componentDidCatch(error: any, _info: any) {
     console.error("3D Model load error (handled silently):", error);
   }
   render() {

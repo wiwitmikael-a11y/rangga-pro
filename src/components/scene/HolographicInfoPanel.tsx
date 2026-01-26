@@ -1,4 +1,4 @@
-/// <reference types="@react-three/fiber" />
+
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 // FIX: Add side-effect import to ensure R3F's JSX types are globally available.
 import '@react-three/fiber';
