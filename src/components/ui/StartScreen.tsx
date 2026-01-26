@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Loader } from './Loader';
-import { useAudio } from '../../hooks/useAudio';
 
 interface StartScreenProps {
   appState: 'loading' | 'start' | 'entering';
@@ -10,153 +9,242 @@ interface StartScreenProps {
 }
 
 const styles: { [key: string]: React.CSSProperties } = {
-  gateContainer: {
+  container: {
     position: 'fixed',
     inset: 0,
     zIndex: 1000,
-    pointerEvents: 'none',
+    pointerEvents: 'auto', // Capture clicks
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    fontFamily: 'var(--font-family)',
+    color: 'white',
     overflow: 'hidden',
   },
-  door: {
-    width: '100vw',
-    height: '50vh',
-    background: 'linear-gradient(180deg, #141c32, #0a101f)',
+  // The split-door background (Shutters)
+  shutter: {
     position: 'absolute',
     left: 0,
-    transition: 'transform 1.5s cubic-bezier(0.8, 0, 0.2, 1)',
+    width: '100vw',
+    height: '50.5vh', // Slight overlap to prevent gap
+    background: '#050810',
+    backgroundImage: `
+      linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px)
+    `,
+    backgroundSize: '40px 40px',
+    transition: 'transform 1.2s cubic-bezier(0.8, 0, 0.2, 1)',
+    zIndex: 1,
+    display: 'flex',
+    justifyContent: 'center',
     boxShadow: '0 0 50px rgba(0,0,0,0.8)',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
-  topDoor: {
+  shutterTop: {
     top: 0,
-    flexDirection: 'column',
+    alignItems: 'flex-end',
+    borderBottom: '2px solid rgba(0, 255, 255, 0.3)',
   },
-  bottomDoor: {
+  shutterBottom: {
     bottom: 0,
-    background: 'linear-gradient(0deg, #141c32, #0a101f)',
+    alignItems: 'flex-start',
+    borderTop: '2px solid rgba(0, 255, 255, 0.3)',
   },
-  consoleUI: {
+  // The UI Container (Hologram Panel)
+  uiPanel: {
+    position: 'relative',
+    zIndex: 10,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    textAlign: 'center',
-    fontFamily: 'var(--font-family)',
-    color: 'var(--primary-color)',
-    padding: '20px',
-    transition: 'opacity 0.5s ease-out',
-    pointerEvents: 'auto',
+    padding: '40px',
+    background: 'rgba(5, 10, 20, 0.85)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(0, 255, 255, 0.3)',
+    boxShadow: '0 0 30px rgba(0, 255, 255, 0.1), inset 0 0 50px rgba(0,0,0,0.8)',
+    maxWidth: '600px',
     width: '90%',
-    maxWidth: '800px',
-    background: 'rgba(0, 5, 10, 0.4)',
-    border: '1px solid rgba(0, 170, 255, 0.2)',
-    borderRadius: '10px',
-    boxShadow: 'inset 0 0 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 170, 255, 0.1)',
-    backdropFilter: 'blur(3px)',
+    transition: 'opacity 0.5s ease, transform 0.5s ease',
+    clipPath: 'polygon(10% 0, 100% 0, 100% 90%, 90% 100%, 0 100%, 0 10%)',
+  },
+  decorativeLine: {
+    width: '100%',
+    height: '1px',
+    background: 'linear-gradient(90deg, transparent, #00ffff, transparent)',
+    margin: '20px 0',
   },
   title: {
-    fontSize: 'clamp(1.8rem, 4vw, 2.5rem)',
-    fontWeight: 400,
-    margin: '0 0 30px 0',
+    fontSize: 'clamp(2rem, 5vw, 3rem)',
+    fontWeight: 700,
+    margin: 0,
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase',
+    background: 'linear-gradient(180deg, #fff, #00ffff)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    filter: 'drop-shadow(0 0 10px rgba(0,255,255,0.5))',
+  },
+  subtitle: {
+    fontSize: '0.9rem',
+    color: '#88a7a6',
+    letterSpacing: '0.3em',
+    textTransform: 'uppercase',
+    marginTop: '10px',
+  },
+  // Start Button
+  btnContainer: {
+    position: 'relative',
+    marginTop: '30px',
+    cursor: 'pointer',
+  },
+  btnHex: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '15px 40px',
+    background: 'transparent',
+    border: '2px solid #00ffff',
+    color: '#00ffff',
+    fontSize: '1.2rem',
+    fontWeight: 'bold',
     letterSpacing: '0.2em',
     textTransform: 'uppercase',
-    textShadow: '0 0 10px var(--primary-color), 0 0 20px var(--primary-color)',
-    animation: 'pulse 3s infinite',
-  },
-  startButton: {
-    background: 'transparent',
-    border: '2px solid var(--primary-color)',
-    color: 'var(--primary-color)',
-    padding: '15px 30px',
-    fontSize: '1.2rem',
-    fontFamily: 'inherit',
-    cursor: 'pointer',
-    textTransform: 'uppercase',
-    letterSpacing: '0.1em',
     transition: 'all 0.3s ease',
-    textShadow: '0 0 5px var(--primary-color)',
+    clipPath: 'polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%)',
+    position: 'relative',
+    overflow: 'hidden',
   },
-  dangerStripes: {
+  btnGlow: {
     position: 'absolute',
-    left: 0,
-    width: '100vw',
-    height: '20px',
-    background: 'repeating-linear-gradient(45deg, #ff9900, #ff9900 20px, #000000 20px, #000000 40px)',
-    boxShadow: '0 0 15px #ff9900',
+    inset: 0,
+    background: '#00ffff',
+    opacity: 0,
+    transition: 'opacity 0.3s ease',
+    zIndex: -1,
   },
+  // Danger Stripes
+  stripes: {
+    width: '100%',
+    height: '10px',
+    background: 'repeating-linear-gradient(45deg, #00aaff, #00aaff 10px, transparent 10px, transparent 20px)',
+    opacity: 0.3,
+  }
 };
 
 export const StartScreen: React.FC<StartScreenProps> = React.memo(({ appState, progress, onStart, onIntroEnd }) => {
-  const [uiVisible, setUiVisible] = useState(true);
-  const [doorsOpening, setDoorsOpening] = useState(false);
-  const audio = useAudio();
+  const [isOpening, setIsOpening] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
     if (appState === 'entering') {
-      // 1. Fade out the console UI
-      setUiVisible(false);
+      // Trigger the opening animation
+      setIsOpening(true);
 
-      // Play the gate sound effect
-      audio.play('gate_open', { volume: 0.7 });
-
-      // 2. After UI fades, start opening the gate doors
-      const doorsTimer = setTimeout(() => {
-        setDoorsOpening(true);
-      }, 500); // This should match the UI fade-out duration
-
-      // 3. After the doors have finished opening, notify the parent component
-      const endTimer = setTimeout(() => {
+      // Wait for animation to finish before unmounting via onIntroEnd
+      const timer = setTimeout(() => {
         onIntroEnd();
-      }, 2000); // 500ms fade + 1500ms door animation
+      }, 1500); // Animation duration (1.2s) + Buffer
 
-      return () => {
-        clearTimeout(doorsTimer);
-        clearTimeout(endTimer);
-      };
+      return () => clearTimeout(timer);
     }
-  }, [appState, onIntroEnd, audio]);
+  }, [appState, onIntroEnd]);
 
-  const topDoorStyle = { ...styles.door, ...styles.topDoor, transform: doorsOpening ? 'translateY(-100%)' : 'translateY(0)' };
-  const bottomDoorStyle = { ...styles.door, ...styles.bottomDoor, transform: doorsOpening ? 'translateY(100%)' : 'translateY(0)' };
-  const consoleStyle: React.CSSProperties = { ...styles.consoleUI, opacity: uiVisible ? 1 : 0, pointerEvents: appState === 'entering' ? 'none' : 'auto' };
+  const isLoading = appState === 'loading';
+  const showUI = !isOpening;
 
-  const isLoaded = appState !== 'loading';
+  // Dynamic Styles based on state
+  const topTransform = isOpening ? 'translateY(-105%)' : 'translateY(0)';
+  const bottomTransform = isOpening ? 'translateY(105%)' : 'translateY(0)';
+  const uiOpacity = isOpening ? 0 : 1;
+  const uiScale = isOpening ? 'scale(1.1)' : 'scale(1)';
 
   return (
     <>
       <style>{`
-        @keyframes pulse {
-          0% { text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
-          50% { text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color); }
-          100% { text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
+        @keyframes scanline {
+          0% { transform: translateY(-100%); }
+          100% { transform: translateY(100%); }
+        }
+        .scanline::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(transparent 50%, rgba(0, 255, 255, 0.1) 50%);
+          background-size: 100% 4px;
+          pointer-events: none;
+        }
+        .cyber-glitch {
+            animation: glitch-anim 3s infinite;
+        }
+        @keyframes glitch-anim {
+            0% { transform: translate(0) }
+            20% { transform: translate(-2px, 2px) }
+            22% { transform: translate(2px, -2px) }
+            24% { transform: translate(0) }
+            100% { transform: translate(0) }
         }
       `}</style>
-      <div style={styles.gateContainer}>
-        <div style={topDoorStyle}>
-          <div style={consoleStyle}>
-            {isLoaded ? (
-              <>
-                <h1 style={styles.title}>Rangga Digital Portfolio</h1>
-                <button
-                  style={styles.startButton}
-                  onClick={onStart}
-                  onMouseOver={e => (e.currentTarget.style.backgroundColor = 'rgba(0, 170, 255, 0.2)')}
-                  onMouseOut={e => (e.currentTarget.style.backgroundColor = 'transparent')}
-                >
-                  Enter 3D World
-                </button>
-              </>
-            ) : (
-              <Loader progress={progress} />
-            )}
+
+      {/* Since we are controlling visibility via CSS transforms, we keep the container rendered until onIntroEnd unmounts it */}
+      <div style={styles.container} className="scanline">
+        
+        {/* Top Shutter */}
+        <div style={{...styles.shutter, ...styles.shutterTop, transform: topTransform}}>
+           <div style={{...styles.stripes, marginBottom: '20px'}}></div>
+           <div style={{position: 'absolute', bottom: '20px', fontSize: '0.7rem', color: '#00aaff', letterSpacing: '2px'}}>SYSTEM SECURE // RAGETOPIA-OS</div>
+        </div>
+
+        {/* Bottom Shutter */}
+        <div style={{...styles.shutter, ...styles.shutterBottom, transform: bottomTransform}}>
+           <div style={{...styles.stripes, marginTop: '20px'}}></div>
+           <div style={{position: 'absolute', top: '20px', fontSize: '0.7rem', color: '#00aaff', letterSpacing: '2px'}}>INITIATING PROTOCOL...</div>
+        </div>
+
+        {/* Main UI Panel */}
+        <div 
+            style={{
+                ...styles.uiPanel, 
+                opacity: uiOpacity, 
+                transform: uiScale,
+                pointerEvents: isOpening ? 'none' : 'auto'
+            }}
+        >
+          {/* Header */}
+          <div style={{display: 'flex', justifyContent: 'space-between', width: '100%', marginBottom: '20px'}}>
+             <span style={{fontSize: '0.7rem', color: '#00ffff'}}>ID: GUEST_USER</span>
+             <span style={{fontSize: '0.7rem', color: '#00ffff'}}>NET: SECURE</span>
           </div>
-          <div style={{...styles.dangerStripes, bottom: 0}}></div>
+
+          <h1 style={styles.title} className="cyber-glitch">RANGGA.DE</h1>
+          <div style={styles.subtitle}>IMMERSIVE PORTFOLIO SYSTEM</div>
+          
+          <div style={styles.decorativeLine}></div>
+
+          {isLoading ? (
+            <Loader progress={progress} />
+          ) : (
+            <div 
+                style={styles.btnContainer} 
+                onClick={onStart}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+            >
+                <div style={{
+                    ...styles.btnHex,
+                    background: isHovered ? 'rgba(0, 255, 255, 0.1)' : 'transparent',
+                    boxShadow: isHovered ? '0 0 25px rgba(0, 255, 255, 0.4)' : 'none',
+                    textShadow: isHovered ? '0 0 8px #fff' : 'none',
+                }}>
+                    INITIALIZE SYSTEM
+                </div>
+            </div>
+          )}
+          
+          <div style={{marginTop: '30px', fontSize: '0.7rem', color: '#445566'}}>
+             © {new Date().getFullYear()} RANGGA PRAYOGA HERMAWAN
+          </div>
         </div>
-        <div style={bottomDoorStyle}>
-          <div style={{...styles.dangerStripes, top: 0}}></div>
-        </div>
+
       </div>
     </>
   );
