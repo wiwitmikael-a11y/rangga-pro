@@ -34,7 +34,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    height: '140px', // Fixed height to prevent layout shift
+    height: '120px', // Fixed height to prevent layout shift
   },
   glitchText: {
     fontSize: 'clamp(3rem, 8vw, 6rem)',
@@ -44,12 +44,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     whiteSpace: 'nowrap',
   },
   subText: {
-    marginTop: '30px',
+    marginTop: '20px',
     color: '#00aaaa',
     fontSize: '0.9rem',
     letterSpacing: '0.3em',
     textTransform: 'uppercase',
-    animation: 'pulse 1s infinite', // Faster pulse
+    animation: 'pulse 2s infinite',
   },
   grid: {
     position: 'absolute',
@@ -67,7 +67,7 @@ export const VideoIntro: React.FC<VideoIntroProps> = ({ onComplete }) => {
   const audioCtxRef = useRef<AudioContext | null>(null);
   
   // Audio logic (safely wrapped)
-  const playSound = useCallback((freq: number, duration: number = 0.05) => {
+  const playSound = useCallback((freq: number) => {
     try {
         if (!audioCtxRef.current) {
              const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
@@ -79,51 +79,41 @@ export const VideoIntro: React.FC<VideoIntroProps> = ({ onComplete }) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
 
-        osc.type = 'sawtooth'; // Sharper sound for glitch effect
+        osc.type = 'square';
         osc.frequency.setValueAtTime(freq, ctx.currentTime);
         
-        gain.gain.setValueAtTime(0.01, ctx.currentTime); // Lower volume
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+        gain.gain.setValueAtTime(0.02, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
 
         osc.connect(gain);
         gain.connect(ctx.destination);
 
         osc.start();
-        osc.stop(ctx.currentTime + duration);
+        osc.stop(ctx.currentTime + 0.1);
     } catch (e) {
         // Ignore audio errors
     }
   }, []);
 
-  // Cycle words logic - FASTER
+  // Cycle words logic
   useEffect(() => {
     if (isFadingOut) return;
 
-    // Logic: Cycle fast through technical words, pause slightly on the name
-    const isBrandName = wordIndex === WORDS.length - 1;
-    const delay = isBrandName ? 1500 : 120; // 1.5s pause on name, 120ms rapid fire on others
-
-    const timer = setTimeout(() => {
+    const interval = setInterval(() => {
         setWordIndex((prev) => (prev + 1) % WORDS.length);
-        
-        // Play distinct sounds
-        if (!isBrandName) {
-            playSound(150 + Math.random() * 200, 0.05); // Random low glitch pitch
-        } else {
-            playSound(880, 0.3); // High ping for brand
-        }
+        // Play distinct sounds: higher pitch for brand name
+        playSound(wordIndex === WORDS.length - 2 ? 880 : 220); 
+    }, 900); // 0.9s per word - fast enough but readable
 
-    }, delay);
-
-    return () => clearTimeout(timer);
+    return () => clearInterval(interval);
   }, [isFadingOut, playSound, wordIndex]);
 
   const handleClick = useCallback(() => {
     if (isFadingOut) return;
     
-    // Play confirm sound sequence
-    playSound(440, 0.1);
-    setTimeout(() => playSound(880, 0.2), 100);
+    // Play confirm sound
+    playSound(440);
+    setTimeout(() => playSound(880), 100);
 
     setIsFadingOut(true);
     
@@ -139,13 +129,13 @@ export const VideoIntro: React.FC<VideoIntroProps> = ({ onComplete }) => {
     <>
         <style>{`
             @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
-            .glitch-effect { animation: glitch-anim 0.15s infinite; }
+            .glitch-effect { animation: glitch-anim 0.2s infinite; }
             @keyframes glitch-anim {
                 0% { transform: translate(0) }
-                20% { transform: translate(-3px, 3px) }
-                40% { transform: translate(-3px, -3px) }
-                60% { transform: translate(3px, 3px) }
-                80% { transform: translate(3px, -3px) }
+                20% { transform: translate(-2px, 2px) }
+                40% { transform: translate(-2px, -2px) }
+                60% { transform: translate(2px, 2px) }
+                80% { transform: translate(2px, -2px) }
                 100% { transform: translate(0) }
             }
         `}</style>

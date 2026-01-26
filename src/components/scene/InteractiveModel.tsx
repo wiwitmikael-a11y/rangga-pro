@@ -114,21 +114,17 @@ function Model({ url, scale, isHeld, onPointerOver, onPointerOut, onPointerDown,
 
   return (
     <group>
-        {/* 
-           CRITICAL FIX: 
-           Use transparent material instead of visible={false}. 
-           Raycaster ignores invisible objects by default in R3F/Three.js.
-           Opacity 0 makes it invisible but interactive.
-        */}
+        {/* Invisible Hitbox Mesh - Makes clicking easier */}
         <mesh 
-            scale={scale * 1.4} // Hitbox 40% larger for easier clicking
+            visible={false} 
+            scale={scale * 1.2} // 20% bigger than the model
             onPointerOver={handlePointerOver}
             onPointerOut={handlePointerOut}
             onPointerDown={onPointerDown}
             onPointerUp={onPointerUp}
         >
             <boxGeometry args={[10, 10, 10]} /> 
-            <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+            <meshBasicMaterial />
         </mesh>
 
         <primitive
@@ -155,7 +151,7 @@ export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, is
   const actionTriggeredRef = useRef(false);
   
   // FIX: Reduced hold duration for snappier interaction
-  const HOLD_DURATION = 400; // Even faster: 400ms
+  const HOLD_DURATION = 500; // was 1000ms
 
   const cancelHold = useCallback(() => {
     isHoldingRef.current = false;
@@ -204,7 +200,7 @@ export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, is
         setHoldProgress(progress);
 
         // Trigger slightly before full completion for better feel
-        if (progress >= 0.9 && !actionTriggeredRef.current) {
+        if (progress >= 0.8 && !actionTriggeredRef.current) {
             actionTriggeredRef.current = true;
             onSelect(district);
         }

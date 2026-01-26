@@ -1,9 +1,10 @@
+
+
 import React, { useState, Suspense, useCallback } from 'react';
 import { Experience3D } from './components/Experience3D';
 import { AudioProvider } from './contexts/AudioContext';
 import { useAudio } from './hooks/useAudio';
 import { VideoIntro } from './components/ui/VideoIntro';
-import { LoadingOverlay } from './components/ui/LoadingOverlay';
 
 // Simple Error Boundary to catch 3D crashes without killing the whole app UI
 class ErrorBoundary extends React.Component<{children?: React.ReactNode}, {hasError: boolean, error: Error | null}> {
@@ -81,21 +82,11 @@ const AppContent: React.FC = () => {
 
   return (
     <>
-      {/* 
-        VideoIntro overlays EVERYTHING. 
-        It stays mounted until the user explicitly dismisses it. 
-      */}
       {showVideo && <VideoIntro onComplete={handleIntroComplete} />}
 
       <main style={{ width: '100vw', height: '100vh', backgroundColor: '#050810' }}>
         <ErrorBoundary>
-            {/* 
-               CRITICAL FIX: 
-               Use LoadingOverlay as the Suspense fallback. 
-               This ensures that if the user skips the intro but the models aren't ready,
-               they see the loading bar instead of a white/black blank screen.
-            */}
-            <Suspense fallback={<LoadingOverlay />}>
+            <Suspense fallback={null}>
                 <Experience3D 
                   isHudVisible={isHudVisible} 
                   isEntering={isEntering}
