@@ -1,3 +1,4 @@
+
 import React, { Suspense, useLayoutEffect, useMemo, useRef, useCallback, useState } from 'react';
 // FIX: Add side-effect import to ensure R3F's JSX types are globally available.
 import '@react-three/fiber';
@@ -32,11 +33,9 @@ interface ModelProps {
 // Robust Error Boundary specifically for model loading
 class ModelErrorBoundary extends React.Component<{ fallback: React.ReactNode, children?: React.ReactNode }, { hasError: boolean }> {
   public state: { hasError: boolean } = { hasError: false };
-  public readonly props: { fallback: React.ReactNode, children?: React.ReactNode };
 
   constructor(props: { fallback: React.ReactNode, children?: React.ReactNode }) {
     super(props);
-    this.props = props;
   }
   static getDerivedStateFromError(_error: any) {
     return { hasError: true };
@@ -105,6 +104,8 @@ function Model({ url, scale, isHeld, onPointerOver, onPointerOut, onPointerDown,
       if(isHeld) {
         applyEmissive(heldColor, 1.2);
       } else {
+         // If not held, reset emissive. This ensures it reverts correctly after being released.
+         // This check prevents conflicting with the hover effect.
          const isHovered = (document.body.style.cursor === 'pointer' || document.body.style.cursor === 'grab');
          if(!isHovered) {
              resetEmissive();
@@ -112,35 +113,21 @@ function Model({ url, scale, isHeld, onPointerOver, onPointerOut, onPointerDown,
       }
   });
 
-  return (
-    <group>
-        {/* Invisible Hitbox Mesh - Makes clicking easier */}
-        <mesh 
-            visible={false} 
-            scale={scale * 1.2} // 20% bigger than the model
-            onPointerOver={handlePointerOver}
-            onPointerOut={handlePointerOut}
-            onPointerDown={onPointerDown}
-            onPointerUp={onPointerUp}
-        >
-            <boxGeometry args={[10, 10, 10]} /> 
-            <meshBasicMaterial />
-        </mesh>
 
-        <primitive
-            object={clonedScene}
-            scale={scale}
-            // Keep events on the model too just in case
-            onPointerOver={handlePointerOver}
-            onPointerOut={handlePointerOut}
-            onPointerDown={onPointerDown}
-            onPointerUp={onPointerUp}
-        />
-    </group>
+  return (
+    <primitive
+      object={clonedScene}
+      scale={scale}
+      onPointerOver={handlePointerOver}
+      onPointerOut={handlePointerOut}
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+    />
   );
 }
 
 export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, isSelected, onSelect, isCalibrationMode, isHeld, onSetHeld }) => {
+  // FIX: Call useThree to provide types for JSX primitives
   useThree();
   const groupRef = useRef<THREE.Group>(null!);
   const audio = useAudio();
@@ -149,9 +136,7 @@ export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, is
   const isHoldingRef = useRef(false);
   const animationFrameRef = useRef<number | null>(null);
   const actionTriggeredRef = useRef(false);
-  
-  // FIX: Reduced hold duration for snappier interaction
-  const HOLD_DURATION = 500; // was 1000ms
+  const HOLD_DURATION = 1000;
 
   const cancelHold = useCallback(() => {
     isHoldingRef.current = false;
@@ -199,8 +184,7 @@ export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, is
         const progress = Math.min(elapsedTime / HOLD_DURATION, 1);
         setHoldProgress(progress);
 
-        // Trigger slightly before full completion for better feel
-        if (progress >= 0.8 && !actionTriggeredRef.current) {
+        if (progress >= 0.75 && !actionTriggeredRef.current) {
             actionTriggeredRef.current = true;
             onSelect(district);
         }
@@ -222,6 +206,7 @@ export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, is
 
   return (
     <group ref={groupRef} position={district.position}>
+      {/* If Model fails to load (e.g. 404), it renders HolographicProjector as fallback without crashing */}
       <ModelErrorBoundary fallback={<HolographicProjector position={[0, -5, 0]} />}>
         <Suspense fallback={<HolographicProjector position={[0, -5, 0]} />}>
             <Model 
@@ -243,13 +228,13 @@ export const InteractiveModel: React.FC<InteractiveModelProps> = ({ district, is
         isCalibrationMode={isCalibrationMode}
         isHeld={isHeld}
         onSetHeld={onSetHeld}
-        pointerEventsEnabled={false} 
+        pointerEventsEnabled={false} // Disable label interaction to prevent duplicate sounds
       />
-      
+      {/* Replicating the hold gauge from HolographicDistrictLabel here */}
       {holdProgress > 0 && !isCalibrationMode && (
         <group position={[0, 15, 0]}>
             <Text
-                position={[0, 10, 0]} 
+                position={[0, 10, 0]} // Positioned above the model
                 fontSize={3}
                 color="white"
                 anchorX="center"
