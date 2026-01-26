@@ -1,4 +1,5 @@
 
+
 import React, { useState, Suspense, useCallback } from 'react';
 import { Experience3D } from './components/Experience3D';
 import { AudioProvider } from './contexts/AudioContext';
@@ -8,9 +9,12 @@ import { VideoIntro } from './components/ui/VideoIntro';
 // Simple Error Boundary to catch 3D crashes without killing the whole app UI
 class ErrorBoundary extends React.Component<{children?: React.ReactNode}, {hasError: boolean, error: Error | null}> {
   public state: {hasError: boolean, error: Error | null} = { hasError: false, error: null };
+  // Explicitly declare props to satisfy TypeScript if React.Component types are not inferring correctly
+  public readonly props: {children?: React.ReactNode};
 
   constructor(props: {children?: React.ReactNode}) {
     super(props);
+    this.props = props;
   }
 
   static getDerivedStateFromError(error: Error) {
