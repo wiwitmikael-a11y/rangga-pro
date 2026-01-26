@@ -5,13 +5,18 @@ import { AudioProvider } from './contexts/AudioContext';
 import { useAudio } from './hooks/useAudio';
 import { VideoIntro } from './components/ui/VideoIntro';
 
-// Simple Error Boundary to catch 3D crashes without killing the whole app UI
-class ErrorBoundary extends React.Component<{children?: React.ReactNode}, {hasError: boolean, error: Error | null}> {
-  public state: {hasError: boolean, error: Error | null} = { hasError: false, error: null };
+interface ErrorBoundaryProps {
+  children?: React.ReactNode;
+}
 
-  constructor(props: {children?: React.ReactNode}) {
-    super(props);
-  }
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+// Simple Error Boundary to catch 3D crashes without killing the whole app UI
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  public state: ErrorBoundaryState = { hasError: false, error: null };
 
   static getDerivedStateFromError(error: Error) {
     return { hasError: true, error };

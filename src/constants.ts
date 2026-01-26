@@ -1,4 +1,5 @@
 
+
 import type { CityDistrict, SkillCategory } from './types';
 import * as THREE from 'three';
 
@@ -149,32 +150,31 @@ export const FORMSPREE_FORM_ID = 'xwpwvzaa';
 
 
 // Data portofolio telah diisi dengan konten mock yang relevan dan gambar dari CDN Unsplash.
-// FOKUS KAMERA TELAH DIKALIBRASI ULANG UNTUK PEMBINGKAIAN YANG AKURAT DAN SINEMATIK
+// POSISI DAN FOKUS KAMERA DIKALIBRASI ULANG UNTUK LAYOUT KOTA YANG LEBIH PADAT (COMPACT)
 export const portfolioData: CityDistrict[] = [
   {
     "id": "nexus-core",
     "title": "@rangga.p.h",
     "description": "AI Explorer Chatbot",
     "position": [
-      30,
+      0,
       15,
-      30
+      0
     ],
     "type": "major",
     "cameraFocus": {
       "pos": [
+        0,
         30,
-        30,
-        60
+        40
       ],
       "lookAt": [
-        30,
-        25,
-        20
+        0,
+        20,
+        0
       ]
     },
     "subItems": [
-        // No sub-items usually for the chatbot, but added one for visual flair
         {
             "id": "ai-avatar",
             "title": "Digital Custodian",
@@ -189,21 +189,21 @@ export const portfolioData: CityDistrict[] = [
     "title": "AI Engineer Lab",
     "description": "Engineering & Generative Projects",
     "position": [
-      70,
+      35,
       0,
-      80
+      20
     ],
     "type": "major",
     "cameraFocus": {
       "pos": [
-        80,
-        20,
-        100
+        55,
+        25,
+        40
       ],
       "lookAt": [
-        80,
+        35,
         10,
-        60
+        20
       ]
     },
     "subItems": [
@@ -230,21 +230,21 @@ export const portfolioData: CityDistrict[] = [
     "title": "Core Matrix",
     "description": "Skillset Visualization & Analytics",
     "position": [
-      -50,
+      -35,
       0,
-      50
+      20
     ],
     "type": "major",
     "cameraFocus": {
       "pos": [
-        -50,
-        40,
-        90
+        -55,
+        25,
+        40
       ],
       "lookAt": [
-        -50,
+        -35,
         10,
-        50
+        20
       ]
     },
     "subItems": [
@@ -264,21 +264,21 @@ export const portfolioData: CityDistrict[] = [
     "title": "Creative Studio",
     "description": "Award-Winning Visuals & Media",
     "position": [
-      -40,
+      -35,
       0,
-      -60
+      -30
     ],
     "type": "major",
     "cameraFocus": {
       "pos": [
-        -40,
-        20,
-        -20
+        -55,
+        25,
+        -10
       ],
       "lookAt": [
-        -40,
-        5,
-        -60
+        -35,
+        10,
+        -30
       ]
     },
     "subItems": [
@@ -305,21 +305,21 @@ export const portfolioData: CityDistrict[] = [
     "title": "Web3 Vault",
     "description": "Blockchain Architecture & DeFi",
     "position": [
-      60,
+      35,
       0,
-      -50
+      -30
     ],
     "type": "major",
     "cameraFocus": {
       "pos": [
-        60,
+        55,
         25,
         -10
       ],
       "lookAt": [
-        60,
-        5,
-        -50
+        35,
+        10,
+        -30
       ]
     },
     "subItems": [
@@ -334,7 +334,7 @@ export const portfolioData: CityDistrict[] = [
         "id": "on-chain-analytics",
         "title": "On-Chain Forensics",
         "description": "Deep data analysis of liquidity flows and tokenomics to identify market opportunities.",
-        "imageUrl": "https://images.unsplash.com/photo-1642104704074-907c0698b98d?q=80&w=800&auto=format&fit=crop", // Crypto Graph / Digital Gold
+        "imageUrl": "https://images.unsplash.com/photo-1639322537228-ad7117a76437?q=80&w=800&auto=format&fit=crop", // FIXED: Working Blockchain Image
         "position": [0, -2, 0]
       }
     ],
@@ -348,19 +348,19 @@ export const portfolioData: CityDistrict[] = [
     "position": [
       0,
       0,
-      -90
+      50
     ],
     "type": "major",
     "cameraFocus": {
       "pos": [
         0,
         15,
-        -60
+        80
       ],
       "lookAt": [
         0,
         5,
-        -90
+        50
       ]
     },
     "subItems": [
@@ -380,9 +380,9 @@ export const portfolioData: CityDistrict[] = [
     "title": "Residential Sector A",
     "description": "Housing",
     "position": [
-      -30,
+      -60,
       0,
-      20
+      0
     ],
     "type": "minor",
     "height": 15
@@ -392,9 +392,9 @@ export const portfolioData: CityDistrict[] = [
     "title": "Residential Sector B",
     "description": "Housing",
     "position": [
-      40,
+      60,
       0,
-      -20
+      0
     ],
     "type": "minor",
     "height": 18
@@ -404,9 +404,9 @@ export const portfolioData: CityDistrict[] = [
     "title": "Industrial Zone",
     "description": "Power",
     "position": [
-      -60,
       0,
-      -20
+      0,
+      -70
     ],
     "type": "minor",
     "height": 12
