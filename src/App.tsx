@@ -46,14 +46,15 @@ const AppContent: React.FC = () => {
 
   const showVideo = appState === 'video';
   
-  // FIX: Render Experience3D as soon as video ends. 
-  // It will be hidden behind the StartScreen, allowing it to "warm up" (compile shaders).
-  // This prevents the black flash/blank screen when opening the doors.
+  // RENDER STRATEGY: 
+  // Render Experience3D as soon as video ends. It hides behind StartScreen.
   const showExperienceCanvas = appState !== 'video';
   
-  // Keep StartScreen mounted during loading, start, and entering phases.
-  const showStartScreen = appState === 'loading' || appState === 'start' || appState === 'entering';
+  // Pass specific flags to control camera behavior
+  const isWaitingToStart = appState === 'start' || appState === 'loading';
+  const isEntering = appState === 'entering';
   
+  const showStartScreen = appState === 'loading' || appState === 'start' || appState === 'entering';
   const isHudVisible = appState === 'experience';
 
   return (
@@ -65,7 +66,8 @@ const AppContent: React.FC = () => {
           {showExperienceCanvas && (
             <Experience3D 
               isHudVisible={isHudVisible} 
-              isEntering={appState === 'entering'} 
+              isEntering={isEntering}
+              isWaitingToStart={isWaitingToStart} // NEW: Locks camera in pre-entry position
             />
           )}
         </Suspense>

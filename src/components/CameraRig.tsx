@@ -13,14 +13,20 @@ interface CameraRigProps {
   pov: 'main' | 'ship';
   targetShipRef: React.RefObject<THREE.Group> | null;
   isCalibrationMode: boolean;
-  isEntering?: boolean; // New prop for entry animation
+  isEntering?: boolean;
+  isWaitingToStart?: boolean; // NEW: Lock camera before entry
 }
 
 const targetPosition = new THREE.Vector3();
 const targetLookAt = new THREE.Vector3();
 const OVERVIEW_LOOK_AT = new THREE.Vector3(0, 5, 0);
 const CALIBRATION_POSITION = new THREE.Vector3(0, 200, 1);
-const ENTRY_TARGET_POSITION = new THREE.Vector3(0, 80, 200); // Closer position for entry
+
+// ENTRY SEQUENCE POINTS
+// Start: Just outside the virtual gate (Start Screen)
+const ENTRY_START_POSITION = new THREE.Vector3(0, 20, 220); 
+// End: Overview position
+const ENTRY_END_POSITION = new THREE.Vector3(0, 80, 200); 
 
 const shipCamOffsets: { [key in ShipType | 'default']: THREE.Vector3 } = {
     fighter: new THREE.Vector3(0, 3, -4),
@@ -31,7 +37,7 @@ const shipCamOffsets: { [key in ShipType | 'default']: THREE.Vector3 } = {
 
 const ANIMATION_TIMEOUT = 3500; // 3.5-second failsafe timeout
 
-export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimationFinish, isAnimating, pov, targetShipRef, isCalibrationMode, isEntering }) => {
+export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimationFinish, isAnimating, pov, targetShipRef, isCalibrationMode, isEntering, isWaitingToStart }) => {
   const shipCam = useMemo(() => ({
     idealPosition: new THREE.Vector3(),
     idealLookAt: new THREE.Vector3(),
@@ -52,6 +58,14 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
   }, [isAnimating]);
 
   useFrame((state, delta) => {
+    // 1. HARD LOCK: If waiting to start (Loading/Start Screen), keep camera fixed.
+    // This ensures the scene is rendered exactly behind the shutter.
+    if (isWaitingToStart) {
+        state.camera.position.copy(ENTRY_START_POSITION);
+        state.camera.lookAt(OVERVIEW_LOOK_AT);
+        return; // Skip other logic
+    }
+
     const controls = state.controls as OrbitControlsImpl;
     if (controls?.enabled) {
       controls.update();
@@ -64,9 +78,12 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
 
     if (isOneShotAnimation) {
         if (isEntering) {
-            targetPosition.copy(ENTRY_TARGET_POSITION);
+            // Move from "Outside Gate" to "Overview"
+            targetPosition.copy(ENTRY_END_POSITION);
             targetLookAt.copy(OVERVIEW_LOOK_AT);
             hasTarget = true;
+            // Increase damping speed for entry to make it feel deliberate but smooth
+            dampingSpeed = 2.0; 
         } else if (isCalibrationMode) {
             targetPosition.copy(CALIBRATION_POSITION);
             targetLookAt.copy(OVERVIEW_LOOK_AT);
@@ -76,7 +93,7 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
             targetLookAt.set(...selectedDistrict.cameraFocus.lookAt);
             hasTarget = true;
         } else if (pov === 'ship' && targetShipRef?.current) {
-            // This part of the logic remains for ship POV transitions
+            // Ship transition
             const ship = targetShipRef.current;
             const shipType = (ship.userData.shipType as ShipType) || 'default';
             const offset = shipCamOffsets[shipType];
@@ -91,6 +108,7 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
             hasTarget = true;
         }
     } else if (pov === 'ship' && targetShipRef?.current) {
+        // Continuous ship following
         dampingSpeed = 6.0;
         const ship = targetShipRef.current;
         const shipType = (ship.userData.shipType as ShipType) || 'default';
@@ -118,9 +136,11 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
         const isTimedOut = timeElapsed > ANIMATION_TIMEOUT;
 
         if ((posReached && rotReached) || isTimedOut) {
+            // Snap to final position to finish animation cleanly
             state.camera.position.copy(targetPosition);
             state.camera.quaternion.copy(tempCamera.quaternion);
             
+            // Only fire the finish callback if we were previously animating
             if (isAnimatingRef.current) {
               onAnimationFinish();
               isAnimatingRef.current = false;

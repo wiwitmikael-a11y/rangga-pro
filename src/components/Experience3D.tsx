@@ -3,7 +3,7 @@ import React, { useState, useCallback, Suspense, useMemo, useRef, useEffect } fr
 // FIX: Add a side-effect import to ensure R3F's JSX types are globally available.
 import '@react-three/fiber';
 import { Canvas, useThree } from '@react-three/fiber';
-import { OrbitControls, Sky } from '@react-three/drei';
+import { OrbitControls, Sky, Preload } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { EffectComposer, Noise, Bloom } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
@@ -94,9 +94,10 @@ const SceneContent: React.FC<SceneContentProps> = ({ districts, selectedDistrict
 interface Experience3DProps {
   isHudVisible: boolean;
   isEntering: boolean;
+  isWaitingToStart: boolean; // New prop
 }
 
-export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEntering }) => {
+export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEntering, isWaitingToStart }) => {
   const [districts, setDistricts] = useState<CityDistrict[]>(portfolioData);
   const [selectedDistrict, setSelectedDistrict] = useState<CityDistrict | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -376,6 +377,8 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEnte
               shipInputs={shipInputs}
               fireRequest={fireRequest}
             />
+            {/* Preload all assets to prevent popping when animation starts */}
+            <Preload all />
         </Suspense>
 
         {isCalibrationMode && <CalibrationGrid size={250} />}
@@ -398,6 +401,7 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEnte
           targetShipRef={targetShipRef}
           isCalibrationMode={isCalibrationMode}
           isEntering={isEntering}
+          isWaitingToStart={isWaitingToStart} // Pass the prop here
         />
         
         <OrbitControls
@@ -412,7 +416,7 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEnte
           enablePan={!isCalibrationMode}
           target={[0, 5, 0]}
           onChange={handleControlsChange}
-          enabled={!isAnimating && !isEntering && pov !== 'ship'}
+          enabled={!isAnimating && !isEntering && !isWaitingToStart && pov !== 'ship'}
         />
 
         <EffectComposer>
@@ -428,7 +432,6 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEnte
         className={`hud-container ${isHudVisible ? 'visible' : ''}`}
         style={{ pointerEvents: isHudVisible ? 'auto' : 'none' }}
       >
-        {/* FIX: Corrected handler names passed as props to the HUD component. */}
         <HUD 
           selectedDistrict={selectedDistrict}
           onToggleNavMenu={handleToggleNavMenu}
