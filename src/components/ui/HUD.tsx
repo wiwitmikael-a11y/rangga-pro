@@ -20,10 +20,10 @@ interface HUDProps {
 
 // --- SVG Icons ---
 const NavMenuIcon: React.FC = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
-    <path d="M4 6H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M4 12H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M4 18H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
+    <path d="M3 6H21" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M3 12H21" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M3 18H21" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
 
@@ -557,14 +557,15 @@ export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleN
                 height: '64px',
                 margin: 0,
                 borderRadius: 0,
+                color: '#fff', // Ensure text/icon is white on aurora background
               }}
-              className="hud-button hex-btn"
+              className="hud-button aurora-hex"
               aria-label="Open Navigation Menu"
               disabled={isNavButtonHidden}
             >
               <NavMenuIcon />
             </button>
-            <span style={styles.buttonLabel}>MENU</span>
+            <span style={{...styles.buttonLabel, fontWeight: 'bold', textShadow: '0 0 5px cyan', color: '#fff'}}>MENU</span>
           </div>
       </div>
        

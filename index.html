@@ -44,31 +44,59 @@
         isolation: isolate; /* Create a new stacking context for overlays */
       }
 
-      /* QuickNavMenu & HUD Styles */
-      .hex-btn {
+      /* --- NEW AURORA BUTTON STYLES --- */
+      .aurora-hex {
         clip-path: polygon(50% 0%, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%);
-        animation: pulse-glow 3s infinite ease-in-out;
+        /* Aurora Gradient: Cyan -> Deep Blue -> Hints of Purple -> Cyan loop */
+        background: linear-gradient(125deg, 
+          rgba(0, 255, 255, 0.2), 
+          rgba(0, 100, 255, 0.4), 
+          rgba(180, 0, 255, 0.2), 
+          rgba(0, 255, 255, 0.2)
+        );
+        background-size: 300% 300%;
+        border: none !important; /* CSS handles border via box-shadow inset or pseudo elements */
+        position: relative;
+        z-index: 1;
+        animation: aurora-flow 6s ease infinite;
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); /* Bouncy transition */
       }
+
+      /* Inner border simulation */
+      .aurora-hex::after {
+        content: '';
+        position: absolute;
+        inset: 2px;
+        background: rgba(5, 8, 16, 0.8); /* Dark semi-transparent center */
+        clip-path: polygon(50% 0%, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%);
+        z-index: -1;
+      }
+
+      .aurora-hex:hover {
+        transform: scale(1.15) translateY(-5px);
+        box-shadow: 0 0 30px rgba(0, 255, 255, 0.8), 0 0 60px rgba(0, 100, 255, 0.6);
+        background: linear-gradient(125deg, #00ffff, #0088ff, #ff00ff);
+        background-size: 200% 200%;
+        animation: aurora-flow 2s linear infinite; /* Faster flow on hover */
+      }
+      
+      .aurora-hex:active {
+        transform: scale(0.95);
+      }
+
+      @keyframes aurora-flow {
+        0% { background-position: 0% 50%; box-shadow: 0 0 15px rgba(0, 255, 255, 0.3); }
+        50% { background-position: 100% 50%; box-shadow: 0 0 25px rgba(0, 255, 255, 0.6), 0 0 10px rgba(180, 0, 255, 0.3); }
+        100% { background-position: 0% 50%; box-shadow: 0 0 15px rgba(0, 255, 255, 0.3); }
+      }
+
+      /* QuickNavMenu & HUD Styles */
       .nav-button:hover {
         transform: translateY(-5px) !important;
         border-left-color: var(--primary-color) !important;
         box-shadow: 0 5px 15px rgba(0, 225, 255, 0.3) !important;
         background: rgba(0, 100, 150, 0.4) !important;
-      }
-
-      @keyframes pulse-glow {
-        0% { 
-          box-shadow: 0 0 10px rgba(0, 225, 255, 0.5); 
-          transform: scale(1);
-        }
-        50% { 
-          box-shadow: 0 0 25px rgba(0, 225, 255, 1), 0 0 40px rgba(0, 225, 255, 0.7); 
-          transform: scale(1.05);
-        }
-        100% { 
-          box-shadow: 0 0 10px rgba(0, 225, 255, 0.5); 
-          transform: scale(1);
-        }
       }
       
       /* --- Procedural Chat UI Styles --- */
@@ -605,6 +633,11 @@
         .bottom-center-container .hex-btn {
           width: 55px;
           height: 55px;
+        }
+        
+        /* Make Aurora button slightly smaller on mobile but keep effect */
+        .aurora-hex {
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
         }
 
         /* --- QuickNavMenu as Bottom Sheet --- */

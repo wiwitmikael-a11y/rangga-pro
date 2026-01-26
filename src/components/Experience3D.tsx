@@ -1,10 +1,15 @@
 
 
 import React, { useState, useCallback, Suspense, useMemo, useRef, useEffect } from 'react';
-// FIX: Add a side-effect import to ensure R3F's JSX types are globally available.
-import '@react-three/fiber';
+// FIX: Add explicit type augmentation for R3F elements
+import { ThreeElements } from '@react-three/fiber'
+declare global {
+  namespace JSX {
+    interface IntrinsicElements extends ThreeElements {}
+  }
+}
 import { Canvas, useThree } from '@react-three/fiber';
-import { OrbitControls, Sky, Preload } from '@react-three/drei';
+import { OrbitControls, Sky, Preload, Stars } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
@@ -29,6 +34,7 @@ import { HintsPanel } from './ui/HintsPanel';
 import { useAudio } from '../hooks/useAudio';
 import { InitialHintTooltip } from './ui/InitialHintTooltip';
 import { BackgroundArchitecture } from './scene/BackgroundArchitecture';
+import { AuroraBorealis } from './scene/AuroraBorealis';
 
 
 // Define the sun's position for a sunset glow near the horizon
@@ -69,7 +75,25 @@ const SceneContent: React.FC<SceneContentProps> = ({ districts, selectedDistrict
         shadow-camera-bottom={-200}
         color={sunColor}
       />
-      <Sky sunPosition={new THREE.Vector3(...sunPosition)} />
+      
+      {/* Sky Base */}
+      <Sky 
+        distance={450000} 
+        sunPosition={new THREE.Vector3(...sunPosition)} 
+        inclination={0} 
+        azimuth={0.25} 
+        mieCoefficient={0.005} 
+        mieDirectionalG={0.7} 
+        rayleigh={3} 
+        turbidity={10} 
+      />
+      
+      {/* Stars for background depth */}
+      <Stars radius={300} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
+      
+      {/* Dynamic Aurora Overlay */}
+      <AuroraBorealis />
+
       <CityModel />
       <ProceduralTerrain />
       <BackgroundArchitecture />

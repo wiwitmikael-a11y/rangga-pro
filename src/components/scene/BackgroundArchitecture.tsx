@@ -1,7 +1,13 @@
 
+
 import React, { useMemo, useRef, useLayoutEffect } from 'react';
-// FIX: Add side-effect import to ensure R3F's JSX types are globally available.
-import '@react-three/fiber';
+// FIX: Add explicit type augmentation for R3F elements
+import { ThreeElements } from '@react-three/fiber'
+declare global {
+  namespace JSX {
+    interface IntrinsicElements extends ThreeElements {}
+  }
+}
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
