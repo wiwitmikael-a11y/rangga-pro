@@ -147,7 +147,7 @@ export const FLIGHT_RADIUS = 120; // Replaces FLIGHT_AREA_SIZE for circular flig
 export const FORMSPREE_FORM_ID = 'xwpwvzaa';
 
 
-// Data portofolio telah diisi dengan konten mock yang relevan dan gambar dari CDN.
+// Data portofolio telah diisi dengan konten mock yang relevan dan gambar dari CDN Unsplash.
 // FOKUS KAMERA TELAH DIKALIBRASI ULANG UNTUK PEMBINGKAIAN YANG AKURAT DAN SINEMATIK
 export const portfolioData: CityDistrict[] = [
   {
@@ -171,7 +171,17 @@ export const portfolioData: CityDistrict[] = [
         25,
         20
       ]
-    }
+    },
+    "subItems": [
+        // No sub-items usually for the chatbot, but added one for visual flair
+        {
+            "id": "ai-avatar",
+            "title": "Digital Custodian",
+            "description": "An interactive LLM-based agent representing Rangga's professional persona.",
+            "imageUrl": "https://images.unsplash.com/photo-1531746790731-6c087fecd65a?q=80&w=800&auto=format&fit=crop", // AI Cyborg Face
+            "position": [0,0,0] 
+        }
+    ]
   },
   {
     "id": "nova-forge",
@@ -199,233 +209,205 @@ export const portfolioData: CityDistrict[] = [
       {
         "id": "project-ai-agent",
         "title": "AI Financial Risk Agent",
-        "description": "An autonomous agent powered by the Gemini API, trained to perform risk analysis on micro-loan portfolios, directly merging 15 years of financial acumen with modern AI engineering.",
-        "position": [
-          -55,
-          5,
-          -45
-        ],
-        "imageUrl": "https://images.unsplash.com/photo-1678496464312-3f0559556a73?q=80&w=1920&auto=format&fit=crop"
+        "description": "An autonomous agent system designed to analyze micro-finance risk patterns using real-world economic data.",
+        "imageUrl": "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=800&auto=format&fit=crop", // AI Neural Network / Data
+        "position": [2, 0, 0]
       },
       {
-        "id": "project-data-viz",
-        "title": "WebGL Market Visualizer",
-        "description": "An interactive 3D financial data visualization platform built with React Three Fiber, showcasing expertise in creating immersive, data-driven WebGL experiences.",
-        "position": [
-          -45,
-          5,
-          -45
-        ],
-        "imageUrl": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1920&auto=format&fit=crop"
-      },
-      {
-        "id": "project-portfolio",
-        "title": "This is Ragetopia",
-        "description": "A meta-project exploring this portfolio's architecture. A testament to full-stack development, UI/UX engineering, and interactive 3D design using the latest web technologies.",
-        "position": [
-          -50,
-          5,
-          -55
-        ],
-        "imageUrl": "https://images.unsplash.com/photo-1531554694174-b6a86480b1da?q=80&w=1920&auto=format&fit=crop"
+        "id": "project-desain-fun",
+        "title": "desain.fun Platform",
+        "description": "A Generative AI platform empowering Indonesian MSMEs with automated branding and design tools.",
+        "imageUrl": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop", // Creative AI / Abstract
+        "position": [-2, 0, 0]
       }
-    ]
+    ],
+    "modelUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/district_nova_forge.glb",
+    "modelScale": 1.2
   },
   {
-    "id": "visual-arts",
-    "title": "Visual Archiver",
-    "description": "Award-Winning Content Creations",
+    "id": "skills-matrix",
+    "title": "Core Matrix",
+    "description": "Skillset Visualization & Analytics",
     "position": [
-      -30,
-      5,
-      60
+      -50,
+      0,
+      50
     ],
     "type": "major",
     "cameraFocus": {
       "pos": [
-        -30,
-        25,
-        100
+        -50,
+        40,
+        90
       ],
       "lookAt": [
-        -30,
-        15,
-        60
+        -50,
+        10,
+        50
+      ]
+    },
+    "subItems": [
+        {
+            "id": "skill-viz",
+            "title": "Radar Analytics",
+            "description": "Interactive data visualization of 15 years of professional growth.",
+            "imageUrl": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800&auto=format&fit=crop", // Data Analytics Dashboard
+            "position": [0,0,0]
+        }
+    ],
+    "modelUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/district_skills_matrix.glb",
+    "modelScale": 1.5
+  },
+  {
+    "id": "visual-arts",
+    "title": "Creative Studio",
+    "description": "Award-Winning Visuals & Media",
+    "position": [
+      -40,
+      0,
+      -60
+    ],
+    "type": "major",
+    "cameraFocus": {
+      "pos": [
+        -40,
+        20,
+        -20
+      ],
+      "lookAt": [
+        -40,
+        5,
+        -60
       ]
     },
     "subItems": [
       {
         "id": "photo-gallery",
-        "title": "Landscape Photography",
-        "description": "A curated gallery of national award-winning photographs, demonstrating a mastery of composition, light, and narrative storytelling in capturing the raw beauty of natural landscapes.",
-        "position": [
-          45,
-          5,
-          -45
-        ],
-        "imageUrl": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=1920&auto=format&fit=crop"
+        "title": "National Photography",
+        "description": "Winner of the 'BRIght On' National Competition. A showcase of narrative-driven visual storytelling.",
+        "imageUrl": "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=800&auto=format&fit=crop", // Camera Lens / Photography
+        "position": [3, 0, 1]
       },
       {
-        "id": "video-reel",
-        "title": "Cinematic Storytelling",
-        "description": "A showcase of cinematic projects, from concept to final cut. Highlights expertise in directing, cinematography, VFX, and post-production to tell compelling, human-centric stories.",
-        "position": [
-          55,
-          5,
-          -45
-        ],
-        "imageUrl": "https://images.unsplash.com/photo-1505628346881-1398f61d2d2e?q=80&w=1920&auto=format&fit=crop"
-      },
-      {
-        "id": "drone-showcase",
-        "title": "Aerial Cinematography",
-        "description": "A collection of aerial cinematography capturing breathtaking perspectives. Demonstrates technical skill in drone operation and an artistic eye for dynamic aerial composition.",
-        "position": [
-          50,
-          5,
-          -55
-        ],
-        "imageUrl": "https://images.unsplash.com/photo-1517403495929-e374888a53a8?q=80&w=1920&auto=format&fit=crop"
+        "id": "music-prod",
+        "title": "AI x Music Composition",
+        "description": "Experimental workflow combining songwriting with Generative Audio to produce broadcast-ready tracks.",
+        "imageUrl": "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?q=80&w=800&auto=format&fit=crop", // Music Studio / Neon
+        "position": [-3, 0, 1]
       }
-    ]
+    ],
+    "modelUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/district_visual_arts.glb",
+    "modelScale": 1.3
   },
   {
     "id": "defi-data-vault",
-    "title": "DeFi Vault",
-    "description": "Blockchain Analysis & Web3 Exploration",
+    "title": "Web3 Vault",
+    "description": "Blockchain Architecture & DeFi",
     "position": [
-      70,
+      60,
       0,
-      10
+      -50
     ],
     "type": "major",
     "cameraFocus": {
       "pos": [
         60,
-        20,
-        -40
-      ],
-      "lookAt": [
-        60,
-        10,
-        0
-      ]
-    },
-    "subItems": [
-      {
-        "id": "onchain-reports",
-        "title": "On-Chain Intelligence",
-        "description": "Deep-dive analyses of DeFi protocols derived from raw on-chain data. Showcases proficiency in tracking whale movements and identifying market anomalies in the Web3 ecosystem.",
-        "position": [
-          -55,
-          5,
-          55
-        ],
-        "imageUrl": "https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=1920&auto=format&fit=crop"
-      },
-      {
-        "id": "smart-contracts",
-        "title": "Smart Contract Audits",
-        "description": "Case studies on Solidity smart contracts, focusing on security audits, logic exploits, and architectural best practices for building secure, decentralized applications.",
-        "position": [
-          -45,
-          5,
-          55
-        ],
-        "imageUrl": "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?q=80&w=1920&auto=format&fit=crop"
-      }
-    ]
-  },
-  {
-    "id": "skills-matrix",
-    "title": "Core Matrix",
-    "description": "Core Technical & Creative Proficiencies",
-    "position": [
-      -20,
-      0,
-      0
-    ],
-    "type": "major",
-    "cameraFocus": {
-      "pos": [
-        -10,
-        20,
-        -50
-      ],
-      "lookAt": [
-        -10,
-        10,
+        25,
         -10
+      ],
+      "lookAt": [
+        60,
+        5,
+        -50
       ]
     },
     "subItems": [
       {
-        "id": "skill-ai",
-        "title": "AI & Machine Learning",
-        "description": "Expertise in Generative AI Engineering, including Gemini API integration, and the design of autonomous, data-driven agents.",
-        "position": [
-          45,
-          5,
-          55
-        ],
-        "imageUrl": "https://images.unsplash.com/photo-1535223289827-42f1e9919769?q=80&w=1920&auto=format&fit=crop"
+        "id": "smart-contract",
+        "title": "Solidity Architecture",
+        "description": "Secure smart contract development and deployment on BSC and Solana ecosystems.",
+        "imageUrl": "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=800&auto=format&fit=crop", // Blockchain / Cubes
+        "position": [0, 2, 0]
       },
       {
-        "id": "skill-web",
-        "title": "Web Technologies",
-        "description": "15+ years of full-stack architecture, specializing in high-performance web apps, intuitive UI/UX, and immersive 3D/WebGL experiences.",
-        "position": [
-          55,
-          5,
-          55
-        ],
-        "imageUrl": "https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=1920&auto=format&fit=crop"
-      },
-      {
-        "id": "skill-blockchain",
-        "title": "Blockchain & Web3",
-        "description": "Deep proficiency in the Web3 ecosystem, from on-chain intelligence and DeFi analysis to secure smart contract development.",
-        "position": [
-          50,
-          5,
-          45
-        ],
-        "imageUrl": "https://images.unsplash.com/photo-1642104704074-9071262202?q=80&w=1920&auto=format&fit=crop"
-      },
-      {
-        "id": "skill-creative",
-        "title": "Creative Tech & Media",
-        "description": "Mastery of the professional creative pipeline, including Adobe Creative Suite and DaVinci Resolve for videography, VFX, and branding.",
-        "position": [
-          50,
-          5,
-          65
-        ],
-        "imageUrl": "https://images.unsplash.com/photo-1522881451255-f59ad836fdfb?q=80&w=1920&auto=format&fit=crop"
+        "id": "on-chain-analytics",
+        "title": "On-Chain Forensics",
+        "description": "Deep data analysis of liquidity flows and tokenomics to identify market opportunities.",
+        "imageUrl": "https://images.unsplash.com/photo-1642104704074-907c0698b98d?q=80&w=800&auto=format&fit=crop", // Crypto Graph / Digital Gold
+        "position": [0, -2, 0]
       }
-    ]
+    ],
+    "modelUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/district_defi_vault.glb",
+    "modelScale": 1.1
   },
   {
     "id": "contact",
     "title": "Contact Hub",
-    "description": "Establish a connection",
+    "description": "Secure Communication Uplink",
     "position": [
-      20,
       0,
-      80
+      0,
+      -90
     ],
     "type": "major",
     "cameraFocus": {
       "pos": [
-        20,
-        20,
-        120
+        0,
+        15,
+        -60
       ],
       "lookAt": [
-        20,
-        10,
-        80
+        0,
+        5,
+        -90
       ]
-    }
+    },
+    "subItems": [
+        {
+            "id": "uplink",
+            "title": "Transmission Line",
+            "description": "Establish a direct secure connection for collaboration inquiries.",
+            "imageUrl": "https://images.unsplash.com/photo-1516387938699-a93567ec168e?q=80&w=800&auto=format&fit=crop", // Futuristic Handshake / Connection
+            "position": [0,0,0]
+        }
+    ],
+    "modelUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/district_contact.glb",
+    "modelScale": 1.4
+  },
+  {
+    "id": "res-1",
+    "title": "Residential Sector A",
+    "description": "Housing",
+    "position": [
+      -30,
+      0,
+      20
+    ],
+    "type": "minor",
+    "height": 15
+  },
+  {
+    "id": "res-2",
+    "title": "Residential Sector B",
+    "description": "Housing",
+    "position": [
+      40,
+      0,
+      -20
+    ],
+    "type": "minor",
+    "height": 18
+  },
+  {
+    "id": "ind-1",
+    "title": "Industrial Zone",
+    "description": "Power",
+    "position": [
+      -60,
+      0,
+      -20
+    ],
+    "type": "minor",
+    "height": 12
   }
 ];
