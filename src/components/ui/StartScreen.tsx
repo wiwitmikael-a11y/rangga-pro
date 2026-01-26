@@ -150,7 +150,7 @@ export const StartScreen: React.FC<StartScreenProps> = React.memo(({ appState, p
   }, [appState, onIntroEnd]);
 
   const isLoading = appState === 'loading';
-  const showUI = !isOpening;
+  // REMOVED unused variable: const showUI = !isOpening;
 
   // Dynamic Styles based on state
   const topTransform = isOpening ? 'translateY(-105%)' : 'translateY(0)';

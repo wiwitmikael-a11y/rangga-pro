@@ -45,6 +45,7 @@ const AppContent: React.FC = () => {
               isHudVisible={isHudVisible} 
               isEntering={isEntering}
               isWaitingToStart={isWaitingToStart} // Camera is locked while video plays
+              onEntryFinish={handleEntryAnimationFinish} // Connect the callback here
             />
         </Suspense>
       </main>

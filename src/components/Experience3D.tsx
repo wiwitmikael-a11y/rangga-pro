@@ -95,9 +95,10 @@ interface Experience3DProps {
   isHudVisible: boolean;
   isEntering: boolean;
   isWaitingToStart: boolean; // Controls if camera is locked at gate
+  onEntryFinish?: () => void; // New prop callback
 }
 
-export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEntering, isWaitingToStart }) => {
+export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEntering, isWaitingToStart, onEntryFinish }) => {
   const [districts, setDistricts] = useState<CityDistrict[]>(portfolioData);
   const [selectedDistrict, setSelectedDistrict] = useState<CityDistrict | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -245,6 +246,7 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEnte
         controlsRef.current.target.set(0, 5, 0); // Set initial target
         controlsRef.current.update();
       }
+      if (onEntryFinish) onEntryFinish();
       return;
     }
     
@@ -281,7 +283,7 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEnte
         controlsRef.current.update();
       }
     }
-  }, [isEntering, isTouring, tourIndex, tourStops, selectedDistrict, pov, isCalibrationMode, resetIdleTimer]);
+  }, [isEntering, isTouring, tourIndex, tourStops, selectedDistrict, pov, isCalibrationMode, resetIdleTimer, onEntryFinish]);
 
   const handleClosePanel = useCallback(() => {
     setShowContentPanel(false);
