@@ -13,6 +13,7 @@ export interface PortfolioSubItem {
   description: string;
   imageUrl?: string; // Tautan ke gambar thumbnail proyek
   position: [number, number, number]; // Posisi relatif terhadap distrik induk
+  url?: string; // Tautan ke proyek
 }
 
 export interface CityDistrict {

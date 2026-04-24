@@ -15,6 +15,8 @@ const targetLookAt = new THREE.Vector3();
 const OVERVIEW_LOOK_AT = new THREE.Vector3(0, 5, 0);
 
 export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimationFinish, isAnimating }) => {
+  const tempCamera = React.useMemo(() => new THREE.PerspectiveCamera(), []);
+
   useFrame((state, delta) => {
     // Only run the animation logic if isAnimating is true.
     // This prevents the rig from fighting with user controls.
@@ -37,7 +39,7 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
     state.camera.position.lerp(targetPosition, lerpFactor);
 
     // Smoothly interpolate the camera look-at target by updating the quaternion
-    const tempCamera = state.camera.clone();
+    tempCamera.copy(state.camera as THREE.PerspectiveCamera);
     tempCamera.lookAt(targetLookAt);
     state.camera.quaternion.slerp(tempCamera.quaternion, lerpFactor);
     

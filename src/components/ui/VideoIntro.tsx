@@ -226,8 +226,12 @@ export const VideoIntro: React.FC<VideoIntroProps> = ({ onComplete }) => {
       `}</style>
       
       <div 
-        style={{ ...styles.container, opacity: isFadingOut ? 0 : 1, pointerEvents: isFadingOut ? 'none' : 'auto' }}
-        onClick={isReadyToStart ? triggerExit : undefined}
+        style={{ ...styles.container, opacity: isFadingOut ? 0 : 1, pointerEvents: 'auto' }}
+        onClick={triggerExit}
+        onTouchEnd={(e) => {
+          e.preventDefault(); // Prevent double tap zoom or click emulation delay
+          triggerExit();
+        }}
       >
         <div style={styles.gridBackground} />
         
@@ -249,7 +253,11 @@ export const VideoIntro: React.FC<VideoIntroProps> = ({ onComplete }) => {
         </div>
 
         {!isReadyToStart && (
-            <button style={styles.skipButton} onClick={(e) => { e.stopPropagation(); triggerExit(); }}>
+            <button 
+                style={{ ...styles.skipButton }} 
+                onClick={(e) => { e.stopPropagation(); triggerExit(); }}
+                onTouchEnd={(e) => { e.stopPropagation(); e.preventDefault(); triggerExit(); }}
+            >
                 SKIP_INTRO &gt;&gt;
             </button>
         )}

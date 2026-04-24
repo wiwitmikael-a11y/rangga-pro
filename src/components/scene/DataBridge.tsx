@@ -25,12 +25,10 @@ export const DataBridge: React.FC<DataBridgeProps> = ({ start, end }) => {
     return [startVec, midPoint, endVec];
   }, [start, end]);
 
-  // Animate the material to create a flowing energy effect
   useFrame((_, delta) => {
-    if (lineRef.current) {
-      // The `dashOffset` property is part of the THREE.LineDashedMaterial
-      // By changing it over time, we create the illusion of movement along the line.
-      lineRef.current.material.uniforms.dashOffset.value -= delta * 3;
+    if (lineRef.current?.material) {
+      // Drei's CatmullRomLine uses MeshLineMaterial which has dashOffset directly on the material
+      lineRef.current.material.dashOffset -= delta * 1.5;
     }
   });
 

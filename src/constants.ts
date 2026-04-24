@@ -23,7 +23,7 @@ export const skillsDataBilingual: { [key in 'id' | 'en']: SkillCategory[] } = {
         { name: 'Jasa & Risiko Keuangan', level: 95 },
         { name: 'Strategi Pemasaran & Pertumbuhan', level: 90 },
       ],
-      keyMetrics: ['15+ Tahun Pengalaman', 'Mantan Kepala Unit (BRI)', 'Manajemen P&L'],
+      keyMetrics: ['15+ Tahun Pengalaman', 'Mantan Kepala Unit (Bank BUMN)', 'Manajemen P&L'],
     },
     {
       category: 'Web & Arsitektur',
@@ -37,13 +37,13 @@ export const skillsDataBilingual: { [key in 'id' | 'en']: SkillCategory[] } = {
     },
     {
       category: 'AI & ML',
-      description: 'Secara aktif merekayasa masa depan dengan 3+ tahun di AI Generatif. Berfokus pada pemanfaatan model bahasa besar seperti Gemini API untuk menciptakan solusi cerdas berbasis data dan agen otonom.',
+      description: 'Secara aktif merekayasa masa depan dengan 3+ tahun di AI Generatif. Berfokus pada pemanfaatan berbagai model bahasa besar (Multi-LLM, Cloud/Lokal) untuk menciptakan solusi cerdas berbasis data dan agen otonom.',
       skills: [
-        { name: 'Integrasi Gemini API', level: 85 },
+        { name: 'Integrasi Multi-LLM & API Endpoint', level: 85 },
         { name: 'Rekayasa AI Generatif', level: 85 },
         { name: 'Desain Agen Otonom', level: 80 },
       ],
-      keyMetrics: ['Ahli Gemini API', 'Pengembang Agen Otonom', 'R&D Berkelanjutan'],
+      keyMetrics: ['Ahli Multi-LLM (Cloud & Lokal)', 'Pengembang Agen Otonom', 'R&D Berkelanjutan'],
     },
     {
       category: 'Blockchain',
@@ -85,7 +85,7 @@ export const skillsDataBilingual: { [key in 'id' | 'en']: SkillCategory[] } = {
         { name: 'Financial Services & Risk', level: 95 },
         { name: 'Marketing & Growth Strategy', level: 90 },
       ],
-      keyMetrics: ['15+ Years Experience', 'Former Head of Unit (BRI)', 'P&L Management'],
+      keyMetrics: ['15+ Years Experience', 'Former Head of Unit (BUMN Bank)', 'P&L Management'],
     },
     {
       category: 'Web & Architecture',
@@ -99,13 +99,13 @@ export const skillsDataBilingual: { [key in 'id' | 'en']: SkillCategory[] } = {
     },
     {
       category: 'AI & ML',
-      description: 'Actively engineering the future with 3+ years in Generative AI. Focused on leveraging large language models like the Gemini API to create intelligent, data-driven solutions and autonomous agents.',
+      description: 'Actively engineering the future with 3+ years in Generative AI. Focused on leveraging diverse large language models (Multi-LLM, Cloud/Local) to create intelligent, data-driven solutions and autonomous agents.',
       skills: [
-        { name: 'Gemini API Integration', level: 85 },
+        { name: 'Multi-LLM & API Endpoint Integration', level: 85 },
         { name: 'Generative AI Engineering', level: 85 },
         { name: 'Autonomous Agent Design', level: 80 },
       ],
-      keyMetrics: ['Gemini API Expert', 'Autonomous Agent Dev', 'Continuous R&D'],
+      keyMetrics: ['Multi-LLM Expert (Cloud & Local)', 'Autonomous Agent Dev', 'Continuous R&D'],
     },
     {
       category: 'Blockchain',
@@ -178,10 +178,19 @@ export const portfolioData: CityDistrict[] = [
     "subItems": [
         {
             "id": "ai-avatar",
-            "title": "Digital Custodian",
-            "description": "An interactive LLM-based agent representing Rangga's professional persona.",
+            "title": "Atharia AGI System",
+            "description": "An interactive LLM-based agent. Source repository for the procedural chatbot system.",
             "imageUrl": "https://images.unsplash.com/photo-1531746790731-6c087fecd65a?q=80&w=800&auto=format&fit=crop", // AI Cyborg Face
-            "position": [0,0,0] 
+            "position": [-3, 0, 0],
+            "url": "https://github.com/atharia-agi"
+        },
+        {
+            "id": "ai-twitter",
+            "title": "Atharia AGI (Social)",
+            "description": "The live X (Twitter) feed operated by my autonomous agentic AI persona.",
+            "imageUrl": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop",
+            "position": [3, 0, 0],
+            "url": "https://x.com/Atharia_AGI"
         }
     ]
   },
@@ -209,11 +218,28 @@ export const portfolioData: CityDistrict[] = [
     },
     "subItems": [
       {
-        "id": "project-ai-agent",
-        "title": "AI Financial Risk Agent",
-        "description": "An autonomous agent system designed to analyze micro-finance risk patterns using real-world economic data.",
-        "imageUrl": "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=800&auto=format&fit=crop", // AI Neural Network / Data
-        "position": [2, 0, 0]
+        "id": "project-neugi",
+        "title": "neugi.com",
+        "description": "A platform integrating AI Agents for personalized user experiences.",
+        "imageUrl": "https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=800&auto=format&fit=crop",
+        "position": [0, 0, 2],
+        "url": "https://neugi.com"
+      },
+      {
+        "id": "project-aiis",
+        "title": "aiis.live",
+        "description": "A smart streaming solution with next-generation AI-powered interactions.",
+        "imageUrl": "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=800&auto=format&fit=crop",
+        "position": [2, 0, 0],
+        "url": "https://aiis.live"
+      },
+      {
+        "id": "project-digdaia",
+        "title": "Digdaia AI System",
+        "description": "Agentic AI projects operating autonomously under Atharia AGI. Live on GitHub.",
+        "imageUrl": "https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=800&auto=format&fit=crop",
+        "position": [0, 0, -2],
+        "url": "https://github.com/atharia-agi/digdaia"
       },
       {
         "id": "project-desain-fun",
@@ -286,7 +312,7 @@ export const portfolioData: CityDistrict[] = [
       {
         "id": "photo-gallery",
         "title": "National Photography",
-        "description": "Winner of the 'BRIght On' National Competition. A showcase of narrative-driven visual storytelling.",
+        "description": "Winner of the National Competition. A showcase of narrative-driven visual storytelling.",
         "imageUrl": "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=800&auto=format&fit=crop", // Camera Lens / Photography
         "position": [3, 0, 1]
       },

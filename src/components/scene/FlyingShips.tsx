@@ -126,6 +126,13 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isP
     );
   };
   
+  // Reusable vectors/quaternions for useFrame to prevent GC pauses
+  const forwardVector = useMemo(() => new THREE.Vector3(0, 0, 1), []);
+  const upVector = useMemo(() => new THREE.Vector3(0, 1, 0), []);
+  const yawQuat = useMemo(() => new THREE.Quaternion(), []);
+  const rollQuat = useMemo(() => new THREE.Quaternion(), []);
+  const tempV3 = useMemo(() => new THREE.Vector3(), []);
+  
   useFrame(({ clock }, delta) => {
     if (!groupRef.current || isPaused) return;
 
@@ -134,9 +141,9 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isP
         const ship = groupRef.current;
         
         // 1. Acceleration
-        const forwardVector = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
-        const acceleration = forwardVector.multiplyScalar(manualInputs.forward * ACCELERATION * delta);
-        velocity.current.add(acceleration);
+        forwardVector.set(0, 0, 1).applyQuaternion(ship.quaternion);
+        tempV3.copy(forwardVector).multiplyScalar(manualInputs.forward * ACCELERATION * delta);
+        velocity.current.add(tempV3);
 
         // 2. Vertical movement (applied directly to position)
         ship.position.y += manualInputs.ascend * VERTICAL_SPEED * delta;
@@ -150,7 +157,8 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isP
         }
 
         // 5. Update position based on velocity
-        ship.position.add(velocity.current.clone().multiplyScalar(delta));
+        tempV3.copy(velocity.current).multiplyScalar(delta);
+        ship.position.add(tempV3);
 
         // --- NEW: Boundary and Collision Handling for Manual Flight ---
         const pos = ship.position;
@@ -183,8 +191,10 @@ const Ship = forwardRef<THREE.Group, ShipProps>(({ url, scale, initialDelay, isP
         const yaw = manualInputs.turn * TURN_RATE * delta;
         const roll = manualInputs.roll * ROLL_RATE * delta;
         
-        const yawQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -yaw);
-        const rollQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -roll);
+        upVector.set(0, 1, 0);
+        yawQuat.setFromAxisAngle(upVector, -yaw);
+        forwardVector.set(0, 0, 1);
+        rollQuat.setFromAxisAngle(forwardVector, -roll);
         
         ship.quaternion.multiply(yawQuat).multiply(rollQuat).normalize();
         

@@ -9,7 +9,7 @@ Ragetopia adalah platform portofolio interaktif berbasis WebGL yang menggabungka
 - **3D Engine:** React Three Fiber (R3F) & Three.js
 - **Helpers:** @react-three/drei
 - **Post-Processing:** @react-three/postprocessing (Bloom, Noise)
-- **AI/Chat:** Local Keyword Engine (siap diintegrasikan ke Gemini API)
+- **AI/Chat:** Local Keyword Engine (siap diintegrasikan ke berbagai LLM Endpoint)
 - **Styling:** Custom CSS + Glassmorphism
 - **Build Tool:** Vite
 

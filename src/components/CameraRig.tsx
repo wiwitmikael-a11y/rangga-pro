@@ -44,6 +44,8 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
     forwardVector: new THREE.Vector3(0, 0, 15),
   }), []);
   
+  const tempCamera = useMemo(() => new THREE.PerspectiveCamera(), []);
+  
   const isAnimatingRef = useRef(isAnimating);
   const animationStartRef = useRef<number | null>(null);
 
@@ -124,7 +126,8 @@ export const CameraRig: React.FC<CameraRigProps> = ({ selectedDistrict, onAnimat
       const dampFactor = 1.0 - Math.exp(-dampingSpeed * delta);
       state.camera.position.lerp(targetPosition, dampFactor);
 
-      const tempCamera = state.camera.clone();
+      // Avoid cloning camera on every frame
+      tempCamera.copy(state.camera as THREE.PerspectiveCamera);
       tempCamera.lookAt(targetLookAt);
       state.camera.quaternion.slerp(tempCamera.quaternion, dampFactor);
       

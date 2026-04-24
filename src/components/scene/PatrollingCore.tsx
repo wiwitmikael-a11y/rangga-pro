@@ -33,6 +33,12 @@ export const PatrollingCore: React.FC<PatrollingCoreProps> = React.memo(({ isPau
   const clonedScene = useMemo(() => scene.clone(), [scene]);
   const previousPosition = useMemo(() => new THREE.Vector3(), []);
   
+  // Cache objects for useFrame
+  const lookAtTarget = useMemo(() => new THREE.Vector3(), []);
+  const tempV3 = useMemo(() => new THREE.Vector3(), []);
+  const tempObject = useMemo(() => new THREE.Object3D(), []);
+  const targetPos = useMemo(() => new THREE.Vector3(), []);
+  
   useFrame(({ clock }) => {
     if (!groupRef.current || isPaused) return;
 
@@ -50,13 +56,13 @@ export const PatrollingCore: React.FC<PatrollingCoreProps> = React.memo(({ isPau
     const y = baseHeight + heightNoise * verticalRange;
 
     previousPosition.copy(groupRef.current.position);
-    groupRef.current.position.lerp(new THREE.Vector3(x, y, z), 0.05);
+    targetPos.set(x, y, z);
+    groupRef.current.position.lerp(targetPos, 0.05);
 
     if (previousPosition.distanceTo(groupRef.current.position) > 0.01) {
-       const lookAtTarget = new THREE.Vector3().copy(groupRef.current.position).add(
-         new THREE.Vector3().subVectors(groupRef.current.position, previousPosition).normalize()
-       );
-       const tempObject = new THREE.Object3D();
+       tempV3.subVectors(groupRef.current.position, previousPosition).normalize();
+       lookAtTarget.copy(groupRef.current.position).add(tempV3);
+       
        tempObject.position.copy(groupRef.current.position);
        tempObject.lookAt(lookAtTarget);
        groupRef.current.quaternion.slerp(tempObject.quaternion, 0.05);

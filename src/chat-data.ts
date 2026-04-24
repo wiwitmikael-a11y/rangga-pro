@@ -21,26 +21,26 @@ interface LanguageDatabase {
 // --- Bilingual Content ---
 const content = {
   id: {
-    investmentThesis: `Di persimpangan antara stabilitas keuangan dan disrupsi teknologi, terdapat celah peluang yang sangat besar. Saya telah menghabiskan 15 tahun di kedua sisi jurang ini. Sebagai mantan Kepala Unit di BRI, saya tidak hanya mengelola P&L; saya memahami denyut nadi ekonomi riil—bagaimana seorang pengusaha UMKM berpikir, bagaimana risiko dinilai di lapangan, dan apa yang benar-benar mendorong keputusan pasar.\n\nPengalaman ground-truth ini adalah alpha saya. Ini adalah fondasi yang memungkinkan saya untuk tidak hanya membangun teknologi, tetapi untuk mengarsiteki solusi yang relevan secara fundamental. Saya memadukan pemahaman mendalam tentang perilaku manusia dan pasar dengan kemampuan untuk merekayasa sistem cerdas (AI), arsitektur terdesentralisasi (Web3), dan pengalaman imersif (3D/WebGL) yang memikat. Visi saya sederhana: membangun masa depan digital di mana teknologi tidak hanya canggih, tetapi juga bijaksana, berempati, dan terhubung secara intrinsik dengan hasil bisnis yang nyata.`,
-    workExperienceBRI: `Selama 15 tahun di BRI, yang puncaknya sebagai **Kepala Unit**, saya berevolusi dari seorang frontliner menjadi pemimpin strategis.\n\nPeran ini memberi saya kepemilikan P&L penuh dan tanggung jawab untuk penetrasi pasar. Saya mengelola portofolio ribuan nasabah dari ekonomi akar rumput, memberikan pemahaman mendalam yang langka tentang ekonomi riil dan perilaku konsumen. Keahlian saya dalam analisis mikro, penilaian agunan, dan sebagai penasihat keuangan memastikan bahwa setiap solusi teknologi yang saya bangun didasarkan pada tujuan bisnis yang solid.`,
-    strategicInitiatives: `Saya memimpin beberapa inisiatif R&D utama:\n\n- **desain.fun:** Sebagai Pendiri & Lead Engineer, saya membangun platform web dengan alat berbasis AI untuk memberdayakan UMKM Indonesia.\n- **Project AIRORA:** Memimpin riset untuk AI kustom yang berfokus pada penalaran otonom yang kompleks.\n- **AI Music Architect:** Menggabungkan keahlian menulis lagu dengan AI generatif untuk menciptakan alur kerja produksi musik baru.\n- **DeFi Architect:** Merancang dan menerapkan proyek token DeFi dan dApps dari awal di ekosistem Solana dan BSC.`,
+    investmentThesis: `Di persimpangan antara stabilitas keuangan dan disrupsi teknologi, terdapat celah peluang yang sangat besar. Saya telah menghabiskan 15 tahun di kedua sisi jurang ini. Sebagai mantan Kepala Unit di salah satu Bank BUMN, saya tidak hanya mengelola P&L; saya memahami denyut nadi ekonomi riil—bagaimana seorang pengusaha UMKM berpikir, bagaimana risiko dinilai di lapangan, dan apa yang benar-benar mendorong keputusan pasar.\n\nPengalaman ground-truth ini adalah alpha saya. Ini adalah fondasi yang memungkinkan saya untuk tidak hanya membangun teknologi, tetapi untuk mengarsiteki solusi yang relevan secara fundamental. Saya memadukan pemahaman mendalam tentang perilaku manusia dan pasar dengan kemampuan untuk merekayasa sistem cerdas (AI), arsitektur terdesentralisasi (Web3), dan pengalaman imersif (3D/WebGL) yang memikat. Visi saya sederhana: membangun masa depan digital di mana teknologi tidak hanya canggih, tetapi juga bijaksana, berempati, dan terhubung secara intrinsik dengan hasil bisnis yang nyata.`,
+    workExperienceBUMN: `Selama 15 tahun di salah satu Bank BUMN, yang puncaknya sebagai **Kepala Unit**, saya berevolusi dari seorang frontliner menjadi pemimpin strategis.\n\nPeran ini memberi saya kepemilikan P&L penuh dan tanggung jawab untuk penetrasi pasar. Saya mengelola portofolio ribuan nasabah dari ekonomi akar rumput, memberikan pemahaman mendalam yang langka tentang ekonomi riil dan perilaku konsumen. Keahlian saya dalam analisis mikro, penilaian agunan, dan sebagai penasihat keuangan memastikan bahwa setiap solusi teknologi yang saya bangun didasarkan pada tujuan bisnis yang solid.`,
+    strategicInitiatives: `Saya memimpin beberapa inisiatif R&D utama:\n\n- **neugi.com:** Platform yang mengintegrasikan AI Agent untuk personalisasi pengalaman pengguna.\n- **aiis.live:** Solusi streaming cerdas dengan interaksi berbasis AI generasi baru.\n- **Digdaia:** Proyek yang sedang dibangun saat ini. Lihat perkembangannya di GitHub: https://github.com/atharia-agi/digdaia\n- **Atharia AGI:** Proyek Agentic AI saya yang sudah menjalankan beberapa proyek otomasi secara mandiri. Lihat profil GitHub: https://github.com/atharia-agi | Akun X: https://x.com/Atharia_AGI\n- **desain.fun:** Sebagai Pendiri & Lead Engineer, saya membangun platform web dengan alat berbasis AI untuk memberdayakan UMKM Indonesia.\n- **Project AIRORA:** Memimpin riset untuk AI kustom yang berfokus pada penalaran otonom yang kompleks.\n- **AI Music Architect:** Menggabungkan keahlian menulis lagu dengan AI generatif untuk menciptakan alur kerja produksi musik baru.\n- **DeFi Architect:** Merancang dan menerapkan proyek token DeFi dan dApps dari awal di ekosistem Solana dan BSC.`,
     skills: {
         leadership: '15 tahun membangun dan memimpin tim berkinerja tinggi di sektor keuangan yang kompetitif. Keahlian terbukti dalam perencanaan strategis, manajemen P&L, dan mendorong pertumbuhan pasar sebagai mantan Kepala Unit.',
         web: 'Seorang veteran 15 tahun dalam keahlian digital. Mengkhususkan diri dalam membangun aplikasi full-stack yang skalabel, pengalaman WebGL yang imersif, dan antarmuka pengguna yang intuitif dari konsep hingga penerapan.',
-        ai: 'Secara aktif merekayasa masa depan dengan 3+ tahun di AI Generatif. Berfokus pada pemanfaatan model bahasa besar seperti Gemini API untuk menciptakan solusi cerdas berbasis data dan agen otonom.',
+        ai: 'Secara aktif merekayasa masa depan dengan 3+ tahun di AI Generatif. Berfokus pada pemanfaatan berbagai model bahasa besar (Multi-LLM, baik provider Cloud maupun lokal) untuk menciptakan solusi cerdas berbasis data dan agen otonom.',
         blockchain: '5 tahun keterlibatan mendalam di ekosistem Web3. Keahlian dalam intelijen data on-chain, analisis protokol DeFi, dan pengembangan smart contract yang aman.',
         creative: 'Dua dekade pengalaman dalam teknologi visual. Seorang master dari alur kerja kreatif penuh, dari videografi pemenang penghargaan dan pemodelan 3D canggih hingga desain grafis yang menarik dan berfokus pada merek.',
         arts: 'Perpaduan keterampilan teknis dan kreativitas murni. Seorang fotografer dan penulis lagu berprestasi yang diakui secara nasional dengan mata yang terbukti untuk penceritaan visual dan auditori yang kuat dan berbasis narasi.',
     }
   },
   en: {
-    investmentThesis: `At the intersection of financial stability and technological disruption lies a vast opportunity gap. I've spent 15 years on both sides of this chasm. As a former Head of Unit at BRI, I didn't just manage a P&L; I understood the pulse of the real economy—how a small business owner thinks, how risk is assessed on the ground, and what truly drives market decisions.\n\nThis ground-truth experience is my alpha. It's the foundation that allows me not just to build technology, but to architect **fundamentally relevant solutions**. I fuse a deep understanding of human and market behavior with the ability to engineer intelligent systems (AI), decentralized architectures (Web3), and captivating immersive experiences (3D/WebGL). My vision is simple: to build a digital future where technology is not just advanced, but wise, empathetic, and intrinsically linked to real business outcomes.`,
-    workExperienceBRI: `During my 15-year tenure at BRI, culminating as a **Head of Unit**, I evolved from a frontliner to a strategic leader.\n\nThis role gave me full P&L ownership and responsibility for market penetration. I managed a portfolio of thousands of clients from the grassroots economy, providing a rare, deep understanding of real-world economics and consumer behavior. My expertise in micro-analysis, collateral appraisal, and as a financial advisor ensures that every line of code I write and every architecture I design is grounded in solid business objectives.`,
-    strategicInitiatives: `I lead several key R&D initiatives:\n\n- **desain.fun:** As Founder & Lead Engineer, I built a web platform with AI-powered tools to empower Indonesian small businesses.\n- **Project AIRORA:** Leading research for a custom AI focused on complex autonomous reasoning.\n- **AI Music Architect:** Merging my songwriting skills with generative AI to create new music production workflows.\n- **DeFi Architect:** Designing and deploying DeFi token projects and dApps from scratch on the Solana and BSC ecosystems.`,
+    investmentThesis: `At the intersection of financial stability and technological disruption lies a vast opportunity gap. I've spent 15 years on both sides of this chasm. As a former Head of Unit at a state-owned enterprise (BUMN) bank, I didn't just manage a P&L; I understood the pulse of the real economy—how a small business owner thinks, how risk is assessed on the ground, and what truly drives market decisions.\n\nThis ground-truth experience is my alpha. It's the foundation that allows me not just to build technology, but to architect **fundamentally relevant solutions**. I fuse a deep understanding of human and market behavior with the ability to engineer intelligent systems (AI), decentralized architectures (Web3), and captivating immersive experiences (3D/WebGL). My vision is simple: to build a digital future where technology is not just advanced, but wise, empathetic, and intrinsically linked to real business outcomes.`,
+    workExperienceBUMN: `During my 15-year tenure at a BUMN bank, culminating as a **Head of Unit**, I evolved from a frontliner to a strategic leader.\n\nThis role gave me full P&L ownership and responsibility for market penetration. I managed a portfolio of thousands of clients from the grassroots economy, providing a rare, deep understanding of real-world economics and consumer behavior. My expertise in micro-analysis, collateral appraisal, and as a financial advisor ensures that every line of code I write and every architecture I design is grounded in solid business objectives.`,
+    strategicInitiatives: `I lead several key R&D initiatives:\n\n- **neugi.com:** A platform integrating AI Agents for personalized user experiences.\n- **aiis.live:** A smart streaming solution with next-generation AI-powered interactions.\n- **Digdaia:** A project currently under construction. Check the progress on GitHub: https://github.com/atharia-agi/digdaia\n- **Atharia AGI:** My Agentic AI which has been running multiple automation projects autonomously. Check the GitHub profile at: https://github.com/atharia-agi | X/Twitter: https://x.com/Atharia_AGI\n- **desain.fun:** As Founder & Lead Engineer, I built a web platform with AI-powered tools to empower Indonesian small businesses.\n- **Project AIRORA:** Leading research for a custom AI focused on complex autonomous reasoning.\n- **AI Music Architect:** Merging my songwriting skills with generative AI to create new music production workflows.\n- **DeFi Architect:** Designing and deploying DeFi token projects and dApps from scratch on the Solana and BSC ecosystems.`,
     skills: {
         leadership: '15 years building and leading high-performance teams in the competitive financial sector. Proven expertise in strategic planning, P&L management, and driving market growth as a former Head of Unit.',
         web: 'A 15-year veteran in digital craftsmanship. Specializing in building scalable full-stack applications, immersive WebGL experiences, and intuitive user interfaces from concept to deployment.',
-        ai: 'Actively engineering the future with 3+ years in Generative AI. Focused on leveraging large language models like the Gemini API to create intelligent, data-driven solutions and autonomous agents.',
+        ai: 'Actively engineering the future with 3+ years in Generative AI. Focused on leveraging diverse large language models (Multi-LLM, both Cloud providers and local) to create intelligent, data-driven solutions and autonomous agents.',
         blockchain: '5 years of deep engagement in the Web3 ecosystem. Expertise in on-chain data intelligence, DeFi protocol analysis, and secure smart contract development.',
         creative: 'Two decades of experience in visual technology. A master of the full creative pipeline, from award-winning videography and advanced 3D modeling to compelling brand-focused graphic design.',
         arts: 'A fusion of technical skill and pure creativity. An accomplished, nationally-awarded photographer and songwriter with a proven eye for powerful, narrative-driven visual and auditory storytelling.',
@@ -92,26 +92,26 @@ export const chatData: {
           ],
           followUpPrompts: [
             { text: "Itu berwawasan. Keahlian apa yang mendukung ini?", topicId: 'skills_overview' },
-            { text: "Bagaimana pengalaman di BRI membentuk ini?", topicId: 'work_experience_bri' },
+            { text: "Bagaimana pengalaman di Bank BUMN membentuk ini?", topicId: 'work_experience_bumn' },
           ],
         },
         work_experience_overview: {
             keywords: ['kerja', 'pengalaman', 'karir', 'latar belakang', 'pekerjaan', 'riwayat', 'profesional', 'jabatan', 'posisi'],
             botResponses: [
                 "Karir Rangga adalah perpaduan unik antara kepemimpinan korporat dan R&D kewirausahaan.", 
-                "Fondasi 15 tahunnya dihabiskan di PT. Bank Rakyat Indonesia (BRI), yang puncaknya sebagai Kepala Unit. Di samping itu, ia telah memimpin beberapa inisiatif R&D strategis.", 
+                "Fondasi 15 tahunnya dihabiskan di salah satu Bank BUMN, yang puncaknya sebagai Kepala Unit. Di samping itu, ia telah memimpin beberapa inisiatif R&D strategis.", 
                 "Bagian mana yang lebih menarik bagi Anda?"
             ],
             followUpPrompts: [
-                { text: "Ceritakan tentang 15 tahunnya di BRI.", topicId: 'work_experience_bri' },
+                { text: "Ceritakan tentang 15 tahunnya di Bank BUMN.", topicId: 'work_experience_bumn' },
                 { text: "Apa saja inisiatif R&D-nya?", topicId: 'strategic_initiatives' },
             ]
         },
-        work_experience_bri: {
-            keywords: ['bri', 'bank', 'keuangan', 'kepala unit', 'perbankan', 'finansial', 'jabatan di bank'],
+        work_experience_bumn: {
+            keywords: ['bank', 'keuangan', 'kepala unit', 'perbankan', 'finansial', 'jabatan di bank', 'bumn'],
             botResponses: [
-                `Berikut adalah rincian masa jabatannya selama 15 tahun di BRI:\n\n${content.id.workExperienceBRI}`,
-                `Waktunya di BRI adalah fondasi. Berikut ringkasannya:\n\n${content.id.workExperienceBRI}`
+                `Berikut adalah rincian masa jabatannya selama 15 tahun di Bank BUMN:\n\n${content.id.workExperienceBUMN}`,
+                `Waktunya di Bank BUMN adalah fondasi. Berikut ringkasannya:\n\n${content.id.workExperienceBUMN}`
             ],
             followUpPrompts: [
                 { text: "Bagaimana dengan proyek R&D-nya?", topicId: 'strategic_initiatives' },
@@ -119,13 +119,13 @@ export const chatData: {
             ]
         },
         strategic_initiatives: {
-            keywords: ['r&d', 'inisiatif', 'proyek', 'desain.fun', 'penelitian', 'riset', 'pengembangan', 'portofolio proyek', 'inisiatif strategis', 'airora'],
+            keywords: ['r&d', 'inisiatif', 'proyek', 'desain.fun', 'penelitian', 'riset', 'pengembangan', 'portofolio proyek', 'inisiatif strategis', 'airora', 'neugi', 'aiis'],
             botResponses: [
                 `Ini adalah inisiatif R&D utamanya:\n\n${content.id.strategicInitiatives}`,
                 `Dia memimpin beberapa proyek strategis. Berikut rinciannya:\n\n${content.id.strategicInitiatives}`
             ],
             followUpPrompts: [
-                { text: "Ceritakan tentang waktunya di BRI.", topicId: 'work_experience_bri' },
+                { text: "Ceritakan tentang waktunya di Bank BUMN.", topicId: 'work_experience_bumn' },
                 { text: "Mari kita dalami keahliannya.", topicId: 'skills_overview' },
             ]
         },
@@ -180,7 +180,7 @@ export const chatData: {
           followUpPrompts: [
             { text: "LinkedIn", topicId: "link_linkedin" },
             { text: "GitHub", topicId: "link_github" },
-            { text: "YouTube", topicId: "link_x" },
+            { text: "X (Twitter)", topicId: "link_x" },
           ],
         },
         link_linkedin: {
@@ -195,7 +195,7 @@ export const chatData: {
         },
         link_x: {
             keywords: [],
-            botResponses: ["Untuk konten musik dan kreatifnya, Anda bisa mengunjungi channel YouTube-nya di: https://www.youtube.com/@ruangranggamusicchannel5536"],
+            botResponses: ["Untuk informasi terbaru, Anda bisa mengunjungi profil agen AI saya (Atharia AGI) di X: https://x.com/Atharia_AGI"],
             followUpPrompts: [{ text: "Tampilkan opsi kontak lain.", topicId: "contact" }],
         },
         unhandled_query: {
@@ -232,7 +232,7 @@ export const chatData: {
         },
         faq_tech_stack: {
             keywords: ['teknologi', 'dibuat dengan', 'tech stack', 'react', 'threejs', 'gemini'],
-            botResponses: ["Situs ini dibangun menggunakan tumpukan teknologi modern:\n\n- **Frontend:** React & TypeScript\n- **3D Rendering:** Three.js & React Three Fiber (@react-three/fiber)\n- **Kecerdasan Buatan (Chat):** Google Gemini API\n- **Styling:** CSS Kustom & Post-processing shaders\n- **Bundler:** Vite"],
+            botResponses: ["Situs ini dibangun menggunakan tumpukan teknologi modern:\n\n- **Frontend:** React & TypeScript\n- **3D Rendering:** Three.js & React Three Fiber (@react-three/fiber)\n- **Kecerdasan Buatan (Chat):** Integrasi Multi-LLM\n- **Styling:** CSS Kustom & Post-processing shaders\n- **Bundler:** Vite"],
             followUpPrompts: [
                 { text: "Tanyakan hal lain tentang portofolio ini.", topicId: 'faq_overview' },
             ]
@@ -270,26 +270,26 @@ export const chatData: {
           ],
           followUpPrompts: [
             { text: "That's insightful. What skills back this up?", topicId: 'skills_overview' },
-            { text: "How did his BRI experience shape this?", topicId: 'work_experience_bri' },
+            { text: "How did his BUMN bank experience shape this?", topicId: 'work_experience_bumn' },
           ],
         },
         work_experience_overview: {
             keywords: ['work', 'experience', 'career', 'background', 'job', 'history', 'professional', 'positions'],
             botResponses: [
                 "Rangga's career is a unique blend of corporate leadership and entrepreneurial R&D.",
-                "His 15-year foundation was spent at PT. Bank Rakyat Indonesia (BRI), culminating as Head of Unit. Alongside this, he has led several strategic R&D initiatives.",
+                "His 15-year foundation was spent at a major state-owned enterprise (BUMN) bank, culminating as Head of Unit. Alongside this, he has led several strategic R&D initiatives.",
                 "Which part is more interesting to you?"
             ],
             followUpPrompts: [
-                { text: "Tell me about his 15 years at BRI.", topicId: 'work_experience_bri' },
+                { text: "Tell me about his 15 years at a BUMN bank.", topicId: 'work_experience_bumn' },
                 { text: "What are his R&D initiatives?", topicId: 'strategic_initiatives' },
             ]
         },
-        work_experience_bri: {
-            keywords: ['bri', 'bank', 'finance', 'head of unit', 'banking', 'financial'],
+        work_experience_bumn: {
+            keywords: ['bumn', 'bank', 'finance', 'head of unit', 'banking', 'financial'],
             botResponses: [
-                `Here is the breakdown of his 15-year tenure at BRI:\n\n${content.en.workExperienceBRI}`,
-                `His time at BRI was foundational. Here is the summary:\n\n${content.en.workExperienceBRI}`
+                `Here is the breakdown of his 15-year tenure at a BUMN bank:\n\n${content.en.workExperienceBUMN}`,
+                `His time at a BUMN bank was foundational. Here is the summary:\n\n${content.en.workExperienceBUMN}`
             ],
             followUpPrompts: [
                 { text: "What about his R&D projects?", topicId: 'strategic_initiatives' },
@@ -297,13 +297,13 @@ export const chatData: {
             ]
         },
         strategic_initiatives: {
-            keywords: ['r&d', 'initiatives', 'projects', 'desain.fun', 'research', 'development', 'portfolio', 'strategic initiatives', 'airora'],
+            keywords: ['r&d', 'initiatives', 'projects', 'desain.fun', 'research', 'development', 'portfolio', 'strategic initiatives', 'airora', 'neugi', 'aiis'],
             botResponses: [
                 `These are his main R&D initiatives:\n\n${content.en.strategicInitiatives}`,
                 `He leads several strategic projects. Here is the breakdown:\n\n${content.en.strategicInitiatives}`
             ],
             followUpPrompts: [
-                { text: "Tell me about his time at BRI.", topicId: 'work_experience_bri' },
+                { text: "Tell me about his time at a BUMN bank.", topicId: 'work_experience_bumn' },
                 { text: "Let's dive into his skills.", topicId: 'skills_overview' },
             ]
         },
@@ -358,7 +358,7 @@ export const chatData: {
           followUpPrompts: [
             { text: "LinkedIn", topicId: "link_linkedin" },
             { text: "GitHub", topicId: "link_github" },
-            { text: "YouTube", topicId: "link_x" },
+            { text: "X (Twitter)", topicId: "link_x" },
           ],
         },
         link_linkedin: {
@@ -373,7 +373,7 @@ export const chatData: {
         },
         link_x: {
             keywords: [],
-            botResponses: ["For his music and creative content, you can visit his YouTube channel at: https://www.youtube.com/@ruangranggamusicchannel5536"],
+            botResponses: ["For latest updates, you can visit my AI agent profile (Atharia AGI) on X: https://x.com/Atharia_AGI"],
             followUpPrompts: [{ text: "Show other contact options.", topicId: "contact" }],
         },
         unhandled_query: {
@@ -410,7 +410,7 @@ export const chatData: {
         },
         faq_tech_stack: {
             keywords: ['technology', 'built with', 'tech stack', 'react', 'threejs', 'gemini'],
-            botResponses: ["This site was built using a modern tech stack:\n\n- **Frontend:** React & TypeScript\n- **3D Rendering:** Three.js & React Three Fiber (@react-three/fiber)\n- **Artificial Intelligence (Chat):** Google Gemini API\n- **Styling:** Custom CSS & Post-processing shaders\n- **Bundler:** Vite"],
+            botResponses: ["This site was built using a modern tech stack:\n\n- **Frontend:** React & TypeScript\n- **3D Rendering:** Three.js & React Three Fiber (@react-three/fiber)\n- **Artificial Intelligence (Chat):** Multi-LLM Integration\n- **Styling:** Custom CSS & Post-processing shaders\n- **Bundler:** Vite"],
             followUpPrompts: [
                 { text: "Ask something else about the portfolio.", topicId: 'faq_overview' },
             ]
