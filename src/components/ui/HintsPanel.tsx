@@ -70,6 +70,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     textShadow: '0 0 8px var(--primary-color)',
   },
   closeButton: {
+    position: 'relative',
+    zIndex: 10,
     background: 'transparent',
     border: '1px solid rgba(255, 153, 0, 0.7)',
     color: '#ff9900',
@@ -256,7 +258,6 @@ export const HintsPanel: React.FC<HintsPanelProps> = ({ isOpen, onClose, context
           <div style={styles.dangerStripes} />
           <div style={styles.header}>
               <h2 style={styles.title}>Control & Navigation Guide</h2>
-              <button onClick={onClose} style={styles.closeButton} aria-label="Close Hints">&times;</button>
           </div>
           <div style={styles.content}>
             {renderContent()}

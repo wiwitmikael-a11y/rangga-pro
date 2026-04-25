@@ -487,11 +487,11 @@ const styles: { [key: string]: React.CSSProperties } = {
 export const HUD: React.FC<HUDProps> = React.memo(({ selectedDistrict, onToggleNavMenu, onToggleHints, pov, onSetPov, onGoHome, isCalibrationMode, heldDistrictId, shipControlMode, onToggleShipControl, onFire, isTouchDevice, onShipTouchInputChange, isAnyPanelOpen }) => {
 
   const breadcrumb = useMemo(() => {
-    if (heldDistrictId) return `RAGETOPIA > /ARCHITECT_MODE/MOVING...`;
-    if (shipControlMode === 'manual') return `RAGETOPIA > /SHIP_CONTROL/PILOTING...`;
-    if (selectedDistrict) return `RAGETOPIA > /${selectedDistrict.id.toUpperCase()}_DISTRICT/`;
-    if (isCalibrationMode) return `RAGETOPIA > /ARCHITECT_MODE/`;
-    return 'RAGETOPIA';
+    if (heldDistrictId) return `NEXUS > /ARCHITECT_MODE/MOVING...`;
+    if (shipControlMode === 'manual') return `NEXUS > /SHIP_CONTROL/PILOTING...`;
+    if (selectedDistrict) return `NEXUS > /${selectedDistrict.id.toUpperCase()}_DISTRICT/`;
+    if (isCalibrationMode) return `NEXUS > /ARCHITECT_MODE/`;
+    return 'NEXUS';
   }, [selectedDistrict, isCalibrationMode, heldDistrictId, shipControlMode]);
   
   const isManualMode = shipControlMode === 'manual';

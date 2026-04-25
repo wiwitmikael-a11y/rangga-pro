@@ -5,7 +5,7 @@ interface LoaderProps {
 }
 
 const loadingTexts = [
-  '> INITIALIZING RAGETOPIA OS...',
+  '> INITIALIZING NEXUS OS...',
   '> CALIBRATING NAV-SYSTEM... OK',
   '> LOADING CITY CORE MATRIX...',
   '> VERIFYING BIOMETRIC SIGNATURE... GRANTED',
@@ -81,7 +81,7 @@ export const Loader: React.FC<LoaderProps> = React.memo(({ progress }) => {
 
   return (
     <div style={styles.content}>
-      <h2 style={styles.title}>ACCESSING RAGETOPIA</h2>
+      <h2 style={styles.title}>ACCESSING NEXUS</h2>
       <div style={styles.diagnostics}>
         <p style={styles.text}>{displayedText}<span style={styles.cursor}>_</span></p>
       </div>

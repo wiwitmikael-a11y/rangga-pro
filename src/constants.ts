@@ -249,7 +249,7 @@ export const portfolioData: CityDistrict[] = [
         "position": [-2, 0, 0]
       }
     ],
-    "modelUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/district_nova_forge.glb",
+    // "modelUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/district_nova_forge.glb",
     "modelScale": 1.2
   },
   {
@@ -283,7 +283,7 @@ export const portfolioData: CityDistrict[] = [
             "position": [0,0,0]
         }
     ],
-    "modelUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/district_skills_matrix.glb",
+    // "modelUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/district_skills_matrix.glb",
     "modelScale": 1.5
   },
   {
@@ -324,7 +324,7 @@ export const portfolioData: CityDistrict[] = [
         "position": [-3, 0, 1]
       }
     ],
-    "modelUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/district_visual_arts.glb",
+    // "modelUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/district_visual_arts.glb",
     "modelScale": 1.3
   },
   {
@@ -365,7 +365,7 @@ export const portfolioData: CityDistrict[] = [
         "position": [0, -2, 0]
       }
     ],
-    "modelUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/district_defi_vault.glb",
+    // "modelUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/district_defi_vault.glb",
     "modelScale": 1.1
   },
   {

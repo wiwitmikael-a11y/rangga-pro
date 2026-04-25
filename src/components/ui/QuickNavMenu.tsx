@@ -49,6 +49,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     position: 'absolute',
     top: '15px',
     right: '15px',
+    zIndex: 10,
     background: 'transparent',
     border: '1px solid rgba(255, 153, 0, 0.7)',
     color: '#ff9900',
@@ -128,7 +129,6 @@ export const QuickNavMenu: React.FC<QuickNavMenuProps> = ({ isOpen, onClose, onS
       <div style={overlayStyle} onClick={handleClose} />
       <div style={containerStyle} className={`quick-nav-container ${isOpen ? 'panel-enter' : ''}`}>
         <div style={styles.dangerStripes} />
-        <button onClick={handleClose} style={styles.closeButton} aria-label="Close Navigation">&times;</button>
         <div style={styles.grid} className="quick-nav-grid">
           {districts.map(district => (
             <button

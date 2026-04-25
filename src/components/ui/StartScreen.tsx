@@ -191,7 +191,7 @@ export const StartScreen: React.FC<StartScreenProps> = React.memo(({ appState, p
         {/* Top Shutter */}
         <div style={{...styles.shutter, ...styles.shutterTop, transform: topTransform}}>
            <div style={{...styles.stripes, marginBottom: '20px'}}></div>
-           <div style={{position: 'absolute', bottom: '20px', fontSize: '0.7rem', color: '#00aaff', letterSpacing: '2px'}}>SYSTEM SECURE // RAGETOPIA-OS</div>
+           <div style={{position: 'absolute', bottom: '20px', fontSize: '0.7rem', color: '#00aaff', letterSpacing: '2px'}}>SYSTEM SECURE // NEXUS-OS</div>
         </div>
 
         {/* Bottom Shutter */}

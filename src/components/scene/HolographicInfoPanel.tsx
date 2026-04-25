@@ -67,12 +67,13 @@ const styles: { [key: string]: React.CSSProperties } = {
         animation: 'fadeInUp 0.5s 0.6s both',
     },
     closeButton: {
-        position: 'absolute',
-        top: '15px',
-        right: '15px',
-        background: 'transparent',
-        border: '1px solid #00aaff',
-        color: '#00aaff',
+    position: 'absolute',
+    top: '15px',
+    right: '15px',
+    zIndex: 10,
+    background: 'transparent',
+    border: '1px solid #00aaff',
+    color: '#00aaff',
         width: '30px',
         height: '30px',
         borderRadius: '50%',
@@ -86,7 +87,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     },
 };
 
-const HolographicInfoPanel: React.FC<HolographicInfoPanelProps> = ({ district, onClose }) => {
+const HolographicInfoPanel: React.FC<HolographicInfoPanelProps> = ({ district }) => {
   // FIX: Call useThree to provide types for JSX primitives
   useThree();
   const groupRef = useRef<THREE.Group>(null!);
@@ -145,9 +146,6 @@ const HolographicInfoPanel: React.FC<HolographicInfoPanelProps> = ({ district, o
             <p style={styles.placeholder}>
                 [Placeholder for professional portfolio content. Gallery, detailed text, or interactive elements will be displayed here.]
             </p>
-            <button onClick={onClose} style={styles.closeButton} aria-label="Close Panel">
-                &times;
-            </button>
           </div>
         </Html>
       </Billboard>

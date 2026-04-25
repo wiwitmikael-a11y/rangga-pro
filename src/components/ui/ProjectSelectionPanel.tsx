@@ -76,6 +76,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     paddingRight: '10px',
   },
   closeButton: {
+    position: 'relative',
+    zIndex: 10,
     background: 'transparent',
     border: '1px solid #ff9900',
     color: '#ff9900',
@@ -567,7 +569,6 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
                     </div>
                 )}
             </div>
-            <button onClick={onClose} style={styles.closeButton} aria-label="Close Panel">&times;</button>
         </div>
         <div style={styles.content} className="custom-scrollbar">
           {renderContent()}

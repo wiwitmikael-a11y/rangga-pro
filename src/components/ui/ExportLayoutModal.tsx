@@ -55,6 +55,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     textShadow: '0 0 8px var(--primary-color)',
   },
   closeButton: {
+    position: 'relative',
+    zIndex: 10,
     background: 'transparent',
     border: '1px solid rgba(255, 153, 0, 0.7)',
     color: '#ff9900',
@@ -157,7 +159,6 @@ export const ExportLayoutModal: React.FC<ExportLayoutModalProps> = ({ isOpen, on
           <div style={styles.dangerStripes} />
           <div style={styles.header}>
               <h2 style={styles.title}>Export New Layout</h2>
-              <button onClick={onClose} style={styles.closeButton} aria-label="Close Export">&times;</button>
           </div>
           <p style={styles.instructions}>
             The layout has been updated. Copy the code below and replace the content of the `portfolioData` array in <strong>src/constants.ts</strong> to make your changes permanent.

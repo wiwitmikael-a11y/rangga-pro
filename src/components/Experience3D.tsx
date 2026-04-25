@@ -202,7 +202,9 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEnte
   }, [districts]);
 
   const handleDistrictSelect = useCallback((district: CityDistrict) => {
-    if (isAnimating || isCalibrationMode || district.id === selectedDistrict?.id) return;
+    // Allowing it to proceed even if isAnimating is true, but preventing redundant selections
+    if (isCalibrationMode || district.id === selectedDistrict?.id) return;
+    
     setIsTouring(false);
     setShowContentPanel(false);
     setInfoPanelItem(null);
@@ -210,7 +212,7 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEnte
     setSelectedDistrict(districts.find(d => d.id === district.id) || null);
     setIsAnimating(true);
     audio.play('confirm');
-  }, [selectedDistrict, isAnimating, districts, isCalibrationMode, audio]);
+  }, [selectedDistrict, districts, isCalibrationMode, audio]);
   
   const isDetailViewActive = showContentPanel || !!infoPanelItem || !!selectedDistrict;
 
@@ -251,7 +253,9 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEnte
   }, [resetIdleTimer]);
 
   const handleGoHome = useCallback(() => {
-    if (isAnimating) return;
+    // Only return if we are already safely at the home view and not doing anything
+    if (!isAnimating && pov === 'main' && !selectedDistrict && !isTouring) return;
+    
     audio.play('confirm');
     setIsTouring(false);
     setPov('main');
@@ -262,7 +266,7 @@ export const Experience3D: React.FC<Experience3DProps> = ({ isHudVisible, isEnte
     setTargetShipRef(null);
     setShipControlMode('follow');
     setControlledShipId(null);
-  }, [isAnimating, audio]);
+  }, [isAnimating, pov, selectedDistrict, isTouring, audio]);
 
   const onAnimationFinish = useCallback(() => {
     if (isEntering) { // Special case for the entry animation finishing

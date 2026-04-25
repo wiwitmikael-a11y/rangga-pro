@@ -1,6 +1,6 @@
-# 🏙️ Ragetopia: Advanced 3D Web Portfolio
+# 🏙️ Nexus: Advanced 3D Web Portfolio
 
-Ragetopia adalah platform portofolio interaktif berbasis WebGL yang menggabungkan estetika *cyberpunk* dengan teknologi mutakhir. Proyek ini dirancang untuk menunjukkan keahlian dalam **Full-Stack Development**, **3D Graphics (Three.js)**, dan **AI Integration**.
+Nexus adalah platform portofolio interaktif berbasis WebGL yang menggabungkan estetika *cyberpunk* dengan teknologi mutakhir. Proyek ini dirancang untuk menunjukkan keahlian dalam **Full-Stack Development**, **3D Graphics (Three.js)**, dan **AI Integration**.
 
 ---
 

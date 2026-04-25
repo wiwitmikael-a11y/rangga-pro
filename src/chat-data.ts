@@ -224,7 +224,7 @@ export const chatData: {
         },
         faq_overview: {
             keywords: ['faq', 'meta', 'portofolio', 'aplikasi ini', 'tentang ini', 'website ini'],
-            botResponses: ["Tentu. Portofolio interaktif ini, 'Ragetopia', adalah proyek pribadi yang dirancang untuk menampilkan perpaduan keterampilan teknis dan kreatif Rangga. Apa yang ingin Anda ketahui lebih lanjut?"],
+            botResponses: ["Tentu. Portofolio interaktif ini, 'Nexus', adalah proyek pribadi yang dirancang untuk menampilkan perpaduan keterampilan teknis dan kreatif Rangga. Apa yang ingin Anda ketahui lebih lanjut?"],
             followUpPrompts: [
                 { text: "Teknologi apa yang digunakan?", topicId: 'faq_tech_stack' },
                 { text: "Kembali ke topik utama.", topicId: 'start' },
@@ -402,7 +402,7 @@ export const chatData: {
         },
         faq_overview: {
             keywords: ['faq', 'meta', 'portfolio', 'this app', 'about this', 'this website'],
-            botResponses: ["Of course. This interactive portfolio, 'Ragetopia', is a personal project designed to showcase a blend of technical and creative skills. What would you like to know more about?"],
+            botResponses: ["Of course. This interactive portfolio, 'Nexus', is a personal project designed to showcase a blend of technical and creative skills. What would you like to know more about?"],
             followUpPrompts: [
                 { text: "What is the tech stack?", topicId: 'faq_tech_stack' },
                 { text: "Back to main topics.", topicId: 'start' },
