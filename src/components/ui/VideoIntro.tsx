@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { motion } from 'motion/react';
 
 interface VideoIntroProps {
-  onComplete: () => void;
+  onComplete: (mode: '3d' | '2d') => void;
+  onModeSelect?: (mode: '3d' | '2d') => void;
 }
 
 interface WordStep {
@@ -125,12 +127,14 @@ const styles: { [key: string]: React.CSSProperties } = {
   }
 };
 
-export const VideoIntro: React.FC<VideoIntroProps> = ({ onComplete }) => {
+export const VideoIntro: React.FC<VideoIntroProps> = ({ onComplete, onModeSelect }) => {
   const [stepIndex, setStepIndex] = useState(0);
   const [isFadingOut, setIsFadingOut] = useState(false);
-  const [isReadyToStart, setIsReadyToStart] = useState(false); 
+  const [phase, setPhase] = useState<'intro' | 'loading' | 'ready'>('intro');
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isTriggeredRef = useRef(false);
 
   const playSound = useCallback((freq: number, type: OscillatorType, length: number) => {
     try {
@@ -160,40 +164,40 @@ export const VideoIntro: React.FC<VideoIntroProps> = ({ onComplete }) => {
     }
   }, []);
 
-  const triggerExit = useCallback(() => {
+  const triggerExit = useCallback((mode: '3d' | '2d') => {
+    if (isTriggeredRef.current) return;
+    isTriggeredRef.current = true;
+    
+    if (onModeSelect) {
+        onModeSelect(mode);
+    }
+    
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setIsFadingOut(true);
     
-    // Play success/enter sound
     playSound(440, 'sine', 0.1);
     playSound(880, 'sine', 0.4);
     
-    // Small delay for fade out
     setTimeout(() => {
-        onComplete();
+        onComplete(mode);
     }, 800);
-  }, [onComplete, playSound]);
+  }, [onComplete, playSound, onModeSelect]);
 
   useEffect(() => {
-    // If we are already fading out or ready, do not run the loop logic
-    if (isFadingOut) return;
+    if (phase !== 'intro' || isFadingOut) return;
 
     const currentStep = SEQUENCE[stepIndex];
     const isLast = stepIndex === SEQUENCE.length - 1;
 
-    // Play sound for current step if not finished
-    if (!isLast && !isReadyToStart) {
+    if (!isLast) {
         const progress = stepIndex / SEQUENCE.length;
         const freq = 100 + (progress * 400) + (Math.random() * 50);
         playSound(freq, 'sawtooth', 0.05);
     }
 
     if (isLast) {
-       // SEQUENCE FINISHED
-       // Only set state if it hasn't been set yet to avoid infinite loop
-       if (!isReadyToStart) setIsReadyToStart(true);
+       setPhase('loading');
     } else {
-       // Move to next word
        timeoutRef.current = setTimeout(() => {
          setStepIndex(prev => prev + 1);
        }, currentStep.speed);
@@ -202,7 +206,24 @@ export const VideoIntro: React.FC<VideoIntroProps> = ({ onComplete }) => {
     return () => {
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [stepIndex, playSound, isFadingOut, isReadyToStart]);
+  }, [stepIndex, playSound, isFadingOut, phase]);
+
+  useEffect(() => {
+      if (phase !== 'loading') return;
+
+      const interval = setInterval(() => {
+          setLoadingProgress(prev => {
+              if (prev >= 100) {
+                  clearInterval(interval);
+                  setPhase('ready');
+                  return 100;
+              }
+              return prev + (Math.random() * 5);
+          });
+      }, 50);
+
+      return () => clearInterval(interval);
+  }, [phase]);
 
   const currentStep = SEQUENCE[stepIndex];
 
@@ -226,40 +247,91 @@ export const VideoIntro: React.FC<VideoIntroProps> = ({ onComplete }) => {
       `}</style>
       
       <div 
-        style={{ ...styles.container, opacity: isFadingOut ? 0 : 1, pointerEvents: 'auto' }}
-        onClick={triggerExit}
-        onTouchEnd={(e) => {
-          e.preventDefault(); // Prevent double tap zoom or click emulation delay
-          triggerExit();
-        }}
+        style={{ ...styles.container, opacity: isFadingOut ? 0 : 1 }}
       >
         <div style={styles.gridBackground} />
         
         <div style={styles.contentWrapper}>
           <span style={styles.staticText}>rangga.</span>
           <span style={styles.bridgeText}>de</span>
-          <span 
-            className="intro-suffix"
-            style={{ ...styles.dynamicSuffix, color: currentStep.color }}
+          {phase === 'intro' && (
+            <>
+                <span 
+                    className="intro-suffix"
+                    style={{ ...styles.dynamicSuffix, color: currentStep.color }}
+                >
+                    {currentStep.text}
+                </span>
+                <span style={styles.cursor} />
+            </>
+          )}
+        </div>
+
+        {phase === 'loading' && (
+            <div style={{ marginTop: '40px', width: '300px', height: '2px', background: '#333' }}>
+                <div style={{ width: `${loadingProgress}%`, height: '100%', background: '#00ffff' }} />
+                <div style={{ color: '#aaa', marginTop: '10px', fontSize: '0.8rem', textAlign: 'center' }}>LOADING_ASSETS: {Math.floor(loadingProgress)}%</div>
+            </div>
+        )}
+
+        {phase === 'ready' && (
+          <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              style={{ 
+                  marginTop: '40px',
+                  display: 'flex', 
+                  gap: '40px', 
+                  alignItems: 'center', 
+                  pointerEvents: 'auto',
+                  position: 'relative',
+                  zIndex: 20
+              }}
           >
-            {currentStep.text}
-          </span>
-          <span style={styles.cursor} />
-        </div>
-
-        {/* The Prompt appearing at the end acts as the new Start Button */}
-        <div style={{ ...styles.startPrompt, opacity: isReadyToStart ? 1 : 0 }}>
-            &gt; [ CLICK TO ENTER SYSTEM ]
-        </div>
-
-        {!isReadyToStart && (
-            <button 
-                style={{ ...styles.skipButton }} 
-                onClick={(e) => { e.stopPropagation(); triggerExit(); }}
-                onTouchEnd={(e) => { e.stopPropagation(); e.preventDefault(); triggerExit(); }}
-            >
-                SKIP_INTRO &gt;&gt;
-            </button>
+              <motion.button
+                  onClick={(e) => { e.stopPropagation(); triggerExit('3d'); }}
+                  whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(0, 255, 255, 0.5)' }}
+                  whileTap={{ scale: 0.95 }}
+                  style={{
+                      background: 'rgba(0, 255, 255, 0.05)', 
+                      border: '2px solid #00ffff', 
+                      color: '#00ffff',
+                      padding: '16px 0', 
+                      width: '200px',
+                      cursor: 'pointer', 
+                      fontFamily: 'var(--font-mono)', 
+                      fontSize: '1.2rem',
+                      fontWeight: 'bold',
+                      borderRadius: '4px', 
+                      textTransform: 'uppercase', 
+                      letterSpacing: '0.2em',
+                      boxShadow: '0 0 20px rgba(0, 255, 255, 0.3)',
+                  }}
+              >
+                  3D WEB
+              </motion.button>
+              <motion.button
+                  onClick={(e) => { e.stopPropagation(); triggerExit('2d'); }}
+                  whileHover={{ scale: 1.05, backgroundColor: '#f0f0f0' }}
+                  whileTap={{ scale: 0.95 }}
+                  style={{
+                      background: 'white', 
+                      border: '2px solid white', 
+                      color: '#050810',
+                      padding: '16px 0', 
+                      width: '200px',
+                      cursor: 'pointer', 
+                      fontFamily: 'var(--font-sans)', 
+                      fontSize: '1.2rem',
+                      fontWeight: 600,
+                      borderRadius: '4px', 
+                      letterSpacing: '0.05em',
+                  }}
+              >
+                  2D WEB
+              </motion.button>
+          </motion.div>
         )}
       </div>
     </>

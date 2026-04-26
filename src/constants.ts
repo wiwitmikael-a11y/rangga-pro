@@ -141,6 +141,45 @@ export const skillsDataBilingual: { [key in 'id' | 'en']: SkillCategory[] } = {
 };
 
 
+export const servicesProvidedBilingual = {
+  id: [
+    {
+      title: "Pengembangan Aplikasi Web Interaktif & 3D WebGL",
+      description: "Pembuatan aplikasi web yang imersif dan interaktif menggunakan teknologi modern seperti React, Three.js, dan React Three Fiber. Cocok untuk portofolio premium, pengalaman interaktif 3D, dan antarmuka produk dengan kualitas tinggi."
+    },
+    {
+      title: "Integrasi AI & Pengembangan Agen Otonom (LLM)",
+      description: "Membangun sistem cerdas menggunakan Generative AI dan Multi-LLM (seperti OpenAI, Gemini). Layanan mencakup pembuatan interaktif chatbot, sistem RAG, dan agen otonom untuk otomatisasi operasi bisnis Anda."
+    },
+    {
+      title: "Full-Stack Web Development & Arsitektur",
+      description: "Merancang arsitektur sistem perangkat lunak yang andal dan scalable. Berpengalaman 15+ tahun dalam membangun enterprise-grade web application dari konsep dasar logika hingga cloud deployment."
+    },
+    {
+      title: "UI/UX System Design & Creative Tech",
+      description: "Menggabungkan desain antarmuka mutakhir (seperti gaya minimalis 'Apple-clean' atau gaya brutalist 'Cyberpunk') dengan pengalaman pengguna yang mulus. Meliputi desain wireframe, prototyping, dan desain interaktif performa tinggi."
+    }
+  ],
+  en: [
+    {
+      title: "Interactive Web & 3D WebGL Development",
+      description: "Crafting immersive and interactive web applications utilizing modern core technologies including React, Three.js, and React Three Fiber. Ideal for premium portfolios, interactive 3D experiences, and cutting-edge product interfaces."
+    },
+    {
+      title: "AI Integration & Autonomous Agent Development",
+      description: "Building intelligent software systems using Generative AI and Multi-LLM workflows. Services include interactive AI chatbots, RAG systems, and autonomous agents designed for complex business automation."
+    },
+    {
+      title: "Full-Stack Web Development & Architecture",
+      description: "Architecting reliable, secure, and highly scalable software systems. Backed by 15+ years of experience spanning concept architecture, backend structuring, and full cloud deployment."
+    },
+    {
+      title: "UI/UX System Design & Creative Technology",
+      description: "Fusing cutting-edge aesthetic interfaces (from 'Apple-clean' minimalism to 'Cyberpunk' brutalism) with seamless user experiences. Covering wireframing, rapid prototyping, and high-performance interactive design."
+    }
+  ]
+};
+
 // --- Global Scene Constants ---
 export const OVERVIEW_CAMERA_POSITION = new THREE.Vector3(0, 100, 250);
 export const FLIGHT_RADIUS = 150; // Increased radius to accommodate spread out districts
@@ -401,6 +440,31 @@ export const portfolioData: CityDistrict[] = [
     ],
     // "modelUrl": "https://raw.githubusercontent.com/wiwitmikael-a11y/3Dmodels/main/district_contact.glb", // REMOVED DUE TO 404 TO PREVENT CRASH
     "modelScale": 1.4
+  },
+  {
+    "id": "services-hub",
+    "title": "Solutions Node",
+    "description": "Professional Services & Offerings",
+    "position": [
+      70,
+      0,
+      30
+    ],
+    "type": "major",
+    "cameraFocus": {
+      "pos": [
+        90,
+        25,
+        50
+      ],
+      "lookAt": [
+        70,
+        10,
+        30
+      ]
+    },
+    "subItems": [], // Will be handled by custom panel rendering
+    "modelScale": 1.3
   },
   {
     "id": "res-1",

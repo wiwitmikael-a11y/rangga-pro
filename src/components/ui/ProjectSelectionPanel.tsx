@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { CityDistrict, SkillCategory } from '../../types';
-import { skillsDataBilingual, FORMSPREE_FORM_ID } from '../../constants';
+import { skillsDataBilingual, FORMSPREE_FORM_ID, servicesProvidedBilingual } from '../../constants';
 import { SkillsRadarChart } from './SkillsRadarChart';
 import { chatData, ChatPrompt, ChatTopic } from '../../chat-data';
 
@@ -202,6 +202,47 @@ const messageTemplates = [
 ];
 
 
+const ServicesPanel: React.FC<{ lang: 'id' | 'en' }> = ({ lang }) => {
+  const services = servicesProvidedBilingual[lang];
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: '100%', paddingBottom: '20px' }}>
+      <p style={{ color: '#ccc', lineHeight: 1.6, marginTop: 0, 
+        borderBottom: '1px solid rgba(0, 170, 255, 0.2)', paddingBottom: '10px' }}>
+        {lang === 'id' 
+            ? "Layanan profesional untuk mematerialisasi visi digital menggunakan perpaduan engineering presisi, kecerdasan buatan, dan arsitektur yang aman." 
+            : "Professional services to materialize digital visions through a blend of precision engineering, artificial intelligence, and secure architecture."}
+      </p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+        {services.map((service, idx) => (
+          <div key={idx} style={{ 
+            ...glassmorphism, 
+            padding: '20px', 
+            borderRadius: '12px', 
+            borderLeft: '4px solid var(--primary-color)',
+            transition: 'transform 0.3s ease, box-shadow 0.3s ease'
+          }}
+          onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-5px)';
+              e.currentTarget.style.boxShadow = '0 10px 20px rgba(0, 170, 255, 0.2)';
+          }}
+          onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'none';
+              e.currentTarget.style.boxShadow = 'none';
+          }}
+          >
+            <h3 style={{ color: 'white', marginTop: 0, marginBottom: '10px', fontSize: '1.2rem', textShadow: '0 0 5px rgba(0,255,255,0.5)' }}>
+              {service.title}
+            </h3>
+            <p style={{ color: '#aaa', fontSize: '0.9rem', lineHeight: 1.6, margin: 0 }}>
+              {service.description}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const ContactPanel: React.FC = () => {
     const [status, setStatus] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -333,19 +374,66 @@ const ContactPanel: React.FC = () => {
     );
 };
 
+const TrashIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+    </svg>
+);
+
+const UserContactIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle>
+    </svg>
+);
+
 const AiInquiryPanel: React.FC = () => {
-    const [lang, setLang] = useState<'id' | 'en' | null>(null);
-    const [messages, setMessages] = useState<{ author: 'user' | 'bot'; text: string; }[]>([]);
-    const [prompts, setPrompts] = useState<ChatPrompt[]>([]);
+    const [lang, setLang] = useState<'id' | 'en' | null>(() => {
+        const saved = localStorage.getItem('chat_lang_3d');
+        return (saved === 'id' || saved === 'en') ? saved : null;
+    });
+    const [messages, setMessages] = useState<{ author: 'user' | 'bot'; text: string; }[]>(() => {
+        const saved = localStorage.getItem('chat_messages_3d');
+        if (saved) {
+            try { return JSON.parse(saved); } catch (e) {}
+        }
+        return [];
+    });
+    const [prompts, setPrompts] = useState<ChatPrompt[]>(() => {
+        const saved = localStorage.getItem('chat_prompts_3d');
+        if (saved) {
+            try { return JSON.parse(saved); } catch (e) {}
+        }
+        return [];
+    });
     const [isLoading, setIsLoading] = useState(false);
     const [input, setInput] = useState('');
-    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const [isContactOpen, setIsContactOpen] = useState(false);
+    const latestMessageRef = useRef<HTMLDivElement>(null);
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    useEffect(() => {
+        if (lang) localStorage.setItem('chat_lang_3d', lang);
+        else localStorage.removeItem('chat_lang_3d');
+    }, [lang]);
+
+    useEffect(() => {
+        localStorage.setItem('chat_messages_3d', JSON.stringify(messages));
+    }, [messages]);
+
+    useEffect(() => {
+        localStorage.setItem('chat_prompts_3d', JSON.stringify(prompts));
+    }, [prompts]);
+
+    const scrollToLatest = () => {
+        if (isLoading) {
+            if (latestMessageRef.current) {
+                latestMessageRef.current.parentElement?.scrollTo({ top: latestMessageRef.current.parentElement.scrollHeight, behavior: 'smooth' });
+            }
+        } else if (latestMessageRef.current) {
+            latestMessageRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
     };
 
-    useEffect(scrollToBottom, [messages]);
+    useEffect(scrollToLatest, [messages.length, isLoading]);
 
     const addBotMessage = useCallback((text: string, newPrompts: ChatPrompt[]) => {
         setMessages(prev => [...prev, { author: 'bot', text }]);
@@ -355,25 +443,31 @@ const AiInquiryPanel: React.FC = () => {
 
     // Effect for initial language selection
     useEffect(() => {
+        if (messages.length > 0) return; // Skip if loaded from history
         setIsLoading(true);
-        setTimeout(() => {
+        const timeoutId = window.setTimeout(() => {
             addBotMessage(
                 chatData.languageSelector.intro, 
                 [chatData.languageSelector.prompts.id, chatData.languageSelector.prompts.en]
             );
         }, 500);
+        return () => window.clearTimeout(timeoutId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Effect to greet in selected language
+    // Effect to greet in selected language (only when lang is set and messages are empty/only language prompt)
     useEffect(() => {
-        if (lang) {
+        let timeoutId: number | undefined;
+        if (lang && messages.length <= 1) { // Only greet if just selected language
             setIsLoading(true);
             const db = chatData[lang];
             const initialGreeting = db.greetings[Math.floor(Math.random() * db.greetings.length)];
-            setTimeout(() => addBotMessage(initialGreeting, db.entryPoints), 800);
+            timeoutId = window.setTimeout(() => addBotMessage(initialGreeting, db.entryPoints), 800);
         }
-    }, [lang, addBotMessage]);
+        return () => {
+            if (timeoutId) window.clearTimeout(timeoutId);
+        };
+    }, [lang, addBotMessage]); // removed messages.length from deps to prevent loop, but checked manually above
 
     const findTopicByKeywords = useCallback((message: string, db: typeof chatData.en): ChatTopic | null => {
         const lowerCaseMessage = message.toLowerCase().trim();
@@ -457,26 +551,68 @@ const AiInquiryPanel: React.FC = () => {
         processAndRespond(topic, db);
     };
     
+    const clearChat = () => {
+        setMessages([]);
+        setPrompts([]);
+        setLang(null);
+        setIsLoading(true);
+        setTimeout(() => {
+            addBotMessage(
+                chatData.languageSelector.intro, 
+                [chatData.languageSelector.prompts.id, chatData.languageSelector.prompts.en]
+            );
+        }, 500);
+    };
+
     return (
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <div style={{ flexGrow: 1, overflowY: 'auto', paddingRight: '10px' }}>
-                {messages.map((msg, index) => (
-                    <div key={index} style={{ marginBottom: '15px', display: 'flex', flexDirection: msg.author === 'bot' ? 'row' : 'row-reverse' }}>
-                        <div style={{ padding: '10px 15px', borderRadius: '10px', maxWidth: '80%', background: msg.author === 'bot' ? 'rgba(0, 170, 255, 0.1)' : 'rgba(255, 255, 255, 0.1)', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{msg.text}</div>
-                    </div>
-                ))}
+                {messages.map((msg, index) => {
+                    const isLatest = index === messages.length - 1;
+                    return (
+                        <div key={index} ref={isLatest ? latestMessageRef : null} style={{ marginBottom: '15px', display: 'flex', flexDirection: msg.author === 'bot' ? 'row' : 'row-reverse' }}>
+                            <div style={{ padding: '10px 15px', borderRadius: '10px', maxWidth: '80%', background: msg.author === 'bot' ? 'rgba(0, 170, 255, 0.1)' : 'rgba(255, 255, 255, 0.1)', color: '#fff', whiteSpace: 'pre-wrap', lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: msg.text.replace(/\n\n/g, '<br/><br/>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
+                        </div>
+                    );
+                })}
                  {isLoading && <div style={{ textAlign: 'center', color: '#ccc' }}>Thinking...</div>}
-                <div ref={messagesEndRef} />
             </div>
             <div style={{ flexShrink: 0, paddingTop: '10px' }}>
                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '10px', justifyContent: 'center' }}>
                     {!isLoading && prompts.map((p, i) => <button key={i} onClick={() => handlePromptClick(p)} style={{ background: 'rgba(0, 170, 255, 0.2)', border: '1px solid #00aaff', color: '#00aaff', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer' }}>{p.text}</button>)}
                 </div>
-                 <form onSubmit={handleFreeformSubmit} style={{ display: 'flex', gap: '10px' }}>
-                    <input type="text" value={input} onChange={e => setInput(e.target.value)} placeholder={!lang ? "Select a language to begin..." : "Or ask a freeform question..."} disabled={isLoading || !lang} style={{ flexGrow: 1, padding: '12px', background: 'rgba(0,0,0,0.3)', border: '1px solid #00aaff', borderRadius: '5px', color: 'white' }} />
-                    <button type="submit" disabled={isLoading || !lang} style={{...styles.closeButton, position: 'static', width: 'auto', padding: '10px 20px', borderRadius: '5px' }}>Send</button>
+                 <form onSubmit={handleFreeformSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <input type="text" value={input} onChange={e => setInput(e.target.value)} placeholder={!lang ? "Select a language to begin..." : "Or ask a freeform question..."} disabled={isLoading || !lang} style={{ flexGrow: 1, padding: '12px', background: 'rgba(0,0,0,0.3)', border: '1px solid #00aaff', borderRadius: '5px', color: 'white' }} />
+                        <button type="submit" disabled={isLoading || !lang} style={{...styles.closeButton, position: 'static', width: 'auto', padding: '10px 20px', borderRadius: '5px' }}>Send</button>
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-start' }}>
+                        <button type="button" onClick={clearChat} title={lang === 'id' ? "Hapus percakapan" : "Clear chat"} style={{ background: 'rgba(255,0,0,0.1)', border: '1px solid rgba(255,0,0,0.4)', color: '#ff4444', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            <TrashIcon /> {lang === 'id' ? "Bersihkan" : "Clear"}
+                        </button>
+                        <button type="button" onClick={() => setIsContactOpen(true)} title={lang === 'id' ? "Hubungi" : "Contact"} style={{ background: 'rgba(0,170,255,0.1)', border: '1px solid rgba(0,170,255,0.4)', color: '#00aaff', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            <UserContactIcon /> {lang === 'id' ? "Kontak" : "Connect"}
+                        </button>
+                    </div>
                 </form>
             </div>
+            
+            {/* Contact Modal Modal */}
+            {isContactOpen && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000 }} onClick={() => setIsContactOpen(false)}>
+                    <div style={{ backgroundColor: 'rgba(10, 20, 30, 0.95)', border: '1px solid #00aaff', borderRadius: '15px', padding: '30px', width: '90%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '15px', textAlign: 'center', boxShadow: '0 0 30px rgba(0, 170, 255, 0.2)' }} onClick={e => e.stopPropagation()}>
+                        <h3 style={{ color: 'white', margin: '0 0 10px 0' }}>{lang === 'id' ? 'Terhubung Dengan Saya' : 'Connect With Me'}</h3>
+                        <a href="mailto:wiwitmikael@gmail.com" target="_blank" rel="noopener noreferrer" style={{ padding: '15px', backgroundColor: 'rgba(0, 170, 255, 0.1)', color: 'white', textDecoration: 'none', borderRadius: '10px', border: '1px solid rgba(0, 170, 255, 0.3)', fontWeight: 500, transition: 'all 0.2s' }}>Email</a>
+                        <a href="https://id.linkedin.com/in/rangga-prayoga-hermawan" target="_blank" rel="noopener noreferrer" style={{ padding: '15px', backgroundColor: 'rgba(0, 170, 255, 0.1)', color: 'white', textDecoration: 'none', borderRadius: '10px', border: '1px solid rgba(0, 170, 255, 0.3)', fontWeight: 500, transition: 'all 0.2s' }}>LinkedIn</a>
+                        <a href="https://github.com/atharia-agi" target="_blank" rel="noopener noreferrer" style={{ padding: '15px', backgroundColor: 'rgba(0, 170, 255, 0.1)', color: 'white', textDecoration: 'none', borderRadius: '10px', border: '1px solid rgba(0, 170, 255, 0.3)', fontWeight: 500, transition: 'all 0.2s' }}>GitHub</a>
+                        <a href="https://x.com/Atharia_AGI" target="_blank" rel="noopener noreferrer" style={{ padding: '15px', backgroundColor: 'rgba(0, 170, 255, 0.1)', color: 'white', textDecoration: 'none', borderRadius: '10px', border: '1px solid rgba(0, 170, 255, 0.3)', fontWeight: 500, transition: 'all 0.2s' }}>X (Twitter)</a>
+                        <a href="https://www.youtube.com/@ruangranggamusicchannel5536" target="_blank" rel="noopener noreferrer" style={{ padding: '15px', backgroundColor: 'rgba(0, 170, 255, 0.1)', color: 'white', textDecoration: 'none', borderRadius: '10px', border: '1px solid rgba(0, 170, 255, 0.3)', fontWeight: 500, transition: 'all 0.2s' }}>YouTube</a>
+                        <a href="https://www.instagram.com/rangga.p.h" target="_blank" rel="noopener noreferrer" style={{ padding: '15px', backgroundColor: 'rgba(0, 170, 255, 0.1)', color: 'white', textDecoration: 'none', borderRadius: '10px', border: '1px solid rgba(0, 170, 255, 0.3)', fontWeight: 500, transition: 'all 0.2s' }}>Instagram</a>
+
+                        <button onClick={() => setIsContactOpen(false)} style={{ marginTop: '10px', padding: '10px', background: 'transparent', color: '#88a7a6', border: 'none', cursor: 'pointer' }}>{lang === 'id' ? 'Tutup' : 'Close'}</button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
@@ -543,6 +679,8 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
     switch (district.id) {
       case 'skills-matrix':
         return <SkillsMatrixPanel lang={lang} />;
+      case 'services-hub':
+        return <ServicesPanel lang={lang} />;
       case 'contact':
         return <ContactPanel />;
       case 'nexus-core':
@@ -561,7 +699,7 @@ export const ProjectSelectionPanel: React.FC<ProjectSelectionPanelProps> = ({ is
             {/* Wrapper for title and lang switch to ensure proper flex behavior */}
             <div style={{ flex: '1 1 auto', display: 'flex', alignItems: 'center', minWidth: 0 }}>
                 <h2 style={styles.title}>{district?.title}</h2>
-                {district?.id === 'skills-matrix' && (
+                {(district?.id === 'skills-matrix' || district?.id === 'services-hub') && (
                     <div style={{ display: 'flex', gap: '5px', alignItems: 'center', flexShrink: 0, marginLeft: '15px' }}>
                         <button onClick={() => setLang('id')} style={{ fontWeight: lang === 'id' ? 'bold' : 'normal', color: lang === 'id' ? 'white' : '#aaa', background: 'none', border: 'none', cursor: 'pointer' }}>ID</button>
                         <span>/</span>

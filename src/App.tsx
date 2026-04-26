@@ -4,6 +4,8 @@ import { AudioProvider } from './contexts/AudioContext';
 import { useAudio } from './hooks/useAudio';
 import { VideoIntro } from './components/ui/VideoIntro';
 
+import { LiteVersion2D } from './components/ui/LiteVersion2D';
+
 interface ErrorBoundaryProps {
   children?: React.ReactNode;
 }
@@ -63,15 +65,21 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 
 const AppContent: React.FC = () => {
   const [appState, setAppState] = useState<'video' | 'entering' | 'experience'>('video');
+  const [viewMode, setViewMode] = useState<'3d' | '2d' | null>(null);
   const audio = useAudio();
 
-  const handleIntroComplete = useCallback(() => {
-    audio.play('confirm');
-    audio.play('gate_open', { volume: 0.8 });
-    audio.playLoop('ambience', { volume: 0.2 });
-    audio.playLoop('flyby', { volume: 0.15 });
+  const handleIntroComplete = useCallback((mode: '3d' | '2d') => {
+    setViewMode(mode);
+    if (mode === '3d') {
+        audio.play('confirm');
+        audio.play('gate_open', { volume: 0.8 });
+        audio.playLoop('ambience', { volume: 0.2 });
+        audio.playLoop('flyby', { volume: 0.15 });
 
-    setAppState('entering');
+        setAppState('entering');
+    } else {
+        setAppState('experience'); // skipping 3D initialization
+    }
   }, [audio]);
 
   const handleEntryAnimationFinish = useCallback(() => {
@@ -89,20 +97,24 @@ const AppContent: React.FC = () => {
 
   return (
     <>
-      {showVideo && <VideoIntro onComplete={handleIntroComplete} />}
+      {showVideo && <VideoIntro onModeSelect={setViewMode} onComplete={handleIntroComplete} />}
 
-      <main style={{ width: '100vw', height: '100vh', backgroundColor: '#050810' }}>
-        <ErrorBoundary>
-            <Suspense fallback={null}>
-                <Experience3D 
-                  isHudVisible={isHudVisible} 
-                  isEntering={isEntering}
-                  isWaitingToStart={isWaitingToStart} 
-                  onEntryFinish={handleEntryAnimationFinish} 
-                />
-            </Suspense>
-        </ErrorBoundary>
-      </main>
+      {viewMode === '2d' ? (
+          <LiteVersion2D />
+      ) : (
+          <main style={{ width: '100vw', height: '100vh', backgroundColor: '#050810' }}>
+            <ErrorBoundary>
+                <Suspense fallback={null}>
+                    <Experience3D 
+                      isHudVisible={isHudVisible} 
+                      isEntering={isEntering}
+                      isWaitingToStart={isWaitingToStart} 
+                      onEntryFinish={handleEntryAnimationFinish} 
+                    />
+                </Suspense>
+            </ErrorBoundary>
+          </main>
+      )}
     </>
   );
 };
